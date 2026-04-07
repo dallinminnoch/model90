@@ -474,6 +474,127 @@
           return String(caseRefFromUrl || window.getLensLinkedCaseRef?.() || "").trim().toUpperCase();
         }
 
+        function getCurrentClientRecordsStorageKey() {
+          let session = null;
+          try {
+            session = JSON.parse(localStorage.getItem("lipPlannerAuthSession") || "null");
+          } catch (_error) {
+            session = null;
+          }
+
+          const identity = session?.email ? String(session.email).trim().toLowerCase() : "guest";
+          return `lensClientRecords:${identity}`;
+        }
+
+        function getLinkedRecordEntry() {
+          const linkedCaseRef = getLinkedCaseRef().toLowerCase();
+          if (!linkedCaseRef) {
+            return null;
+          }
+
+          const key = getCurrentClientRecordsStorageKey();
+
+          try {
+            const records = JSON.parse(localStorage.getItem(key) || "[]");
+            if (!Array.isArray(records)) {
+              return null;
+            }
+
+            const recordIndex = records.findIndex((record) => String(record?.caseRef || "").trim().toLowerCase() === linkedCaseRef);
+            if (recordIndex < 0) {
+              return null;
+            }
+
+            return {
+              key,
+              records,
+              recordIndex,
+              record: records[recordIndex]
+            };
+          } catch (_error) {
+          }
+
+          return null;
+        }
+
+        function serializePreliminaryFormSnapshot(targetForm) {
+          const formData = new FormData(targetForm);
+          const snapshot = {};
+
+          for (const [key, value] of formData.entries()) {
+            const normalizedValue = typeof value === "string" ? value.trim() : value;
+
+            if (Object.prototype.hasOwnProperty.call(snapshot, key)) {
+              if (Array.isArray(snapshot[key])) {
+                snapshot[key].push(normalizedValue);
+              } else {
+                snapshot[key] = [snapshot[key], normalizedValue];
+              }
+              continue;
+            }
+
+            snapshot[key] = normalizedValue;
+          }
+
+          return snapshot;
+        }
+
+        function saveLinkedPreliminaryEntry(draft) {
+          const linkedCaseRef = getLinkedCaseRef();
+          if (!linkedCaseRef) {
+            return null;
+          }
+
+          if (window.saveLensLinkedWorkflowSection) {
+            const savedRecord = window.saveLensLinkedWorkflowSection(
+              linkedCaseRef,
+              "preliminaryUnderwriting",
+              draft,
+              {
+                variant: "preliminary-only",
+                page: "preliminary-only-form"
+              }
+            );
+
+            if (savedRecord) {
+              return savedRecord;
+            }
+          }
+
+          const linkedEntry = getLinkedRecordEntry();
+          if (!linkedEntry) {
+            return null;
+          }
+
+          const today = new Date().toISOString().slice(0, 10);
+
+          try {
+            const currentRecord = linkedEntry.record || {};
+            const sectionPayload = {
+              completed: true,
+              linkedCaseRef,
+              savedAt: today,
+              variant: "preliminary-only",
+              page: "preliminary-only-form",
+              data: draft && typeof draft === "object" ? draft : {}
+            };
+            const updatedRecord = {
+              ...currentRecord,
+              lastUpdatedDate: today,
+              lastReview: today,
+              preliminaryUnderwriting: sectionPayload,
+              preliminaryUnderwritingCompleted: true
+            };
+            const nextRecords = linkedEntry.records.slice();
+            nextRecords[linkedEntry.recordIndex] = updatedRecord;
+            localStorage.setItem(linkedEntry.key, JSON.stringify(nextRecords));
+            return updatedRecord;
+          } catch (_error) {
+          }
+
+          return null;
+        }
+
         if (!getLinkedCaseRef()) {
           window.location.replace("preliminary-linked.html");
           return;
@@ -487,19 +608,21 @@
             return;
           }
 
-          if (window.saveLensLinkedWorkflowSection && window.serializeLensFormSnapshot) {
-            window.saveLensLinkedWorkflowSection(
-              normalizedCaseRef,
-              "preliminaryUnderwriting",
-              window.serializeLensFormSnapshot(form),
-              {
-                variant: "preliminary-only",
-                page: "preliminary-only-form"
-              }
-            );
+          const savedRecord = saveLinkedPreliminaryEntry(serializePreliminaryFormSnapshot(form));
+
+          const linkedCaseRef = String(
+            savedRecord?.caseRef
+            || normalizedCaseRef
+            || window.getLensLinkedCaseRef?.()
+            || ""
+          ).trim();
+
+          if (savedRecord && linkedCaseRef) {
+            window.location.href = `client-detail.html?caseRef=${encodeURIComponent(linkedCaseRef)}&tab=planning`;
+            return;
           }
 
-          window.location.href = "clients.html";
+          window.alert("The preliminary underwriting form did not save to the linked profile. Please try again.");
         });
       });
     })();

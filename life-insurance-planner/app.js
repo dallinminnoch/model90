@@ -2265,6 +2265,30 @@
     return nextRecords[recordIndex];
   }
 
+  function applyLinkedWorkflowSectionToRecord(record, sectionName, sectionPayload) {
+    const nextRecord = {
+      ...record,
+      lastUpdatedDate: sectionPayload.savedAt,
+      lastReview: sectionPayload.savedAt
+    };
+
+    if (sectionName === "preliminaryUnderwriting") {
+      nextRecord.preliminaryUnderwriting = sectionPayload;
+      nextRecord.preliminaryUnderwritingCompleted = true;
+    }
+
+    if (sectionName === "protectionModeling") {
+      const existingEntries = Array.isArray(nextRecord.protectionModelingEntries)
+        ? nextRecord.protectionModelingEntries.slice()
+        : [];
+      nextRecord.protectionModelingEntries = [...existingEntries, sectionPayload];
+      nextRecord.protectionModeling = sectionPayload;
+      nextRecord.pmiCompleted = true;
+    }
+
+    return nextRecord;
+  }
+
   function saveLinkedWorkflowSection(caseRef, sectionName, payload, meta) {
     const normalizedCaseRef = setLinkedCaseRef(caseRef);
     if (!normalizedCaseRef || !sectionName) {
@@ -2281,28 +2305,51 @@
     };
 
     return updateClientRecordByCaseRef(normalizedCaseRef, (record) => {
-      const nextRecord = {
-        ...record,
-        lastUpdatedDate: today,
-        lastReview: today
-      };
-
-      if (sectionName === "preliminaryUnderwriting") {
-        nextRecord.preliminaryUnderwriting = sectionPayload;
-        nextRecord.preliminaryUnderwritingCompleted = true;
-      }
-
-      if (sectionName === "protectionModeling") {
-        const existingEntries = Array.isArray(nextRecord.protectionModelingEntries)
-          ? nextRecord.protectionModelingEntries.slice()
-          : [];
-        nextRecord.protectionModelingEntries = [...existingEntries, sectionPayload];
-        nextRecord.protectionModeling = sectionPayload;
-        nextRecord.pmiCompleted = true;
-      }
-
-      return nextRecord;
+      return applyLinkedWorkflowSectionToRecord(record, sectionName, sectionPayload);
     });
+  }
+
+  function saveLinkedWorkflowSectionWithFallback(caseRef, sectionName, payload, meta) {
+    const savedRecord = saveLinkedWorkflowSection(caseRef, sectionName, payload, meta);
+    if (savedRecord) {
+      return savedRecord;
+    }
+
+    const normalizedCaseRef = normalizeCaseRef(caseRef);
+    if (!normalizedCaseRef || !sectionName) {
+      return null;
+    }
+
+    const today = formatDateInputValue(new Date());
+    const sectionPayload = {
+      completed: true,
+      linkedCaseRef: normalizedCaseRef,
+      savedAt: today,
+      ...(meta && typeof meta === "object" ? meta : {}),
+      data: payload && typeof payload === "object" ? payload : {}
+    };
+
+    const storageKey = getClientRecordsStorageKey();
+
+    try {
+      const records = loadJson(storageKey);
+      if (!Array.isArray(records)) {
+        return null;
+      }
+
+      const recordIndex = records.findIndex((record) => normalizeCaseRef(record?.caseRef) === normalizedCaseRef);
+      if (recordIndex < 0) {
+        return null;
+      }
+
+      const nextRecords = records.slice();
+      nextRecords[recordIndex] = applyLinkedWorkflowSectionToRecord(records[recordIndex] || {}, sectionName, sectionPayload);
+      localStorage.setItem(storageKey, JSON.stringify(nextRecords));
+      return nextRecords[recordIndex];
+    } catch (_error) {
+    }
+
+    return null;
   }
 
   function formatDateInputValue(value) {
@@ -3076,6 +3123,7 @@
   window.getLensFederalTaxBrackets = getFederalTaxBracketOptions;
   window.serializeLensFormSnapshot = serializeFormSnapshot;
   window.saveLensLinkedWorkflowSection = saveLinkedWorkflowSection;
+  window.saveLensLinkedWorkflowSectionWithFallback = saveLinkedWorkflowSectionWithFallback;
 
   function formatCurrency(value) {
     const number = Number(value);

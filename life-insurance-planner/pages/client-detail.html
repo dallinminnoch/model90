@@ -842,13 +842,22 @@
 
       function renderPreliminaryResultsCard(record) {
         const data = record.preliminaryUnderwriting?.data || {};
+        const treatmentCategories = Array.isArray(data.treatmentCategories)
+          ? data.treatmentCategories
+          : (Array.isArray(data.selectedTreatmentCategories)
+            ? data.selectedTreatmentCategories
+            : String(data.treatmentCategories || data.selectedTreatmentCategoriesDisplay || data.selectedTreatmentCategories || "")
+              .split("|")
+              .map(function (item) { return String(item || "").trim(); })
+              .filter(Boolean));
         return renderPlanningCard("Preliminary Results", [
           { label: "Status", value: record.preliminaryUnderwritingCompleted ? "Completed" : "Not started" },
           { label: "Saved At", value: record.preliminaryUnderwritingCompleted ? formatDate(record.preliminaryUnderwriting?.savedAt) : "Not provided" },
+          { label: "Linked Case Ref", value: record.preliminaryUnderwritingCompleted ? formatValue(record.preliminaryUnderwriting?.linkedCaseRef || record.caseRef) : "Not provided" },
           { label: "Height", value: `${formatValue(data.heightFeet)} ft ${formatValue(data.heightInches)} in`.replace("Not provided ft Not provided in", "Not provided") },
           { label: "Weight", value: data.weight ? `${String(data.weight).trim()} lbs` : "Not provided" },
           { label: "BMI", value: formatValue(data.bodyMassIndex) },
-          { label: "Treatment Categories", value: formatListValue(data.treatmentCategories) }
+          { label: "Treatment Categories", value: formatListValue(treatmentCategories) }
         ]);
       }
 
