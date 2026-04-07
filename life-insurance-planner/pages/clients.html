@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="pageTitle.clients">Clients | Advisor Planning Suite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body class="home-page clients-page">
+  <main class="home-shell app-home-shell client-directory-shell">
+    <section class="client-directory-workspace">
+      <aside class="client-directory-rail" aria-label="Browse clients by last name letter">
+        <button class="client-rail-button is-active" type="button" data-client-letter="all">All</button>
+        <button class="client-rail-button" type="button" data-client-letter="A">A</button>
+        <button class="client-rail-button" type="button" data-client-letter="B">B</button>
+        <button class="client-rail-button" type="button" data-client-letter="C">C</button>
+        <button class="client-rail-button" type="button" data-client-letter="D">D</button>
+        <button class="client-rail-button" type="button" data-client-letter="E">E</button>
+        <button class="client-rail-button" type="button" data-client-letter="F">F</button>
+        <button class="client-rail-button" type="button" data-client-letter="G">G</button>
+        <button class="client-rail-button" type="button" data-client-letter="H">H</button>
+        <button class="client-rail-button" type="button" data-client-letter="I">I</button>
+        <button class="client-rail-button" type="button" data-client-letter="J">J</button>
+        <button class="client-rail-button" type="button" data-client-letter="K">K</button>
+        <button class="client-rail-button" type="button" data-client-letter="L">L</button>
+        <button class="client-rail-button" type="button" data-client-letter="M">M</button>
+        <button class="client-rail-button" type="button" data-client-letter="N">N</button>
+        <button class="client-rail-button" type="button" data-client-letter="O">O</button>
+        <button class="client-rail-button" type="button" data-client-letter="P">P</button>
+        <button class="client-rail-button" type="button" data-client-letter="Q">Q</button>
+        <button class="client-rail-button" type="button" data-client-letter="R">R</button>
+        <button class="client-rail-button" type="button" data-client-letter="S">S</button>
+        <button class="client-rail-button" type="button" data-client-letter="T">T</button>
+        <button class="client-rail-button" type="button" data-client-letter="U">U</button>
+        <button class="client-rail-button" type="button" data-client-letter="V">V</button>
+        <button class="client-rail-button" type="button" data-client-letter="W">W</button>
+        <button class="client-rail-button" type="button" data-client-letter="X">X</button>
+        <button class="client-rail-button" type="button" data-client-letter="Y">Y</button>
+        <button class="client-rail-button" type="button" data-client-letter="Z">Z</button>
+      </aside>
+
+      <section class="client-directory-main">
+        <header class="client-directory-header">
+          <div class="client-directory-title-block">
+            <h1>Client Directory</h1>
+            <p>The Client Directory is the <strong>central hub</strong> for creating and managing household and individual profiles.<br><span class="client-directory-description-line">Each client account securely stores profile information and <strong>connects to the platform's planning and analysis tools.</strong></span></p>
+          </div>
+          <div class="client-directory-header-actions">
+            <div class="client-export-dropdown" data-export-dropdown>
+              <button class="client-header-action client-header-action-secondary" type="button" data-export-button aria-expanded="false">Export</button>
+              <div class="client-export-menu">
+                <button class="client-export-option" type="button" data-export-action="print">Print</button>
+                <button class="client-export-option" type="button" data-export-action="save">Save</button>
+                <button class="client-export-option" type="button" data-export-action="share">Share</button>
+              </div>
+            </div>
+            <button class="client-header-action client-header-action-primary" type="button" data-add-client-button>
+              <span class="client-add-icon" aria-hidden="true">+</span>
+              <span>Add New</span>
+            </button>
+          </div>
+        </header>
+
+        <section class="client-directory-toolbar">
+          <form class="client-table-search" role="search">
+            <input type="search" placeholder="Search for Clients">
+          </form>
+          <nav class="client-status-tabs" aria-label="Client status filters">
+            <button class="client-status-tab is-active" type="button" data-client-status="all"><span class="client-status-tab-label">All Clients</span><span class="client-status-tab-count" data-status-count="all">0</span></button>
+            <button class="client-status-tab" type="button" data-client-status="prospects"><span class="client-status-tab-label">Prospects</span><span class="client-status-tab-count" data-status-count="prospects">0</span></button>
+            <button class="client-status-tab" type="button" data-client-status="in-review"><span class="client-status-tab-label">In Review</span><span class="client-status-tab-count" data-status-count="in-review">0</span></button>
+            <button class="client-status-tab" type="button" data-client-status="coverage-placed"><span class="client-status-tab-label">Coverage Placed</span><span class="client-status-tab-count" data-status-count="coverage-placed">0</span></button>
+            <button class="client-status-tab" type="button" data-client-status="closed"><span class="client-status-tab-label">Closed</span><span class="client-status-tab-count" data-status-count="closed">0</span></button>
+          </nav>
+          <div class="client-directory-filter-bar">
+            <div class="client-directory-toolbar-actions">
+              <div class="client-view-toggle" role="group" aria-label="Client view type">
+                <button class="client-toolbar-button" type="button" data-client-view="households">Households</button>
+                <button class="client-toolbar-button is-active" type="button" data-client-view="individuals">Individuals</button>
+              </div>
+              <div class="client-items-dropdown" data-items-dropdown>
+                <button class="client-toolbar-button client-items-trigger" type="button" data-items-trigger aria-expanded="false">
+                  Items Shown (15)
+                </button>
+                <div class="client-items-menu">
+                  <button class="client-items-option is-active" type="button" data-items-option="5">5</button>
+                  <button class="client-items-option" type="button" data-items-option="15">15</button>
+                  <button class="client-items-option" type="button" data-items-option="35">35</button>
+                  <button class="client-items-option" type="button" data-items-option="75">75</button>
+                  <button class="client-items-option" type="button" data-items-option="100">100</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="client-table-card">
+          <div class="client-table client-table-header" role="row">
+            <div class="client-table-cell client-table-cell-check"></div>
+            <div class="client-table-cell client-table-cell-client">Client</div>
+            <div class="client-table-cell">Case Ref</div>
+            <div class="client-table-cell client-table-cell-last-review">Last Review</div>
+            <div class="client-table-cell client-table-cell-insured-title">Insured</div>
+            <div class="client-table-cell client-table-cell-source-title">Source</div>
+            <div class="client-table-cell client-table-cell-status-title">Client Status</div>
+            <div class="client-table-cell client-table-cell-nowrap client-table-cell-coverage-amount-title">Coverage Amount</div>
+            <div class="client-table-cell client-table-cell-value client-table-cell-priority-title">Priority</div>
+          </div>
+          <div id="client-table-rows"></div>
+          <div class="client-empty-state" id="client-empty-state" hidden>No client records match the current filters.</div>
+
+          <footer class="client-table-footer">
+            <button class="client-pagination-button" type="button" id="client-prev-page">Previous</button>
+            <div class="client-pagination-numbers" id="client-pagination-numbers"></div>
+            <button class="client-pagination-button" type="button" id="client-next-page">Next</button>
+          </footer>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <div class="client-add-modal" data-add-client-modal hidden>
+    <div class="client-add-modal-backdrop" data-add-client-modal-close></div>
+    <div class="client-add-modal-panel" role="dialog" aria-modal="true" aria-labelledby="add-client-modal-title">
+      <button class="client-add-modal-close" type="button" aria-label="Close" data-add-client-modal-close>&times;</button>
+      <div class="client-add-modal-content">
+        <h2 id="add-client-modal-title">Choose a Form to Continue</h2>
+      </div>
+      <div class="client-add-modal-actions">
+        <a class="client-header-action client-header-action-primary client-add-modal-continue" href="new-prospect.html" data-loading-link>Start Full Form</a>
+        <a class="client-header-action client-header-action-primary client-add-modal-continue client-add-modal-secondary" href="profile-only-form.html" data-loading-link>Create Profile</a>
+        <a class="client-header-action client-header-action-primary client-add-modal-continue client-add-modal-secondary" href="preliminary-linked.html" data-loading-link>Preliminary Underwriting</a>
+        <a class="client-header-action client-header-action-primary client-add-modal-continue client-add-modal-secondary" href="protection-modeling-linked.html" data-loading-link>Protection Modeling Inputs</a>
+        <a class="client-header-action client-header-action-primary client-add-modal-continue client-add-modal-secondary client-add-modal-option" href="protection-modeling-inputs.html" data-loading-link>
+          <span class="client-add-modal-option-label">PMI Simplified</span>
+          <span class="entry-mode-help client-add-modal-help" tabindex="0" aria-hidden="true" data-entry-mode-help="A simplified version of the protection modeling inputs form for clients who already know their total expenses, debts, and earnings.">?</span>
+        </a>
+        <button class="client-header-action client-header-action-primary client-add-modal-continue client-add-modal-secondary" type="button">Create New Household</button>
+        <button class="client-header-action client-header-action-primary client-add-modal-continue client-add-modal-secondary" type="button">Create New Company Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../data.js"></script>
+  <script src="../calculations.js"></script>
+  <script src="../charts.js"></script>
+  <script src="../site-header.js"></script>
+  <script src="../app.js"></script>
+  <script>
+    (function () {
+      const addButton = document.querySelector("[data-add-client-button]");
+      const modal = document.querySelector("[data-add-client-modal]");
+      const closeTargets = document.querySelectorAll("[data-add-client-modal-close]");
+
+      if (!addButton || !modal) {
+        return;
+      }
+
+      function openModal() {
+        modal.hidden = false;
+        modal.style.display = "grid";
+        modal.classList.add("is-open");
+        document.body.classList.add("is-modal-open");
+      }
+
+      function closeModal() {
+        modal.classList.remove("is-open");
+        modal.style.display = "none";
+        modal.hidden = true;
+        document.body.classList.remove("is-modal-open");
+      }
+
+      addButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        openModal();
+      });
+
+      closeTargets.forEach((target) => {
+        target.addEventListener("click", closeModal);
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !modal.hidden) {
+          closeModal();
+        }
+      });
+    })();
+  </script>
+  <script>
+    (function () {
+      const rowsHost = document.getElementById("client-table-rows");
+      const emptyState = document.getElementById("client-empty-state");
+      const letterButtons = Array.from(document.querySelectorAll("[data-client-letter]"));
+      const viewButtons = Array.from(document.querySelectorAll("[data-client-view]"));
+      const statusButtons = Array.from(document.querySelectorAll("[data-client-status]"));
+      const searchField = document.querySelector(".client-table-search input");
+      const paginationHost = document.getElementById("client-pagination-numbers");
+      const prevPageButton = document.getElementById("client-prev-page");
+      const nextPageButton = document.getElementById("client-next-page");
+      const itemsDropdown = document.querySelector("[data-items-dropdown]");
+      const itemsTrigger = document.querySelector("[data-items-trigger]");
+      const itemsOptions = Array.from(document.querySelectorAll("[data-items-option]"));
+
+      if (!rowsHost) {
+        return;
+      }
+
+      const STORAGE_KEYS = {
+        authSession: "lipPlannerAuthSession",
+        clientRecords: "lensClientRecords",
+        pendingClientRecords: "lensPendingClientRecords"
+      };
+
+      let activeLetter = "all";
+      let activeView = "individuals";
+      let activeStatus = "all";
+      let itemsShown = 15;
+      let currentPage = 1;
+      let records = [];
+
+      function loadJson(source, key) {
+        try {
+          return JSON.parse(source.getItem(key) || "null");
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function getStorageIdentity() {
+        const session = loadJson(localStorage, STORAGE_KEYS.authSession);
+        return session?.email ? String(session.email).trim().toLowerCase() : "guest";
+      }
+
+      function getRecordsStorageKey() {
+        return `${STORAGE_KEYS.clientRecords}:${getStorageIdentity()}`;
+      }
+
+      function normalizePriority(value) {
+        const normalized = String(value || "").trim().toLowerCase();
+        return ["low", "medium", "high"].includes(normalized) ? normalized : "";
+      }
+
+      function getPriorityDisplay(value) {
+        if (value === "high") {
+          return "High";
+        }
+        if (value === "medium") {
+          return "Medium";
+        }
+        if (value === "low") {
+          return "Low";
+        }
+        return "Select Priority";
+      }
+
+      function getClientStatusDisplay(value) {
+        if (value === "in-review") {
+          return "In Review";
+        }
+        if (value === "coverage-placed") {
+          return "Coverage Placed";
+        }
+        if (value === "closed") {
+          return "Closed";
+        }
+        return "Prospects";
+      }
+
+      function getInitials(name) {
+        return String(name || "")
+          .split(" ")
+          .filter(Boolean)
+          .slice(0, 2)
+          .map(function (part) { return part.charAt(0).toUpperCase(); })
+          .join("") || "CL";
+      }
+
+      function getAvatarAge(ageValue, dateOfBirthValue) {
+        const directAge = Number(String(ageValue || "").replace(/[^\d.]/g, ""));
+        if (Number.isFinite(directAge) && directAge >= 0) {
+          return Math.max(0, Math.min(100, directAge));
+        }
+
+        const birthDateValue = String(dateOfBirthValue || "").trim();
+        if (!birthDateValue) {
+          return null;
+        }
+
+        const today = new Date();
+        const birthDate = new Date(`${birthDateValue}T00:00:00`);
+        if (Number.isNaN(birthDate.getTime())) {
+          return null;
+        }
+
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDifference = today.getMonth() - birthDate.getMonth();
+        if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+          age -= 1;
+        }
+
+        return Number.isFinite(age) ? Math.max(0, Math.min(100, age)) : null;
+      }
+
+      function interpolateNumber(start, end, progress) {
+        return start + ((end - start) * progress);
+      }
+
+      function getAvatarHue(ageValue, dateOfBirthValue) {
+        const age = getAvatarAge(ageValue, dateOfBirthValue);
+        if (age === null) {
+          return 210;
+        }
+
+        if (age <= 18) {
+          return interpolateNumber(48, 60, age / 18);
+        }
+
+        if (age <= 30) {
+          return interpolateNumber(60, 210, (age - 18) / 12);
+        }
+
+        if (age <= 65) {
+          return interpolateNumber(210, 280, (age - 30) / 35);
+        }
+
+        return interpolateNumber(280, 360, (age - 65) / 35);
+      }
+
+      function getAvatarBackground(ageValue, dateOfBirthValue) {
+        const hue = getAvatarHue(ageValue, dateOfBirthValue);
+        const highlightHue = hue;
+        const shadowHue = (hue + 22) % 360;
+        return `linear-gradient(135deg, hsl(${highlightHue} 72% 66%), hsl(${shadowHue} 68% 44%))`;
+      }
+
+      function getClientDirectorySubtitle(record) {
+        const assignmentName = String(record.householdName || "").trim();
+        if (assignmentName) {
+          return assignmentName;
+        }
+
+        if (record.viewType === "households" || record.viewType === "companies") {
+          return String(record.summary || "").trim() || "Profile";
+        }
+
+        return "No household linked";
+      }
+
+      function formatCurrencyCompact(value) {
+        const amount = Number(value || 0);
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          notation: amount >= 1000000 ? "compact" : "standard",
+          maximumFractionDigits: amount >= 1000000 ? 2 : 0
+        }).format(amount);
+      }
+
+      function formatDateForDirectory(value) {
+        if (!value) {
+          return "--";
+        }
+
+        const date = new Date(`${value}T00:00:00`);
+        if (Number.isNaN(date.getTime())) {
+          return value;
+        }
+
+        return `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}/${date.getFullYear()}`;
+      }
+
+      function normalizeRecord(record, index) {
+        const preferredName = String(record.preferredName || "").trim();
+        const firstName = String(record.firstName || "").trim();
+        const lastName = String(record.lastName || "").trim();
+        const displayName = String(record.displayName || "").trim()
+          || `${preferredName || firstName} ${lastName}`.trim()
+          || `Client ${index + 1}`;
+
+        return {
+          ...record,
+          id: String(record.id || `cl-local-${index}`),
+          viewType: ["individuals", "households", "companies"].includes(String(record.viewType || "")) ? String(record.viewType) : "individuals",
+          displayName: displayName,
+          lastName: lastName,
+          summary: String(record.summary || record.clientNotes || "New client profile"),
+          caseRef: String(record.caseRef || ""),
+          lastReview: String(record.lastReview || record.lastUpdatedDate || record.dateProfileCreated || ""),
+          insured: String(record.insured || "Yes"),
+          source: String(record.source || record.dataSource || "Advisor Entered"),
+          statusGroup: ["prospects", "in-review", "coverage-placed", "closed"].includes(String(record.statusGroup || "")) ? String(record.statusGroup) : "prospects",
+          priority: normalizePriority(record.priority),
+          coverageAmount: Number(record.coverageAmount || 0),
+          coverageGap: Number(record.coverageGap || 0)
+        };
+      }
+
+      function loadRecords() {
+        const storageKey = getRecordsStorageKey();
+        const persisted = loadJson(localStorage, storageKey);
+        const pending = loadJson(sessionStorage, STORAGE_KEYS.pendingClientRecords);
+        const normalizedPersisted = Array.isArray(persisted) ? persisted.map(normalizeRecord) : [];
+        const normalizedPending = Array.isArray(pending) ? pending.map(normalizeRecord) : [];
+        const persistedIds = new Set(normalizedPersisted.map(function (record) { return record.id; }));
+        const merged = normalizedPending
+          .filter(function (record) { return !persistedIds.has(record.id); })
+          .concat(normalizedPersisted);
+
+        localStorage.setItem(storageKey, JSON.stringify(merged));
+        sessionStorage.removeItem(STORAGE_KEYS.pendingClientRecords);
+        return merged;
+      }
+
+      function persistRecords(nextRecords) {
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(nextRecords));
+        records = nextRecords.map(normalizeRecord);
+      }
+
+      function buildStatusCounts(sourceRecords) {
+        return sourceRecords
+          .filter(function (record) { return record.viewType === activeView; })
+          .reduce(function (counts, record) {
+            counts.all += 1;
+            counts[record.statusGroup] = (counts[record.statusGroup] || 0) + 1;
+            return counts;
+          }, { all: 0, prospects: 0, "in-review": 0, "coverage-placed": 0, closed: 0 });
+      }
+
+      function getLastInitial(lastName) {
+        return String(lastName || "").trim().charAt(0).toUpperCase();
+      }
+
+      function getFilteredRecords() {
+        const query = String(searchField?.value || "").trim().toLowerCase();
+        return records.filter(function (record) {
+          const matchesView = record.viewType === activeView;
+          const matchesLetter = activeLetter === "all" || getLastInitial(record.lastName) === activeLetter;
+          const matchesStatus = activeStatus === "all" || record.statusGroup === activeStatus;
+          const matchesSearch = !query
+            || String(record.displayName || "").toLowerCase().includes(query)
+            || String(record.summary || "").toLowerCase().includes(query)
+            || String(record.caseRef || "").toLowerCase().includes(query);
+
+          return matchesView && matchesLetter && matchesStatus && matchesSearch;
+        });
+      }
+
+      function syncStatusButtons() {
+        const counts = buildStatusCounts(records);
+        statusButtons.forEach(function (button) {
+          button.classList.toggle("is-active", button.dataset.clientStatus === activeStatus);
+          const counter = button.querySelector("[data-status-count]");
+          if (counter) {
+            counter.textContent = String(counts[button.dataset.clientStatus] || 0);
+          }
+        });
+      }
+
+      function syncViewButtons() {
+        viewButtons.forEach(function (button) {
+          button.classList.toggle("is-active", button.dataset.clientView === activeView);
+        });
+      }
+
+      function syncLetterButtons() {
+        letterButtons.forEach(function (button) {
+          button.classList.toggle("is-active", button.dataset.clientLetter === activeLetter);
+        });
+      }
+
+      function syncItemsShown() {
+        if (itemsTrigger) {
+          itemsTrigger.textContent = `Items Shown (${itemsShown})`;
+        }
+        itemsOptions.forEach(function (button) {
+          button.classList.toggle("is-active", Number(button.dataset.itemsOption) === itemsShown);
+        });
+      }
+
+      function renderPagination(totalPages) {
+        if (!paginationHost || !prevPageButton || !nextPageButton) {
+          return;
+        }
+
+        prevPageButton.disabled = currentPage <= 1;
+        nextPageButton.disabled = currentPage >= totalPages;
+        paginationHost.innerHTML = "";
+
+        for (let page = 1; page <= totalPages; page += 1) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "client-page-number";
+          button.textContent = String(page);
+          if (page === currentPage) {
+            button.classList.add("is-active");
+          }
+          button.addEventListener("click", function () {
+            currentPage = page;
+            renderDirectory();
+          });
+          paginationHost.appendChild(button);
+        }
+      }
+
+      function renderRow(record) {
+        const priority = normalizePriority(record.priority);
+        return `
+          <div class="client-table client-table-clickable" role="row" tabindex="0" data-client-open="${record.id}">
+            <div class="client-table-cell client-table-cell-check"><input type="checkbox" aria-label="Select ${record.displayName}"></div>
+            <div class="client-table-cell client-table-cell-client">
+              <span class="client-avatar" style="background: ${getAvatarBackground(record.age, record.dateOfBirth)};">${getInitials(record.displayName)}</span>
+              <div>
+                <strong>${record.displayName}</strong>
+                <span>${getClientDirectorySubtitle(record)}</span>
+              </div>
+            </div>
+            <div class="client-table-cell">${record.caseRef || "--"}</div>
+            <div class="client-table-cell client-table-cell-last-review">${formatDateForDirectory(record.lastReview)}</div>
+            <div class="client-table-cell client-table-cell-insured-value">${record.insured}</div>
+            <div class="client-table-cell client-table-cell-source-value">${record.source}</div>
+            <div class="client-table-cell client-table-cell-status-value">${getClientStatusDisplay(record.statusGroup)}</div>
+            <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(record.coverageAmount)}</div>
+            <div class="client-table-cell client-table-cell-value client-table-cell-priority-value">
+              <div class="client-priority-dropdown" data-priority-dropdown="${record.id}">
+                <button class="client-priority-button ${priority ? `client-priority-button-${priority}` : "client-priority-button-unset"}" type="button" data-priority-trigger aria-expanded="false">
+                  ${getPriorityDisplay(priority)}
+                </button>
+                <div class="client-priority-menu">
+                  <button class="client-priority-option client-priority-option-low ${priority === "low" ? "is-active" : ""}" type="button" data-priority-record="${record.id}" data-priority-option="low">Low</button>
+                  <button class="client-priority-option client-priority-option-medium ${priority === "medium" ? "is-active" : ""}" type="button" data-priority-record="${record.id}" data-priority-option="medium">Medium</button>
+                  <button class="client-priority-option client-priority-option-high ${priority === "high" ? "is-active" : ""}" type="button" data-priority-record="${record.id}" data-priority-option="high">High</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function closePriorityDropdowns() {
+        rowsHost.querySelectorAll("[data-priority-dropdown].is-open").forEach(function (dropdown) {
+          dropdown.classList.remove("is-open");
+          dropdown.querySelector("[data-priority-trigger]")?.setAttribute("aria-expanded", "false");
+          dropdown.closest(".client-table")?.classList.remove("is-priority-open");
+        });
+      }
+
+      function updateRecordPriority(recordId, priority) {
+        const nextRecords = loadRecords().map(function (record, index) {
+          const normalized = normalizeRecord(record, index);
+          if (normalized.id !== recordId) {
+            return normalized;
+          }
+
+          return {
+            ...normalized,
+            priority: normalizePriority(priority)
+          };
+        });
+
+        persistRecords(nextRecords);
+      }
+
+      function bindPriorityDropdowns() {
+        rowsHost.querySelectorAll("[data-priority-trigger]").forEach(function (button) {
+          button.addEventListener("click", function (event) {
+            event.stopPropagation();
+            const dropdown = button.closest("[data-priority-dropdown]");
+            const row = button.closest(".client-table");
+            if (!dropdown) {
+              return;
+            }
+
+            const willOpen = !dropdown.classList.contains("is-open");
+            closePriorityDropdowns();
+
+            if (!willOpen) {
+              return;
+            }
+
+            dropdown.classList.add("is-open");
+            button.setAttribute("aria-expanded", "true");
+            row?.classList.add("is-priority-open");
+          });
+        });
+
+        rowsHost.querySelectorAll("[data-priority-option]").forEach(function (option) {
+          option.addEventListener("click", function (event) {
+            event.stopPropagation();
+            const recordId = option.dataset.priorityRecord;
+            const priority = normalizePriority(option.dataset.priorityOption);
+            if (!recordId || !priority) {
+              return;
+            }
+
+            updateRecordPriority(recordId, priority);
+            renderDirectory();
+          });
+        });
+      }
+
+      function bindRowClicks() {
+        rowsHost.querySelectorAll("[data-client-open]").forEach(function (row) {
+          row.addEventListener("click", function (event) {
+            if (event.target.closest("input") || event.target.closest("[data-priority-dropdown]")) {
+              return;
+            }
+            window.location.href = `client-detail.html?id=${encodeURIComponent(row.dataset.clientOpen)}`;
+          });
+
+          row.addEventListener("keydown", function (event) {
+            if (event.key !== "Enter" && event.key !== " ") {
+              return;
+            }
+            if (event.target.closest("input") || event.target.closest("[data-priority-dropdown]")) {
+              return;
+            }
+            event.preventDefault();
+            window.location.href = `client-detail.html?id=${encodeURIComponent(row.dataset.clientOpen)}`;
+          });
+        });
+      }
+
+      function renderDirectory() {
+        records = loadRecords();
+        const filtered = getFilteredRecords();
+        const totalPages = Math.max(1, Math.ceil(filtered.length / itemsShown));
+        currentPage = Math.min(currentPage, totalPages);
+        const startIndex = (currentPage - 1) * itemsShown;
+        const visibleRecords = filtered.slice(startIndex, startIndex + itemsShown);
+
+        rowsHost.innerHTML = visibleRecords.map(renderRow).join("");
+        if (emptyState) {
+          emptyState.hidden = visibleRecords.length > 0;
+        }
+
+        bindPriorityDropdowns();
+        bindRowClicks();
+        syncStatusButtons();
+        syncViewButtons();
+        syncLetterButtons();
+        syncItemsShown();
+        renderPagination(totalPages);
+      }
+
+      letterButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          activeLetter = button.dataset.clientLetter || "all";
+          currentPage = 1;
+          renderDirectory();
+        });
+      });
+
+      viewButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          activeView = button.dataset.clientView || "individuals";
+          currentPage = 1;
+          renderDirectory();
+        });
+      });
+
+      statusButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          activeStatus = button.dataset.clientStatus || "all";
+          currentPage = 1;
+          renderDirectory();
+        });
+      });
+
+      searchField?.addEventListener("input", function () {
+        currentPage = 1;
+        renderDirectory();
+      });
+
+      itemsOptions.forEach(function (button) {
+        button.addEventListener("click", function () {
+          itemsShown = Number(button.dataset.itemsOption) || 15;
+          currentPage = 1;
+          renderDirectory();
+          if (itemsDropdown) {
+            itemsDropdown.classList.remove("is-open");
+          }
+          if (itemsTrigger) {
+            itemsTrigger.setAttribute("aria-expanded", "false");
+            itemsTrigger.blur();
+          }
+        });
+      });
+
+      itemsTrigger?.addEventListener("click", function (event) {
+        event.stopPropagation();
+        const isOpen = itemsDropdown?.classList.toggle("is-open");
+        itemsTrigger.setAttribute("aria-expanded", String(Boolean(isOpen)));
+      });
+
+      prevPageButton?.addEventListener("click", function () {
+        if (currentPage > 1) {
+          currentPage -= 1;
+          renderDirectory();
+        }
+      });
+
+      nextPageButton?.addEventListener("click", function () {
+        const totalPages = Math.max(1, Math.ceil(getFilteredRecords().length / itemsShown));
+        if (currentPage < totalPages) {
+          currentPage += 1;
+          renderDirectory();
+        }
+      });
+
+      document.addEventListener("click", function (event) {
+        if (!event.target.closest("[data-items-dropdown]")) {
+          itemsDropdown?.classList.remove("is-open");
+          itemsTrigger?.setAttribute("aria-expanded", "false");
+        }
+
+        if (event.target.closest("[data-priority-dropdown]")) {
+          return;
+        }
+
+        closePriorityDropdowns();
+      });
+
+      renderDirectory();
+    })();
+  </script>
+</body>
+</html>
+

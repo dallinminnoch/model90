@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Profile 2 | Life Evaluation &amp; Needs Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body data-step="profile-2">
+  <main class="workflow-shell">
+    <div id="workflow-nav"></div>
+    <section class="page-intro">
+      <div>
+        <div class="section-label">Step 2</div>
+        <h1>Client Profile Questionnaire</h1>
+        <p class="intro-copy">Capture the client obligations and longer-range planning goals that shape the protection need.</p>
+      </div>
+    </section>
+
+    <div class="panel-grid">
+      <aside class="sidebar-panel">
+        <div class="panel-stack">
+          <div>
+            <div class="section-label">Meeting Focus</div>
+            <h3 class="card-title">Obligations and Goals</h3>
+            <p class="panel-copy">This page documents debts, immediate cash needs, and future goals that should be accounted for in the analysis.</p>
+          </div>
+          <div class="info-card">
+            <span class="badge">Page 2 of 3</span>
+            <ul class="compact-list">
+              <li><span>Debt obligations</span><strong>Required</strong></li>
+              <li><span>Final expenses</span><strong>Required</strong></li>
+              <li><span>Future funding goals</span><strong>Required</strong></li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+      <section class="content-panel">
+        <form id="client-profile-form" data-next-page="profile-3.html">
+          <div class="form-section">
+            <div class="form-section-header">
+              <h2 class="section-title">Financial Obligations</h2>
+            </div>
+            <div class="form-grid">
+              <div class="field-group">
+                <label for="mortgageBalance">Mortgage balance</label>
+                <input id="mortgageBalance" name="mortgageBalance" type="number" min="0" placeholder="320000">
+              </div>
+              <div class="field-group">
+                <label for="otherDebts">Other debts</label>
+                <input id="otherDebts" name="otherDebts" type="number" min="0" placeholder="25000">
+              </div>
+              <div class="field-group">
+                <label for="finalExpensesEstimate">Final expenses estimate</label>
+                <input id="finalExpensesEstimate" name="finalExpensesEstimate" type="number" min="0" placeholder="25000">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-header">
+              <h2 class="section-title">Future Goals</h2>
+            </div>
+            <div class="form-grid">
+              <div class="field-group">
+                <label for="educationFundingEstimate">Education funding estimate</label>
+                <input id="educationFundingEstimate" name="educationFundingEstimate" type="number" min="0" placeholder="100000">
+              </div>
+              <div class="field-group">
+                <label for="yearsIncomeReplacement">Years of income replacement desired</label>
+                <input id="yearsIncomeReplacement" name="yearsIncomeReplacement" type="number" min="0" placeholder="15">
+              </div>
+            </div>
+          </div>
+
+          <div class="actions-row">
+            <a class="btn btn-secondary" href="profile.html">Back: Client Profile 1</a>
+            <button class="btn btn-primary" type="submit">Next: Client Profile 3</button>
+          </div>
+        </form>
+      </section>
+
+      <aside class="support-panel">
+        <div class="panel-stack">
+          <div class="info-card">
+            <div class="section-label">Planning Guidance</div>
+            <h3 class="card-title">Key discussion prompts</h3>
+            <ul class="compact-list">
+              <li><span>Mortgage payoff priority</span><strong>Estate</strong></li>
+              <li><span>Education commitments</span><strong>Family</strong></li>
+              <li><span>Income replacement years</span><strong>Planning</strong></li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="../data.js"></script>
+  <script src="../calculations.js"></script>
+  <script src="../charts.js"></script>
+  <script src="../site-header.js"></script>
+  <script src="../app.js"></script>
+  <script src="../lens-workflow.js"></script>
+</body>
+</html>
+

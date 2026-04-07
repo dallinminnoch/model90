@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile Only Form | Advisor Planning Suite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body class="home-page prospect-page profile-creation-page">
+  <main class="home-shell app-home-shell prospect-shell">
+    <section class="prospect-stage">
+      <section class="prospect-empty-panel">
+        <div class="prospect-panel-header">
+          <a class="prospect-return-button" href="clients.html">Return to Client Directory</a>
+          <h1>Profile Only Form</h1>
+          <p class="profile-required-key"><span class="profile-required-star" aria-hidden="true">*</span> = Required</p>
+        </div>
+        <form class="profile-creation-form" id="client-creation-form" data-client-type="individual" data-local-client-save="true">
+          <section class="profile-form-section">
+            <div class="profile-form-section-heading">
+              <h2>Client Identification</h2>
+            </div>
+            <div class="form-grid">
+              <div class="field-group">
+                <label for="first-name">First Name <span class="profile-required-star" aria-hidden="true">*</span></label>
+                <input id="first-name" name="firstName" type="text" required>
+              </div>
+              <div class="field-group">
+                <label for="middle-name">Middle Name</label>
+                <input id="middle-name" name="middleName" type="text">
+              </div>
+              <div class="field-group">
+                <label for="last-name">Last Name <span class="profile-required-star" aria-hidden="true">*</span></label>
+                <input id="last-name" name="lastName" type="text" required>
+              </div>
+              <div class="field-group">
+                <label for="preferred-name">Preferred Name</label>
+                <input id="preferred-name" name="preferredName" type="text">
+              </div>
+              <div class="field-group">
+                <label for="date-of-birth">Date of Birth <span class="profile-required-star" aria-hidden="true">*</span></label>
+                <input id="date-of-birth" name="dateOfBirth" type="date" required data-date-of-birth>
+              </div>
+              <div class="field-group">
+                <div class="profile-age-retirement-row">
+                  <div class="field-group profile-compact-field-group">
+                    <label for="age">Age</label>
+                    <div class="profile-age-row">
+                      <input id="age" class="profile-age-field" name="age" type="number" readonly data-age-field>
+                      <span class="profile-field-hint" data-age-hint hidden>Enter date of birth</span>
+                    </div>
+                  </div>
+                  <div class="field-group profile-compact-field-group">
+                    <label for="target-retirement-age">Target Retirement Age (optional)</label>
+                    <input id="target-retirement-age" class="profile-small-number-field" name="targetRetirementAge" type="number" min="0" max="100">
+                  </div>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="insurance-rating-sex">Insurance Rating Sex <span class="profile-required-star" aria-hidden="true">*</span></label>
+                <select id="insurance-rating-sex" class="profile-placeholder-select is-placeholder" name="insuranceRatingSex" required data-placeholder-select>
+                  <option value="" selected disabled>Please Select</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Prefer not to specify">Prefer not to specify</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="email-address">Email Address <span class="profile-required-star" aria-hidden="true">*</span></label>
+                <input id="email-address" name="emailAddress" type="email" required>
+              </div>
+              <div class="field-group">
+                <label for="phone-number">Phone Number <span class="profile-required-star" aria-hidden="true">*</span></label>
+                <input id="phone-number" name="phoneNumber" type="tel" required>
+              </div>
+              <div class="field-group">
+                <label for="preferred-contact-method">Preferred Contact Method <span class="profile-required-star" aria-hidden="true">*</span></label>
+                <select id="preferred-contact-method" name="preferredContactMethod" required>
+                  <option value="Phone">Phone</option>
+                  <option value="Email">Email</option>
+                  <option value="Text">Text</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="profile-form-section">
+            <div class="profile-form-section-heading">
+              <h2>Household / Company Information</h2>
+              <p class="profile-section-note">All new profiles will automatically generate a new household profile unless an existing household profile is linked below.</p>
+            </div>
+            <input type="hidden" name="interestType" value="family" data-interest-type-field>
+            <input type="hidden" name="profileAssignmentTargetId" value="" data-profile-assignment-target-id>
+            <input type="hidden" name="profileAssignmentTargetType" value="" data-profile-assignment-target-type>
+            <div class="profile-interest-toggle" role="group" aria-label="Interest type">
+              <button class="profile-interest-button is-active" type="button" data-interest-button="family">Family Interest</button>
+              <button class="profile-interest-button" type="button" data-interest-button="business">Business Interest</button>
+            </div>
+            <div class="form-grid">
+              <div class="profile-household-top-row full-width">
+                <div class="field-group profile-household-role-field">
+                <label for="household-role">Household / Company Role <span class="profile-required-star" aria-hidden="true">*</span></label>
+                <select id="household-role" name="householdRole" required>
+                  <option value="Primary Client">Primary Client</option>
+                  <option value="Spouse or Partner" data-family-only>Spouse or Partner</option>
+                  <option value="Child or Dependent" data-family-only>Child or Dependent</option>
+                  <option value="Business Partner" data-business-only>Business Partner</option>
+                  <option value="Key Employee" data-business-only>Key Employee</option>
+                </select>
+                </div>
+                <div class="field-group">
+                <label for="marital-status">Marital Status <span class="profile-required-star" aria-hidden="true">*</span></label>
+                <select id="marital-status" name="maritalStatus" required>
+                  <option value="Single">Single</option>
+                  <option value="Married">Married</option>
+                  <option value="Domestic Partnership">Domestic Partnership</option>
+                  <option value="Divorced">Divorced</option>
+                  <option value="Widowed">Widowed</option>
+                  <option value="Separated">Separated</option>
+                </select>
+                </div>
+                <div class="field-group">
+                  <label for="spouse-date-of-birth">Spouse/Partner Date of Birth</label>
+                  <input id="spouse-date-of-birth" name="spouseDateOfBirth" type="date" data-spouse-date-of-birth>
+                </div>
+                <div class="field-group profile-compact-field-group">
+                  <label for="spouse-age">Age</label>
+                  <input id="spouse-age" class="profile-age-field" name="spouseAge" type="number" readonly data-spouse-age-field>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="profile-assignment-mode">Household / Company Assignment <span class="profile-required-star" aria-hidden="true">*</span></label>
+                <select id="profile-assignment-mode" name="profileAssignmentMode" class="profile-placeholder-select is-placeholder" data-placeholder-select data-profile-assignment-mode required>
+                  <option value="" selected disabled>Please Select to Continue</option>
+                  <option value="create-household" data-family-assignment>Create New Household</option>
+                  <option value="existing-household" data-family-assignment>Add to Existing Household</option>
+                  <option value="create-company" data-business-assignment>Create New Company Profile</option>
+                  <option value="existing-company" data-business-assignment>Add to Existing Company Profile</option>
+                </select>
+              </div>
+              <div class="profile-assignment-actions">
+                <button class="profile-assignment-search-button" type="button" data-search-households disabled>Search Existing Households</button>
+                <button class="profile-assignment-search-button" type="button" data-search-companies disabled>Search Company Profiles</button>
+              </div>
+              <div class="field-group full-width">
+                <label for="profile-assignment-name">Selected Household / Company Name <span class="profile-required-star" aria-hidden="true">*</span></label>
+                <input id="profile-assignment-name" name="profileAssignmentName" type="text" data-profile-assignment-name disabled required>
+              </div>
+              <div class="profile-inline-divider" aria-hidden="true"></div>
+              <fieldset class="profile-dependent-fields" data-profile-dependent-fields disabled>
+                <div class="form-grid">
+                  <div class="profile-dependent-row">
+                    <div class="field-group">
+                      <label for="has-dependents">Dependents / Children</label>
+                      <select id="has-dependents" class="profile-yes-no-field" name="hasDependents">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                      </select>
+                    </div>
+                    <div class="field-group">
+                      <label for="dependents-count">Amount of Dependents / Children</label>
+                      <input id="dependents-count" class="profile-yes-no-field" name="dependentsCount" type="number" min="0" step="1">
+                    </div>
+                    <div class="field-group">
+                      <label for="youngest-dependent-age">Age of Youngest Dependent / Child</label>
+                      <div class="profile-currency-field">
+                        <input id="youngest-dependent-age" class="profile-yes-no-field" name="youngestDependentAge" type="number" min="0" step="1">
+                        <span class="profile-currency-suffix">Years</span>
+                      </div>
+                    </div>
+                    <div class="field-group">
+                      <label for="education-funding-per-dependent">Desired Education Funding (Per Dependent)</label>
+                      <div class="profile-currency-field">
+                        <input id="education-funding-per-dependent" class="profile-education-funding-field" name="educationFundingPerDependent" type="number" min="0" step="5000" list="education-funding-options">
+                        <span class="profile-currency-suffix">USD</span>
+                      </div>
+                      <datalist id="education-funding-options">
+                        <option value="5000"></option>
+                        <option value="10000"></option>
+                        <option value="15000"></option>
+                        <option value="20000"></option>
+                        <option value="25000"></option>
+                        <option value="30000"></option>
+                        <option value="35000"></option>
+                        <option value="40000"></option>
+                        <option value="45000"></option>
+                        <option value="50000"></option>
+                        <option value="55000"></option>
+                        <option value="60000"></option>
+                        <option value="65000"></option>
+                        <option value="70000"></option>
+                        <option value="75000"></option>
+                      </datalist>
+                    </div>
+                  </div>
+                  <div class="profile-dependent-secondary-row full-width">
+                    <div class="field-group">
+                      <label for="projected-dependents">Projected Dependents / Children</label>
+                      <select id="projected-dependents" class="profile-yes-no-field" name="projectedDependents">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                      </select>
+                    </div>
+                    <div class="field-group">
+                      <label for="projected-dependents-count">Amount of Desired Dependents / Children</label>
+                      <input id="projected-dependents-count" class="profile-yes-no-field" name="projectedDependentsCount" type="number" min="0" step="1">
+                    </div>
+                    <div class="field-group">
+                      <label for="same-education-funding">Same Education Funding?</label>
+                      <select id="same-education-funding" class="profile-yes-no-field" name="sameEducationFunding">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </div>
+                    <div class="field-group">
+                      <label for="projected-education-funding-per-dependent">Desired Education Funding (Per Dependent)</label>
+                      <div class="profile-currency-field">
+                        <input id="projected-education-funding-per-dependent" class="profile-education-funding-field" name="projectedEducationFundingPerDependent" type="number" min="0" step="5000" list="education-funding-options">
+                        <span class="profile-currency-suffix">USD</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </section>
+
+          <section class="profile-form-section">
+            <div class="profile-form-section-heading">
+              <h2>Address Information</h2>
+            </div>
+            <div class="form-grid">
+              <div class="field-group full-width">
+                <label for="street-address">Street Address</label>
+                <input id="street-address" name="streetAddress" type="text">
+              </div>
+              <div class="field-group">
+                <label for="city">City</label>
+                <input id="city" name="city" type="text">
+              </div>
+              <div class="field-group">
+                <label for="state">State</label>
+                <input id="state" name="state" type="text">
+              </div>
+              <div class="field-group">
+                <label for="zip-code">ZIP Code</label>
+                <input id="zip-code" name="zipCode" type="text">
+              </div>
+              <div class="field-group">
+                <label for="country">Country</label>
+                <input id="country" name="country" type="text">
+              </div>
+            </div>
+          </section>
+
+          <section class="profile-form-section">
+            <div class="profile-form-section-heading">
+              <h2>Employment and Occupation</h2>
+            </div>
+            <div class="form-grid">
+              <div class="field-group">
+                <label for="employment-status">Employment Status</label>
+                <select id="employment-status" name="employmentStatus" required>
+                  <option value="Employed">Employed</option>
+                  <option value="Self-employed">Self-employed</option>
+                  <option value="Business Owner">Business Owner</option>
+                  <option value="Retired">Retired</option>
+                  <option value="Unemployed">Unemployed</option>
+                  <option value="Student">Student</option>
+                  <option value="Child <18">Child &lt;18</option>
+                </select>
+              </div>
+              <div class="field-group profile-empty-slot" aria-hidden="true"></div>
+              <div class="field-group">
+                <label for="occupation">Occupation</label>
+                <input id="occupation" name="occupation" type="text" required data-employment-detail-field>
+              </div>
+              <div class="field-group">
+                <label for="employer-name">Employer Name (optional)</label>
+                <input id="employer-name" name="employerName" type="text" data-employment-detail-field>
+              </div>
+            </div>
+          </section>
+
+          <section class="profile-form-section">
+            <div class="profile-form-section-heading">
+              <h2>Advisory Section</h2>
+            </div>
+            <div class="form-grid">
+              <div class="field-group">
+                <label for="advisor-name">Advisor Name <span class="profile-required-star" aria-hidden="true">*</span></label>
+                <input id="advisor-name" name="advisorName" type="text" required data-advisor-name>
+              </div>
+              <div class="field-group">
+                <label for="firm-name">Firm Name (optional)</label>
+                <input id="firm-name" name="firmName" type="text">
+              </div>
+              <input id="household-id" name="householdId" type="hidden" data-household-id>
+              <div class="field-group">
+                <label for="date-profile-created">Date Profile Created <span class="profile-required-star" aria-hidden="true">*</span></label>
+                <input id="date-profile-created" name="dateProfileCreated" type="date" data-created-date required>
+              </div>
+              <div class="field-group">
+                <label for="last-updated-date">Last Updated Date</label>
+                <input id="last-updated-date" name="lastUpdatedDate" type="date" data-last-updated-date>
+              </div>
+              <div class="profile-advisory-row full-width">
+                <div class="field-group profile-advisory-priority-group">
+                  <label>Priority <span class="profile-required-star" aria-hidden="true">*</span></label>
+                  <div class="client-priority-dropdown profile-priority-dropdown" data-profile-priority-dropdown>
+                    <button class="client-priority-button client-priority-button-unset" type="button" data-profile-priority-trigger>Select Priority</button>
+                    <div class="client-priority-menu" data-profile-priority-menu>
+                      <button class="client-priority-option client-priority-option-low" type="button" data-profile-priority-option="low">Low</button>
+                      <button class="client-priority-option client-priority-option-medium" type="button" data-profile-priority-option="medium">Medium</button>
+                      <button class="client-priority-option client-priority-option-high" type="button" data-profile-priority-option="high">High</button>
+                    </div>
+                    <input type="hidden" name="advisoryPriority" value="" data-profile-priority-input>
+                  </div>
+                </div>
+                <div class="field-group profile-advisory-source-group">
+                  <label for="acquisition-source">Source <span class="profile-required-star" aria-hidden="true">*</span></label>
+                  <select id="acquisition-source" name="acquisitionSource" data-acquisition-source required>
+                    <option value="Referral">Referral</option>
+                    <option value="Existing Client">Existing Client</option>
+                    <option value="Website">Website</option>
+                    <option value="Social Media">Social Media</option>
+                    <option value="Seminar / Event">Seminar / Event</option>
+                    <option value="COI / Partner">COI / Partner</option>
+                    <option value="Direct Outreach">Direct Outreach</option>
+                    <option value="Walk-In">Walk-In</option>
+                    <option value="Purchased Lead">Purchased Lead</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div class="field-group profile-advisory-other-group">
+                  <label for="acquisition-source-other">Other Source</label>
+                  <input id="acquisition-source-other" name="acquisitionSourceOther" type="text" disabled data-acquisition-source-other>
+                </div>
+                <div class="field-group profile-advisory-status-group">
+                  <label for="client-status">Client Status <span class="profile-required-star" aria-hidden="true">*</span></label>
+                  <select id="client-status" name="clientStatus" required>
+                    <option value="Prospect">Prospect</option>
+                    <option value="In Review">In Review</option>
+                    <option value="Coverage Placed">Coverage Placed</option>
+                    <option value="Closed">Closed</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field-group full-width">
+                <label for="client-notes">Client Notes</label>
+                <textarea id="client-notes" name="clientNotes" rows="4"></textarea>
+              </div>
+            </div>
+          </section>
+
+          <p class="profile-creation-feedback" id="client-creation-feedback" hidden></p>
+          <div class="actions-row">
+            <button class="btn btn-secondary pmi-save-exit-button" type="submit">Save Profile</button>
+          </div>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <div class="profile-search-modal" data-profile-search-modal hidden>
+    <div class="profile-search-modal-backdrop" data-profile-search-close></div>
+    <div class="profile-search-modal-panel" role="dialog" aria-modal="true" aria-labelledby="profile-search-modal-title">
+      <button class="profile-search-modal-close" type="button" aria-label="Close search" data-profile-search-close>x</button>
+      <div class="profile-search-modal-header">
+        <h2 id="profile-search-modal-title" data-profile-search-title>Select Profile</h2>
+      </div>
+      <div class="field-group full-width">
+        <label for="profile-search-input">Search</label>
+        <input id="profile-search-input" type="text" placeholder="Search profiles" data-profile-search-input>
+      </div>
+      <div class="profile-search-results" data-profile-search-results></div>
+    </div>
+  </div>
+
+  <script src="../data.js"></script>
+  <script src="../calculations.js"></script>
+  <script src="../charts.js"></script>
+  <script src="../site-header.js"></script>
+  <script src="../app.js"></script>
+  <script>
+    (function () {
+      const dobField = document.querySelector("[data-date-of-birth]");
+      const ageField = document.querySelector("[data-age-field]");
+      const spouseDobField = document.querySelector("[data-spouse-date-of-birth]");
+      const spouseAgeField = document.querySelector("[data-spouse-age-field]");
+      const ageHint = document.querySelector("[data-age-hint]");
+      const phoneField = document.getElementById("phone-number");
+      const placeholderSelects = document.querySelectorAll("[data-placeholder-select]");
+      const interestButtons = document.querySelectorAll("[data-interest-button]");
+      const interestTypeField = document.querySelector("[data-interest-type-field]");
+      const householdRoleField = document.getElementById("household-role");
+      const maritalStatusField = document.getElementById("marital-status");
+      const familyOnlyRoleOptions = document.querySelectorAll("[data-family-only]");
+      const businessOnlyRoleOptions = document.querySelectorAll("[data-business-only]");
+      const assignmentModeField = document.querySelector("[data-profile-assignment-mode]");
+      const assignmentNameField = document.querySelector("[data-profile-assignment-name]");
+      const assignmentTargetIdField = document.querySelector("[data-profile-assignment-target-id]");
+      const employmentStatusField = document.getElementById("employment-status");
+      const employmentDetailFields = document.querySelectorAll("[data-employment-detail-field]");
+      const hasDependentsField = document.getElementById("has-dependents");
+      const dependentsCountField = document.getElementById("dependents-count");
+      const youngestDependentAgeField = document.getElementById("youngest-dependent-age");
+      const educationFundingPerDependentField = document.getElementById("education-funding-per-dependent");
+      const projectedDependentsField = document.getElementById("projected-dependents");
+      const projectedDependentsCountField = document.getElementById("projected-dependents-count");
+      const sameEducationFundingField = document.getElementById("same-education-funding");
+      const projectedEducationFundingPerDependentField = document.getElementById("projected-education-funding-per-dependent");
+      const profilePriorityDropdown = document.querySelector("[data-profile-priority-dropdown]");
+      const profilePriorityTrigger = document.querySelector("[data-profile-priority-trigger]");
+      const profilePriorityInput = document.querySelector("[data-profile-priority-input]");
+      const profilePriorityOptions = document.querySelectorAll("[data-profile-priority-option]");
+      const acquisitionSourceField = document.querySelector("[data-acquisition-source]");
+      const acquisitionSourceOtherField = document.querySelector("[data-acquisition-source-other]");
+      const familyAssignmentOptions = document.querySelectorAll("[data-family-assignment]");
+      const businessAssignmentOptions = document.querySelectorAll("[data-business-assignment]");
+      const searchHouseholdsButton = document.querySelector("[data-search-households]");
+      const searchCompaniesButton = document.querySelector("[data-search-companies]");
+      const dependentFields = document.querySelector("[data-profile-dependent-fields]");
+      let ageHintTimer = null;
+      let ageHintFadeTimer = null;
+
+      if (!dobField || !ageField) {
+        return;
+      }
+
+      function calculateAge(value) {
+        const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!match) {
+          return "";
+        }
+
+        const birthYear = Number(match[1]);
+        const birthMonth = Number(match[2]) - 1;
+        const birthDay = Number(match[3]);
+        const today = new Date();
+
+        let age = today.getFullYear() - birthYear;
+        const monthDelta = today.getMonth() - birthMonth;
+        if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birthDay)) {
+          age -= 1;
+        }
+
+        return String(Math.max(age, 0));
+      }
+
+      function syncAge() {
+        ageField.value = calculateAge(dobField.value);
+      }
+
+      function syncSpouseAge() {
+        if (!spouseAgeField) {
+          return;
+        }
+
+        spouseAgeField.value = calculateAge(spouseDobField?.value || "");
+      }
+
+      function syncSpouseFields() {
+        const applicableStatuses = ["Married", "Domestic Partnership", "Separated"];
+        const isApplicable = applicableStatuses.includes(String(maritalStatusField?.value || ""));
+
+        [spouseDobField, spouseAgeField].forEach(function (field) {
+          if (!field) {
+            return;
+          }
+
+          field.disabled = !isApplicable;
+          field.closest(".field-group")?.classList.toggle("is-disabled", !isApplicable);
+          if (!isApplicable) {
+            field.value = "";
+          }
+        });
+
+        if (isApplicable) {
+          syncSpouseAge();
+        }
+      }
+
+      function formatPhone(value) {
+        const digits = String(value || "").replace(/\D/g, "").slice(0, 10);
+        if (!digits) {
+          return "";
+        }
+
+        if (digits.length < 4) {
+          return `(${digits}`;
+        }
+
+        if (digits.length < 7) {
+          return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+        }
+
+        return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+      }
+
+      function syncPhone() {
+        if (!phoneField) {
+          return;
+        }
+
+        phoneField.value = formatPhone(phoneField.value);
+      }
+
+      function syncPlaceholderSelectState(select) {
+        if (!select) {
+          return;
+        }
+
+        select.classList.toggle("is-placeholder", !select.value);
+      }
+
+      function syncInterestButtons(nextValue) {
+        if (!interestTypeField) {
+          return;
+        }
+
+        interestTypeField.value = nextValue;
+        interestButtons.forEach(function (button) {
+          button.classList.toggle("is-active", button.dataset.interestButton === nextValue);
+        });
+        syncHouseholdRoleOptions(nextValue);
+        syncAssignmentModeOptions(nextValue);
+      }
+
+      function syncHouseholdRoleOptions(interestType) {
+        const isFamily = interestType === "family";
+        const isBusiness = interestType === "business";
+
+        businessOnlyRoleOptions.forEach(function (option) {
+          option.disabled = isFamily;
+          option.classList.toggle("is-struck", isFamily);
+        });
+
+        familyOnlyRoleOptions.forEach(function (option) {
+          option.disabled = isBusiness;
+          option.classList.toggle("is-struck", isBusiness);
+        });
+
+        if ((isFamily || isBusiness) && householdRoleField) {
+          const selectedOption = householdRoleField.options[householdRoleField.selectedIndex];
+          if (selectedOption && selectedOption.disabled) {
+            householdRoleField.value = "Primary Client";
+          }
+        }
+      }
+
+      function syncAssignmentModeOptions(interestType) {
+        const isFamily = interestType === "family";
+        const isBusiness = interestType === "business";
+
+        familyAssignmentOptions.forEach(function (option) {
+          option.disabled = isBusiness;
+          option.classList.toggle("is-struck", isBusiness);
+        });
+
+        businessAssignmentOptions.forEach(function (option) {
+          option.disabled = isFamily;
+          option.classList.toggle("is-struck", isFamily);
+        });
+
+        if (assignmentModeField) {
+          const selectedOption = assignmentModeField.options[assignmentModeField.selectedIndex];
+          if (selectedOption && selectedOption.disabled) {
+            assignmentModeField.value = "";
+            assignmentModeField.dispatchEvent(new Event("change", { bubbles: true }));
+          } else {
+            syncPlaceholderSelectState(assignmentModeField);
+          }
+        }
+
+        syncAssignmentActionButtons();
+      }
+
+      function syncAssignmentActionButtons() {
+        const assignmentMode = String(assignmentModeField?.value || "");
+        if (searchHouseholdsButton) {
+          searchHouseholdsButton.disabled = assignmentMode !== "existing-household";
+        }
+        if (searchCompaniesButton) {
+          searchCompaniesButton.disabled = assignmentMode !== "existing-company";
+        }
+      }
+
+      function syncAssignmentNameField() {
+        const assignmentMode = String(assignmentModeField?.value || "");
+        if (!assignmentNameField) {
+          return;
+        }
+
+        assignmentNameField.disabled = !assignmentMode;
+        assignmentNameField.readOnly = assignmentMode === "existing-household" || assignmentMode === "existing-company";
+
+        if (!assignmentMode) {
+          assignmentNameField.value = "";
+          assignmentNameField.placeholder = "Please select to continue";
+        } else if (assignmentMode === "create-household") {
+          assignmentNameField.placeholder = "Enter new household name";
+        } else if (assignmentMode === "create-company") {
+          assignmentNameField.placeholder = "Enter new company profile name";
+        } else if (assignmentMode === "existing-household") {
+          assignmentNameField.value = "";
+          assignmentNameField.placeholder = "Select an existing household";
+        } else if (assignmentMode === "existing-company") {
+          assignmentNameField.value = "";
+          assignmentNameField.placeholder = "Select an existing company profile";
+        }
+      }
+
+      function syncDependentFieldsetState() {
+        const assignmentMode = String(assignmentModeField?.value || "");
+        const isFamilyInterest = String(interestTypeField?.value || "family") === "family";
+        if (!dependentFields) {
+          return;
+        }
+
+        const isExistingMode = assignmentMode === "existing-household" || assignmentMode === "existing-company";
+        const isCreateMode = assignmentMode === "create-household" || assignmentMode === "create-company";
+        const hasExistingSelection = Boolean(String(assignmentTargetIdField?.value || "").trim());
+        const hasManualName = Boolean(String(assignmentNameField?.value || "").trim());
+
+        dependentFields.disabled = !isFamilyInterest || !(
+          (isExistingMode && hasExistingSelection) ||
+          (isCreateMode && hasManualName)
+        );
+
+        if (!isFamilyInterest) {
+          [
+            hasDependentsField,
+            dependentsCountField,
+            youngestDependentAgeField,
+            educationFundingPerDependentField,
+            projectedDependentsField,
+            projectedDependentsCountField,
+            sameEducationFundingField,
+            projectedEducationFundingPerDependentField
+          ].forEach(function (field) {
+            if (!field) {
+              return;
+            }
+
+            if (field.tagName === "SELECT") {
+              field.selectedIndex = 0;
+            } else {
+              field.value = "";
+            }
+          });
+        }
+      }
+
+      function syncEmploymentDetailFields() {
+        const selectedStatus = String(employmentStatusField?.value || "");
+        const disableDetails = ["Retired", "Unemployed", "Student", "Child <18"].includes(selectedStatus);
+
+        employmentDetailFields.forEach(function (field) {
+          field.disabled = disableDetails;
+          field.closest(".field-group")?.classList.toggle("is-disabled", disableDetails);
+          if (field.id === "occupation") {
+            field.required = !disableDetails;
+          }
+          if (disableDetails) {
+            field.value = "";
+          }
+        });
+      }
+
+      function syncDependentsCountField() {
+        if (!dependentsCountField && !youngestDependentAgeField && !educationFundingPerDependentField) {
+          return;
+        }
+
+        const disableCount = String(hasDependentsField?.value || "No") !== "Yes";
+        [dependentsCountField, youngestDependentAgeField, educationFundingPerDependentField].forEach(function (field) {
+          if (!field) {
+            return;
+          }
+
+          field.disabled = disableCount;
+          field.closest(".field-group")?.classList.toggle("is-disabled", disableCount);
+          if (disableCount) {
+            field.value = "";
+          }
+        });
+      }
+
+      function setProjectedFieldDisabled(field, disabled, preserveValue) {
+        if (!field) {
+          return;
+        }
+
+        field.disabled = disabled;
+        field.closest(".field-group")?.classList.toggle("is-disabled", disabled);
+        if (disabled && !preserveValue) {
+          if (field.tagName === "SELECT") {
+            field.selectedIndex = 0;
+          } else {
+            field.value = "";
+          }
+        }
+      }
+
+      function syncProjectedDependentsFields() {
+        const hasCurrentDependents = String(hasDependentsField?.value || "No") === "Yes";
+        const hasProjectedDependents = String(projectedDependentsField?.value || "No") === "Yes";
+        const projectedCount = Number(projectedDependentsCountField?.value || 0);
+        const hasProjectedCount = projectedCount > 0;
+        const sameEducationFunding = String(sameEducationFundingField?.value || "Yes") === "Yes";
+
+        if (!hasProjectedDependents) {
+          setProjectedFieldDisabled(projectedDependentsCountField, true);
+          setProjectedFieldDisabled(sameEducationFundingField, true);
+          setProjectedFieldDisabled(projectedEducationFundingPerDependentField, true);
+          return;
+        }
+
+        setProjectedFieldDisabled(projectedDependentsCountField, false);
+
+        if (!hasProjectedCount) {
+          setProjectedFieldDisabled(sameEducationFundingField, true);
+          setProjectedFieldDisabled(projectedEducationFundingPerDependentField, true);
+          return;
+        }
+
+        if (!hasCurrentDependents) {
+          setProjectedFieldDisabled(sameEducationFundingField, true);
+          setProjectedFieldDisabled(projectedEducationFundingPerDependentField, false);
+          return;
+        }
+
+        setProjectedFieldDisabled(sameEducationFundingField, false);
+        if (sameEducationFunding && projectedEducationFundingPerDependentField && educationFundingPerDependentField) {
+          projectedEducationFundingPerDependentField.value = educationFundingPerDependentField.value;
+        }
+        setProjectedFieldDisabled(projectedEducationFundingPerDependentField, sameEducationFunding, sameEducationFunding);
+      }
+
+      function syncAcquisitionSourceField() {
+        const isOther = String(acquisitionSourceField?.value || "") === "Other";
+        if (!acquisitionSourceOtherField) {
+          return;
+        }
+
+        acquisitionSourceOtherField.disabled = !isOther;
+        acquisitionSourceOtherField.closest(".field-group")?.classList.toggle("is-disabled", !isOther);
+        acquisitionSourceOtherField.required = isOther;
+        if (!isOther) {
+          acquisitionSourceOtherField.value = "";
+        }
+      }
+
+      function applyProfilePriority(priority) {
+        if (!profilePriorityTrigger || !profilePriorityInput) {
+          return;
+        }
+
+        const normalized = String(priority || "").trim().toLowerCase();
+        profilePriorityInput.value = normalized;
+        profilePriorityDropdown?.classList.remove("is-open");
+        profilePriorityTrigger.className = "client-priority-button";
+
+        if (normalized === "low") {
+          profilePriorityTrigger.textContent = "Low";
+          profilePriorityTrigger.classList.add("client-priority-button-low");
+          return;
+        }
+
+        if (normalized === "medium") {
+          profilePriorityTrigger.textContent = "Medium";
+          profilePriorityTrigger.classList.add("client-priority-button-medium");
+          return;
+        }
+
+        if (normalized === "high") {
+          profilePriorityTrigger.textContent = "High";
+          profilePriorityTrigger.classList.add("client-priority-button-high");
+          return;
+        }
+
+        profilePriorityTrigger.textContent = "Select Priority";
+        profilePriorityTrigger.classList.add("client-priority-button-unset");
+      }
+
+      function showAgeHint() {
+        if (!ageHint || dobField.value) {
+          return;
+        }
+
+        if (ageHintTimer) {
+          window.clearTimeout(ageHintTimer);
+        }
+        if (ageHintFadeTimer) {
+          window.clearTimeout(ageHintFadeTimer);
+        }
+
+        ageHint.classList.remove("is-fading");
+        ageHint.hidden = false;
+        ageHintFadeTimer = window.setTimeout(function () {
+          ageHint.classList.add("is-fading");
+          ageHintFadeTimer = null;
+        }, 2600);
+        ageHintTimer = window.setTimeout(function () {
+          ageHint.hidden = true;
+          ageHint.classList.remove("is-fading");
+          ageHintTimer = null;
+        }, 3000);
+      }
+
+      dobField.addEventListener("input", syncAge);
+      dobField.addEventListener("change", syncAge);
+      spouseDobField?.addEventListener("input", syncSpouseAge);
+      spouseDobField?.addEventListener("change", syncSpouseAge);
+      maritalStatusField?.addEventListener("change", syncSpouseFields);
+      ageField.addEventListener("click", showAgeHint);
+      ageField.addEventListener("focus", showAgeHint);
+      phoneField?.addEventListener("input", syncPhone);
+      phoneField?.addEventListener("change", syncPhone);
+      phoneField?.addEventListener("blur", syncPhone);
+      placeholderSelects.forEach(function (select) {
+        select.addEventListener("change", function () {
+          syncPlaceholderSelectState(select);
+        });
+        syncPlaceholderSelectState(select);
+      });
+      assignmentModeField?.addEventListener("change", syncAssignmentActionButtons);
+      assignmentModeField?.addEventListener("change", syncAssignmentNameField);
+      assignmentModeField?.addEventListener("change", syncDependentFieldsetState);
+      assignmentNameField?.addEventListener("input", syncDependentFieldsetState);
+      assignmentNameField?.addEventListener("change", syncDependentFieldsetState);
+      employmentStatusField?.addEventListener("change", syncEmploymentDetailFields);
+      hasDependentsField?.addEventListener("change", () => {
+        syncDependentsCountField();
+        syncProjectedDependentsFields();
+      });
+      projectedDependentsField?.addEventListener("change", syncProjectedDependentsFields);
+      projectedDependentsCountField?.addEventListener("input", syncProjectedDependentsFields);
+      projectedDependentsCountField?.addEventListener("change", syncProjectedDependentsFields);
+      sameEducationFundingField?.addEventListener("change", syncProjectedDependentsFields);
+      educationFundingPerDependentField?.addEventListener("input", syncProjectedDependentsFields);
+      educationFundingPerDependentField?.addEventListener("change", syncProjectedDependentsFields);
+      acquisitionSourceField?.addEventListener("change", syncAcquisitionSourceField);
+      profilePriorityTrigger?.addEventListener("click", function () {
+        profilePriorityDropdown?.classList.toggle("is-open");
+      });
+      profilePriorityOptions.forEach(function (option) {
+        option.addEventListener("click", function () {
+          applyProfilePriority(option.dataset.profilePriorityOption || "");
+        });
+      });
+      interestButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          syncInterestButtons(button.dataset.interestButton || "family");
+        });
+      });
+      document.addEventListener("click", function (event) {
+        if (!profilePriorityDropdown || profilePriorityDropdown.contains(event.target)) {
+          return;
+        }
+
+        profilePriorityDropdown.classList.remove("is-open");
+      });
+      syncAge();
+      syncSpouseFields();
+      syncPhone();
+      syncAssignmentActionButtons();
+      syncAssignmentNameField();
+      syncDependentFieldsetState();
+      syncEmploymentDetailFields();
+      syncDependentsCountField();
+      syncProjectedDependentsFields();
+      syncAcquisitionSourceField();
+      applyProfilePriority(profilePriorityInput?.value || "");
+      syncInterestButtons(interestTypeField?.value || "family");
+    })();
+  </script>
+  <script>
+    (function () {
+      const form = document.getElementById("client-creation-form");
+      const feedback = document.getElementById("client-creation-feedback");
+
+      if (!form || !feedback || form.dataset.localClientSave !== "true") {
+        return;
+      }
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        if (!form.reportValidity()) {
+          return;
+        }
+
+        const priority = String(form.querySelector("[data-profile-priority-input]")?.value || "").trim().toLowerCase();
+        if (!priority) {
+          feedback.hidden = false;
+          feedback.textContent = "Select a priority before saving.";
+          return;
+        }
+
+        const formData = new FormData(form);
+        const authSessionKey = "lipPlannerAuthSession";
+        const clientRecordsKey = "lensClientRecords";
+
+        function loadJson(key) {
+          try {
+            return JSON.parse(localStorage.getItem(key) || "null");
+          } catch (error) {
+            return null;
+          }
+        }
+
+        function getStorageIdentity() {
+          const session = loadJson(authSessionKey);
+          return session?.email ? String(session.email).trim().toLowerCase() : "guest";
+        }
+
+        function getRecordsStorageKey() {
+          return `${clientRecordsKey}:${getStorageIdentity()}`;
+        }
+
+        function loadRecords() {
+          const records = loadJson(getRecordsStorageKey());
+          return Array.isArray(records) ? records : [];
+        }
+
+        function writeRecords(records) {
+          localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+        }
+
+        function buildNextCaseRef(records) {
+          const highestNumber = records.reduce(function (highest, record) {
+            const match = String(record.caseRef || "").match(/CL\/(\d+)/);
+            return match ? Math.max(highest, Number(match[1])) : highest;
+          }, 80400);
+
+          return `CL/${highestNumber + 1}`;
+        }
+
+        function mapClientStageToStatusGroup(value) {
+          const normalized = String(value || "").trim().toLowerCase();
+          if (normalized === "in review") {
+            return "in-review";
+          }
+          if (normalized === "coverage placed") {
+            return "coverage-placed";
+          }
+          if (normalized === "closed") {
+            return "closed";
+          }
+          return "prospects";
+        }
+
+        function deriveStatusLabels(statusGroup, type) {
+          if (type === "company") {
+            return ["Business"];
+          }
+          if (type === "household") {
+            return ["Household"];
+          }
+          if (statusGroup === "coverage-placed") {
+            return ["Coverage"];
+          }
+          if (statusGroup === "in-review") {
+            return ["Review"];
+          }
+          if (statusGroup === "closed") {
+            return ["Closed"];
+          }
+          return ["Profile"];
+        }
+
+        function formatHouseholdDisplayName(value) {
+          const trimmed = String(value || "").trim();
+          if (!trimmed) {
+            return "New Household";
+          }
+          return /household$/i.test(trimmed) ? trimmed : `${trimmed} Household`;
+        }
+
+        function formatCompanyDisplayName(value) {
+          return String(value || "").trim() || "New Company Profile";
+        }
+
+        const records = loadRecords();
+        const currentSession = loadJson(authSessionKey);
+        const today = new Date().toISOString().slice(0, 10);
+        const clientStage = String(formData.get("clientStatus") || "Prospect");
+        const statusGroup = mapClientStageToStatusGroup(clientStage);
+        const advisorySource = String(formData.get("acquisitionSource") || "").trim();
+        const advisorySourceOther = String(formData.get("acquisitionSourceOther") || "").trim();
+        const source = advisorySource === "Other" ? (advisorySourceOther || "Other") : (advisorySource || "Advisor Entered");
+        const firstName = String(formData.get("firstName") || "").trim();
+        const preferredName = String(formData.get("preferredName") || "").trim();
+        const lastName = String(formData.get("lastName") || "").trim();
+        const assignmentMode = String(formData.get("profileAssignmentMode") || "").trim();
+        const assignmentTargetId = String(formData.get("profileAssignmentTargetId") || "").trim();
+        const requestedAssignmentName = String(formData.get("profileAssignmentName") || "").trim();
+        const advisorName = String(formData.get("advisorName") || "").trim() || currentSession?.name || "";
+        const createdBy = currentSession?.name || "Advisor";
+        const dateProfileCreated = String(formData.get("dateProfileCreated") || today);
+        const lastUpdatedDate = String(formData.get("lastUpdatedDate") || today);
+        let nextRecords = records.slice();
+        let householdId = "";
+        let householdName = "";
+        let profileGroupType = "";
+
+        if (!assignmentMode) {
+          feedback.hidden = false;
+          feedback.textContent = "Select how this client should be assigned before saving.";
+          return;
+        }
+
+        if (assignmentMode === "existing-household" || assignmentMode === "existing-company") {
+          const expectedType = assignmentMode === "existing-company" ? "companies" : "households";
+          const existingProfile = nextRecords.find(function (record) {
+            return record.id === assignmentTargetId && record.viewType === expectedType;
+          });
+
+          if (!existingProfile) {
+            feedback.hidden = false;
+            feedback.textContent = expectedType === "companies"
+              ? "Select a valid company profile before saving."
+              : "Select a valid household before saving.";
+            return;
+          }
+
+          householdId = existingProfile.id;
+          householdName = existingProfile.displayName;
+          profileGroupType = expectedType === "companies" ? "company" : "household";
+          nextRecords = nextRecords.map(function (record) {
+            if (record.id !== existingProfile.id) {
+              return record;
+            }
+
+            const nextCount = (Number(record.insured || 0) || 0) + 1;
+            return Object.assign({}, record, {
+              insured: String(nextCount),
+              lastReview: lastUpdatedDate,
+              statusGroup: statusGroup,
+              priority: priority,
+              source: source,
+              lastUpdatedDate: lastUpdatedDate
+            });
+          });
+        } else if (assignmentMode === "create-household" || assignmentMode === "create-company") {
+          if (!requestedAssignmentName) {
+            feedback.hidden = false;
+            feedback.textContent = assignmentMode === "create-company"
+              ? "Enter a company profile name before saving."
+              : "Enter a household name before saving.";
+            return;
+          }
+
+          const isCompany = assignmentMode === "create-company";
+          householdName = isCompany
+            ? formatCompanyDisplayName(requestedAssignmentName)
+            : formatHouseholdDisplayName(requestedAssignmentName || lastName || firstName);
+          householdId = `${isCompany ? "co" : "hh"}-${Date.now()}`;
+          profileGroupType = isCompany ? "company" : "household";
+
+          nextRecords.unshift({
+            id: householdId,
+            viewType: isCompany ? "companies" : "households",
+            displayName: householdName,
+            lastName: lastName,
+            summary: isCompany ? "Company profile" : "Household profile",
+            caseRef: buildNextCaseRef(nextRecords),
+            lastReview: lastUpdatedDate,
+            insured: "1",
+            source: source,
+            statusGroup: statusGroup,
+            statusLabels: deriveStatusLabels(statusGroup, isCompany ? "company" : "household"),
+            priority: priority,
+            coverageAmount: 0,
+            coverageGap: 0,
+            advisorName: advisorName,
+            createdBy: createdBy,
+            dateProfileCreated: dateProfileCreated,
+            lastUpdatedDate: lastUpdatedDate,
+            householdId: householdId,
+            dataSource: source
+          });
+        } else {
+          feedback.hidden = false;
+          feedback.textContent = "Choose how this client should be assigned before saving.";
+          return;
+        }
+
+        nextRecords.unshift({
+          id: `cl-${Date.now()}`,
+          viewType: "individuals",
+          displayName: `${preferredName || firstName} ${lastName}`.trim(),
+          firstName: firstName,
+          middleName: String(formData.get("middleName") || "").trim(),
+          lastName: lastName,
+          preferredName: preferredName,
+          summary: String(formData.get("clientNotes") || "").trim() || "New client profile",
+          caseRef: buildNextCaseRef(nextRecords),
+          lastReview: lastUpdatedDate,
+          insured: "Yes",
+          source: source,
+          statusGroup: statusGroup,
+          statusLabels: deriveStatusLabels(statusGroup, "individual"),
+          priority: priority,
+          coverageAmount: 0,
+          coverageGap: 0,
+          householdId: householdId,
+          householdName: householdName,
+          profileGroupType: profileGroupType,
+          dateOfBirth: String(formData.get("dateOfBirth") || ""),
+          age: Number(formData.get("age") || 0),
+          targetRetirementAge: String(formData.get("targetRetirementAge") || "").trim(),
+          insuranceRatingSex: String(formData.get("insuranceRatingSex") || ""),
+          maritalStatus: String(formData.get("maritalStatus") || ""),
+          spouseDateOfBirth: String(formData.get("spouseDateOfBirth") || ""),
+          spouseAge: Number(formData.get("spouseAge") || 0),
+          householdRole: String(formData.get("householdRole") || ""),
+          hasDependents: String(formData.get("hasDependents") || "No"),
+          projectedDependents: String(formData.get("projectedDependents") || "No"),
+          projectedDependentsCount: Number(formData.get("projectedDependentsCount") || 0),
+          sameEducationFunding: String(formData.get("sameEducationFunding") || "Yes"),
+          projectedEducationFundingPerDependent: Number(formData.get("projectedEducationFundingPerDependent") || 0),
+          dependentsCount: Number(formData.get("dependentsCount") || 0),
+          youngestDependentAge: Number(formData.get("youngestDependentAge") || 0),
+          educationFundingPerDependent: Number(formData.get("educationFundingPerDependent") || 0),
+          emailAddress: String(formData.get("emailAddress") || "").trim(),
+          phoneNumber: String(formData.get("phoneNumber") || "").trim(),
+          preferredContactMethod: String(formData.get("preferredContactMethod") || ""),
+          streetAddress: String(formData.get("streetAddress") || "").trim(),
+          city: String(formData.get("city") || "").trim(),
+          state: String(formData.get("state") || "").trim(),
+          zipCode: String(formData.get("zipCode") || "").trim(),
+          country: String(formData.get("country") || "").trim(),
+          occupation: String(formData.get("occupation") || "").trim(),
+          employerName: String(formData.get("employerName") || "").trim(),
+          employmentStatus: String(formData.get("employmentStatus") || ""),
+          advisorName: advisorName,
+          firmName: String(formData.get("firmName") || "").trim(),
+          dateProfileCreated: dateProfileCreated,
+          lastUpdatedDate: lastUpdatedDate,
+          createdBy: createdBy,
+          dataSource: source,
+          planningPriority: "",
+          clientStage: clientStage,
+          clientNotes: String(formData.get("clientNotes") || "").trim()
+        });
+
+        writeRecords(nextRecords);
+        sessionStorage.setItem("lensPendingClientRecords", JSON.stringify([nextRecords[0]]));
+        sessionStorage.setItem("lensLinkedCaseRef", String(nextRecords[0].caseRef || "").trim().toUpperCase());
+        sessionStorage.setItem("lensClientViewIntent", "individuals");
+        sessionStorage.setItem("lensClientView", "individuals");
+        sessionStorage.setItem("lensClientStatus", "all");
+        sessionStorage.setItem("lensClientItemsShownReset", "true");
+        window.location.href = "clients.html";
+      });
+    })();
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="pageTitle.home">Life Evaluation &amp; Needs Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="home-page app-home">
+  <main class="home-shell app-home-shell">
+    <section class="home-banner">
+      <p data-i18n="home.banner">Built by Agents, for Agents</p>
+    </section>
+
+    <section class="portal-hero">
+      <div class="portal-copy">
+        <div class="eyebrow" data-i18n="home.eyebrow">Home</div>
+      </div>
+      <div class="portal-actions">
+        <a class="btn btn-primary" href="pages/lens.html" data-i18n="home.openLens">Open LENS</a>
+        <p class="helper-text" data-i18n="home.activeModuleText">Life Evaluation &amp; Needs Analysis is the active planning module currently available in this workspace.</p>
+      </div>
+    </section>
+
+    <section class="portal-layout">
+      <article class="portal-main">
+        <div class="section-label" data-i18n="home.activeModuleLabel">Active Module</div>
+        <h2 data-i18n="product.name">Life Evaluation &amp; Needs Analysis</h2>
+        <p class="panel-copy" data-i18n="home.moduleDescription">Guide clients through profile intake, need estimation, analysis review, recommendation framing, policy strategy discussion, and a final planning summary.</p>
+        <div class="portal-metrics">
+          <div class="portal-metric">
+            <span class="metric-label" data-i18n="home.metricWorkflow">Workflow</span>
+            <strong data-i18n="home.metricWorkflowValue">Profile to Summary</strong>
+          </div>
+          <div class="portal-metric">
+            <span class="metric-label" data-i18n="home.metricPurpose">Purpose</span>
+            <strong data-i18n="home.metricPurposeValue">Needs-Based Planning</strong>
+          </div>
+          <div class="portal-metric">
+            <span class="metric-label" data-i18n="home.metricFormat">Format</span>
+            <strong data-i18n="home.metricFormatValue">Advisor-Facing</strong>
+          </div>
+        </div>
+      </article>
+
+      <aside class="portal-side">
+        <div class="portal-side-section">
+          <div class="section-label" data-i18n="home.notesLabel">Workspace Notes</div>
+          <p class="panel-copy" data-i18n="home.notesText">Use this home screen as a stable launch point for planning tools rather than dropping directly into a single calculator-like experience.</p>
+        </div>
+        <div class="portal-side-section">
+          <div class="section-label" data-i18n="home.searchLabel">Search</div>
+          <p class="panel-copy" data-i18n="home.searchText">The search bar is prepared for future cases, saved plans, internal references, and additional modules.</p>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="calculations.js"></script>
+  <script src="charts.js"></script>
+  <script src="site-header.js"></script>
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      const accountSlot = document.querySelector("[data-account-slot]");
+      const session = JSON.parse(localStorage.getItem("lipPlannerAuthSession") || "null");
+
+      if (!accountSlot) {
+        return;
+      }
+
+      function bindDropdown(dropdown) {
+        if (!dropdown) {
+          return;
+        }
+
+        let closeTimer = null;
+
+        dropdown.addEventListener("mouseenter", function () {
+          if (closeTimer) {
+            window.clearTimeout(closeTimer);
+            closeTimer = null;
+          }
+
+          dropdown.classList.add("is-open");
+        });
+
+        dropdown.addEventListener("mouseleave", function () {
+          if (closeTimer) {
+            window.clearTimeout(closeTimer);
+          }
+
+          closeTimer = window.setTimeout(function () {
+            dropdown.classList.remove("is-open");
+            closeTimer = null;
+          }, 180);
+        });
+      }
+
+      if (!session || !session.name) {
+        bindDropdown(accountSlot.querySelector(".account-dropdown"));
+        return;
+      }
+
+      const firstName = String(session.name).trim().split(/\s+/)[0] || session.name;
+      const adminViewItem = session.role === "admin"
+        ? '<a class="account-menu-item account-menu-item-link" href="pages/admin-accounts.html">Admin View</a>'
+        : "";
+
+      accountSlot.innerHTML = `
+        <div class="account-dropdown">
+          <button class="account-profile account-dropdown-toggle" type="button">
+            <span class="account-icon" aria-hidden="true">
+              <span class="account-icon-head"></span>
+              <span class="account-icon-body"></span>
+            </span>
+            <span class="sr-only">Open account menu for ${firstName}</span>
+          </button>
+          <div class="account-dropdown-menu">
+            <div class="account-menu-section">
+              <span class="account-menu-welcome">Welcome, ${firstName}</span>
+            </div>
+            <div class="account-menu-divider"></div>
+            <div class="account-menu-section">
+              <button class="account-menu-item" type="button">Help Center</button>
+              <button class="account-menu-item" type="button">Settings</button>
+              ${adminViewItem}
+            </div>
+            <div class="account-menu-divider"></div>
+            <div class="account-menu-section">
+              <button class="account-menu-item account-menu-item-danger" type="button" data-home-sign-out>Sign Out</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const dropdown = accountSlot.querySelector(".account-dropdown");
+      bindDropdown(dropdown);
+
+      const signOutButton = accountSlot.querySelector("[data-home-sign-out]");
+      if (signOutButton) {
+        signOutButton.addEventListener("click", function () {
+          if (typeof window.performLensSignOut === "function") {
+            window.performLensSignOut();
+            return;
+          }
+
+          localStorage.removeItem("lipPlannerAuthSession");
+          window.location.href = "index.html";
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

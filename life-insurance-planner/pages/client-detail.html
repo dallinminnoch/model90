@@ -1,0 +1,2575 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Detail | Advisor Planning Suite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body class="home-page prospect-page profile-creation-page client-detail-page">
+  <main class="home-shell app-home-shell prospect-shell">
+    <section class="prospect-stage">
+      <section class="prospect-empty-panel client-detail-panel">
+        <div class="client-detail-sections" data-client-detail-host></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="../data.js"></script>
+  <script src="../calculations.js"></script>
+  <script src="../charts.js"></script>
+  <script src="../site-header.js"></script>
+  <script src="../app.js"></script>
+  <script>
+    (function () {
+      const host = document.querySelector("[data-client-detail-host]");
+
+      if (!host) {
+        return;
+      }
+
+      const STORAGE_KEYS = {
+        authSession: "lipPlannerAuthSession",
+        clientRecords: "lensClientRecords"
+      };
+
+      function loadJson(source, key) {
+        try {
+          return JSON.parse(source.getItem(key) || "null");
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function getStorageIdentity() {
+        const session = loadJson(localStorage, STORAGE_KEYS.authSession);
+        return session?.email ? String(session.email).trim().toLowerCase() : "guest";
+      }
+
+      function getRecordsStorageKey() {
+        return `${STORAGE_KEYS.clientRecords}:${getStorageIdentity()}`;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function normalizePriority(value) {
+        const normalized = String(value || "").trim().toLowerCase();
+        return ["low", "medium", "high"].includes(normalized) ? normalized : "";
+      }
+
+      function getPriorityDisplay(value) {
+        if (value === "high") {
+          return "High";
+        }
+        if (value === "medium") {
+          return "Medium";
+        }
+        if (value === "low") {
+          return "Low";
+        }
+        return "Not provided";
+      }
+
+      function getClientStatusDisplay(value) {
+        if (value === "in-review") {
+          return "In Review";
+        }
+        if (value === "coverage-placed") {
+          return "Coverage Placed";
+        }
+        if (value === "closed") {
+          return "Closed";
+        }
+        return "Prospect";
+      }
+
+      function formatDate(value) {
+        if (!value) {
+          return "Not provided";
+        }
+
+        const date = new Date(`${value}T00:00:00`);
+        if (Number.isNaN(date.getTime())) {
+          return String(value);
+        }
+
+        return `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}/${date.getFullYear()}`;
+      }
+
+      function formatCurrency(value) {
+        const number = Number(String(value || "").replace(/,/g, ""));
+        if (!number) {
+          return "Not provided";
+        }
+
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: 0
+        }).format(number);
+      }
+
+      function formatCurrencyTotal(value) {
+        const number = Number(value);
+        const safeNumber = Number.isFinite(number) ? number : 0;
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: 0
+        }).format(safeNumber);
+      }
+
+      function parseCurrencyNumber(value) {
+        const number = Number(String(value || "").replace(/[^0-9.-]/g, ""));
+        return Number.isFinite(number) ? number : 0;
+      }
+
+      function formatValue(value) {
+        if (value === null || value === undefined) {
+          return "Not provided";
+        }
+
+        const normalized = String(value).trim();
+        return normalized || "Not provided";
+      }
+
+      function formatTitleCaseValue(value) {
+        const normalized = formatValue(value);
+        if (normalized === "Not provided") {
+          return normalized;
+        }
+        return normalized
+          .split(/[\s/-]+/)
+          .map(function (part) {
+            return part ? part.charAt(0).toUpperCase() + part.slice(1).toLowerCase() : part;
+          })
+          .join(" ");
+      }
+
+      function getInitials(value) {
+        const words = String(value || "").trim().split(/\s+/).filter(Boolean);
+        if (!words.length) {
+          return "CL";
+        }
+        return words.slice(0, 2).map(function (word) {
+          return word.charAt(0).toUpperCase();
+        }).join("");
+      }
+
+      function getAccountMilestones(record) {
+        const hasProfile = Boolean(String(record.id || "").trim());
+        const hasPreliminary = Boolean(record.preliminaryUnderwritingCompleted);
+        const hasPmi = Boolean(record.pmiCompleted);
+        const hasAnalysis = Boolean(record.analysisCompleted) || record.statusGroup === "coverage-placed" || record.statusGroup === "closed";
+        const hasCoveragePlaced = (Array.isArray(record.coveragePolicies) && record.coveragePolicies.length > 0)
+          || record.statusGroup === "coverage-placed"
+          || record.statusGroup === "closed";
+
+        return [
+          { label: "Profile Created", complete: hasProfile, color: "#2f5d46" },
+          { label: "Preliminary Underwriting", complete: hasPreliminary, color: "#9a7b5f" },
+          { label: "PMI", complete: hasPmi, color: "#7c5cff" },
+          { label: "Analysis Complete", complete: hasAnalysis, color: "#1f2937" },
+          { label: "Coverage Placed", complete: hasCoveragePlaced, color: "#d97f6f" }
+        ];
+      }
+
+      function calculateProfileCompletion(record) {
+        const milestones = getAccountMilestones(record);
+        const completed = milestones.filter(function (milestone) {
+          return milestone.complete;
+        }).length;
+        return Math.round((completed / milestones.length) * 100);
+      }
+
+      function getProfileRingGroups(record) {
+        const milestones = getAccountMilestones(record);
+        const overallCompletion = calculateProfileCompletion(record) / 100;
+
+        return [
+          {
+            key: "overall",
+            label: milestones.map(function (milestone) {
+              return milestone.label;
+            }).join(" | "),
+            color: "#111111",
+            completion: overallCompletion
+          },
+          {
+            key: "accent",
+            label: "Profile Accent",
+            color: "#b8d8ff",
+            completion: 1
+          }
+        ];
+      }
+
+      function buildDonutGradient(milestones) {
+        const inactiveColors = {
+          "#2f5d46": "rgba(47, 93, 70, 0.24)",
+          "#9a7b5f": "rgba(154, 123, 95, 0.42)",
+          "#7c5cff": "rgba(124, 92, 255, 0.26)",
+          "#1f2937": "rgba(31, 41, 55, 0.2)",
+          "#d97f6f": "rgba(217, 127, 111, 0.42)"
+        };
+        const segmentSize = 100 / milestones.length;
+        const separator = 0.6;
+        const separatorColor = "#f8fbf9";
+
+        return milestones.map(function (milestone, index) {
+          const start = (segmentSize * index).toFixed(2);
+          const end = (segmentSize * (index + 1)).toFixed(2);
+          const innerStart = (segmentSize * index + separator).toFixed(2);
+          const innerEnd = (segmentSize * (index + 1) - separator).toFixed(2);
+          const color = milestone.complete ? milestone.color : (inactiveColors[milestone.color] || "rgba(148, 163, 184, 0.2)");
+          return `${separatorColor} ${start}% ${innerStart}%, ${color} ${innerStart}% ${innerEnd}%, ${separatorColor} ${innerEnd}% ${end}%`;
+        }).join(", ");
+      }
+
+      function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+        const angleInRadians = (angleInDegrees - 90) * Math.PI / 180;
+        return {
+          x: centerX + (radius * Math.cos(angleInRadians)),
+          y: centerY + (radius * Math.sin(angleInRadians))
+        };
+      }
+
+      function describeArc(centerX, centerY, radius, startAngle, endAngle) {
+        const start = polarToCartesian(centerX, centerY, radius, endAngle);
+        const end = polarToCartesian(centerX, centerY, radius, startAngle);
+        const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+        return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
+      }
+
+      function describeAnnularSector(centerX, centerY, outerRadius, innerRadius, startAngle, endAngle) {
+        const outerStart = polarToCartesian(centerX, centerY, outerRadius, startAngle);
+        const outerEnd = polarToCartesian(centerX, centerY, outerRadius, endAngle);
+        const innerEnd = polarToCartesian(centerX, centerY, innerRadius, endAngle);
+        const innerStart = polarToCartesian(centerX, centerY, innerRadius, startAngle);
+        const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+        return [
+          `M ${outerStart.x} ${outerStart.y}`,
+          `A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${outerEnd.x} ${outerEnd.y}`,
+          `L ${innerEnd.x} ${innerEnd.y}`,
+          `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${innerStart.x} ${innerStart.y}`,
+          "Z"
+        ].join(" ");
+      }
+
+      function buildDonutSvg(record) {
+        const center = 80;
+        const ringSweep = 300;
+        const startAngle = 210;
+        const trackColor = "#e7edf4";
+        const ringGroups = getProfileRingGroups(record);
+        const rings = [
+          { radius: 69, strokeWidth: 14, segmented: true },
+          { radius: 43, strokeWidth: 2.6, segmented: false }
+        ];
+        const outerTickCount = 78;
+        const outerTickSweep = 0.62;
+        const outerTickStep = ringSweep / outerTickCount;
+
+        function buildSegmentGroup(milestone, index, pathMarkup, hoverX, hoverY, suffix) {
+          const ringDelay = suffix === "ticks" ? `${index * 140}ms` : "0ms";
+          return `
+            <g
+              class="client-detail-donut-segment-group ${milestone.complete ? "is-complete" : "is-pending"}"
+              data-segment-id="segment-${index}${suffix ? `-${suffix}` : ""}"
+              data-segment-key="segment-${index}"
+              data-milestone-label="${escapeHtml(milestone.label)}"
+              data-hover-x="${hoverX}"
+              data-hover-y="${hoverY}"
+              style="--ring-delay: ${ringDelay};"
+            >
+              ${pathMarkup}
+            </g>
+          `;
+        }
+
+        function buildOuterTickRing(ring, geometry, index) {
+          const completedTicks = Math.round(outerTickCount * ring.completion);
+          const centerAngle = startAngle + (ringSweep / 2);
+          const hoverRadians = (centerAngle - 90) * Math.PI / 180;
+          const hoverX = (Math.cos(hoverRadians) * 4).toFixed(2);
+          const hoverY = (Math.sin(hoverRadians) * 4).toFixed(2);
+
+          const tickMarkup = Array.from({ length: outerTickCount }, function (_, tickIndex) {
+            const tickStart = startAngle + (tickIndex * outerTickStep);
+            const tickEnd = tickStart + outerTickSweep;
+            const tickPath = describeArc(center, center, geometry.radius, tickStart, tickEnd);
+            const tickColor = tickIndex < completedTicks ? ring.color : trackColor;
+            const tickClass = tickIndex < completedTicks
+              ? "client-detail-donut-ring-tick is-complete"
+              : "client-detail-donut-ring-tick is-track";
+
+            return `
+              <path
+                class="${tickClass}"
+                d="${tickPath}"
+                stroke="${tickColor}"
+                stroke-width="${geometry.strokeWidth + 0.9}"
+                fill="none"
+                stroke-linecap="butt"
+                style="--tick-delay: ${index * 140 + tickIndex * 16}ms;"
+              />
+            `;
+          }).join("");
+
+          return buildSegmentGroup(
+            {
+              complete: ring.completion >= 1,
+              label: ring.label
+            },
+            index,
+            tickMarkup,
+            hoverX,
+            hoverY,
+            "ticks"
+          );
+        }
+
+        const segments = ringGroups.map(function (ring, index) {
+          const geometry = rings[index];
+          if (geometry.segmented) {
+            return buildOuterTickRing(ring, geometry, index);
+          }
+          const ringStartAngle = ring.key === "accent" ? startAngle - 120 : startAngle;
+          const endAngle = ringStartAngle + ringSweep;
+          const progressEndAngle = ringStartAngle + (ringSweep * ring.completion);
+          const centerAngle = ringStartAngle + (ringSweep / 2);
+          const hoverRadians = (centerAngle - 90) * Math.PI / 180;
+          const hoverX = (Math.cos(hoverRadians) * 4).toFixed(2);
+          const hoverY = (Math.sin(hoverRadians) * 4).toFixed(2);
+          const trackPath = describeArc(center, center, geometry.radius, ringStartAngle, endAngle);
+          const progressPath = ring.completion > 0
+            ? describeArc(center, center, geometry.radius, ringStartAngle, progressEndAngle)
+            : "";
+          return buildSegmentGroup(
+            {
+              complete: ring.completion >= 1,
+              label: ring.label
+            },
+            index,
+            `
+              <path
+                class="client-detail-donut-ring-track${ring.key === "accent" ? " is-placement" : ""}"
+                d="${trackPath}"
+                stroke="${trackColor}"
+                stroke-width="${geometry.strokeWidth}"
+                fill="none"
+                pathLength="100"
+              />
+              ${progressPath ? `
+                <path
+                  class="client-detail-donut-ring-progress${ring.key === "accent" ? " is-placement" : ""}"
+                  d="${progressPath}"
+                  stroke="${ring.key === "accent" ? "url(#client-detail-placement-gradient)" : ring.color}"
+                  stroke-width="${geometry.strokeWidth}"
+                  fill="none"
+                  pathLength="100"
+                />
+                ${ring.key === "accent" ? `
+                  <path
+                    class="client-detail-donut-ring-progress-gloss is-placement"
+                    d="${progressPath}"
+                    stroke="url(#client-detail-placement-gloss)"
+                    stroke-width="${Math.max(1.5, geometry.strokeWidth * 0.42)}"
+                    fill="none"
+                    pathLength="100"
+                  />
+                ` : ""}
+              ` : ""}
+            `,
+            hoverX,
+            hoverY,
+            ""
+          );
+        }).join("");
+
+        return `
+          <svg class="client-detail-donut-svg" viewBox="0 0 160 160" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="client-detail-placement-gradient" x1="24" y1="24" x2="136" y2="136" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#4120e8"></stop>
+                <stop offset="22%" stop-color="#6a3dff"></stop>
+                <stop offset="48%" stop-color="#2f8f5b"></stop>
+                <stop offset="70%" stop-color="#8dd4a8"></stop>
+                <stop offset="100%" stop-color="#0d3fe6"></stop>
+              </linearGradient>
+              <linearGradient id="client-detail-placement-gloss" x1="36" y1="32" x2="124" y2="128" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.38"></stop>
+                <stop offset="30%" stop-color="#ffffff" stop-opacity="0.14"></stop>
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"></stop>
+              </linearGradient>
+            </defs>
+            ${segments}
+          </svg>
+        `;
+      }
+
+      function getRecord() {
+        const params = new URLSearchParams(window.location.search);
+        const recordId = String(params.get("id") || "").trim();
+        const caseRef = String(params.get("caseRef") || "").trim().toUpperCase();
+        const records = loadJson(localStorage, getRecordsStorageKey());
+        if (!Array.isArray(records)) {
+          return null;
+        }
+
+        if (recordId) {
+          const matchedById = records.find(function (item) {
+            return String(item?.id || "").trim() === recordId;
+          }) || null;
+          if (matchedById) {
+            return matchedById;
+          }
+        }
+
+        if (caseRef) {
+          return records.find(function (item) {
+            return String(item?.caseRef || "").trim().toUpperCase() === caseRef;
+          }) || null;
+        }
+
+        return null;
+      }
+
+      function getRequestedTab() {
+        const params = new URLSearchParams(window.location.search);
+        const requestedTab = String(params.get("tab") || "").trim().toLowerCase();
+        return ["overview", "planning", "household", "notes"].includes(requestedTab)
+          ? requestedTab
+          : "overview";
+      }
+
+      function renderSection(sectionTitle, fields, options) {
+        const sectionClassName = String(options?.className || "").trim();
+        return `
+          <section class="client-detail-card${sectionClassName ? ` ${escapeHtml(sectionClassName)}` : ""}">
+            <div class="client-detail-card-header">
+              <h2>${escapeHtml(sectionTitle)}</h2>
+            </div>
+            <div class="client-detail-grid">
+              ${fields.map(function (field) {
+                return `
+                  <div class="client-detail-field">
+                    <span class="client-detail-label">${escapeHtml(field.label)}</span>
+                    <span class="client-detail-value">${escapeHtml(field.value)}</span>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderSummaryCard(title, items) {
+        return `
+          <section class="client-detail-card client-detail-card-compact">
+            <div class="client-detail-card-header">
+              <h2>${escapeHtml(title)}</h2>
+            </div>
+            <div class="client-summary-list">
+              ${items.map(function (item) {
+                return `
+                  <div class="client-summary-item">
+                    <span class="client-summary-label">${escapeHtml(item.label)}</span>
+                    <span class="client-summary-value">${escapeHtml(item.value)}</span>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderSplitSummaryCard(title, leftItems, rightItems) {
+        return `
+          <section class="client-detail-card client-detail-card-compact client-detail-card-split">
+            <div class="client-detail-card-header">
+              <h2>${escapeHtml(title)}</h2>
+            </div>
+            <div class="client-summary-split">
+              <div class="client-summary-list">
+                ${leftItems.map(function (item) {
+                  return `
+                    <div class="client-summary-item">
+                      <span class="client-summary-label">${escapeHtml(item.label)}</span>
+                      <span class="client-summary-value">${escapeHtml(item.value)}</span>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+              <div class="client-summary-list client-summary-list-secondary">
+                ${rightItems.map(function (item) {
+                  return `
+                    <div class="client-summary-item">
+                      <span class="client-summary-label">${escapeHtml(item.label)}</span>
+                      <span class="client-summary-value">${escapeHtml(item.value)}</span>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderBlankCard() {
+        return `
+          <section class="client-detail-card client-detail-card-compact client-detail-card-blank" aria-hidden="true"></section>
+        `;
+      }
+
+      function renderCoverageBreakdownCard(record) {
+        const policies = Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
+        const totalFaceAmount = policies.reduce(function (sum, policy) {
+          return sum + parseCurrencyNumber(policy.faceAmount);
+        }, 0);
+        const totalPremium = policies.reduce(function (sum, policy) {
+          return sum + parseCurrencyNumber(policy.premiumAmount);
+        }, 0);
+        const latestEffectiveDate = policies.reduce(function (latest, policy) {
+          const value = new Date(policy.effectiveDate || "").getTime();
+          return Number.isFinite(value) && value > latest ? value : latest;
+        }, 0);
+        const typeCounts = new Map();
+        const modeCounts = new Map();
+
+        policies.forEach(function (policy) {
+          const policyType = formatValue(policy.policyType);
+          const premiumMode = formatValue(policy.premiumMode);
+
+          if (policyType !== "Not provided") {
+            typeCounts.set(policyType, (typeCounts.get(policyType) || 0) + 1);
+          }
+
+          if (premiumMode !== "Not provided") {
+            modeCounts.set(premiumMode, (modeCounts.get(premiumMode) || 0) + 1);
+          }
+        });
+
+        const typeSummary = Array.from(typeCounts.entries())
+          .sort(function (a, b) { return b[1] - a[1]; })
+          .slice(0, 3)
+          .map(function (entry) { return `${entry[0]} ${entry[1]}`; })
+          .join(" | ") || "Not provided";
+
+        const modeSummary = Array.from(modeCounts.entries())
+          .sort(function (a, b) { return b[1] - a[1]; })
+          .slice(0, 3)
+          .map(function (entry) { return `${entry[0]} ${entry[1]}`; })
+          .join(" | ") || "Not provided";
+
+        return `
+          <section class="client-detail-card client-detail-card-compact client-coverage-breakdown-card">
+            <div class="client-detail-card-header">
+              <h2>Coverage Breakdown Summary</h2>
+            </div>
+            <div class="client-coverage-breakdown-grid">
+              <div class="client-summary-item">
+                <span class="client-summary-label">Policies Placed</span>
+                <span class="client-summary-value">${escapeHtml(String(policies.length))}</span>
+              </div>
+              <div class="client-summary-item">
+                <span class="client-summary-label">Total Face Amount</span>
+                <span class="client-summary-value">${escapeHtml(formatCurrencyTotal(totalFaceAmount))}</span>
+              </div>
+              <div class="client-summary-item">
+                <span class="client-summary-label">Total Premium</span>
+                <span class="client-summary-value">${escapeHtml(formatCurrencyTotal(totalPremium))}</span>
+              </div>
+              <div class="client-summary-item">
+                <span class="client-summary-label">Latest Effective</span>
+                <span class="client-summary-value">${escapeHtml(latestEffectiveDate ? formatDate(new Date(latestEffectiveDate).toISOString().slice(0, 10)) : "Not provided")}</span>
+              </div>
+            </div>
+            <div class="client-coverage-breakdown-lines">
+              <div class="client-coverage-breakdown-line">
+                <span>Policy Types</span>
+                <strong>${escapeHtml(typeSummary)}</strong>
+              </div>
+              <div class="client-coverage-breakdown-line">
+                <span>Premium Modes</span>
+                <strong>${escapeHtml(modeSummary)}</strong>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      function formatListValue(value) {
+        if (Array.isArray(value)) {
+          const normalized = value.map(function (item) {
+            return String(item || "").trim();
+          }).filter(Boolean);
+          return normalized.length ? normalized.join(", ") : "Not provided";
+        }
+
+        return formatValue(value);
+      }
+
+      function getPlanningStatus(record) {
+        const hasPreliminary = Boolean(record.preliminaryUnderwritingCompleted);
+        const hasPmi = Boolean(record.pmiCompleted);
+        const hasAnalysis = Boolean(record.analysisCompleted) || record.statusGroup === "coverage-placed" || record.statusGroup === "closed";
+
+        if (hasAnalysis) {
+          return "Analysis Complete";
+        }
+
+        if (hasPreliminary && hasPmi) {
+          return "Ready for Analysis";
+        }
+
+        if (hasPreliminary || hasPmi) {
+          return "Planning In Progress";
+        }
+
+        return "Planning Not Started";
+      }
+
+      function getPlanningNextStep(record) {
+        if (!record.preliminaryUnderwritingCompleted) {
+          return "Complete preliminary underwriting";
+        }
+
+        if (!record.pmiCompleted) {
+          return "Finish protection modeling inputs";
+        }
+
+        if (!(Boolean(record.analysisCompleted) || record.statusGroup === "coverage-placed" || record.statusGroup === "closed")) {
+          return "Complete analysis review";
+        }
+
+        return "Review placed coverage";
+      }
+
+      function getRiskSummary(record) {
+        const data = record.preliminaryUnderwriting?.data || {};
+        const bmi = Number(data.bodyMassIndex || 0);
+        const conditions = Array.isArray(data.majorMedicalConditions)
+          ? data.majorMedicalConditions.filter(Boolean)
+          : (String(data.majorMedicalConditions || "").trim() ? [String(data.majorMedicalConditions || "").trim()] : []);
+        const nicotineStatus = String(data.nicotineUseStatus || "").trim().toLowerCase();
+
+        if (!record.preliminaryUnderwritingCompleted) {
+          return "Awaiting preliminary underwriting";
+        }
+
+        if (nicotineStatus.includes("current") || conditions.length >= 3 || bmi >= 35) {
+          return "Elevated risk";
+        }
+
+        if (nicotineStatus.includes("former") || conditions.length >= 1 || bmi >= 30) {
+          return "Moderate risk";
+        }
+
+        return "Lower apparent risk";
+      }
+
+      function renderPlanningCard(title, items, className) {
+        return `
+          <section class="client-detail-card client-detail-card-compact client-planning-card${className ? ` ${className}` : ""}">
+            <div class="client-detail-card-header">
+              <h2>${escapeHtml(title)}</h2>
+            </div>
+            <div class="client-summary-list">
+              ${items.map(function (item) {
+                return `
+                  <div class="client-summary-item">
+                    <span class="client-summary-label">${escapeHtml(item.label)}</span>
+                    <span class="client-summary-value">${escapeHtml(item.value)}</span>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderAnalysisPreviewCard(record) {
+        const planningStatus = getPlanningStatus(record);
+        const nextStep = getPlanningNextStep(record);
+        const latestPlanningDate = formatDate(
+          record.analysisCompletedDate
+          || record.protectionModeling?.savedAt
+          || record.preliminaryUnderwriting?.savedAt
+          || record.lastUpdatedDate
+          || record.dateProfileCreated
+        );
+
+        return renderPlanningCard("Analysis Preview", [
+          { label: "Planning Status", value: planningStatus },
+          { label: "Coverage Adequacy", value: `${getCoverageAdequacy(record)}%` },
+          { label: "Coverage Amount", value: formatCoverageCardCurrency(record.coverageAmount) },
+          { label: "Coverage Gap", value: formatCoverageCardCurrency(record.coverageGap) },
+          { label: "Last Planning Update", value: latestPlanningDate },
+          { label: "Next Planning Move", value: nextStep }
+        ], "client-planning-card-wide");
+      }
+
+      function renderPmiEntryCard(record) {
+        const modelingEntries = Array.isArray(record.protectionModelingEntries) && record.protectionModelingEntries.length
+          ? record.protectionModelingEntries
+          : (record.protectionModeling ? [record.protectionModeling] : []);
+        const latestModeling = modelingEntries[modelingEntries.length - 1] || {};
+        const modelingData = latestModeling.data || {};
+        return `
+          <section class="client-detail-card client-detail-card-compact client-planning-card client-planning-card-pmi">
+            <div class="client-detail-card-header">
+              <h2>Protection Modeling Inputs</h2>
+            </div>
+            <div class="client-summary-list">
+              ${[
+                { label: "Status", value: record.pmiCompleted ? "Completed" : "Not started" },
+                { label: "Forms Saved", value: String(modelingEntries.length || 0) },
+                { label: "Latest Saved At", value: record.pmiCompleted ? formatDate(latestModeling.savedAt) : "Not provided" },
+                { label: "Linked Case Ref", value: formatValue(latestModeling.linkedCaseRef || record.caseRef) },
+                { label: "Latest Entry Variant", value: formatValue(latestModeling.variant) },
+                { label: "Current Coverage", value: formatCurrency(modelingData.currentCoverageAmount || modelingData.currentLifeInsuranceCoverage || 0) },
+                { label: "Income Input", value: formatCurrency(modelingData.annualIncome || modelingData.householdIncome || 0) }
+              ].map(function (item) {
+                return `
+                  <div class="client-summary-item">
+                    <span class="client-summary-label">${escapeHtml(item.label)}</span>
+                    <span class="client-summary-value">${escapeHtml(item.value)}</span>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+            <button class="client-planning-view-all" type="button" data-pmi-detail-open>
+              <span>View All</span>
+              <span class="client-planning-view-all-icon" aria-hidden="true"></span>
+            </button>
+          </section>
+        `;
+      }
+
+      function formatPlanningDetailValue(value) {
+        if (Array.isArray(value)) {
+          const normalized = value.map(function (item) {
+            return String(item || "").trim();
+          }).filter(Boolean);
+          return normalized.length ? normalized.join(", ") : "Not provided";
+        }
+
+        if (value === null || value === undefined || value === "") {
+          return "Not provided";
+        }
+
+        return String(value).trim() || "Not provided";
+      }
+
+      function humanizePlanningKey(key) {
+        return String(key || "")
+          .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+          .replace(/[_-]+/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+          .replace(/\b\w/g, function (letter) { return letter.toUpperCase(); });
+      }
+
+      function renderPmiDetailModalBody(record) {
+        const modelingEntries = Array.isArray(record.protectionModelingEntries) && record.protectionModelingEntries.length
+          ? record.protectionModelingEntries
+          : (record.protectionModeling ? [record.protectionModeling] : []);
+
+        if (!modelingEntries.length) {
+          return `
+            <div class="client-policy-modal-grid">
+              <div class="client-policy-modal-field">
+                <span class="client-policy-modal-label">Status</span>
+                <span class="client-policy-modal-value">Not started</span>
+              </div>
+            </div>
+          `;
+        }
+
+        return modelingEntries.map(function (modeling, index) {
+          const modelingData = modeling.data || {};
+          const detailFields = [
+            ["Form", String(index + 1)],
+            ["Saved At", formatDate(modeling.savedAt)],
+            ["Linked Case Ref", formatValue(modeling.linkedCaseRef || record.caseRef)],
+            ["Entry Variant", formatValue(modeling.variant)],
+            ["Page", formatValue(modeling.page)]
+          ];
+
+          Object.entries(modelingData).forEach(function (entry) {
+            detailFields.push([humanizePlanningKey(entry[0]), formatPlanningDetailValue(entry[1])]);
+          });
+
+          return `
+            <div class="client-policy-modal-grid">
+              ${detailFields.map(function (field) {
+                return `
+                  <div class="client-policy-modal-field">
+                    <span class="client-policy-modal-label">${escapeHtml(field[0])}</span>
+                    <span class="client-policy-modal-value">${escapeHtml(field[1])}</span>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          `;
+        }).join('<div class="client-policy-modal-divider"></div>');
+      }
+
+      function renderRiskAnalysisCard(record) {
+        const data = record.preliminaryUnderwriting?.data || {};
+        const conditions = formatListValue(data.majorMedicalConditions);
+        return renderPlanningCard("Risk Analysis", [
+          { label: "Risk View", value: getRiskSummary(record) },
+          { label: "Nicotine Use", value: formatValue(data.nicotineUseStatus) },
+          { label: "Diabetes Status", value: formatValue(data.diabetesStatus) },
+          { label: "Major Conditions", value: conditions },
+          { label: "Occupation Risk", value: formatValue(data.occupationRiskLevel) },
+          { label: "Travel Outside US", value: formatValue(data.plannedTravelOutsideUs) }
+        ]);
+      }
+
+      function renderPreliminaryResultsCard(record) {
+        const data = record.preliminaryUnderwriting?.data || {};
+        return renderPlanningCard("Preliminary Results", [
+          { label: "Status", value: record.preliminaryUnderwritingCompleted ? "Completed" : "Not started" },
+          { label: "Saved At", value: record.preliminaryUnderwritingCompleted ? formatDate(record.preliminaryUnderwriting?.savedAt) : "Not provided" },
+          { label: "Height", value: `${formatValue(data.heightFeet)} ft ${formatValue(data.heightInches)} in`.replace("Not provided ft Not provided in", "Not provided") },
+          { label: "Weight", value: data.weight ? `${String(data.weight).trim()} lbs` : "Not provided" },
+          { label: "BMI", value: formatValue(data.bodyMassIndex) },
+          { label: "Treatment Categories", value: formatListValue(data.treatmentCategories) }
+        ]);
+      }
+
+      function renderFooterBar(record) {
+        const policies = Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
+        const policyCount = policies.length;
+        const nextFollowUp = record.lastReview || record.lastUpdatedDate || record.dateProfileCreated;
+        const coveragePlaced = policyCount > 0 || record.statusGroup === "coverage-placed" || record.statusGroup === "closed";
+        return `
+          <section class="client-detail-card client-detail-card-compact client-footer-strip">
+            <div class="client-footer-strip-inner">
+              <div class="client-footer-strip-item">
+                <span class="client-footer-strip-label">Policies Placed</span>
+                <strong>${escapeHtml(String(policyCount))}</strong>
+              </div>
+              <div class="client-footer-strip-item">
+                <span class="client-footer-strip-label">Next Follow-Up</span>
+                <strong>${escapeHtml(formatDate(nextFollowUp))}</strong>
+              </div>
+              <div class="client-footer-strip-item">
+                <span class="client-footer-strip-label">Coverage Status</span>
+                <strong>${escapeHtml(coveragePlaced ? "Placed" : "In Progress")}</strong>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderNotesWidget(record) {
+        const rawNotes = String(record.clientNotes || "").trim();
+        const noteLines = rawNotes
+          ? rawNotes.split(/\r?\n+/).map(function (line) { return line.trim(); }).filter(Boolean).slice(0, 3)
+          : [];
+        const nextFollowUp = formatDate(record.lastReview || record.lastUpdatedDate || record.dateProfileCreated);
+        const lastContact = formatDate(record.lastContactDate || record.lastUpdatedDate || record.dateProfileCreated);
+        const previewNotes = noteLines;
+
+        return `
+          <section class="client-detail-card client-detail-card-compact client-notes-widget-card">
+            <div class="client-notes-widget-topline">
+              <h2>Activity Tracker</h2>
+              <span class="client-notes-widget-last-contact">Last Contact ${escapeHtml(lastContact)}</span>
+            </div>
+            <div class="client-notes-widget-paper" aria-hidden="true"></div>
+            <div class="client-notes-widget-body">
+              ${previewNotes.length ? `
+                <div class="client-notes-widget-list">
+                  ${previewNotes.map(function (line) {
+                    return `
+                      <div class="client-notes-widget-item">
+                        <span class="client-notes-widget-dot" aria-hidden="true"></span>
+                        <span>${escapeHtml(line)}</span>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+              ` : ""}
+              <div class="client-notes-widget-actions">
+                <button type="button" class="client-notes-widget-action client-notes-widget-action-primary" data-activity-log-open>Log Activity</button>
+                <div class="client-activity-drawer" data-activity-modal hidden>
+                  <div class="client-activity-drawer-panel" role="dialog" aria-modal="false" aria-labelledby="client-activity-modal-title">
+                    <div class="client-activity-menu" data-activity-menu>
+                      <div class="client-activity-modal-header">
+                        <div class="client-activity-modal-heading">
+                          <h2 id="client-activity-modal-title">Log Activity</h2>
+                          <p>Choose the activity you want to add to this profile.</p>
+                        </div>
+                        <button class="client-activity-modal-close" type="button" data-activity-modal-close aria-label="Close activity options">×</button>
+                      </div>
+                      <div class="client-activity-modal-grid">
+                        <button type="button" class="client-activity-option" data-activity-option="note">
+                          <span class="client-activity-option-title">Add Note</span>
+                          <span class="client-activity-option-copy">Capture a quick written update.</span>
+                        </button>
+                        <button type="button" class="client-activity-option" data-activity-option="email">
+                          <span class="client-activity-option-title">Log Email</span>
+                          <span class="client-activity-option-copy">Record a sent or received email.</span>
+                        </button>
+                        <button type="button" class="client-activity-option" data-activity-option="phone">
+                          <span class="client-activity-option-title">Add Phone Call</span>
+                          <span class="client-activity-option-copy">Track a call outcome or callback.</span>
+                        </button>
+                        <button type="button" class="client-activity-option" data-activity-option="schedule">
+                          <span class="client-activity-option-title">Schedule Meeting</span>
+                          <span class="client-activity-option-copy">Add an upcoming meeting touchpoint.</span>
+                        </button>
+                        <button type="button" class="client-activity-option" data-activity-option="meeting">
+                          <span class="client-activity-option-title">Add Meeting</span>
+                          <span class="client-activity-option-copy">Log a meeting that already happened.</span>
+                        </button>
+                        <button type="button" class="client-activity-option" data-activity-option="reminder">
+                          <span class="client-activity-option-title">Set Reminder</span>
+                          <span class="client-activity-option-copy">Create a follow-up reminder.</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderChecklistCard(title, items) {
+        const incompleteItems = items.filter(function (item) { return !item.complete; });
+        const completedCount = items.length - incompleteItems.length;
+        const nextItem = incompleteItems[0] || null;
+        const nextActionTitle = nextItem ? nextItem.label : "All core steps complete";
+        const nextActionDetail = nextItem ? nextItem.detail : "This account has all required core items completed.";
+
+        return `
+          <section class="client-detail-card client-detail-card-compact client-detail-card-checklist">
+            <div class="client-detail-card-header">
+              <h2>${escapeHtml(title)}</h2>
+            </div>
+            <div class="client-checklist-next ${nextItem ? "is-incomplete" : "is-complete"}">
+              <div class="client-checklist-next-top">
+                <span class="client-checklist-next-label">Next Action</span>
+                <div class="client-checklist-next-row">
+                  <strong>${escapeHtml(nextActionTitle)}</strong>
+                  <img class="client-checklist-next-icon" src="../Images/start_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" alt="" aria-hidden="true">
+                </div>
+              </div>
+            </div>
+            <div class="client-checklist-progress">${completedCount} of ${items.length} complete</div>
+            <div class="client-checklist-list">
+              ${items.map(function (item) {
+                return `
+                  <div class="client-checklist-row ${item.complete ? "is-complete" : "is-incomplete"}">
+                    <div class="client-checklist-row-copy">
+                      <strong>${escapeHtml(item.label)}</strong>
+                      <span>${escapeHtml(item.detail)}</span>
+                    </div>
+                    <span class="client-checklist-status">${item.complete ? "Complete" : "Incomplete"}</span>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderCoverageCard(record) {
+        const policies = Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
+        const previewPolicies = policies.slice(0, 2);
+        const title = policies.length ? "Coverage Placed" : "Add Coverage";
+        const actionLabel = policies.length ? "Add Another Policy" : "Add Policy";
+        const recordId = encodeURIComponent(String(record.id || "").trim());
+        const canAddPolicy = policies.length < 30;
+
+        return `
+          <section class="client-detail-card client-detail-card-compact client-coverage-card">
+            <div class="client-detail-card-header client-detail-card-header-coverage">
+              <h2>${escapeHtml(title)}</h2>
+              <a
+                class="client-coverage-add-button${canAddPolicy ? "" : " is-disabled"}"
+                ${canAddPolicy ? `href="add-coverage.html?id=${recordId}&newPolicy=1"` : ""}
+                ${canAddPolicy ? "" : `aria-disabled="true" tabindex="-1"`}
+              >${escapeHtml(canAddPolicy ? actionLabel : "Policy Limit Reached")}</a>
+            </div>
+            <div class="client-coverage-card-body">
+              ${policies.length ? `
+                <div class="client-coverage-policy-list">
+                ${previewPolicies.map(function (policy, index) {
+                  return `
+                    <article
+                      class="client-coverage-policy-item"
+                      data-coverage-policy-card
+                      data-policy-index="${index}"
+                      tabindex="0"
+                      role="button"
+                      aria-label="Open ${escapeHtml(formatValue(policy.policyCarrier))} policy details"
+                    >
+                      <div class="client-coverage-policy-topline">
+                        <strong>${escapeHtml(formatValue(policy.policyCarrier))}</strong>
+                        <span>${escapeHtml(formatCurrency(policy.faceAmount))}</span>
+                      </div>
+                      <div class="client-coverage-policy-meta">
+                        <span>${escapeHtml(formatValue(policy.policyType))}</span>
+                        <span>${escapeHtml(formatValue(policy.insuredName))}</span>
+                      </div>
+                      <div class="client-coverage-policy-meta">
+                        <span>Policy ${escapeHtml(formatValue(policy.policyNumber || `#${index + 1}`))}</span>
+                        <span>Effective ${escapeHtml(formatDate(policy.effectiveDate))}</span>
+                      </div>
+                    </article>
+                  `;
+                }).join("")}
+                </div>
+              ` : `
+                <div class="client-coverage-policy-list is-empty">
+                  <p class="client-coverage-empty">No policies saved to this profile yet.</p>
+                </div>
+              `}
+            </div>
+            <button
+              class="client-coverage-view-all-button${policies.length > 2 ? " is-active" : ""}"
+              type="button"
+              data-view-all-policies
+              ${policies.length > 2 ? "" : "disabled"}
+            >View All</button>
+          </section>
+        `;
+      }
+
+      function renderStatCard(title, value, meta, options) {
+        const isEditable = Boolean(options?.editable);
+        const fieldName = String(options?.fieldName || "").trim();
+        const rawValue = String(options?.rawValue || "").trim();
+        const showMeta = String(meta || "").trim().length > 0;
+        const numericRawValue = Number(String(rawValue || "").replace(/,/g, ""));
+        const coverageGapStateClass = fieldName === "coverageGap"
+          ? (Number.isFinite(numericRawValue) && numericRawValue === 0 ? " is-zero" : " has-gap")
+          : "";
+
+        return `
+          <section class="client-detail-card client-detail-stat-card${isEditable ? " is-editable" : ""}">
+            <div class="client-detail-stat-header">
+              <span>${escapeHtml(title)}</span>
+              ${isEditable ? `
+                <div class="client-detail-stat-display${coverageGapStateClass}">
+                  <strong data-stat-display="${escapeHtml(fieldName)}">${escapeHtml(value)}</strong>
+                  <button
+                    class="client-detail-stat-edit-button"
+                    type="button"
+                    data-stat-edit-toggle="${escapeHtml(fieldName)}"
+                    aria-label="Edit ${escapeHtml(title)}"
+                  >
+                    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <path d="M3.1 11.8 11.2 3.7a1.3 1.3 0 0 1 1.84 1.84l-8.1 8.1-2.38.54.54-2.38Z" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M10.35 4.55 12.2 6.4" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              ` : `<strong>${escapeHtml(value)}</strong>`}
+            </div>
+            ${showMeta ? `<p>${escapeHtml(meta)}</p>` : ""}
+          </section>
+        `;
+      }
+
+      function getCoverageAdequacy(record) {
+        const coverageAmount = Number(String(record.coverageAmount || "").replace(/,/g, ""));
+        const coverageGap = Number(String(record.coverageGap || "").replace(/,/g, ""));
+        const safeCoverageAmount = Number.isFinite(coverageAmount) ? Math.max(0, coverageAmount) : 0;
+        const safeCoverageGap = Number.isFinite(coverageGap) ? Math.max(0, coverageGap) : 0;
+        const totalNeed = safeCoverageAmount + safeCoverageGap;
+
+        if (totalNeed <= 0) {
+          return 0;
+        }
+
+        return Math.max(0, Math.min(100, Math.round((safeCoverageAmount / totalNeed) * 100)));
+      }
+
+      function renderCoverageAdequacyBar(record) {
+        const adequacy = getCoverageAdequacy(record);
+        return `
+          <section class="client-coverage-adequacy" data-coverage-adequacy>
+            <div class="client-coverage-adequacy-header">
+              <span>Coverage Adequacy</span>
+              <strong data-coverage-adequacy-percent>${adequacy}%</strong>
+            </div>
+            <div class="client-coverage-adequacy-track" aria-hidden="true">
+              <div class="client-coverage-adequacy-fill" data-coverage-adequacy-fill style="width: ${adequacy}%;"></div>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderProfile(record) {
+        const status = getClientStatusDisplay(record.statusGroup);
+        const priority = getPriorityDisplay(normalizePriority(record.priority));
+        const householdName = formatValue(record.householdName);
+        const subtitleParts = [status, formatValue(record.caseRef)];
+        const householdDisplay = householdName === "Not provided" ? "No household linked" : householdName;
+        const hasCoveragePlaced = (Array.isArray(record.coveragePolicies) && record.coveragePolicies.length > 0)
+          || record.statusGroup === "coverage-placed"
+          || record.statusGroup === "closed";
+        const hasProfileCreated = Boolean(String(record.id || "").trim());
+        const hasAnalysisCompleted = Boolean(record.analysisCompleted)
+          || record.statusGroup === "coverage-placed"
+          || record.statusGroup === "closed";
+        const completion = calculateProfileCompletion(record);
+        const profileStatus = hasProfileCreated
+          ? `Saved ${formatDate(record.dateProfileCreated || record.lastUpdatedDate)}`
+          : "Incomplete";
+        const preliminaryStatus = record.preliminaryUnderwritingCompleted
+          ? `Saved ${formatDate(record.preliminaryUnderwriting?.savedAt)}`
+          : "Incomplete";
+        const pmiStatus = record.pmiCompleted
+          ? `Saved ${formatDate(record.protectionModeling?.savedAt)}`
+          : "Incomplete";
+        const analysisStatus = hasAnalysisCompleted
+          ? `Saved ${formatDate(record.analysisCompletedDate || record.lastUpdatedDate)}`
+          : "Incomplete";
+
+        return `
+          <div class="client-profile-shell">
+            <aside class="client-profile-sidebar">
+              <a class="client-profile-backlink" href="clients.html">
+                <span>Return to Client Directory</span>
+              </a>
+              <section class="client-profile-sidebar-card">
+                <div class="client-profile-avatar-wrap">
+                  <div class="client-profile-donut-map">
+                    <div class="client-detail-avatar client-detail-avatar-progress">
+                      ${buildDonutSvg(record)}
+                      <div class="client-detail-avatar-core">
+                        <div class="client-detail-avatar-core-inner">
+                          <div class="client-detail-avatar-core-face client-detail-avatar-core-front">${escapeHtml(getInitials(record.displayName))}</div>
+                          <div class="client-detail-avatar-core-face client-detail-avatar-core-back">
+                            <span class="client-detail-avatar-core-back-label">Created</span>
+                            <span class="client-detail-avatar-core-back-date">${escapeHtml(formatDate(record.dateProfileCreated || record.lastUpdatedDate))}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="client-profile-sidebar-copy">
+                  <p class="client-profile-completion-copy">${escapeHtml(`${completion}% Account Complete`)}</p>
+                  <h2>
+                    <span>${escapeHtml(formatValue(record.displayName))}</span>
+                    <span class="client-profile-name-badge${hasCoveragePlaced ? " is-complete" : ""}" aria-hidden="true"></span>
+                  </h2>
+                  <p>${escapeHtml([
+                    formatValue(record.age),
+                    formatValue(record.insuranceRatingSex),
+                    formatValue(record.city),
+                    formatValue(record.state)
+                  ].filter(function (value) { return value !== "Not provided"; }).join(" | ") || subtitleParts.join(" | "))}</p>
+                </div>
+                <div class="client-profile-contact-list">
+                  <div class="client-profile-contact-item">
+                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M5.1 2.9 3.9 4.1a1.25 1.25 0 0 0-.29 1.4c.63 1.42 1.57 2.76 2.82 4.01 1.25 1.25 2.59 2.19 4.01 2.82a1.25 1.25 0 0 0 1.4-.29l1.2-1.2a.88.88 0 0 0-.08-1.31L11.6 8.47a.9.9 0 0 0-1.02-.08l-.7.42a.6.6 0 0 1-.63.03 7.2 7.2 0 0 1-1.38-1.12 7.2 7.2 0 0 1-1.12-1.38.6.6 0 0 1 .03-.63l.42-.7a.9.9 0 0 0-.08-1.02L6.35 2.97a.88.88 0 0 0-1.25-.07Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Phone</span></span>
+                    <strong>${escapeHtml(formatValue(record.phoneNumber))}</strong>
+                  </div>
+                  <div class="client-profile-contact-item">
+                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><rect x="2.4" y="3.4" width="11.2" height="9.2" rx="1.7" stroke="currentColor" stroke-width="1.2"/><path d="M3.4 4.8 8 8.1l4.6-3.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Email</span></span>
+                    <strong>${escapeHtml(formatValue(record.emailAddress))}</strong>
+                  </div>
+                  <div class="client-profile-contact-item">
+                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.2" r="2.15" stroke="currentColor" stroke-width="1.2"/><path d="M4.15 12.45a3.85 3.85 0 0 1 7.7 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span><span>Advisor</span></span>
+                    <strong>${escapeHtml(formatValue(record.advisorName))}</strong>
+                  </div>
+                  <div class="client-profile-contact-item">
+                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M6.15 2.55 5 13.45M10.95 2.55 9.8 13.45M2.95 6.15h10.1M2.2 9.85H12.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span><span>Case Ref</span></span>
+                    <div class="client-profile-contact-value-shell">
+                      <strong>${escapeHtml(formatValue(record.caseRef))}</strong>
+                      <button class="client-profile-copy-button" type="button" data-case-ref-copy="${escapeHtml(formatValue(record.caseRef))}" aria-label="Copy case ref">
+                        <span class="client-profile-copy-icon" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              ${renderSplitSummaryCard("Profile Snapshot", [
+                { label: "First Name", value: formatValue(record.firstName) },
+                { label: "Middle Name", value: formatValue(record.middleName) },
+                { label: "Last Name", value: formatValue(record.lastName) },
+                { label: "Preferred Name", value: formatValue(record.preferredName) },
+                { label: "Date of Birth", value: formatDate(record.dateOfBirth) },
+                { label: "Age", value: formatValue(record.age) },
+                { label: "Insurance Rating Sex", value: formatValue(record.insuranceRatingSex) },
+                { label: "Spouse/Partner Date of Birth", value: formatDate(record.spouseDateOfBirth) },
+                { label: "Spouse/Partner Age", value: formatValue(record.spouseAge) }
+              ], [
+                { label: "Street Address", value: formatValue(record.streetAddress) },
+                { label: "City", value: formatValue(record.city) },
+                { label: "State", value: formatValue(record.state) },
+                { label: "ZIP Code", value: formatValue(record.zipCode) },
+                { label: "Country", value: formatValue(record.country) }
+              ])}
+            </aside>
+
+            <section class="client-profile-main">
+              <nav class="client-profile-tabs" aria-label="Client detail tabs">
+                <button class="client-profile-tab is-active" type="button" data-client-tab="overview" aria-selected="true">Dashboard</button>
+                <button class="client-profile-tab" type="button" data-client-tab="planning" aria-selected="false">Planning</button>
+                <button class="client-profile-tab" type="button" data-client-tab="household" aria-selected="false">Household</button>
+                <button class="client-profile-tab" type="button" data-client-tab="notes" aria-selected="false">Notes</button>
+              </nav>
+
+              <div class="client-profile-tab-panels">
+                <section class="client-profile-tab-panel is-active" data-client-panel="overview">
+                  <div class="client-profile-stats">
+                    ${renderStatCard("Coverage Amount", formatCoverageCardCurrency(record.coverageAmount), "", {
+                      editable: true,
+                      fieldName: "coverageAmount",
+                      rawValue: formatValue(record.coverageAmount) === "Not provided" ? "0" : String(record.coverageAmount || "0")
+                    })}
+                    ${renderStatCard("Coverage Gap", formatCoverageCardCurrency(record.coverageGap), "", {
+                      editable: true,
+                      fieldName: "coverageGap",
+                      rawValue: formatValue(record.coverageGap) === "Not provided" ? "0" : String(record.coverageGap || "0")
+                    })}
+                  </div>
+                  ${renderCoverageAdequacyBar(record)}
+
+                  <div class="client-profile-dashboard">
+                    <div class="client-profile-dashboard-main">
+                      ${renderChecklistCard("Account Completion Checklist", [
+                        { label: "Create Profile", complete: hasProfileCreated, detail: profileStatus },
+                        { label: "Preliminary Underwriting", complete: Boolean(record.preliminaryUnderwritingCompleted), detail: preliminaryStatus },
+                        { label: "Protection Modeling Inputs", complete: Boolean(record.pmiCompleted), detail: pmiStatus },
+                        { label: "Complete Analysis", complete: hasAnalysisCompleted, detail: analysisStatus }
+                      ])}
+                      ${renderNotesWidget(record)}
+                    </div>
+                    <div class="client-profile-dashboard-side">
+                      ${renderCoverageCard(record)}
+                      ${renderCoverageBreakdownCard(record)}
+                    </div>
+                    ${renderFooterBar(record)}
+                  </div>
+                </section>
+
+                <section class="client-profile-tab-panel" data-client-panel="planning" hidden>
+                  <div class="client-profile-dashboard">
+                    ${renderAnalysisPreviewCard(record)}
+                    <div class="client-profile-dashboard-main">
+                      ${renderPmiEntryCard(record)}
+                      ${renderPreliminaryResultsCard(record)}
+                    </div>
+                    <div class="client-profile-dashboard-side">
+                      ${renderRiskAnalysisCard(record)}
+                    </div>
+                  </div>
+                </section>
+
+                <section class="client-profile-tab-panel" data-client-panel="household" hidden>
+                  <section class="client-profile-banner">
+                    <p>Case ${escapeHtml(formatValue(record.caseRef))} is currently marked as ${escapeHtml(status)}. Household assignment is ${escapeHtml(householdDisplay)}.</p>
+                  </section>
+                  <div class="client-profile-dashboard">
+                    <div class="client-profile-dashboard-main">
+                      ${renderSummaryCard("Household Insight", [
+                        { label: "Household Name", value: householdDisplay },
+                        { label: "Household Role", value: formatValue(record.householdRole) },
+                        { label: "Marital Status", value: formatValue(record.maritalStatus) },
+                        { label: "Assignment Type", value: formatTitleCaseValue(record.profileGroupType) },
+                        { label: "Preferred Contact", value: formatValue(record.preferredContactMethod) },
+                        { label: "Firm Name", value: formatValue(record.firmName) }
+                      ])}
+                    </div>
+                    <div class="client-profile-dashboard-side">
+                      ${renderSummaryCard("Household and Advisory", [
+                        { label: "Assignment Name", value: householdDisplay },
+                        { label: "Household / Company Role", value: formatValue(record.householdRole) },
+                        { label: "Assignment Type", value: formatValue(record.profileGroupType) },
+                        { label: "Advisor Name", value: formatValue(record.advisorName) },
+                        { label: "Source", value: formatValue(record.source) },
+                        { label: "Priority", value: priority }
+                      ])}
+                    </div>
+                  </div>
+                </section>
+
+                <section class="client-profile-tab-panel" data-client-panel="notes" hidden>
+                  <div class="client-profile-dashboard">
+                    <div class="client-profile-dashboard-main">
+                      ${renderSummaryCard("Notes", [
+                        { label: "Client Notes", value: formatValue(record.clientNotes) },
+                        { label: "Last Review", value: formatDate(record.lastReview || record.lastUpdatedDate || record.dateProfileCreated) }
+                      ])}
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <div class="client-detail-stat-modal" data-stat-modal hidden>
+                <div class="client-detail-stat-modal-backdrop" data-stat-modal-close></div>
+                <div class="client-detail-stat-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-detail-stat-modal-title">
+                  <h2 id="client-detail-stat-modal-title" data-stat-modal-title>Edit Value</h2>
+                  <label class="client-detail-stat-editor-label client-detail-stat-modal-label">
+                    <span data-stat-modal-label>Edit Value</span>
+                    <input
+                      class="client-detail-stat-editor-input"
+                      type="text"
+                      inputmode="decimal"
+                      value="0"
+                      data-stat-modal-input
+                      aria-label="Edit value"
+                    >
+                  </label>
+                  <div class="client-detail-stat-editor-actions">
+                    <button class="client-detail-stat-editor-cancel" type="button" data-stat-modal-cancel>Cancel</button>
+                    <button class="client-detail-stat-editor-save" type="button" data-stat-modal-save>Save</button>
+                  </div>
+                </div>
+              </div>
+
+            </section>
+          </div>
+          <div class="client-policy-modal" data-policy-modal hidden>
+            <div class="client-policy-modal-backdrop" data-policy-modal-close></div>
+            <div class="client-policy-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-policy-modal-title">
+              <div class="client-policy-modal-header">
+                <button class="client-policy-edit-button" type="button" data-policy-edit-toggle>Edit</button>
+                <button class="client-policy-modal-close" type="button" data-policy-modal-close aria-label="Close policy details">×</button>
+              </div>
+              <h2 id="client-policy-modal-title" data-policy-modal-title>Policy Details</h2>
+              <div class="client-policy-modal-body" data-policy-modal-body></div>
+              <div class="client-policy-modal-footer">
+                <button class="client-policy-delete-button" type="button" data-policy-delete-toggle aria-label="Delete policy">
+                  <span class="client-policy-delete-icon" aria-hidden="true"></span>
+                  <span>Delete Policy</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="client-policy-modal client-policy-list-modal" data-policy-list-modal hidden>
+            <div class="client-policy-modal-backdrop" data-policy-list-modal-close></div>
+            <div class="client-policy-modal-panel client-policy-list-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-policy-list-modal-title">
+              <div class="client-policy-modal-header">
+                <div></div>
+                <button class="client-policy-modal-close" type="button" data-policy-list-modal-close aria-label="Close policy list">×</button>
+              </div>
+              <h2 id="client-policy-list-modal-title">All Policies</h2>
+              <div class="client-policy-list-modal-body" data-policy-list-modal-body></div>
+            </div>
+          </div>
+          <div class="client-policy-modal client-policy-delete-modal" data-policy-delete-modal hidden>
+            <div class="client-policy-modal-backdrop" data-policy-delete-modal-close></div>
+            <div class="client-policy-modal-panel client-policy-delete-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-policy-delete-modal-title">
+              <h2 id="client-policy-delete-modal-title">Delete Policy?</h2>
+              <p class="client-policy-delete-copy">Are you sure you want to delete this policy? This will remove it from the profile and update the total coverage amount.</p>
+              <div class="client-policy-delete-actions">
+                <button class="client-policy-delete-cancel" type="button" data-policy-delete-modal-close>No</button>
+                <button class="client-policy-delete-confirm" type="button" data-policy-delete-confirm>Yes, Delete</button>
+              </div>
+            </div>
+          </div>
+          <div class="client-policy-modal" data-pmi-detail-modal hidden>
+            <div class="client-policy-modal-backdrop" data-pmi-detail-close></div>
+            <div class="client-policy-modal-panel client-pmi-detail-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-pmi-detail-modal-title">
+              <div class="client-policy-modal-header">
+                <div></div>
+                <button class="client-policy-modal-close" type="button" data-pmi-detail-close aria-label="Close protection modeling inputs">×</button>
+              </div>
+              <h2 id="client-pmi-detail-modal-title">Protection Modeling Inputs</h2>
+              <div class="client-policy-modal-body" data-pmi-detail-body></div>
+            </div>
+          </div>
+          <div class="client-activity-widget-modal" data-activity-widget-modal hidden>
+            <div class="client-activity-widget-modal-backdrop" data-activity-widget-close></div>
+            <form class="client-activity-widget-modal-panel client-activity-widget" data-activity-widget role="dialog" aria-modal="true" aria-labelledby="client-activity-widget-title">
+              <div class="client-activity-widget-header">
+                <button type="button" class="client-activity-widget-back" data-activity-widget-back>Back</button>
+                <button class="client-activity-modal-close" type="button" data-activity-widget-close aria-label="Close activity widget">×</button>
+              </div>
+              <div class="client-activity-widget-heading">
+                <h2 id="client-activity-widget-title" data-activity-widget-title>Activity</h2>
+                <p data-activity-widget-copy>Complete the activity details.</p>
+              </div>
+              <div class="client-activity-widget-body" data-activity-widget-body></div>
+              <div class="client-activity-widget-actions">
+                <button type="button" class="client-activity-widget-cancel" data-activity-widget-cancel>Cancel</button>
+                <button type="submit" class="client-activity-widget-save">Save Activity</button>
+              </div>
+            </form>
+          </div>
+        `;
+      }
+
+      const record = getRecord();
+
+      if (!record) {
+        host.innerHTML = `
+          <section class="client-detail-card">
+            <p class="client-detail-empty">No saved client matched this record id.</p>
+          </section>
+        `;
+        return;
+      }
+
+      host.innerHTML = renderProfile(record);
+
+      function saveRecordField(fieldName, nextValue) {
+        const records = loadJson(localStorage, getRecordsStorageKey());
+        if (!Array.isArray(records)) {
+          return;
+        }
+
+        const recordIndex = records.findIndex(function (item) {
+          return String(item?.id || "").trim() === String(record.id || "").trim();
+        });
+
+        if (recordIndex === -1) {
+          return;
+        }
+
+        records[recordIndex] = {
+          ...records[recordIndex],
+          [fieldName]: nextValue,
+          lastUpdatedDate: new Date().toISOString().slice(0, 10)
+        };
+
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+        record[fieldName] = nextValue;
+      }
+
+      function normalizeCurrencyInput(value) {
+        const normalized = String(value || "").replace(/[^0-9.]/g, "");
+        const firstDot = normalized.indexOf(".");
+
+        if (firstDot === -1) {
+          return normalized;
+        }
+
+        const integerPart = normalized.slice(0, firstDot + 1);
+        const decimalPart = normalized.slice(firstDot + 1).replace(/\./g, "");
+        return integerPart + decimalPart;
+      }
+
+      function clampStatValue(fieldName, value) {
+        const numericValue = Number(String(value || "").replace(/,/g, ""));
+        if (!Number.isFinite(numericValue)) {
+          return "";
+        }
+
+        if (fieldName === "coverageAmount") {
+          return String(Math.min(numericValue, 99999999));
+        }
+
+        return String(numericValue);
+      }
+
+      function formatEditableCurrency(value) {
+        const number = Number(String(value || "").replace(/,/g, ""));
+        if (!number) {
+          return "0";
+        }
+
+        return new Intl.NumberFormat("en-US", {
+          maximumFractionDigits: 2
+        }).format(number);
+      }
+
+      function formatCoverageCardCurrency(value) {
+        const number = Number(String(value || "").replace(/,/g, ""));
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: 0
+        }).format(Number.isFinite(number) ? number : 0);
+      }
+
+      const donutMap = host.querySelector(".client-profile-donut-map");
+      const donutRing = host.querySelector(".client-detail-avatar-progress");
+      const donutSegments = host.querySelectorAll(".client-detail-donut-segment-group");
+      const profileTabs = host.querySelectorAll("[data-client-tab]");
+      const profilePanels = host.querySelectorAll("[data-client-panel]");
+      const policyCards = host.querySelectorAll("[data-coverage-policy-card]");
+      const viewAllPoliciesButton = host.querySelector("[data-view-all-policies]");
+      const policyModal = host.querySelector("[data-policy-modal]");
+      const policyModalBody = host.querySelector("[data-policy-modal-body]");
+      const policyModalTitle = host.querySelector("[data-policy-modal-title]");
+      const policyModalCloseButtons = host.querySelectorAll("[data-policy-modal-close]");
+      const policyEditToggle = host.querySelector("[data-policy-edit-toggle]");
+      const policyDeleteToggle = host.querySelector("[data-policy-delete-toggle]");
+      const policyListModal = host.querySelector("[data-policy-list-modal]");
+      const policyListModalBody = host.querySelector("[data-policy-list-modal-body]");
+      const policyListModalCloseButtons = host.querySelectorAll("[data-policy-list-modal-close]");
+      const policyDeleteModal = host.querySelector("[data-policy-delete-modal]");
+      const policyDeleteModalCloseButtons = host.querySelectorAll("[data-policy-delete-modal-close]");
+      const policyDeleteConfirm = host.querySelector("[data-policy-delete-confirm]");
+      const pmiDetailModal = host.querySelector("[data-pmi-detail-modal]");
+      const pmiDetailModalBody = host.querySelector("[data-pmi-detail-body]");
+      const pmiDetailOpen = host.querySelector("[data-pmi-detail-open]");
+      const pmiDetailCloseButtons = host.querySelectorAll("[data-pmi-detail-close]");
+      const statModal = host.querySelector("[data-stat-modal]");
+      const statModalTitle = host.querySelector("[data-stat-modal-title]");
+      const statModalLabel = host.querySelector("[data-stat-modal-label]");
+      const statModalInput = host.querySelector("[data-stat-modal-input]");
+      const statModalCancel = host.querySelector("[data-stat-modal-cancel]");
+      const statModalSave = host.querySelector("[data-stat-modal-save]");
+      const statModalClose = host.querySelector("[data-stat-modal-close]");
+      const activityModal = host.querySelector("[data-activity-modal]");
+      const activityModalOpen = host.querySelector("[data-activity-log-open]");
+      const activityModalCloseButtons = host.querySelectorAll("[data-activity-modal-close]");
+      const activityMenu = host.querySelector("[data-activity-menu]");
+      const activityWidgetModal = host.querySelector("[data-activity-widget-modal]");
+      const activityWidget = host.querySelector("[data-activity-widget]");
+      const activityWidgetBody = host.querySelector("[data-activity-widget-body]");
+      const activityWidgetTitle = host.querySelector("[data-activity-widget-title]");
+      const activityWidgetCopy = host.querySelector("[data-activity-widget-copy]");
+      const activityWidgetBack = host.querySelector("[data-activity-widget-back]");
+      const activityWidgetCancel = host.querySelector("[data-activity-widget-cancel]");
+      const activityWidgetCloseButtons = host.querySelectorAll("[data-activity-widget-close]");
+      const activityOptionButtons = host.querySelectorAll("[data-activity-option]");
+      const caseRefCopyButton = host.querySelector("[data-case-ref-copy]");
+      const coverageAdequacyPercent = host.querySelector("[data-coverage-adequacy-percent]");
+      const coverageAdequacyFill = host.querySelector("[data-coverage-adequacy-fill]");
+      let activeStatField = "";
+      let activeStatTitle = "";
+      let activePolicyIndex = -1;
+      let coverageAdequacyAnimationFrame = 0;
+      let activeActivityType = "";
+
+      function syncModalLock() {
+        const anyModalOpen = policyModal?.hidden === false || policyListModal?.hidden === false || policyDeleteModal?.hidden === false || pmiDetailModal?.hidden === false || statModal?.hidden === false || activityWidgetModal?.hidden === false;
+        document.body.classList.toggle("is-modal-open", anyModalOpen);
+      }
+
+      function openActivityModal() {
+        if (!activityModal) {
+          return;
+        }
+        activityModal.hidden = false;
+        if (activityModalOpen) {
+          activityModalOpen.classList.add("is-open");
+        }
+        window.requestAnimationFrame(function () {
+          activityModal.classList.add("is-open");
+        });
+      }
+
+      function closeActivityModal() {
+        if (!activityModal) {
+          return;
+        }
+        activityModal.classList.remove("is-open");
+        if (activityModalOpen) {
+          activityModalOpen.classList.remove("is-open");
+        }
+        window.setTimeout(function () {
+          if (!activityModal.classList.contains("is-open")) {
+            activityModal.hidden = true;
+          }
+        }, 180);
+        resetActivityWidget();
+      }
+
+      function getActivityDefaultDate() {
+        return new Date().toISOString().slice(0, 10);
+      }
+
+      function getActivityTypeConfig(type) {
+        const configs = {
+          note: {
+            title: "Add Note",
+            copy: "Capture a quick written update for this profile.",
+            fields: `
+              <label class="client-activity-field">
+                <span>Note Title</span>
+                <input class="client-activity-input" type="text" name="title" maxlength="120" placeholder="Quarterly review">
+              </label>
+              <label class="client-activity-field">
+                <span>Note</span>
+                <textarea class="client-activity-textarea" name="body" rows="5" placeholder="Add the key update or takeaway." required></textarea>
+              </label>
+            `
+          },
+          email: {
+            title: "Log Email",
+            copy: "Record the main details of an email touchpoint.",
+            fields: `
+              <div class="client-activity-field-grid">
+                <label class="client-activity-field">
+                  <span>Direction</span>
+                  <select class="client-activity-select" name="direction">
+                    <option value="Outbound">Outbound</option>
+                    <option value="Inbound">Inbound</option>
+                  </select>
+                </label>
+                <label class="client-activity-field">
+                  <span>Date</span>
+                  <input class="client-activity-input" type="date" name="date" value="${getActivityDefaultDate()}">
+                </label>
+              </div>
+              <label class="client-activity-field">
+                <span>Subject</span>
+                <input class="client-activity-input" type="text" name="subject" maxlength="140" placeholder="Follow-up on protection review" required>
+              </label>
+              <label class="client-activity-field">
+                <span>Summary</span>
+                <textarea class="client-activity-textarea" name="summary" rows="4" placeholder="Brief summary of the email." required></textarea>
+              </label>
+            `
+          },
+          phone: {
+            title: "Add Phone Call",
+            copy: "Track the call details and outcome.",
+            fields: `
+              <div class="client-activity-field-grid">
+                <label class="client-activity-field">
+                  <span>Direction</span>
+                  <select class="client-activity-select" name="direction">
+                    <option value="Outbound">Outbound</option>
+                    <option value="Inbound">Inbound</option>
+                  </select>
+                </label>
+                <label class="client-activity-field">
+                  <span>Date</span>
+                  <input class="client-activity-input" type="date" name="date" value="${getActivityDefaultDate()}">
+                </label>
+              </div>
+              <label class="client-activity-field">
+                <span>Outcome</span>
+                <input class="client-activity-input" type="text" name="outcome" maxlength="140" placeholder="Left voicemail">
+              </label>
+              <label class="client-activity-field">
+                <span>Call Notes</span>
+                <textarea class="client-activity-textarea" name="summary" rows="4" placeholder="Add the call summary." required></textarea>
+              </label>
+            `
+          },
+          schedule: {
+            title: "Schedule Meeting",
+            copy: "Set the details for an upcoming meeting touchpoint.",
+            fields: `
+              <div class="client-activity-field-grid client-activity-field-grid-three">
+                <label class="client-activity-field">
+                  <span>Date</span>
+                  <input class="client-activity-input" type="date" name="date" value="${getActivityDefaultDate()}" required>
+                </label>
+                <label class="client-activity-field">
+                  <span>Time</span>
+                  <input class="client-activity-input" type="time" name="time">
+                </label>
+                <label class="client-activity-field">
+                  <span>Meeting Type</span>
+                  <select class="client-activity-select" name="meetingType">
+                    <option value="Review">Review</option>
+                    <option value="Discovery">Discovery</option>
+                    <option value="Planning">Planning</option>
+                    <option value="Presentation">Presentation</option>
+                  </select>
+                </label>
+              </div>
+              <label class="client-activity-field">
+                <span>Location</span>
+                <input class="client-activity-input" type="text" name="location" maxlength="140" placeholder="Zoom or office">
+              </label>
+              <label class="client-activity-field">
+                <span>Agenda</span>
+                <textarea class="client-activity-textarea" name="agenda" rows="4" placeholder="What is this meeting for?" required></textarea>
+              </label>
+            `
+          },
+          meeting: {
+            title: "Add Meeting",
+            copy: "Log a meeting that already happened.",
+            fields: `
+              <div class="client-activity-field-grid client-activity-field-grid-three">
+                <label class="client-activity-field">
+                  <span>Date</span>
+                  <input class="client-activity-input" type="date" name="date" value="${getActivityDefaultDate()}" required>
+                </label>
+                <label class="client-activity-field">
+                  <span>Time</span>
+                  <input class="client-activity-input" type="time" name="time">
+                </label>
+                <label class="client-activity-field">
+                  <span>Meeting Type</span>
+                  <select class="client-activity-select" name="meetingType">
+                    <option value="Review">Review</option>
+                    <option value="Discovery">Discovery</option>
+                    <option value="Planning">Planning</option>
+                    <option value="Presentation">Presentation</option>
+                  </select>
+                </label>
+              </div>
+              <label class="client-activity-field">
+                <span>Attendees</span>
+                <input class="client-activity-input" type="text" name="attendees" maxlength="180" placeholder="Client and spouse">
+              </label>
+              <label class="client-activity-field">
+                <span>Summary</span>
+                <textarea class="client-activity-textarea" name="summary" rows="4" placeholder="Add the meeting outcome." required></textarea>
+              </label>
+            `
+          },
+          reminder: {
+            title: "Set Reminder",
+            copy: "Create a follow-up reminder for this account.",
+            fields: `
+              <div class="client-activity-field-grid">
+                <label class="client-activity-field">
+                  <span>Due Date</span>
+                  <input class="client-activity-input" type="date" name="date" value="${getActivityDefaultDate()}" required>
+                </label>
+                <label class="client-activity-field">
+                  <span>Category</span>
+                  <select class="client-activity-select" name="category">
+                    <option value="Follow-Up">Follow-Up</option>
+                    <option value="Document Request">Document Request</option>
+                    <option value="Meeting Prep">Meeting Prep</option>
+                    <option value="Service">Service</option>
+                  </select>
+                </label>
+              </div>
+              <label class="client-activity-field">
+                <span>Reminder</span>
+                <textarea class="client-activity-textarea" name="summary" rows="4" placeholder="Add the reminder details." required></textarea>
+              </label>
+            `
+          }
+        };
+
+        return configs[type] || null;
+      }
+
+      function resetActivityWidget() {
+        activeActivityType = "";
+        if (activityWidget) {
+          activityWidget.reset();
+        }
+        if (activityWidgetBody) {
+          activityWidgetBody.innerHTML = "";
+        }
+      }
+
+      function openActivityWidget(type) {
+        const config = getActivityTypeConfig(type);
+        if (!config || !activityWidgetModal || !activityWidget || !activityWidgetBody || !activityWidgetTitle || !activityWidgetCopy) {
+          return;
+        }
+
+        activeActivityType = type;
+        closeActivityModal();
+        activityWidgetModal.hidden = false;
+        activityWidgetTitle.textContent = config.title;
+        activityWidgetCopy.textContent = config.copy;
+        activityWidgetBody.innerHTML = config.fields;
+        syncModalLock();
+        window.requestAnimationFrame(function () {
+          activityWidgetModal.classList.add("is-open");
+        });
+      }
+
+      function closeActivityWidget() {
+        if (!activityWidgetModal) {
+          return;
+        }
+        activityWidgetModal.classList.remove("is-open");
+        window.setTimeout(function () {
+          if (!activityWidgetModal.classList.contains("is-open")) {
+            activityWidgetModal.hidden = true;
+            resetActivityWidget();
+            syncModalLock();
+          }
+        }, 180);
+      }
+
+      function buildActivityEntry(type, formData) {
+        const toValue = function (key) {
+          return String(formData.get(key) || "").trim();
+        };
+
+        if (type === "note") {
+          const title = toValue("title");
+          const body = toValue("body");
+          return {
+            type: "note",
+            date: getActivityDefaultDate(),
+            noteLine: title ? `Note: ${title} - ${body}` : `Note: ${body}`,
+            lastContactDate: getActivityDefaultDate()
+          };
+        }
+
+        if (type === "email") {
+          const direction = toValue("direction") || "Outbound";
+          const subject = toValue("subject");
+          const summary = toValue("summary");
+          const date = toValue("date") || getActivityDefaultDate();
+          return {
+            type: "email",
+            date,
+            noteLine: `Email (${direction}): ${subject}${summary ? ` - ${summary}` : ""}`,
+            lastContactDate: date
+          };
+        }
+
+        if (type === "phone") {
+          const direction = toValue("direction") || "Outbound";
+          const outcome = toValue("outcome");
+          const summary = toValue("summary");
+          const date = toValue("date") || getActivityDefaultDate();
+          return {
+            type: "phone",
+            date,
+            noteLine: `Phone Call (${direction})${outcome ? `: ${outcome}` : ""}${summary ? ` - ${summary}` : ""}`,
+            lastContactDate: date
+          };
+        }
+
+        if (type === "schedule") {
+          const date = toValue("date") || getActivityDefaultDate();
+          const time = toValue("time");
+          const meetingType = toValue("meetingType") || "Meeting";
+          const location = toValue("location");
+          const agenda = toValue("agenda");
+          return {
+            type: "schedule",
+            date,
+            noteLine: `Scheduled ${meetingType}${time ? ` at ${time}` : ""}${location ? `, ${location}` : ""} - ${agenda}`,
+            lastReview: date
+          };
+        }
+
+        if (type === "meeting") {
+          const date = toValue("date") || getActivityDefaultDate();
+          const time = toValue("time");
+          const meetingType = toValue("meetingType") || "Meeting";
+          const attendees = toValue("attendees");
+          const summary = toValue("summary");
+          return {
+            type: "meeting",
+            date,
+            noteLine: `${meetingType}${time ? ` at ${time}` : ""}${attendees ? ` with ${attendees}` : ""} - ${summary}`,
+            lastContactDate: date
+          };
+        }
+
+        if (type === "reminder") {
+          const date = toValue("date") || getActivityDefaultDate();
+          const category = toValue("category") || "Follow-Up";
+          const summary = toValue("summary");
+          return {
+            type: "reminder",
+            date,
+            noteLine: `Reminder (${category}) for ${date} - ${summary}`,
+            lastReview: date
+          };
+        }
+
+        return null;
+      }
+
+      async function copyTextToClipboard(text) {
+        if (!text) {
+          return false;
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+          try {
+            await navigator.clipboard.writeText(text);
+            return true;
+          } catch (error) {
+            return false;
+          }
+        }
+
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.top = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        let copied = false;
+        try {
+          copied = document.execCommand("copy");
+        } catch (error) {
+          copied = false;
+        }
+
+        document.body.removeChild(textarea);
+        return copied;
+      }
+
+      function saveActivityEntry(entry) {
+        if (!entry) {
+          return;
+        }
+
+        const existingLog = Array.isArray(record.activityLog) ? record.activityLog.slice() : [];
+        existingLog.unshift({
+          type: entry.type,
+          date: entry.date,
+          summary: entry.noteLine
+        });
+
+        const existingNotes = String(record.clientNotes || "").trim();
+        const nextNotes = [entry.noteLine, existingNotes].filter(Boolean).join("\n");
+        const nextFields = {
+          activityLog: existingLog,
+          clientNotes: nextNotes
+        };
+
+        if (entry.lastContactDate) {
+          nextFields.lastContactDate = entry.lastContactDate;
+        }
+
+        if (entry.lastReview) {
+          nextFields.lastReview = entry.lastReview;
+        }
+
+        const records = loadJson(localStorage, getRecordsStorageKey());
+        if (!Array.isArray(records)) {
+          return;
+        }
+
+        const recordIndex = records.findIndex(function (item) {
+          return String(item?.id || "").trim() === String(record.id || "").trim();
+        });
+
+        if (recordIndex === -1) {
+          return;
+        }
+
+        records[recordIndex] = {
+          ...records[recordIndex],
+          ...nextFields,
+          lastUpdatedDate: new Date().toISOString().slice(0, 10)
+        };
+
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+        Object.assign(record, nextFields);
+      }
+
+      function refreshCoverageAdequacy(animateFromZero) {
+        const adequacy = getCoverageAdequacy(record);
+        if (!coverageAdequacyPercent || !coverageAdequacyFill) {
+          return;
+        }
+
+        if (coverageAdequacyAnimationFrame) {
+          window.cancelAnimationFrame(coverageAdequacyAnimationFrame);
+          coverageAdequacyAnimationFrame = 0;
+        }
+
+        if (!animateFromZero) {
+          coverageAdequacyPercent.textContent = `${adequacy}%`;
+          coverageAdequacyFill.style.width = `${adequacy}%`;
+          return;
+        }
+
+        const duration = 1800;
+        const startValue = 0;
+        const targetValue = adequacy;
+        const startTime = window.performance.now();
+
+        coverageAdequacyPercent.textContent = "0%";
+        coverageAdequacyFill.style.width = "0%";
+
+        function easeOutQuart(progress) {
+          return 1 - Math.pow(1 - progress, 4);
+        }
+
+        function step(now) {
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easedProgress = easeOutQuart(progress);
+          const currentValue = startValue + ((targetValue - startValue) * easedProgress);
+          const displayValue = progress < 1
+            ? Math.max(0, Math.round(currentValue))
+            : targetValue;
+
+          coverageAdequacyPercent.textContent = `${Math.max(0, displayValue)}%`;
+          coverageAdequacyFill.style.width = `${Math.max(0, displayValue)}%`;
+
+          if (progress < 1) {
+            coverageAdequacyAnimationFrame = window.requestAnimationFrame(step);
+            return;
+          }
+
+          coverageAdequacyPercent.textContent = `${targetValue}%`;
+          coverageAdequacyFill.style.width = `${targetValue}%`;
+          coverageAdequacyAnimationFrame = 0;
+        }
+
+        coverageAdequacyAnimationFrame = window.requestAnimationFrame(step);
+      }
+
+      refreshCoverageAdequacy(true);
+
+      const requestedTab = getRequestedTab();
+      if (requestedTab !== "overview") {
+        profileTabs.forEach(function (button) {
+          const isActive = String(button.dataset.clientTab || "").trim() === requestedTab;
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+
+        profilePanels.forEach(function (panel) {
+          const isActive = String(panel.dataset.clientPanel || "").trim() === requestedTab;
+          panel.classList.toggle("is-active", isActive);
+          panel.hidden = !isActive;
+        });
+      }
+
+      profileTabs.forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          const nextPanel = String(tab.dataset.clientTab || "").trim();
+          if (!nextPanel) {
+            return;
+          }
+
+          profileTabs.forEach(function (button) {
+            const isActive = button === tab;
+            button.classList.toggle("is-active", isActive);
+            button.setAttribute("aria-selected", isActive ? "true" : "false");
+          });
+
+          profilePanels.forEach(function (panel) {
+            const isActive = String(panel.dataset.clientPanel || "").trim() === nextPanel;
+            panel.classList.toggle("is-active", isActive);
+            panel.hidden = !isActive;
+          });
+        });
+      });
+
+      function getCoveragePolicies() {
+        return Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
+      }
+
+      function renderPolicyModalBody(policy) {
+        return `
+          <div class="client-policy-modal-grid">
+            ${[
+              ["Carrier", formatValue(policy.policyCarrier)],
+              ["Policy Type", formatValue(policy.policyType)],
+              ["Insured Name", formatValue(policy.insuredName)],
+              ["Policy Owner", formatValue(policy.ownerName)],
+              ["Face Amount", formatCurrency(policy.faceAmount)],
+              ["Premium Amount", formatCurrency(policy.premiumAmount)],
+              ["Premium Mode", formatValue(policy.premiumMode)],
+              ["Term Length", formatValue(policy.termLength)],
+              ["Policy Number", formatValue(policy.policyNumber)],
+              ["Effective Date", formatDate(policy.effectiveDate)],
+              ["Underwriting Class", formatValue(policy.underwritingClass)],
+              ["Primary Beneficiary", formatValue(policy.beneficiaryName)]
+            ].map(function (field) {
+              return `
+                <div class="client-policy-modal-field">
+                  <span class="client-policy-modal-label">${escapeHtml(field[0])}</span>
+                  <span class="client-policy-modal-value">${escapeHtml(field[1])}</span>
+                </div>
+              `;
+            }).join("")}
+          </div>
+          <div class="client-policy-modal-field">
+            <span class="client-policy-modal-label">Policy Notes</span>
+            <span class="client-policy-modal-value">${escapeHtml(formatValue(policy.policyNotes))}</span>
+          </div>
+        `;
+      }
+
+      function renderPolicyListModalBody(policies) {
+        return `
+          <div class="client-policy-list-grid">
+            ${policies.map(function (policy, index) {
+              return `
+                <article
+                  class="client-coverage-policy-item"
+                  data-policy-list-card
+                  data-policy-index="${index}"
+                  tabindex="0"
+                  role="button"
+                  aria-label="Open ${escapeHtml(formatValue(policy.policyCarrier))} policy details"
+                >
+                  <div class="client-coverage-policy-topline">
+                    <strong>${escapeHtml(formatValue(policy.policyCarrier))}</strong>
+                    <span>${escapeHtml(formatCurrency(policy.faceAmount))}</span>
+                  </div>
+                  <div class="client-coverage-policy-meta">
+                    <span>${escapeHtml(formatValue(policy.policyType))}</span>
+                    <span>${escapeHtml(formatValue(policy.insuredName))}</span>
+                  </div>
+                  <div class="client-coverage-policy-meta">
+                    <span>Policy ${escapeHtml(formatValue(policy.policyNumber || `#${index + 1}`))}</span>
+                    <span>Effective ${escapeHtml(formatDate(policy.effectiveDate))}</span>
+                  </div>
+                </article>
+              `;
+            }).join("")}
+          </div>
+        `;
+      }
+
+      function closePolicyModal() {
+        if (!policyModal) {
+          return;
+        }
+        policyModal.hidden = true;
+        activePolicyIndex = -1;
+        syncModalLock();
+      }
+
+      function openPolicyModal(index) {
+        const policies = getCoveragePolicies();
+        const policy = policies[index];
+        if (!policyModal || !policyModalBody || !policy || !policyModalTitle) {
+          return;
+        }
+
+        activePolicyIndex = index;
+        policyModalTitle.textContent = formatValue(policy.policyCarrier) === "Not provided"
+          ? "Policy Details"
+          : `${policy.policyCarrier} Policy`;
+        policyModalBody.innerHTML = renderPolicyModalBody(policy);
+        policyModal.hidden = false;
+        syncModalLock();
+      }
+
+      function closePolicyListModal() {
+        if (!policyListModal) {
+          return;
+        }
+        policyListModal.hidden = true;
+        syncModalLock();
+      }
+
+      function openPmiDetailModal() {
+        if (!pmiDetailModal || !pmiDetailModalBody) {
+          return;
+        }
+
+        pmiDetailModalBody.innerHTML = renderPmiDetailModalBody(record);
+        pmiDetailModal.hidden = false;
+        syncModalLock();
+      }
+
+      function closePmiDetailModal() {
+        if (!pmiDetailModal) {
+          return;
+        }
+        pmiDetailModal.hidden = true;
+        syncModalLock();
+      }
+
+      function openPolicyDeleteModal() {
+        if (!policyDeleteModal || activePolicyIndex < 0) {
+          return;
+        }
+        policyDeleteModal.hidden = false;
+        syncModalLock();
+      }
+
+      function closePolicyDeleteModal() {
+        if (!policyDeleteModal) {
+          return;
+        }
+        policyDeleteModal.hidden = true;
+        syncModalLock();
+      }
+
+      function deletePolicy(index) {
+        const records = loadJson(localStorage, getRecordsStorageKey());
+        if (!Array.isArray(records) || index < 0) {
+          return false;
+        }
+
+        const recordIndex = records.findIndex(function (item) {
+          return String(item?.id || "").trim() === String(record.id || "").trim();
+        });
+
+        if (recordIndex === -1) {
+          return false;
+        }
+
+        const currentRecord = records[recordIndex];
+        const policies = Array.isArray(currentRecord.coveragePolicies) ? currentRecord.coveragePolicies.slice() : [];
+        if (index >= policies.length) {
+          return false;
+        }
+
+        policies.splice(index, 1);
+
+        const nextCoverageAmount = policies.reduce(function (total, policy) {
+          const amount = Number(String(policy?.faceAmount || "").replace(/,/g, ""));
+          return total + (Number.isFinite(amount) ? amount : 0);
+        }, 0);
+
+        const today = new Date().toISOString().slice(0, 10);
+        const nextRecord = {
+          ...currentRecord,
+          coveragePolicies: policies,
+          coverageAmount: Math.max(0, Math.min(nextCoverageAmount, 99999999)),
+          lastUpdatedDate: today,
+          lastReview: today
+        };
+
+        records[recordIndex] = nextRecord;
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+        record.coveragePolicies = nextRecord.coveragePolicies;
+        record.coverageAmount = nextRecord.coverageAmount;
+        return true;
+      }
+
+      function openPolicyListModal() {
+        const policies = getCoveragePolicies();
+        if (!policyListModal || !policyListModalBody || !policies.length) {
+          return;
+        }
+
+        policyListModalBody.innerHTML = renderPolicyListModalBody(policies);
+        policyListModal.hidden = false;
+        syncModalLock();
+
+        policyListModalBody.querySelectorAll("[data-policy-list-card]").forEach(function (card) {
+          const index = Number(card.dataset.policyIndex || "-1");
+          if (index < 0) {
+            return;
+          }
+
+          card.addEventListener("click", function () {
+            closePolicyListModal();
+            openPolicyModal(index);
+          });
+
+          card.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              closePolicyListModal();
+              openPolicyModal(index);
+            }
+          });
+        });
+      }
+
+      function closeStatEditor() {
+        if (!statModal) {
+          return;
+        }
+        statModal.hidden = true;
+        syncModalLock();
+        activeStatField = "";
+        activeStatTitle = "";
+      }
+
+      function openStatEditor(fieldName, title) {
+        if (!statModal || !statModalInput || !statModalTitle || !statModalLabel) {
+          return;
+        }
+        activeStatField = fieldName;
+        activeStatTitle = title;
+        statModalTitle.textContent = `Edit ${title}`;
+        statModalLabel.textContent = `Edit ${title}`;
+        statModalInput.value = normalizeCurrencyInput(record[fieldName] || "0");
+        statModal.hidden = false;
+        syncModalLock();
+        statModalInput.focus();
+        statModalInput.select();
+      }
+
+      const statToggles = host.querySelectorAll("[data-stat-edit-toggle]");
+
+      statToggles.forEach(function (toggle) {
+        const fieldName = String(toggle.dataset.statEditToggle || "").trim();
+        const display = host.querySelector(`[data-stat-display="${fieldName}"]`);
+        const title = toggle.closest(".client-detail-stat-card")?.querySelector(".client-detail-stat-header span")?.textContent?.trim() || "Value";
+
+        if (!display || !toggle) {
+          return;
+        }
+
+        toggle.addEventListener("click", function () {
+          openStatEditor(fieldName, title);
+        });
+      });
+
+      if (statModalInput && statModalSave && statModalCancel && statModalClose) {
+        statModalInput.addEventListener("beforeinput", function (event) {
+          if (!event.data) {
+            return;
+          }
+
+          if (!/^[0-9.]$/.test(event.data)) {
+            event.preventDefault();
+          }
+        });
+
+        statModalInput.addEventListener("input", function () {
+          statModalInput.value = normalizeCurrencyInput(statModalInput.value);
+        });
+
+        statModalCancel.addEventListener("click", function () {
+          statModalInput.value = formatEditableCurrency(record[activeStatField] || "0");
+          closeStatEditor();
+        });
+
+        statModalClose.addEventListener("click", function () {
+          closeStatEditor();
+        });
+
+        statModalSave.addEventListener("click", function () {
+          if (!activeStatField) {
+            return;
+          }
+
+          const display = host.querySelector(`[data-stat-display="${activeStatField}"]`);
+          const normalized = normalizeCurrencyInput(statModalInput.value);
+          const clamped = clampStatValue(activeStatField, normalized);
+          saveRecordField(activeStatField, clamped);
+          if (display) {
+            display.textContent = formatCoverageCardCurrency(clamped);
+            const displayShell = display.closest(".client-detail-stat-display");
+            if (displayShell && activeStatField === "coverageGap") {
+              const numericValue = Number(String(clamped || "").replace(/,/g, ""));
+              displayShell.classList.toggle("is-zero", Number.isFinite(numericValue) && numericValue === 0);
+              displayShell.classList.toggle("has-gap", !Number.isFinite(numericValue) || numericValue !== 0);
+            }
+          }
+          if (activeStatField === "coverageAmount" || activeStatField === "coverageGap") {
+            record[activeStatField] = clamped;
+            refreshCoverageAdequacy();
+          }
+          statModalInput.value = formatEditableCurrency(clamped);
+          closeStatEditor();
+        });
+
+        statModalInput.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") {
+            closeStatEditor();
+          }
+
+          if (event.key === "Enter") {
+            event.preventDefault();
+            statModalSave.click();
+          }
+        });
+      }
+
+      policyCards.forEach(function (card) {
+        const index = Number(card.dataset.policyIndex || "-1");
+        if (index < 0) {
+          return;
+        }
+
+        card.addEventListener("click", function () {
+          openPolicyModal(index);
+        });
+
+        card.addEventListener("keydown", function (event) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openPolicyModal(index);
+          }
+        });
+      });
+
+      policyModalCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          closePolicyModal();
+        });
+      });
+
+      policyListModalCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          closePolicyListModal();
+        });
+      });
+
+      policyDeleteModalCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          closePolicyDeleteModal();
+        });
+      });
+
+      if (viewAllPoliciesButton) {
+        viewAllPoliciesButton.addEventListener("click", function () {
+          if (viewAllPoliciesButton.disabled) {
+            return;
+          }
+          openPolicyListModal();
+        });
+      }
+
+      if (pmiDetailOpen) {
+        pmiDetailOpen.addEventListener("click", function () {
+          openPmiDetailModal();
+        });
+      }
+
+      pmiDetailCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          closePmiDetailModal();
+        });
+      });
+
+      if (policyEditToggle) {
+        policyEditToggle.addEventListener("click", function () {
+          if (activePolicyIndex < 0) {
+            return;
+          }
+          const detailHref = `add-coverage.html?id=${encodeURIComponent(String(record.id || "").trim())}&policyIndex=${activePolicyIndex}`;
+          window.location.href = detailHref;
+        });
+      }
+
+      if (policyDeleteToggle) {
+        policyDeleteToggle.addEventListener("click", function () {
+          if (activePolicyIndex < 0) {
+            return;
+          }
+          openPolicyDeleteModal();
+        });
+      }
+
+      if (policyDeleteConfirm) {
+        policyDeleteConfirm.addEventListener("click", function () {
+          if (activePolicyIndex < 0) {
+            return;
+          }
+          const wasDeleted = deletePolicy(activePolicyIndex);
+          if (!wasDeleted) {
+            closePolicyDeleteModal();
+            return;
+          }
+          closePolicyDeleteModal();
+          closePolicyModal();
+          window.location.reload();
+        });
+      }
+
+      if (activityModalOpen) {
+        activityModalOpen.addEventListener("click", function () {
+          if (activityModal && activityModal.hidden === false) {
+          closeActivityModal();
+            return;
+          }
+          openActivityModal();
+        });
+      }
+
+      activityModalCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          closeActivityModal();
+        });
+      });
+
+      activityOptionButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          const type = String(button.dataset.activityOption || "").trim();
+          if (!type) {
+            return;
+          }
+          openActivityWidget(type);
+        });
+      });
+
+      if (activityWidgetBack) {
+        activityWidgetBack.addEventListener("click", function () {
+          closeActivityWidget();
+          window.setTimeout(function () {
+            openActivityModal();
+          }, 190);
+        });
+      }
+
+      if (activityWidgetCancel) {
+        activityWidgetCancel.addEventListener("click", function () {
+          closeActivityWidget();
+        });
+      }
+
+      activityWidgetCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          closeActivityWidget();
+        });
+      });
+
+      if (activityWidget) {
+        activityWidget.addEventListener("submit", function (event) {
+          event.preventDefault();
+          const entry = buildActivityEntry(activeActivityType, new FormData(activityWidget));
+          if (!entry) {
+            return;
+          }
+          saveActivityEntry(entry);
+          closeActivityWidget();
+          window.location.reload();
+        });
+      }
+
+      if (caseRefCopyButton) {
+        caseRefCopyButton.addEventListener("click", async function () {
+          const caseRef = String(caseRefCopyButton.dataset.caseRefCopy || "").trim();
+          if (!caseRef || caseRef === "Not provided") {
+            return;
+          }
+
+          const copied = await copyTextToClipboard(caseRef);
+          if (!copied) {
+            return;
+          }
+
+          caseRefCopyButton.classList.add("is-copied");
+          window.setTimeout(function () {
+            caseRefCopyButton.classList.remove("is-copied");
+          }, 1200);
+        });
+      }
+
+      document.addEventListener("click", function (event) {
+        if (!activityModal || activityModal.hidden || !activityModalOpen) {
+          return;
+        }
+
+        const clickedInsideDrawer = activityModal.contains(event.target);
+        const clickedTrigger = activityModalOpen.contains(event.target);
+
+        if (!clickedInsideDrawer && !clickedTrigger) {
+          closeActivityModal();
+        }
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          closePolicyModal();
+          closePolicyListModal();
+          closePolicyDeleteModal();
+          closePmiDetailModal();
+          closeActivityModal();
+          closeActivityWidget();
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>
+
+
+
+
+

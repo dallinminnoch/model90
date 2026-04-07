@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Policy Planner | Life Evaluation &amp; Needs Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body data-step="planner">
+  <main class="workflow-shell">
+    <div id="workflow-nav"></div>
+    <section class="page-intro">
+      <div>
+        <div class="section-label">Step 5</div>
+        <h1>Policy Planner</h1>
+        <p class="intro-copy">Translate the chosen protection level into an advisor-ready planning strategy, without moving into carrier quotes or product pricing.</p>
+      </div>
+    </section>
+
+    <section class="strategy-grid">
+      <article class="strategy-card" data-strategy="Term Life Strategy">
+        <span class="badge">Structured Simplicity</span>
+        <h3 class="card-title">Term Life Strategy</h3>
+        <p class="card-copy">Designed for large protection amounts over defined family and income-replacement years.</p>
+        <ul class="compact-list">
+          <li><span>Estimated premium range</span><strong>Placeholder</strong></li>
+          <li><span>Pros and tradeoffs</span><strong>Lower cost, fixed duration</strong></li>
+        </ul>
+      </article>
+      <article class="strategy-card" data-strategy="Permanent Life Strategy">
+        <span class="badge">Long Horizon</span>
+        <h3 class="card-title">Permanent Life Strategy</h3>
+        <p class="card-copy">Supports lifelong protection goals, estate considerations, or asset-building discussions.</p>
+        <ul class="compact-list">
+          <li><span>Estimated premium range</span><strong>Placeholder</strong></li>
+          <li><span>Pros and tradeoffs</span><strong>Durability, higher cost</strong></li>
+        </ul>
+      </article>
+      <article class="strategy-card is-selected" data-strategy="Hybrid Strategy">
+        <span class="badge">Layered Design</span>
+        <h3 class="card-title">Hybrid Strategy</h3>
+        <p class="card-copy">Blends term and permanent coverage to align budget with multiple planning priorities.</p>
+        <ul class="compact-list">
+          <li><span>Estimated premium range</span><strong>Placeholder</strong></li>
+          <li><span>Pros and tradeoffs</span><strong>Flexible, more design decisions</strong></li>
+        </ul>
+      </article>
+    </section>
+
+    <div class="panel-grid" style="margin-top: 22px;">
+      <aside class="sidebar-panel">
+        <div class="info-card">
+          <div class="section-label">Strategy Notes</div>
+          <p class="card-copy">This area is ready for future assumptions such as term laddering, permanent baseline coverage, or budget guardrails.</p>
+        </div>
+      </aside>
+
+      <section class="content-panel">
+        <div class="form-section-header">
+          <h2 class="section-title">Advisor Notes</h2>
+          <p class="helper-text">Capture planning notes that should carry into the final summary.</p>
+        </div>
+        <textarea id="advisor-notes" placeholder="Add meeting notes, planning observations, or next-step considerations."></textarea>
+        <div class="actions-row">
+          <button class="btn btn-primary" type="button" id="to-summary">Continue to Summary</button>
+        </div>
+      </section>
+
+      <aside class="support-panel">
+        <div class="info-card">
+          <div class="section-label">Reminder</div>
+          <p class="card-copy">The planner is designed for strategy framing. Premiums and carrier-specific illustrations can be added later in a separate module if needed.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="../data.js"></script>
+  <script src="../calculations.js"></script>
+  <script src="../charts.js"></script>
+  <script src="../site-header.js"></script>
+  <script src="../app.js"></script>
+  <script src="../lens-workflow.js"></script>
+</body>
+</html>
+

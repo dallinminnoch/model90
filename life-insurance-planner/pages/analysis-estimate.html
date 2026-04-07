@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estimate Need | Life Evaluation &amp; Needs Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body data-step="estimate">
+  <main class="workflow-shell">
+    <div id="workflow-nav"></div>
+    <section class="page-intro">
+      <div>
+        <div class="section-label">Step 2</div>
+        <h1>Estimate Need</h1>
+        <p class="intro-copy">Present a balanced planning estimate first, then choose whether to move into methodology detail or continue directly to recommendation design.</p>
+      </div>
+    </section>
+
+    <div class="panel-grid">
+      <aside class="sidebar-panel">
+        <div class="panel-stack">
+          <div class="info-card">
+            <div class="section-label">Planning View</div>
+            <h3 class="card-title">Balanced Estimated Need</h3>
+            <p class="card-copy">This page is meant to keep the discussion concise while still grounding the recommendation in multiple planning considerations.</p>
+          </div>
+          <div class="info-card">
+            <span class="badge">Future Inputs</span>
+            <ul class="compact-list">
+              <li><span>DIME factors</span><strong>Reserved</strong></li>
+              <li><span>Needs methodology</span><strong>Reserved</strong></li>
+              <li><span>Income value lens</span><strong>Reserved</strong></li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+      <section class="content-panel">
+        <div class="results-banner">
+          <div class="result-kicker">Balanced Estimated Need</div>
+          <div class="result-value" id="balanced-estimate-value">Your balanced estimated death benefit need will appear here</div>
+          <p class="result-caption">This estimate is intended to synthesize several planning methods into a practical meeting-ready view of life insurance need.</p>
+        </div>
+        <div class="actions-row">
+          <button class="btn btn-primary" type="button" id="view-detailed-analysis">View Detailed Analysis</button>
+          <button class="btn btn-secondary" type="button" id="skip-detailed-analysis">Skip to Coverage Options</button>
+        </div>
+      </section>
+
+      <aside class="support-panel">
+        <div class="chart-placeholder" id="estimate-chart-placeholder"></div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="../data.js"></script>
+  <script src="../calculations.js"></script>
+  <script src="../charts.js"></script>
+  <script src="../site-header.js"></script>
+  <script src="../app.js"></script>
+  <script src="../lens-workflow.js"></script>
+</body>
+</html>
+

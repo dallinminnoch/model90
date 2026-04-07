@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In | Advisor Planning Suite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body class="auth-page">
+  <main class="auth-shell">
+    <section class="auth-panel">
+      <div class="auth-intro">
+        <div class="eyebrow">Advisor Access</div>
+        <h1>Sign in to the Advisor Planning Suite.</h1>
+        <p class="hero-subtitle">Use your account to open the workspace, access LENS, and keep your planning environment personalized.</p>
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-toggle" role="tablist" aria-label="Authentication mode">
+          <button class="auth-toggle-button is-active" type="button" data-auth-mode="signin">Sign In</button>
+          <button class="auth-toggle-button" type="button" data-auth-mode="register">Register</button>
+        </div>
+
+        <form id="auth-form" class="auth-form" data-local-auth="true">
+          <input type="hidden" name="authMode" value="signin">
+          <div id="auth-register-fields" class="auth-register-fields"></div>
+          <div class="field-group">
+            <label for="auth-email">Email</label>
+            <input id="auth-email" name="email" type="email" placeholder="name@firm.com" required>
+          </div>
+          <div class="field-group">
+            <label for="auth-password">Password</label>
+            <input id="auth-password" name="password" type="password" placeholder="Enter password" required>
+          </div>
+          <p class="auth-feedback" id="auth-feedback" aria-live="polite"></p>
+          <div class="actions-row auth-actions-row">
+            <a class="btn btn-secondary" href="../index.html">Exit Sign In</a>
+            <button class="btn btn-primary" type="submit" id="auth-submit-button">Sign In</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script src="../data.js"></script>
+  <script src="../calculations.js"></script>
+  <script src="../charts.js"></script>
+  <script src="../site-header.js"></script>
+  <script src="../app.js"></script>
+  <script>
+    (function () {
+      const STORAGE_KEYS = {
+        authUsers: "lipPlannerAuthUsers",
+        authSession: "lipPlannerAuthSession"
+      };
+      const ADMIN_CREDENTIALS = {
+        email: "admin@lens.com",
+        password: "admin1001"
+      };
+      const form = document.getElementById("auth-form");
+      const registerFieldsHost = document.getElementById("auth-register-fields");
+      const submitButton = document.getElementById("auth-submit-button");
+      const modeField = form ? form.querySelector("[name='authMode']") : null;
+      const modeButtons = document.querySelectorAll("[data-auth-mode]");
+      const feedback = document.getElementById("auth-feedback");
+
+      if (!form || !modeField || !modeButtons.length) {
+        return;
+      }
+
+      function renderMode(mode) {
+        modeField.value = mode;
+        modeButtons.forEach((button) => {
+          const isActive = button.dataset.authMode === mode;
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-selected", String(isActive));
+        });
+
+        if (mode === "register") {
+          registerFieldsHost.innerHTML = `
+            <div class="field-group auth-register-only">
+              <label for="auth-name">Name</label>
+              <input id="auth-name" name="name" type="text" placeholder="Advisor name" required>
+            </div>
+          `;
+          submitButton.textContent = "Create Account";
+        } else {
+          registerFieldsHost.innerHTML = "";
+          submitButton.textContent = "Sign In";
+        }
+
+        if (feedback) {
+          feedback.textContent = "";
+        }
+      }
+
+      modeButtons.forEach((button) => {
+        button.addEventListener("click", function () {
+          renderMode(button.dataset.authMode || "signin");
+        });
+      });
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const currentMode = modeField.value || "signin";
+        const formData = new FormData(form);
+        const name = String(formData.get("name") || "").trim();
+        const email = String(formData.get("email") || "").trim().toLowerCase();
+        const password = String(formData.get("password") || "").trim();
+        const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.authUsers) || "[]");
+
+        if (!email || !password) {
+          if (feedback) {
+            feedback.textContent = "Enter your email and password.";
+          }
+          return;
+        }
+
+        if (currentMode === "register") {
+          if (!name) {
+            if (feedback) {
+              feedback.textContent = "Enter your name to create an account.";
+            }
+            return;
+          }
+
+          if (email === ADMIN_CREDENTIALS.email) {
+            if (feedback) {
+              feedback.textContent = "That email is reserved.";
+            }
+            return;
+          }
+
+          const existingUser = users.find((user) => user.email === email);
+          if (existingUser) {
+            if (feedback) {
+              feedback.textContent = "An account with that email already exists.";
+            }
+            return;
+          }
+
+          const newUser = { name, email, password, status: "active" };
+          users.push(newUser);
+          localStorage.setItem(STORAGE_KEYS.authUsers, JSON.stringify(users));
+          localStorage.setItem(STORAGE_KEYS.authSession, JSON.stringify({
+            name: name,
+            email: email,
+            role: "user"
+          }));
+          window.location.href = "../index.html";
+          return;
+        }
+
+        if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+          localStorage.setItem(STORAGE_KEYS.authSession, JSON.stringify({
+            name: "Lens Admin",
+            email: ADMIN_CREDENTIALS.email,
+            role: "admin"
+          }));
+          window.location.href = "../index.html";
+          return;
+        }
+
+        const disabledUser = users.find((user) => {
+          const status = user.status || "active";
+          return user.email === email && user.password === password && status !== "active";
+        });
+
+        if (disabledUser) {
+          if (feedback) {
+            feedback.textContent = "This account has been disabled. Contact an administrator.";
+          }
+          return;
+        }
+
+        const matchedUser = users.find((user) => {
+          const status = user.status || "active";
+          return user.email === email && user.password === password && status === "active";
+        });
+
+        if (!matchedUser) {
+          if (feedback) {
+            feedback.textContent = email === ADMIN_CREDENTIALS.email
+              ? "Admin credentials were not accepted. Use the Sign In tab and enter the exact admin password."
+              : "We could not match that email and password.";
+          }
+          return;
+        }
+
+        localStorage.setItem(STORAGE_KEYS.authSession, JSON.stringify({
+          name: matchedUser.name,
+          email: matchedUser.email,
+          role: "user"
+        }));
+        window.location.href = "../index.html";
+      });
+
+      renderMode(modeField.value || "signin");
+    })();
+  </script>
+</body>
+</html>
+
