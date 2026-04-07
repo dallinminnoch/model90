@@ -24,56 +24,58 @@
 
         <form id="client-profile-form" class="lens-intake-form" data-next-page="income-loss-impact.html">
           <section class="lens-intake-link-card">
-            <div class="lens-intake-link-header">
-              <div class="lens-intake-link-title-wrap">
-                <div class="lens-intake-icon-box">
-                  <img class="lens-intake-icon-svg" src="../Images/link_2_24dp_E3E3E3_FILL0_wght300_GRAD0_opsz24.svg" alt="Link client profile">
+            <div class="lens-intake-link-workflow" id="analysis-link-workflow">
+              <div class="lens-intake-link-header">
+                <div class="lens-intake-link-title-wrap">
+                  <div class="lens-intake-icon-box">
+                    <img class="lens-intake-icon-svg" src="../Images/link_2_24dp_E3E3E3_FILL0_wght300_GRAD0_opsz24.svg" alt="Link client profile">
+                  </div>
+                  <div>
+                    <h2 class="section-title">Link Client Profile</h2>
+                    <p class="helper-text">Pull household and planning details into this analysis automatically.</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 class="section-title">Link Client Profile</h2>
-                  <p class="helper-text">Pull household and planning details into this analysis automatically.</p>
+                <span class="lens-intake-badge">Recommended</span>
+              </div>
+
+              <div class="lens-intake-link-tabs" role="tablist" aria-label="Client link method">
+                <button class="lens-intake-tab is-active" type="button" data-analysis-link-tab="search">Search Client</button>
+                <button class="lens-intake-tab" type="button" data-analysis-link-tab="case-ref">Case Reference Number</button>
+              </div>
+
+              <div class="lens-intake-link-panel is-active" data-analysis-link-panel="search">
+                <div class="lens-intake-search-row">
+                  <button id="analysis-link-button" class="lens-intake-search-input" type="button" data-analysis-link-open>
+                    Search by client name, email, or phone
+                  </button>
+                  <button class="btn btn-primary lens-intake-search-submit" type="button" data-analysis-link-open>Search</button>
                 </div>
+                <p class="lens-intake-link-copy">Find a saved client to automatically populate their household, income, and family information.</p>
               </div>
-              <span class="lens-intake-badge">Recommended</span>
-            </div>
 
-            <div class="lens-intake-link-tabs" role="tablist" aria-label="Client link method">
-              <button class="lens-intake-tab is-active" type="button" data-analysis-link-tab="search">Search Client</button>
-              <button class="lens-intake-tab" type="button" data-analysis-link-tab="case-ref">Case Reference Number</button>
-            </div>
-
-            <div class="lens-intake-link-panel is-active" data-analysis-link-panel="search">
-              <div class="lens-intake-search-row">
-                <button id="analysis-link-button" class="lens-intake-search-input" type="button" data-analysis-link-open>
-                  Search by client name, email, or phone
-                </button>
-                <button class="btn btn-primary lens-intake-search-submit" type="button" data-analysis-link-open>Search</button>
+              <div class="lens-intake-link-panel" data-analysis-link-panel="case-ref">
+                <div class="lens-intake-search-row">
+                  <input id="analysis-case-ref" name="linkedCaseRef" type="text" placeholder="CL/00000" data-analysis-case-ref autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" readonly>
+                  <button class="btn btn-secondary lens-intake-search-browse" type="button" data-analysis-link-open>Browse</button>
+                </div>
+                <p class="lens-intake-link-copy">Use a case reference number when you already know which saved profile should drive this analysis.</p>
               </div>
-              <p class="lens-intake-link-copy">Find a saved client to automatically populate their household, income, and family information.</p>
-            </div>
 
-            <div class="lens-intake-link-panel" data-analysis-link-panel="case-ref">
-              <div class="lens-intake-search-row">
-                <input id="analysis-case-ref" name="linkedCaseRef" type="text" placeholder="CL/00000" data-analysis-case-ref autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" readonly>
-                <button class="btn btn-secondary lens-intake-search-browse" type="button" data-analysis-link-open>Browse</button>
+              <input type="hidden" name="linkedRecordId" id="analysis-linked-record-id">
+              <input type="hidden" name="clientName" id="analysis-linked-client-name">
+              <input type="hidden" name="analysisEntryMode" id="analysis-entry-mode" value="">
+
+              <div class="lens-intake-linked-card info-card" id="analysis-linked-client-card" hidden>
+                <div class="lens-intake-linked-card-header">
+                  <div class="section-label">Linked Client</div>
+                  <button class="lens-intake-linked-remove" type="button" id="analysis-linked-client-remove">Remove</button>
+                </div>
+                <ul class="compact-list">
+                  <li><span>Name</span><strong id="analysis-linked-client-display">Not linked</strong></li>
+                  <li><span>Case Ref</span><strong id="analysis-linked-client-case-ref">Pending</strong></li>
+                  <li><span>Status</span><strong id="analysis-linked-client-status">Pending</strong></li>
+                </ul>
               </div>
-              <p class="lens-intake-link-copy">Use a case reference number when you already know which saved profile should drive this analysis.</p>
-            </div>
-
-            <input type="hidden" name="linkedRecordId" id="analysis-linked-record-id">
-            <input type="hidden" name="clientName" id="analysis-linked-client-name">
-            <input type="hidden" name="analysisEntryMode" id="analysis-entry-mode" value="">
-
-            <div class="lens-intake-linked-card info-card" id="analysis-linked-client-card" hidden>
-              <div class="lens-intake-linked-card-header">
-                <div class="section-label">Linked Client</div>
-                <button class="lens-intake-linked-remove" type="button" id="analysis-linked-client-remove">Remove</button>
-              </div>
-              <ul class="compact-list">
-                <li><span>Name</span><strong id="analysis-linked-client-display">Not linked</strong></li>
-                <li><span>Case Ref</span><strong id="analysis-linked-client-case-ref">Pending</strong></li>
-                <li><span>Status</span><strong id="analysis-linked-client-status">Pending</strong></li>
-              </ul>
             </div>
 
             <div class="lens-intake-divider"><span>OR</span></div>
@@ -86,7 +88,16 @@
                 <strong id="analysis-manual-title">Enter Details Manually</strong>
                 <span id="analysis-manual-subcopy">No saved profile? You can enter all details manually.</span>
               </span>
-              <span class="lens-intake-manual-action" id="analysis-manual-action">Enter Manually -></span>
+              <span class="lens-intake-manual-action" id="analysis-manual-action">
+                <img
+                  class="lens-intake-manual-action-icon"
+                  id="analysis-manual-action-icon"
+                  src="../Images/trashcan.png"
+                  alt=""
+                  hidden
+                >
+                <span id="analysis-manual-action-label">Enter Manually -></span>
+              </span>
             </button>
 
           </section>
@@ -200,6 +211,20 @@
     </div>
   </div>
 
+  <div class="client-add-modal" data-analysis-manual-remove-modal hidden>
+    <div class="client-add-modal-backdrop" data-analysis-manual-remove-close></div>
+    <div class="client-add-modal-panel" role="dialog" aria-modal="true" aria-labelledby="analysis-manual-remove-title">
+      <div class="client-add-modal-content">
+        <h2 id="analysis-manual-remove-title">Delete Manual Entry?</h2>
+        <p>Manual analysis inputs will be lost. Do you want to continue?</p>
+      </div>
+      <div class="client-add-modal-actions">
+        <button class="btn btn-secondary client-add-modal-continue client-add-modal-secondary" type="button" data-analysis-manual-remove-close>Stay</button>
+        <button class="btn btn-primary client-add-modal-continue client-add-modal-delete" type="button" id="analysis-manual-remove-confirm">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <script src="../data.js"></script>
   <script src="../calculations.js"></script>
   <script src="../charts.js"></script>
@@ -210,6 +235,7 @@
     (function () {
       const authSessionKey = "lipPlannerAuthSession";
       const clientRecordsKey = "lensClientRecords";
+      const temporaryAnalysisSessionKey = "lensTemporaryAnalysisSession";
       const form = document.getElementById("client-profile-form");
       const linkOpenButtons = Array.from(document.querySelectorAll("[data-analysis-link-open]"));
       const linkModal = document.querySelector("[data-analysis-link-modal]");
@@ -219,6 +245,10 @@
       const linkErrorModal = document.querySelector("[data-analysis-link-error-modal]");
       const linkErrorClose = document.querySelectorAll("[data-analysis-link-error-close]");
       const linkErrorMessage = document.querySelector("[data-analysis-link-error-message]");
+      const manualRemoveModal = document.querySelector("[data-analysis-manual-remove-modal]");
+      const manualRemoveClose = document.querySelectorAll("[data-analysis-manual-remove-close]");
+      const manualRemoveConfirm = document.getElementById("analysis-manual-remove-confirm");
+      const linkWorkflow = document.getElementById("analysis-link-workflow");
       const caseRefField = document.querySelector("[data-analysis-case-ref]");
       const linkedRecordIdField = document.getElementById("analysis-linked-record-id");
       const linkedClientNameField = document.getElementById("analysis-linked-client-name");
@@ -232,6 +262,8 @@
       const manualTitle = document.getElementById("analysis-manual-title");
       const manualSubcopy = document.getElementById("analysis-manual-subcopy");
       const manualAction = document.getElementById("analysis-manual-action");
+      const manualActionIcon = document.getElementById("analysis-manual-action-icon");
+      const manualActionLabel = document.getElementById("analysis-manual-action-label");
       const manualPanel = document.querySelector("[data-analysis-manual-panel]");
       const manualWidget = document.querySelector("[data-analysis-manual-widget]");
       const manualWidgetClose = document.querySelectorAll("[data-analysis-manual-close]");
@@ -242,9 +274,21 @@
       const params = new URLSearchParams(window.location.search);
       const urlCaseRef = String(params.get("caseRef") || "").trim().toUpperCase();
       const urlRecordId = String(params.get("id") || "").trim();
-      const manualCompletedVariant = String(params.get("manualCompleted") || "").trim();
       let linkedRecord = null;
       let manualModeEnabled = false;
+
+      function loadTemporaryAnalysisSession() {
+        try {
+          const session = JSON.parse(sessionStorage.getItem(temporaryAnalysisSessionKey) || "null");
+          return session && typeof session === "object" ? session : null;
+        } catch (_error) {
+          return null;
+        }
+      }
+
+      function clearTemporaryAnalysisSession() {
+        sessionStorage.removeItem(temporaryAnalysisSessionKey);
+      }
 
       function getManualWorkflowLabel(variant) {
         const normalized = String(variant || "").trim();
@@ -261,16 +305,21 @@
       }
 
       function syncManualTriggerState() {
-        const temporaryAnalysisSession = window.getLensTemporaryAnalysisSession?.();
-        const temporaryAnalysisSummary = window.getLensTemporaryAnalysisSummary?.();
-        const activeManualState = temporaryAnalysisSession?.hasData
-          ? temporaryAnalysisSession
-          : (temporaryAnalysisSummary?.hasData
-            ? temporaryAnalysisSummary
-            : (manualCompletedVariant ? { hasData: true, variant: manualCompletedVariant } : null));
+        const temporaryAnalysisSession = loadTemporaryAnalysisSession();
+        const activeManualState = temporaryAnalysisSession?.hasData ? temporaryAnalysisSession : null;
         const hasManualSession = Boolean(activeManualState?.hasData);
         const label = getManualWorkflowLabel(activeManualState?.variant);
         const manualDisabled = Boolean(linkedRecord);
+        const linkDisabled = hasManualSession;
+
+        linkWorkflow?.classList.toggle("is-disabled", linkDisabled);
+        linkOpenButtons.forEach(function (button) {
+          button.disabled = linkDisabled;
+        });
+        caseRefField && (caseRefField.disabled = linkDisabled);
+        linkTabs.forEach(function (tab) {
+          tab.disabled = linkDisabled;
+        });
 
         if (manualToggleButton) {
           manualToggleButton.classList.toggle("is-complete", hasManualSession);
@@ -296,9 +345,15 @@
           }
         }
         if (manualAction) {
-          manualAction.textContent = manualDisabled
+          manualAction.classList.toggle("is-delete", Boolean(hasManualSession && !manualDisabled));
+        }
+        if (manualActionIcon) {
+          manualActionIcon.hidden = !(hasManualSession && !manualDisabled);
+        }
+        if (manualActionLabel) {
+          manualActionLabel.textContent = manualDisabled
             ? "Unavailable"
-            : (hasManualSession ? "Review or Change ->" : "Enter Manually ->");
+            : (hasManualSession ? "Delete" : "Enter Manually ->");
         }
       }
 
@@ -430,7 +485,7 @@
         closeManualWidget();
         if (manualModeEnabled) {
           manualModeEnabled = false;
-          window.clearLensTemporaryAnalysisSession?.();
+          clearTemporaryAnalysisSession();
         }
         if (linkOpenButtons[0]) {
           linkOpenButtons[0].innerHTML = `
@@ -515,6 +570,26 @@
 
         linkErrorModal.hidden = true;
         linkErrorModal.classList.remove("is-open");
+        document.body.classList.remove("is-modal-open");
+      }
+
+      function openManualRemoveModal() {
+        if (!manualRemoveModal) {
+          return;
+        }
+
+        manualRemoveModal.hidden = false;
+        manualRemoveModal.classList.add("is-open");
+        document.body.classList.add("is-modal-open");
+      }
+
+      function closeManualRemoveModal() {
+        if (!manualRemoveModal) {
+          return;
+        }
+
+        manualRemoveModal.hidden = true;
+        manualRemoveModal.classList.remove("is-open");
         document.body.classList.remove("is-modal-open");
       }
 
@@ -662,7 +737,7 @@
 
             window.setLensLinkedCaseRef?.(String(linkedRecord.caseRef || "").trim());
             window.setLensLinkedRecordId?.(String(linkedRecord.id || "").trim());
-            window.clearLensTemporaryAnalysisSession?.();
+            clearTemporaryAnalysisSession();
             syncManualTriggerState();
           }
         }, true);
@@ -696,6 +771,10 @@
         if (manualToggleButton.disabled) {
           return;
         }
+        if (loadTemporaryAnalysisSession()?.hasData) {
+          openManualRemoveModal();
+          return;
+        }
         if (manualWidget?.hidden) {
           openManualWidget();
         } else {
@@ -705,6 +784,16 @@
 
       manualWidgetClose.forEach(function (button) {
         button.addEventListener("click", closeManualWidget);
+      });
+      manualRemoveClose.forEach(function (button) {
+        button.addEventListener("click", closeManualRemoveModal);
+      });
+      manualRemoveConfirm?.addEventListener("click", function () {
+        clearTemporaryAnalysisSession();
+        setManualMode(false);
+        syncManualTriggerState();
+        syncContinueState();
+        closeManualRemoveModal();
       });
 
       document.addEventListener("keydown", function (event) {
@@ -717,23 +806,17 @@
         if (event.key === "Escape" && manualWidget && !manualWidget.hidden) {
           closeManualWidget();
         }
+        if (event.key === "Escape" && manualRemoveModal && !manualRemoveModal.hidden) {
+          closeManualRemoveModal();
+        }
       });
 
       linkModal?.querySelector(".profile-search-modal-backdrop")?.addEventListener("click", closeLinkModal);
       linkErrorModal?.querySelector(".client-add-modal-backdrop")?.addEventListener("click", closeLinkErrorModal);
+      manualRemoveModal?.querySelector(".client-add-modal-backdrop")?.addEventListener("click", closeManualRemoveModal);
 
-      const temporaryAnalysisSession = window.getLensTemporaryAnalysisSession?.();
-      const temporaryAnalysisSummary = window.getLensTemporaryAnalysisSummary?.();
-      if (manualCompletedVariant) {
-        window.saveLensTemporaryAnalysisSession?.({
-          variant: manualCompletedVariant,
-          sourcePage: "profile-return",
-          data: temporaryAnalysisSession?.data || {}
-        });
-      }
-      const hasTemporaryManualSession = Boolean(
-        manualCompletedVariant || temporaryAnalysisSession?.hasData || temporaryAnalysisSummary?.hasData
-      );
+      const temporaryAnalysisSession = loadTemporaryAnalysisSession();
+      const hasTemporaryManualSession = Boolean(temporaryAnalysisSession?.hasData);
 
       if (hasTemporaryManualSession) {
         if (caseRefField) {

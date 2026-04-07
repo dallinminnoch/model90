@@ -19,7 +19,6 @@
     linkedRecordId: "lensLinkedRecordId",
     federalTaxBrackets: "lensFederalTaxBrackets",
     temporaryAnalysisSession: "lensTemporaryAnalysisSession",
-    temporaryAnalysisSummary: "lensTemporaryAnalysisSummary",
     analysisInternalNavigation: "lensAnalysisInternalNavigation"
   };
 
@@ -2236,7 +2235,6 @@
 
   function clearTemporaryAnalysisSession() {
     sessionStorage.removeItem(STORAGE_KEYS.temporaryAnalysisSession);
-    sessionStorage.removeItem(STORAGE_KEYS.temporaryAnalysisSummary);
   }
 
   function markAnalysisInternalNavigation() {
@@ -2264,17 +2262,11 @@
       meta: payload.meta && typeof payload.meta === "object" ? payload.meta : {}
     };
 
-    saveSessionJson(STORAGE_KEYS.temporaryAnalysisSummary, {
-      hasData: true,
-      variant: nextSession.variant,
-      savedAt: nextSession.savedAt
-    });
     return saveSessionJson(STORAGE_KEYS.temporaryAnalysisSession, nextSession);
   }
 
-  function getTemporaryAnalysisSummary() {
-    const summary = loadSessionJson(STORAGE_KEYS.temporaryAnalysisSummary);
-    return summary && typeof summary === "object" ? summary : null;
+  function hasTemporaryAnalysisData() {
+    return Boolean(getTemporaryAnalysisSession()?.hasData);
   }
 
   function applySnapshotToForm(form, snapshot) {
@@ -2352,9 +2344,20 @@
     return null;
   }
 
+  function hasEnteredMoneyValue(value) {
+    return String(value ?? "").trim() !== "";
+  }
+
   function buildAnalysisBucketsFromData(rawData, meta) {
     const data = rawData && typeof rawData === "object" ? rawData : {};
     const context = meta && typeof meta === "object" ? meta : {};
+    const hasExplicitAssetTotal = hasEnteredMoneyValue(data.availableAssetsTotal);
+    const hasExplicitAssetBuckets = [
+      data.liquidAssetsAvailable,
+      data.retirementAssetsAvailable,
+      data.businessValueAvailable,
+      data.otherAssetsAvailable
+    ].some(hasEnteredMoneyValue);
     const educationFundingTotal = parseMoneyValue(data.educationFundingTotal)
       || ((parseMoneyValue(data.estimatedCostPerChild) * Math.max(0, parseMoneyValue(data.childrenNeedingFunding))) * (clampPercentValue(data.costToFundPercent || 100) / 100));
     const finalExpensesTotal = parseMoneyValue(data.finalExpensesTotal)
@@ -2370,20 +2373,28 @@
       + parseMoneyValue(data.studentLoans)
       + parseMoneyValue(data.personalLoans)
       + parseMoneyValue(data.businessDebt);
-    const availableAssetsTotal = parseMoneyValue(data.availableAssetsTotal)
-      || parseMoneyValue(data.liquidAssetsAvailable)
-      || (
-        parseMoneyValue(data.cashSavings)
-        + parseMoneyValue(data.emergencyFund)
-        + parseMoneyValue(data.brokerageAccounts)
-        + (getTruthyYes(data.retirementAssetsIncludeInOffset) || !data.retirementAssetsIncludeInOffset
-          ? parseMoneyValue(data.retirementAssetsAvailable) || (parseMoneyValue(data.retirementAssets) * (clampPercentValue(data.retirementAssetsPercentAvailable || 100) / 100))
-          : 0)
-        + (getTruthyYes(data.businessValueIncludeInOffset) || !data.businessValueIncludeInOffset
-          ? parseMoneyValue(data.businessValueAvailable) || (parseMoneyValue(data.businessValue) * (clampPercentValue(data.businessValuePercentAvailable || 100) / 100))
-          : 0)
-        + parseMoneyValue(data.otherAssetsAvailable)
-      );
+    const availableAssetsTotal = hasExplicitAssetTotal
+      ? parseMoneyValue(data.availableAssetsTotal)
+      : hasExplicitAssetBuckets
+        ? (
+          parseMoneyValue(data.liquidAssetsAvailable)
+          + parseMoneyValue(data.retirementAssetsAvailable)
+          + parseMoneyValue(data.businessValueAvailable)
+          + parseMoneyValue(data.otherAssetsAvailable)
+        )
+        : (
+          parseMoneyValue(data.cashSavings)
+          + parseMoneyValue(data.emergencyFund)
+          + parseMoneyValue(data.brokerageAccounts)
+          + parseMoneyValue(data.liquidAssetsAvailable)
+          + (getTruthyYes(data.retirementAssetsIncludeInOffset) || !data.retirementAssetsIncludeInOffset
+            ? parseMoneyValue(data.retirementAssetsAvailable) || (parseMoneyValue(data.retirementAssets) * (clampPercentValue(data.retirementAssetsPercentAvailable || 100) / 100))
+            : 0)
+          + (getTruthyYes(data.businessValueIncludeInOffset) || !data.businessValueIncludeInOffset
+            ? parseMoneyValue(data.businessValueAvailable) || (parseMoneyValue(data.businessValue) * (clampPercentValue(data.businessValuePercentAvailable || 100) / 100))
+            : 0)
+          + parseMoneyValue(data.otherAssetsAvailable)
+        );
     const existingCoverageTotal = parseMoneyValue(data.existingCoverageTotal)
       || parseMoneyValue(data.individualDeathBenefit)
       + parseMoneyValue(data.groupLifeCoverage)
@@ -2394,8 +2405,21 @@
       || parseMoneyValue(data.survivorIncome)
       || parseMoneyValue(data.spouseIncome);
     const baseNetIncome = parseMoneyValue(data.netAnnualIncome) || parseMoneyValue(data.grossAnnualIncome);
-    const annualIncomeToReplace = parseMoneyValue(data.annualIncomeToReplace) || Math.max(baseNetIncome - survivorNetAnnualIncome, 0);
-    const yearsUntilRetirement = Math.max(0, Math.round(parseMoneyValue(data.yearsUntilRetirement)));
+    const replacementPercent = clampPercentValue(
+      hasEnteredMoneyValue(data.targetIncomeReplacementPercentage)
+        ? data.targetIncomeReplacementPercentage
+        : (hasEnteredMoneyValue(data.householdIncomeUsePercent) ? data.householdIncomeUsePercent : 100)
+    ) / 100;
+    const annualIncomeToReplace = parseMoneyValue(data.annualIncomeToReplace) || Math.max((baseNetIncome * replacementPercent) - survivorNetAnnualIncome, 0);
+    const yearsUntilRetirement = Math.max(
+      0,
+      Math.round(
+        Math.max(
+          parseMoneyValue(data.yearsUntilRetirement),
+          parseMoneyValue(data.spouseYearsUntilRetirement)
+        )
+      )
+    );
     const yearsUntilDeath = Math.max(0, Math.round(parseMoneyValue(context.yearsUntilDeath)));
     const supportDuration = Math.max(
       1,
@@ -3378,7 +3402,7 @@
     modal.innerHTML = `
       <div class="lens-leave-modal-backdrop" data-analysis-leave-stay></div>
       <div class="lens-leave-modal-panel" role="dialog" aria-modal="true" aria-labelledby="analysis-leave-title">
-        <h2 id="analysis-leave-title">Leave analysis?</h2>
+        <h2 id="analysis-leave-title">Leave LENS Analysis?</h2>
         <p>If you leave the analysis tool, temporary manual input data will be lost.</p>
         <div class="lens-leave-modal-actions">
           <button class="btn btn-secondary" type="button" data-analysis-leave-stay>Stay</button>
@@ -3389,6 +3413,38 @@
 
     document.body.appendChild(modal);
     return modal;
+  }
+
+  function promptTemporaryAnalysisLeave(onLeave) {
+    if (!hasTemporaryAnalysisData()) {
+      onLeave?.();
+      return false;
+    }
+
+    const modal = ensureTemporaryAnalysisLeaveModal();
+    const stayButtons = Array.from(modal.querySelectorAll("[data-analysis-leave-stay]"));
+    const leaveButton = modal.querySelector("[data-analysis-leave-confirm]");
+
+    function closeModal() {
+      modal.hidden = true;
+      document.body.classList.remove("is-modal-open");
+    }
+
+    modal.hidden = false;
+    document.body.classList.add("is-modal-open");
+
+    const handleLeave = () => {
+      clearTemporaryAnalysisSession();
+      closeModal();
+      onLeave?.();
+    };
+
+    leaveButton.onclick = handleLeave;
+    stayButtons.forEach((button) => {
+      button.onclick = closeModal;
+    });
+
+    return true;
   }
 
   function initializeTemporaryAnalysisLeaveGuard() {
@@ -3402,34 +3458,15 @@
     document.body.dataset.analysisLeaveGuardInitialized = "true";
 
     let allowUnload = consumeAnalysisInternalNavigation();
-    const modal = ensureTemporaryAnalysisLeaveModal();
-    const stayButtons = Array.from(modal.querySelectorAll("[data-analysis-leave-stay]"));
-    const leaveButton = modal.querySelector("[data-analysis-leave-confirm]");
-
-    function closeModal() {
-      modal.hidden = true;
-      document.body.classList.remove("is-modal-open");
-    }
-
-    function openModal(onLeave) {
-      modal.hidden = false;
-      document.body.classList.add("is-modal-open");
-
-      const handleLeave = () => {
-        allowUnload = true;
-        clearTemporaryAnalysisSession();
-        closeModal();
-        onLeave?.();
-      };
-
-      leaveButton.onclick = handleLeave;
-      stayButtons.forEach((button) => {
-        button.onclick = closeModal;
-      });
+    if (!history.state || history.state.analysisLeaveGuard !== true) {
+      try {
+        history.pushState({ ...(history.state || {}), analysisLeaveGuard: true }, "", window.location.href);
+      } catch (_error) {
+      }
     }
 
     window.addEventListener("beforeunload", (event) => {
-      if (allowUnload || !getTemporaryAnalysisSession()?.hasData) {
+      if (allowUnload || !hasTemporaryAnalysisData()) {
         return;
       }
 
@@ -3440,25 +3477,57 @@
     document.addEventListener("click", (event) => {
       const anchor = event.target.closest("a[href]");
       if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) {
+      } else {
+        const nextUrl = new URL(anchor.getAttribute("href"), window.location.href);
+        if (!hasTemporaryAnalysisData() || nextUrl.href === window.location.href) {
+          return;
+        }
+
+        if (isAnalysisToolPath(nextUrl.pathname)) {
+          allowUnload = true;
+          markAnalysisInternalNavigation();
+          return;
+        }
+
+        event.preventDefault();
+        promptTemporaryAnalysisLeave(() => {
+          allowUnload = true;
+          window.location.href = nextUrl.href;
+        });
         return;
       }
 
-      const nextUrl = new URL(anchor.getAttribute("href"), window.location.href);
-      if (!getTemporaryAnalysisSession()?.hasData || nextUrl.href === window.location.href) {
-        return;
-      }
-
-      if (isAnalysisToolPath(nextUrl.pathname)) {
-        allowUnload = true;
-        markAnalysisInternalNavigation();
+      const signOutButton = event.target.closest("[data-site-header-sign-out]");
+      if (!signOutButton || !hasTemporaryAnalysisData()) {
         return;
       }
 
       event.preventDefault();
-      openModal(() => {
-        window.location.href = nextUrl.href;
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      promptTemporaryAnalysisLeave(() => {
+        allowUnload = true;
+        localStorage.removeItem(STORAGE_KEYS.authSession);
+        const isNestedPage = window.location.pathname.includes("/pages/");
+        window.location.href = isNestedPage ? "../index.html" : "index.html";
       });
     }, true);
+
+    window.addEventListener("popstate", () => {
+      if (allowUnload || !hasTemporaryAnalysisData()) {
+        return;
+      }
+
+      try {
+        history.pushState({ ...(history.state || {}), analysisLeaveGuard: true }, "", window.location.href);
+      } catch (_error) {
+      }
+
+      promptTemporaryAnalysisLeave(() => {
+        allowUnload = true;
+        history.back();
+      });
+    });
   }
 
   window.saveLensClientCreationForm = saveClientCreationForm;
@@ -3467,11 +3536,13 @@
   window.getLensLinkedRecordId = getLinkedRecordId;
   window.setLensLinkedRecordId = setLinkedRecordId;
   window.getLensTemporaryAnalysisSession = getTemporaryAnalysisSession;
-  window.getLensTemporaryAnalysisSummary = getTemporaryAnalysisSummary;
+  window.hasLensTemporaryAnalysisSession = hasTemporaryAnalysisData;
+  window.promptLensAnalysisExit = promptTemporaryAnalysisLeave;
   window.saveLensTemporaryAnalysisSession = saveTemporaryAnalysisSession;
   window.clearLensTemporaryAnalysisSession = clearTemporaryAnalysisSession;
   window.restoreLensTemporaryAnalysisForm = restoreTemporaryAnalysisForm;
   window.getLensAnalysisSource = getActiveAnalysisSource;
+  window.buildLensAnalysisBucketsFromData = buildAnalysisBucketsFromData;
   window.beginLensAnalysisInternalNavigation = markAnalysisInternalNavigation;
   window.getLensFederalTaxBrackets = getFederalTaxBracketOptions;
   window.serializeLensFormSnapshot = serializeFormSnapshot;

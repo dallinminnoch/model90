@@ -1,5 +1,93 @@
 (function () {
   const AUTH_SESSION_KEY = "lipPlannerAuthSession";
+  const TEMP_ANALYSIS_SESSION_KEY = "lensTemporaryAnalysisSession";
+
+  function isAnalysisToolPage() {
+    const pathname = String(window.location.pathname || "").toLowerCase();
+    return [
+      "profile.html",
+      "manual-protection-modeling-inputs.html",
+      "manual-simplified-pmi.html",
+      "manual-minimum-inputs.html",
+      "income-loss-impact.html",
+      "analysis-estimate.html",
+      "analysis-detail.html",
+      "recommendations.html",
+      "planner.html",
+      "summary.html"
+    ].some((page) => pathname.endsWith(`/pages/${page}`) || pathname.endsWith(`/${page}`));
+  }
+
+  function clearTemporaryAnalysisSessionIfOutsideLens() {
+    if (isAnalysisToolPage()) {
+      return;
+    }
+
+    sessionStorage.removeItem(TEMP_ANALYSIS_SESSION_KEY);
+  }
+
+  function hasTemporaryAnalysisSession() {
+    try {
+      const session = JSON.parse(sessionStorage.getItem(TEMP_ANALYSIS_SESSION_KEY) || "null");
+      return Boolean(session && typeof session === "object" && session.hasData);
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function ensureHeaderAnalysisLeaveModal() {
+    let modal = document.querySelector("[data-analysis-leave-modal]");
+    if (modal) {
+      return modal;
+    }
+
+    modal = document.createElement("div");
+    modal.className = "lens-leave-modal";
+    modal.setAttribute("data-analysis-leave-modal", "");
+    modal.hidden = true;
+    modal.innerHTML = `
+      <div class="lens-leave-modal-backdrop" data-analysis-leave-stay></div>
+      <div class="lens-leave-modal-panel" role="dialog" aria-modal="true" aria-labelledby="analysis-leave-title">
+        <h2 id="analysis-leave-title">Leave LENS Analysis?</h2>
+        <p>If you leave the analysis tool, temporary manual input data will be lost.</p>
+        <div class="lens-leave-modal-actions">
+          <button class="btn btn-secondary" type="button" data-analysis-leave-stay>Stay</button>
+          <button class="btn btn-primary" type="button" data-analysis-leave-confirm>Leave</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    return modal;
+  }
+
+  function guardAnalysisExit(onLeave) {
+    if (!hasTemporaryAnalysisSession()) {
+      onLeave?.();
+      return;
+    }
+
+    const modal = ensureHeaderAnalysisLeaveModal();
+    const stayButtons = Array.from(modal.querySelectorAll("[data-analysis-leave-stay]"));
+    const leaveButton = modal.querySelector("[data-analysis-leave-confirm]");
+
+    function closeModal() {
+      modal.hidden = true;
+      document.body.classList.remove("is-modal-open");
+    }
+
+    modal.hidden = false;
+    document.body.classList.add("is-modal-open");
+
+    leaveButton.onclick = () => {
+      sessionStorage.removeItem(TEMP_ANALYSIS_SESSION_KEY);
+      closeModal();
+      onLeave?.();
+    };
+    stayButtons.forEach((button) => {
+      button.onclick = closeModal;
+    });
+  }
 
   function loadSession() {
     try {
@@ -75,10 +163,49 @@
 
   function bindSharedHeaderActions() {
     document.querySelectorAll("[data-site-header-sign-out]").forEach((button) => {
-      button.addEventListener("click", () => {
-        localStorage.removeItem(AUTH_SESSION_KEY);
-        window.location.href = window.location.pathname.includes("/pages/") ? "../index.html" : "index.html";
-      });
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        guardAnalysisExit(() => {
+          localStorage.removeItem(AUTH_SESSION_KEY);
+          window.location.href = window.location.pathname.includes("/pages/") ? "../index.html" : "index.html";
+        });
+      }, true);
+    });
+
+    document.querySelectorAll(".site-header a[href]").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        const href = link.getAttribute("href");
+        if (!href) {
+          return;
+        }
+
+        const nextUrl = new URL(href, window.location.href);
+        const isLensDestination = isAnalysisToolPage() && [
+          "profile.html",
+          "manual-protection-modeling-inputs.html",
+          "manual-simplified-pmi.html",
+          "manual-minimum-inputs.html",
+          "income-loss-impact.html",
+          "analysis-estimate.html",
+          "analysis-detail.html",
+          "recommendations.html",
+          "planner.html",
+          "summary.html"
+        ].some((page) => nextUrl.pathname.toLowerCase().endsWith(`/${page}`));
+
+        if (isLensDestination) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        guardAnalysisExit(() => {
+          window.location.href = nextUrl.href;
+        });
+      }, true);
     });
   }
 
@@ -134,6 +261,8 @@
   }
 
   function injectSiteHeader() {
+    clearTemporaryAnalysisSessionIfOutsideLens();
+
     if (!document.body || document.querySelector(".site-header")) {
       return;
     }

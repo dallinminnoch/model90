@@ -2765,6 +2765,12 @@ select option:disabled {
   border-color: rgba(47, 107, 82, 0.2);
 }
 
+.client-add-modal-delete:not(.client-add-modal-secondary) {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
 .client-add-modal-secondary {
   background: #f8fafc;
 }
@@ -2802,6 +2808,13 @@ select option:disabled {
 .client-add-modal-continue:focus-visible {
   transform: translateY(-1px);
   box-shadow: 0 8px 16px rgba(16, 33, 52, 0.07);
+}
+
+.client-add-modal-delete:hover,
+.client-add-modal-delete:focus-visible {
+  background: #fecaca;
+  border-color: #fca5a5;
+  color: #7f1d1d;
 }
 
 body.is-modal-open {
@@ -6791,6 +6804,24 @@ body.lens-intake-page .workflow-shell {
   box-shadow: 0 14px 34px rgba(19, 34, 58, 0.06);
 }
 
+.lens-intake-link-workflow {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.lens-intake-link-workflow.is-disabled {
+  opacity: 0.64;
+}
+
+.lens-intake-link-workflow.is-disabled .lens-intake-search-input,
+.lens-intake-link-workflow.is-disabled .lens-intake-search-submit,
+.lens-intake-link-workflow.is-disabled .lens-intake-search-browse,
+.lens-intake-link-workflow.is-disabled .lens-intake-tab,
+.lens-intake-link-workflow.is-disabled input {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 .lens-intake-link-header {
   display: flex;
   align-items: flex-start;
@@ -7089,10 +7120,7 @@ body.lens-intake-page .workflow-shell {
 }
 
 .income-loss-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.95fr) minmax(280px, 0.58fr);
-  gap: 1.1rem;
-  align-items: start;
+  display: block;
 }
 
 .income-loss-main-card,
@@ -7207,6 +7235,156 @@ body.lens-intake-page .workflow-shell {
   border-radius: 0;
   background: transparent;
   border: 0;
+}
+
+.income-loss-event-card {
+  margin-top: 1rem;
+  padding: 0 0 1rem;
+  border-bottom: 1px solid rgba(207, 216, 229, 0.75);
+}
+
+.income-loss-event-timeline {
+  position: relative;
+  margin-top: 1rem;
+  min-height: 290px;
+  padding: 1.5rem 1.2rem 3rem;
+}
+
+.income-loss-event-track {
+  position: absolute;
+  left: 1.2rem;
+  right: 1.2rem;
+  top: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(205, 214, 226, 0.9), rgba(184, 196, 213, 0.9));
+}
+
+.income-loss-event-node {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 0;
+}
+
+.income-loss-event-node.is-top {
+  padding-bottom: 8.5rem;
+}
+
+.income-loss-event-node.is-bottom {
+  padding-top: 8.5rem;
+}
+
+.income-loss-event-stem {
+  position: absolute;
+  left: 50%;
+  width: 1px;
+  background: rgba(192, 201, 214, 0.95);
+  transform: translateX(-50%);
+}
+
+.income-loss-event-node.is-top .income-loss-event-stem {
+  top: calc(50% - 88px);
+  height: 88px;
+}
+
+.income-loss-event-node.is-bottom .income-loss-event-stem {
+  top: 50%;
+  height: 88px;
+}
+
+.income-loss-event-bubble {
+  position: absolute;
+  left: 50%;
+  width: 3.2rem;
+  height: 3.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 2px solid #111827;
+  background: #ffffff;
+  color: #111827;
+  font-size: 1.1rem;
+  font-weight: 800;
+  transform: translateX(-50%);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+}
+
+.income-loss-event-node.is-top .income-loss-event-bubble {
+  top: calc(50% - 122px);
+}
+
+.income-loss-event-node.is-bottom .income-loss-event-bubble {
+  top: calc(50% + 88px);
+}
+
+.income-loss-event-copy {
+  position: absolute;
+  width: 132px;
+  color: #6b7c94;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.income-loss-event-copy strong {
+  display: block;
+  margin-bottom: 0.22rem;
+  color: #20384d;
+  font-size: 0.82rem;
+}
+
+.income-loss-event-copy p {
+  margin: 0;
+}
+
+.income-loss-event-node.is-top .income-loss-event-copy {
+  top: calc(50% - 118px);
+  left: calc(50% + 2.2rem);
+}
+
+.income-loss-event-node.is-bottom .income-loss-event-copy {
+  top: calc(50% + 92px);
+  left: calc(50% + 2.2rem);
+}
+
+.income-loss-event-node.align-left .income-loss-event-copy {
+  left: auto;
+  right: calc(50% + 2.1rem);
+  text-align: right;
+}
+
+.income-loss-event-axis {
+  position: absolute;
+  left: 1.2rem;
+  right: 1.2rem;
+  top: 50%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.income-loss-event-axis-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.income-loss-event-axis-tick i {
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin: -3px auto 0;
+  border-radius: 999px;
+  background: #111827;
+}
+
+.income-loss-event-axis-tick small {
+  position: absolute;
+  top: 0.8rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #94a3b8;
+  font-size: 0.78rem;
+  white-space: nowrap;
 }
 
 .income-loss-chart-shell {
@@ -7461,10 +7639,6 @@ body.lens-intake-page .workflow-shell {
 }
 
 @media (max-width: 1100px) {
-  .income-loss-layout {
-    grid-template-columns: 1fr;
-  }
-
   .income-loss-phase-legend,
   .income-loss-summary-strip {
     grid-template-columns: 1fr;
@@ -7477,6 +7651,14 @@ body.lens-intake-page .workflow-shell {
 }
 
 @media (max-width: 760px) {
+  .income-loss-event-timeline {
+    min-height: 360px;
+  }
+
+  .income-loss-event-copy {
+    width: 108px;
+  }
+
   .income-loss-chart-shell {
     grid-template-columns: 1fr;
   }
@@ -7614,9 +7796,24 @@ body.lens-intake-page .workflow-shell {
 }
 
 .lens-intake-manual-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   color: #2f5f4d;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.lens-intake-manual-action.is-delete {
+  color: #991b1b;
+}
+
+.lens-intake-manual-action-icon {
+  width: 1rem;
+  height: 1rem;
+  object-fit: contain;
+  margin-top: -0.08rem;
+  filter: brightness(0) saturate(100%) invert(13%) sepia(52%) saturate(4553%) hue-rotate(352deg) brightness(82%) contrast(102%);
 }
 
 .lens-intake-manual-panel {

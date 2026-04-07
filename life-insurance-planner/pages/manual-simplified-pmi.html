@@ -698,18 +698,48 @@
         }
       }
 
+      function saveManualAnalysisSession(payload) {
+        if (!payload || typeof payload !== "object") {
+          return null;
+        }
+
+        const nextSession = {
+          hasData: true,
+          savedAt: new Date().toISOString(),
+          variant: String(payload.variant || "").trim(),
+          sourcePage: String(payload.sourcePage || "").trim(),
+          data: payload.data && typeof payload.data === "object" ? payload.data : {},
+          meta: payload.meta && typeof payload.meta === "object" ? payload.meta : {}
+        };
+
+        try {
+          sessionStorage.setItem("lensTemporaryAnalysisSession", JSON.stringify(nextSession));
+          return nextSession;
+        } catch (_error) {
+          return null;
+        }
+      }
+
       window.restoreLensTemporaryAnalysisForm?.(form, "manual-simplified");
 
       saveExitButton.addEventListener("click", () => {
         clampCostToFundPercent();
-        const draft = window.serializeLensFormSnapshot?.(form) || {};
-        window.saveLensTemporaryAnalysisSession?.({
+        const draft = typeof window.serializeLensFormSnapshot === "function"
+          ? window.serializeLensFormSnapshot(form)
+          : {};
+        const savedSession = saveManualAnalysisSession({
           variant: "manual-simplified",
           sourcePage: "manual-simplified-pmi",
           data: draft
         });
+
+        if (!savedSession?.hasData) {
+          window.alert("The manual analysis session could not be saved right now. Please try again.");
+          return;
+        }
+
         window.beginLensAnalysisInternalNavigation?.();
-        window.location.href = "profile.html?manualCompleted=manual-simplified";
+        window.location.href = "profile.html";
       });
 
       if (costToFundPercentField) {

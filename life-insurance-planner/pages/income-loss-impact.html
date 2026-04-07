@@ -37,6 +37,20 @@
         </div>
 
         <div id="income-loss-content">
+          <div class="income-loss-event-card">
+            <div class="income-loss-chart-header">
+              <div>
+                <h3>Financial Stress Timeline</h3>
+                <p id="income-loss-event-caption">Key household risks based on available assets and immediate obligations.</p>
+              </div>
+            </div>
+
+            <div class="income-loss-event-timeline">
+              <div class="income-loss-event-track" id="income-loss-event-track"></div>
+              <div class="income-loss-event-axis" id="income-loss-event-axis"></div>
+            </div>
+          </div>
+
           <div class="income-loss-chart-card">
             <div class="income-loss-chart-header">
               <div>
@@ -91,29 +105,6 @@
           </div>
         </div>
       </div>
-
-      <aside class="income-loss-side-card">
-        <div class="income-loss-side-section">
-          <h3>Total Need: <span id="income-loss-side-total-need">$0</span></h3>
-        </div>
-
-        <div class="income-loss-side-metric">
-          <span>Peak Annual Gap</span>
-          <strong id="income-loss-side-peak-gap">$0</strong>
-        </div>
-        <div class="income-loss-side-metric">
-          <span>Total Need</span>
-          <strong id="income-loss-side-total-need-duplicate">$0</strong>
-        </div>
-        <div class="income-loss-side-metric">
-          <span>Duration</span>
-          <strong id="income-loss-side-duration">0 years</strong>
-        </div>
-
-        <div class="income-loss-side-footnote">
-          <p id="income-loss-side-copy">Based on income replacement methodology</p>
-        </div>
-      </aside>
     </section>
 
     <div class="actions-row income-loss-actions">
@@ -141,6 +132,8 @@
       const xAxis = document.getElementById("income-loss-x-axis");
       const selectedAge = document.getElementById("income-loss-selected-age");
       const currentAgeLabel = document.getElementById("income-loss-current-age");
+      const eventTrack = document.getElementById("income-loss-event-track");
+      const eventAxis = document.getElementById("income-loss-event-axis");
 
       function formatCurrency(value) {
         const number = Number(value || 0);
@@ -210,15 +203,76 @@
         };
       }
 
+      function loadDirectTemporaryAnalysisSession() {
+        try {
+          const session = JSON.parse(sessionStorage.getItem("lensTemporaryAnalysisSession") || "null");
+          return session && typeof session === "object" ? session : null;
+        } catch (_error) {
+          return null;
+        }
+      }
+
+      function resolveAnalysisSource() {
+        const helperSource = window.getLensAnalysisSource?.() || null;
+        const temporarySession = window.getLensTemporaryAnalysisSession?.() || loadDirectTemporaryAnalysisSession();
+
+        if (temporarySession?.hasData) {
+          if (helperSource?.sourceType === "temporary" && helperSource?.buckets) {
+            return helperSource;
+          }
+
+          if (typeof window.buildLensAnalysisBucketsFromData === "function") {
+            return {
+              sourceType: "temporary",
+              session: temporarySession,
+              record: null,
+              buckets: window.buildLensAnalysisBucketsFromData(temporarySession.data || {}, {
+                ...(temporarySession.meta || {}),
+                variant: temporarySession.variant
+              })
+            };
+          }
+        }
+
+        return helperSource;
+      }
+
+      function hasLiveAnalysisSource(analysisSource) {
+        if (!analysisSource || typeof analysisSource !== "object") {
+          return false;
+        }
+
+        if (analysisSource.sourceType === "temporary") {
+          return Boolean(analysisSource.session?.hasData || analysisSource.buckets);
+        }
+
+        if (analysisSource.sourceType === "linked") {
+          return Boolean(
+            analysisSource.record
+            && (
+              analysisSource.record.pmiCompleted
+              || analysisSource.modelingPayload?.completed
+              || analysisSource.modelingPayload?.data
+              || analysisSource.buckets
+            )
+          );
+        }
+
+        return false;
+      }
+
       function computeIncomeLossScenario(analysisSource, deathAge) {
         const buckets = analysisSource?.buckets || {};
         const currentAge = Math.max(35, Number(buckets.currentAge || analysisSource?.record?.age || 45));
         const yearsUntilDeath = Math.max(0, deathAge - currentAge);
         const yearsUntilRetirement = Math.max(1, Number(buckets.yearsUntilRetirement || 15));
-        const fallbackDuration = Math.max(1, yearsUntilRetirement - yearsUntilDeath);
+        const remainingRetirementHorizon = Math.max(0, yearsUntilRetirement - yearsUntilDeath);
+        const fallbackDuration = Math.max(1, remainingRetirementHorizon || Number(buckets.supportDuration || 0) || 12);
         const supportDuration = Math.max(1, Number(buckets.supportDuration || fallbackDuration || 12));
+        const growthRate = Math.max(0, Number(buckets.incomeGrowthRate || 0)) / 100;
         const phaseConfig = getPhaseConfig(supportDuration);
-        const annualGapBase = Math.max(0, Number(buckets.annualIncomeToReplace || 0));
+        const presentAnnualGapBase = Math.max(0, Number(buckets.annualIncomeToReplace || 0));
+        const annualGapBase = Math.round(presentAnnualGapBase * Math.pow(1 + growthRate, yearsUntilDeath));
         const immediateHit = Math.max(
           0,
           Number(buckets.debtPayoffTotal || 0)
@@ -233,19 +287,19 @@
         const startingAssets = Math.max(0, availableAssets - immediateHit);
         const bars = [];
         let remainingAssets = startingAssets;
-        let crisisYear = 0;
+        let crisisYear = startingAssets <= 0 ? 0 : 0;
         let peakAnnualGap = 0;
         let phaseYearCursor = 0;
 
         phaseConfig.forEach((phase) => {
           for (let phaseYear = 1; phaseYear <= phase.years; phaseYear += 1) {
             phaseYearCursor += 1;
-            const annualGap = Math.max(0, annualGapBase * phase.multiplier);
+            const annualGap = Math.max(0, Math.round(annualGapBase * phase.multiplier));
             const assetsBefore = remainingAssets;
             remainingAssets = Math.max(0, remainingAssets - annualGap);
             peakAnnualGap = Math.max(peakAnnualGap, annualGap);
 
-            if (!crisisYear && assetsBefore > 0 && remainingAssets <= 0) {
+            if (crisisYear === 0 && assetsBefore > 0 && remainingAssets <= 0) {
               crisisYear = phaseYearCursor;
             }
 
@@ -275,15 +329,17 @@
           crisisYear = startingAssets <= 0 ? 1 : 0;
         }
 
-        if (!crisisYear) {
+        if (crisisYear === 0 && startingAssets > 0) {
           crisisYear = startingAssets > 0 ? bars.length : 1;
         }
 
         return {
           currentAge,
           deathAge,
+          yearsUntilDeath,
           supportDuration: bars.length,
           annualGapBase,
+          presentAnnualGapBase,
           availableAssets,
           immediateHit,
           startingAssets,
@@ -340,6 +396,167 @@
         }).join("");
       }
 
+      function buildTimelineEvents(scenario) {
+        const totalRangeYears = Math.max(1, scenario.crisisYear, scenario.supportDuration);
+        const immediateHit = Number(scenario.immediateHit || 0);
+        const startingAssets = Number(scenario.startingAssets || 0);
+        const availableAssets = Number(scenario.availableAssets || 0);
+        const debtPayoffTotal = immediateHit;
+        const events = [];
+
+        if (immediateHit > availableAssets) {
+          events.push({
+            key: "funeral",
+            label: "Immediate expense shortfall",
+            detail: "Immediate obligations exceed available support at death.",
+            time: 0.02,
+            side: "top",
+            icon: "!",
+            priority: 5
+          });
+        } else if (immediateHit > 0) {
+          events.push({
+            key: "funeral",
+            label: "Immediate obligations paid",
+            detail: `${formatCurrency(immediateHit)} is used right away for debts and transition needs.`,
+            time: 0.08,
+            side: "top",
+            icon: "$",
+            priority: 4
+          });
+        }
+
+        if (debtPayoffTotal > 0) {
+          events.push({
+            key: "debt",
+            label: "Debt-clearing pressure",
+            detail: "Debt payoff reduces the capital available to support the household.",
+            time: Math.min(totalRangeYears, Math.max(0.15, totalRangeYears * 0.18)),
+            side: "bottom",
+            icon: "D",
+            priority: 2
+          });
+        }
+
+        if (startingAssets > 0) {
+          events.push({
+            key: "housing",
+            label: "Housing stability at risk",
+            detail: "Housing and fixed obligations become difficult near exhaustion.",
+            time: Math.min(totalRangeYears, Math.max(0.35, scenario.crisisYear * 0.7)),
+            side: "top",
+            icon: "H",
+            priority: 3
+          });
+        }
+
+        if (scenario.crisisYear > 0) {
+          events.push({
+            key: "crisis",
+            label: "Financial crisis point",
+            detail: "Available survivor assets are fully depleted here.",
+            time: scenario.crisisYear,
+            side: "bottom",
+            icon: "X",
+            priority: 6
+          });
+        }
+
+        if (scenario.supportDuration > scenario.crisisYear) {
+          events.push({
+            key: "income-loss",
+            label: "Income support still needed",
+            detail: "Household need continues after available assets are exhausted.",
+            time: Math.min(totalRangeYears, Math.max(scenario.crisisYear + 0.5, scenario.supportDuration)),
+            side: "top",
+            icon: "I",
+            priority: 1
+          });
+        }
+
+        const deduped = events
+          .filter((event, index, list) => list.findIndex((candidate) => candidate.key === event.key) === index)
+          .sort((left, right) => {
+            if (left.time !== right.time) {
+              return left.time - right.time;
+            }
+            return (right.priority || 0) - (left.priority || 0);
+          });
+
+        const minGap = totalRangeYears * 0.16;
+        const filteredEvents = [];
+        deduped.forEach((event) => {
+          const previous = filteredEvents[filteredEvents.length - 1];
+          if (!previous || Math.abs(event.time - previous.time) >= minGap) {
+            filteredEvents.push(event);
+            return;
+          }
+
+          if ((event.priority || 0) > (previous.priority || 0)) {
+            filteredEvents[filteredEvents.length - 1] = event;
+          }
+        });
+
+        return {
+          totalRangeYears,
+          events: filteredEvents
+        };
+      }
+
+      function formatTimelineTickYears(value) {
+        if (value < 1) {
+          const months = Math.max(1, Math.round(value * 12));
+          return `${months} mo`;
+        }
+
+        if (value < 2) {
+          return `${Number(value.toFixed(1))} yr`;
+        }
+
+        return `${Math.round(value)} yr`;
+      }
+
+      function renderEventTimeline(scenario) {
+        if (!eventTrack || !eventAxis) {
+          return;
+        }
+
+        const timeline = buildTimelineEvents(scenario);
+        const axisStops = Array.from(new Set([
+          0,
+          Math.max(0, Math.round(timeline.totalRangeYears * 0.25)),
+          Math.max(0, Math.round(timeline.totalRangeYears * 0.5)),
+          Math.max(0, Math.round(timeline.totalRangeYears * 0.75)),
+          Math.max(1, Math.round(timeline.totalRangeYears))
+        ])).sort((left, right) => left - right);
+
+        eventTrack.innerHTML = timeline.events.map((event) => {
+          const leftPercent = Math.max(0, Math.min(100, (event.time / timeline.totalRangeYears) * 100));
+          const alignClass = leftPercent >= 78 ? "align-left" : leftPercent <= 22 ? "align-right" : "align-right";
+          const left = `${leftPercent}%`;
+          return `
+            <article class="income-loss-event-node is-${event.side} ${alignClass}" style="left:${left};">
+              <div class="income-loss-event-stem"></div>
+              <div class="income-loss-event-bubble" aria-hidden="true">${event.icon}</div>
+              <div class="income-loss-event-copy">
+                <strong>${event.label}</strong>
+                <p>${event.detail}</p>
+              </div>
+            </article>
+          `;
+        }).join("");
+
+        eventAxis.innerHTML = axisStops.map((value) => {
+          const left = `${Math.max(0, Math.min(100, (value / timeline.totalRangeYears) * 100))}%`;
+          return `
+            <span class="income-loss-event-axis-tick" style="left:${left};">
+              <i></i>
+              <small>${formatTimelineTickYears(value)}</small>
+            </span>
+          `;
+        }).join("");
+      }
+
       function renderBars(scenario) {
         const maxAssets = Math.max(1, scenario.startingAssets);
         const chartWidth = barsHost.clientWidth || 1;
@@ -384,13 +601,10 @@
       }
 
       function renderScenario(analysisSource, deathAge) {
-        const activeSource = analysisSource && (
-          Number(analysisSource?.buckets?.availableAssetsTotal || 0) > 0
-          || Number(analysisSource?.buckets?.annualIncomeToReplace || 0) > 0
-          || Number(analysisSource?.buckets?.debtPayoffTotal || 0) > 0
-        ) ? analysisSource : buildPreviewAnalysisSource();
+        const hasLiveSource = hasLiveAnalysisSource(analysisSource);
+        const activeSource = hasLiveSource ? analysisSource : buildPreviewAnalysisSource();
         const scenario = computeIncomeLossScenario(activeSource, deathAge);
-        const isPreview = activeSource.sourceType === "preview";
+        const isPreview = !hasLiveSource;
 
         emptyState.hidden = true;
         content.hidden = false;
@@ -399,42 +613,37 @@
         renderYAxis(maxAxisValue);
         renderXAxis(scenario);
         renderPhaseBand(scenario);
+        renderEventTimeline(scenario);
         renderBars(scenario);
 
         setText("income-loss-source-copy", isPreview
-          ? "Previewing the timeline layout. Link a client or complete a manual input workflow to replace this with live analysis data."
+          ? "Previewing the timeline layout until linked or manual analysis inputs are available."
           : buildSourceSummary(activeSource));
+        setText("income-loss-event-caption", isPreview
+          ? "Preview milestones are shown until analysis inputs are resolved."
+          : "Key household risks based on available assets and immediate obligations.");
         setText("income-loss-chart-caption", isPreview
           ? "Preview scenario shown until live planning inputs are available."
-          : `Available assets after an immediate ${formatCurrency(scenario.immediateHit)} payoff hit.`);
+          : `Assets after an immediate ${formatCurrency(scenario.immediateHit)} payoff hit, using a death age of ${scenario.deathAge}.`);
         setText("income-loss-crisis-note", `Financial crisis in ${scenario.crisisYear} ${scenario.crisisYear === 1 ? "year" : "years"}`);
         setText("income-loss-assets-last", `${scenario.crisisYear} ${scenario.crisisYear === 1 ? "year" : "years"}`);
         setText("income-loss-peak-gap", formatCurrency(scenario.peakAnnualGap));
         setText("income-loss-crisis-age", `Age ${scenario.crisisAge}`);
-        setText("income-loss-assets-total", formatCurrency(scenario.availableAssets));
-        setText("income-loss-immediate-hit", formatCurrency(scenario.immediateHit));
-        setText("income-loss-starting-assets", formatCurrency(scenario.startingAssets));
-        setText("income-loss-annual-gap", formatCurrency(scenario.annualGapBase));
-        setText("income-loss-total-drawdown", formatCurrency(scenario.totalDrawdown));
-        setText("income-loss-side-total-need", formatCurrency(scenario.totalDrawdown));
-        setText("income-loss-side-total-need-duplicate", formatCurrency(scenario.totalDrawdown));
-        setText("income-loss-side-peak-gap", formatCurrency(scenario.peakAnnualGap));
-        setText("income-loss-side-duration", `${scenario.crisisYear} ${scenario.crisisYear === 1 ? "year" : "years"}`);
 
         const subjectName = String(activeSource.record?.displayName || "").trim();
-        setText("income-loss-side-copy", isPreview
-          ? "This is a visual preview of the income-loss timeline. It will switch to actual linked or temporary analysis data once inputs are available."
+        setText("income-loss-summary-caption", isPreview
+          ? "Preview values are being shown until the active analysis input source is resolved."
           : activeSource.sourceType === "temporary"
             ? "Using temporary manual inputs saved inside this analysis session. Leaving the analysis tool will clear them."
-            : "Using saved Protection Modeling data linked to this client profile.");
+            : `Using saved Protection Modeling data linked to ${subjectName || "this client profile"}.`);
       }
 
-      const analysisSource = window.getLensAnalysisSource?.();
-      const sliderSource = analysisSource && (
-        Number(analysisSource?.buckets?.currentAge || analysisSource?.record?.age || 0) > 0
-      ) ? analysisSource : buildPreviewAnalysisSource();
+      const analysisSource = resolveAnalysisSource();
+      const sliderSource = hasLiveAnalysisSource(analysisSource)
+        ? analysisSource
+        : buildPreviewAnalysisSource();
       const baseAge = Math.max(35, Number(sliderSource?.buckets?.currentAge || sliderSource?.record?.age || 45));
-      const yearsUntilRetirement = Math.max(10, Number(sliderSource?.buckets?.yearsUntilRetirement || 20));
+      const yearsUntilRetirement = Math.max(10, Number(sliderSource?.buckets?.yearsUntilRetirement || sliderSource?.buckets?.supportDuration || 20));
       const maxAge = Math.max(baseAge + 25, baseAge + yearsUntilRetirement + 10, 80);
 
       slider.min = String(baseAge);
