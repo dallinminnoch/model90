@@ -144,6 +144,11 @@
 
   function getCurrentStepCompletion(currentStep) {
     if (currentStep === "profile-1") {
+      const temporaryAnalysisSession = window.getLensTemporaryAnalysisSession?.();
+      if (temporaryAnalysisSession?.hasData) {
+        return 1;
+      }
+
       const entryMode = document.getElementById("analysis-entry-mode");
       const linkedClientCard = document.getElementById("analysis-linked-client-card");
       const linkedClientName = document.getElementById("analysis-linked-client-display");
@@ -160,6 +165,17 @@
         return 1;
       }
       return 0;
+    }
+
+    if (currentStep === "income-loss") {
+      const analysisSource = window.getLensAnalysisSource?.();
+      if (analysisSource?.buckets) {
+        const availableAssets = Number(analysisSource.buckets.availableAssetsTotal || 0);
+        const annualNeed = Number(analysisSource.buckets.annualIncomeToReplace || 0);
+        if (availableAssets > 0 || annualNeed > 0) {
+          return 1;
+        }
+      }
     }
 
     const scopedForm = document.querySelector("main.workflow-shell form");

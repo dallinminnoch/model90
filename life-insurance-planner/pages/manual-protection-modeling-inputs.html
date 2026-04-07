@@ -51,6 +51,10 @@
                 </select>
               </div>
               <div class="field-group">
+                <label for="current-age">Current Age</label>
+                <input id="current-age" class="profile-small-number-field" name="currentAge" type="number" min="0" max="100" step="1">
+              </div>
+              <div class="field-group">
                 <label for="filing-status">Filing Status</label>
                 <select id="filing-status" name="filingStatus">
                   <option value="">Please select</option>
@@ -81,6 +85,10 @@
                   <input id="spouse-income" name="spouseIncome" type="text" inputmode="decimal">
                   <span class="profile-currency-suffix">USD</span>
                 </div>
+              </div>
+              <div class="field-group">
+                <label for="spouse-current-age">Spouse Current Age</label>
+                <input id="spouse-current-age" class="profile-small-number-field" name="spouseCurrentAge" type="number" min="0" max="100" step="1">
               </div>
               <div class="field-group">
                 <label for="deduction-method">Primary Deduction Method</label>
@@ -933,7 +941,7 @@
           </section>
 
           <div class="actions-row">
-            <button class="btn btn-secondary pmi-save-exit-button" type="button" data-pmi-save-exit>Continue</button>
+            <button class="btn btn-secondary pmi-save-exit-button" type="button" data-pmi-save-exit>Save and Continue</button>
           </div>
         </form>
       </section>
@@ -2615,11 +2623,20 @@
         });
       }
 
+      window.restoreLensTemporaryAnalysisForm?.(form, "manual-protection-modeling");
+
       saveExitButton.addEventListener("click", () => {
         clampCostToFundPercent();
         syncFilingStatusOptions();
         syncAllTaxDerivedFields();
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        const draft = window.serializeLensFormSnapshot?.(form) || {};
+        window.saveLensTemporaryAnalysisSession?.({
+          variant: "manual-protection-modeling",
+          sourcePage: "manual-protection-modeling-inputs",
+          data: draft
+        });
+        window.beginLensAnalysisInternalNavigation?.();
+        window.location.href = "profile.html?manualCompleted=manual-protection-modeling";
       });
       if (costToFundPercentField) {
         costToFundPercentField.addEventListener("input", clampCostToFundPercent);

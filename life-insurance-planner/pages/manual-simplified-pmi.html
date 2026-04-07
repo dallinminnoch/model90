@@ -54,6 +54,10 @@
                 </div>
               </div>
               <div class="field-group">
+                <label for="current-age">Current Age</label>
+                <input id="current-age" class="profile-small-number-field" name="currentAge" type="number" min="0" max="100" step="1">
+              </div>
+              <div class="field-group">
                 <label for="spouse-income">Spouse Gross Annual Income</label>
                 <div class="profile-currency-field">
                   <input id="spouse-income" name="spouseIncome" type="number" min="0" step="1000">
@@ -66,6 +70,10 @@
                   <input id="spouse-net-annual-income" name="spouseNetAnnualIncome" type="number" min="0" step="1000">
                   <span class="profile-currency-suffix">USD</span>
                 </div>
+              </div>
+              <div class="field-group">
+                <label for="spouse-current-age">Spouse Current Age</label>
+                <input id="spouse-current-age" class="profile-small-number-field" name="spouseCurrentAge" type="number" min="0" max="100" step="1">
               </div>
               <div class="field-group">
                 <label for="years-until-retirement">Years Until Retirement</label>
@@ -302,7 +310,7 @@
           </section>
 
           <div class="actions-row">
-            <button class="btn btn-secondary pmi-save-exit-button" type="button" data-pmi-save-exit>Continue</button>
+            <button class="btn btn-secondary pmi-save-exit-button" type="button" data-pmi-save-exit>Save and Continue</button>
           </div>
         </form>
       </section>
@@ -690,9 +698,18 @@
         }
       }
 
+      window.restoreLensTemporaryAnalysisForm?.(form, "manual-simplified");
+
       saveExitButton.addEventListener("click", () => {
         clampCostToFundPercent();
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        const draft = window.serializeLensFormSnapshot?.(form) || {};
+        window.saveLensTemporaryAnalysisSession?.({
+          variant: "manual-simplified",
+          sourcePage: "manual-simplified-pmi",
+          data: draft
+        });
+        window.beginLensAnalysisInternalNavigation?.();
+        window.location.href = "profile.html?manualCompleted=manual-simplified";
       });
 
       if (costToFundPercentField) {

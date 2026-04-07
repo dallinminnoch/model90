@@ -47,6 +47,10 @@
                 </div>
               </div>
               <div class="field-group">
+                <label for="current-age">Current Age</label>
+                <input id="current-age" class="profile-small-number-field" name="currentAge" type="number" min="0" max="100" step="1">
+              </div>
+              <div class="field-group">
                 <label for="years-until-retirement">Years Until Retirement</label>
                 <input id="years-until-retirement" class="profile-small-number-field" name="yearsUntilRetirement" type="number" min="0" max="80" step="1">
               </div>
@@ -191,7 +195,7 @@
           </section>
 
           <div class="actions-row">
-            <button class="btn btn-secondary pmi-save-exit-button" type="button" data-pmi-save-exit>Continue</button>
+            <button class="btn btn-secondary pmi-save-exit-button" type="button" data-pmi-save-exit>Save and Continue</button>
           </div>
         </form>
       </section>
@@ -578,9 +582,18 @@
         }
       }
 
+      window.restoreLensTemporaryAnalysisForm?.(form, "manual-minimum-inputs");
+
       saveExitButton.addEventListener("click", () => {
         clampCostToFundPercent();
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        const draft = window.serializeLensFormSnapshot?.(form) || {};
+        window.saveLensTemporaryAnalysisSession?.({
+          variant: "manual-minimum-inputs",
+          sourcePage: "manual-minimum-inputs",
+          data: draft
+        });
+        window.beginLensAnalysisInternalNavigation?.();
+        window.location.href = "profile.html?manualCompleted=manual-minimum-inputs";
       });
 
       if (costToFundPercentField) {

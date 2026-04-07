@@ -65,7 +65,10 @@
             <input type="hidden" name="analysisEntryMode" id="analysis-entry-mode" value="">
 
             <div class="lens-intake-linked-card info-card" id="analysis-linked-client-card" hidden>
-              <div class="section-label">Linked Client</div>
+              <div class="lens-intake-linked-card-header">
+                <div class="section-label">Linked Client</div>
+                <button class="lens-intake-linked-remove" type="button" id="analysis-linked-client-remove">Remove</button>
+              </div>
               <ul class="compact-list">
                 <li><span>Name</span><strong id="analysis-linked-client-display">Not linked</strong></li>
                 <li><span>Case Ref</span><strong id="analysis-linked-client-case-ref">Pending</strong></li>
@@ -76,14 +79,14 @@
             <div class="lens-intake-divider"><span>OR</span></div>
 
             <button class="lens-intake-manual-trigger" type="button" data-analysis-manual-toggle>
-              <span class="lens-intake-icon-box is-soft">
-                <img class="lens-intake-icon-svg" src="../Images/edit_24dp_E3E3E3_FILL0_wght300_GRAD0_opsz24.svg" alt="Enter details manually">
+              <span class="lens-intake-icon-box is-soft" id="analysis-manual-icon-box">
+                <img class="lens-intake-icon-svg" id="analysis-manual-icon" src="../Images/edit_24dp_E3E3E3_FILL0_wght300_GRAD0_opsz24.svg" alt="Enter details manually">
               </span>
               <span class="lens-intake-manual-copy">
-                <strong>Enter Details Manually</strong>
-                <span>No saved profile? You can enter all details manually.</span>
+                <strong id="analysis-manual-title">Enter Details Manually</strong>
+                <span id="analysis-manual-subcopy">No saved profile? You can enter all details manually.</span>
               </span>
-              <span class="lens-intake-manual-action">Enter Manually -></span>
+              <span class="lens-intake-manual-action" id="analysis-manual-action">Enter Manually -></span>
             </button>
 
           </section>
@@ -184,6 +187,19 @@
     </div>
   </div>
 
+  <div class="client-add-modal" data-analysis-link-error-modal hidden>
+    <div class="client-add-modal-backdrop" data-analysis-link-error-close></div>
+    <div class="client-add-modal-panel" role="dialog" aria-modal="true" aria-labelledby="analysis-link-error-title">
+      <div class="client-add-modal-content">
+        <h2 id="analysis-link-error-title">Client Can't Be Linked Yet</h2>
+        <p data-analysis-link-error-message>This client needs a completed PMI form before it can be linked into analysis.</p>
+      </div>
+      <div class="client-add-modal-actions">
+        <button class="btn btn-secondary client-add-modal-continue client-add-modal-secondary" type="button" data-analysis-link-error-close>Okay</button>
+      </div>
+    </div>
+  </div>
+
   <script src="../data.js"></script>
   <script src="../calculations.js"></script>
   <script src="../charts.js"></script>
@@ -200,14 +216,22 @@
       const linkModalInput = document.querySelector("[data-analysis-link-search-input]");
       const linkModalResults = document.querySelector("[data-analysis-link-results]");
       const linkModalClose = document.querySelectorAll("[data-analysis-link-close]");
+      const linkErrorModal = document.querySelector("[data-analysis-link-error-modal]");
+      const linkErrorClose = document.querySelectorAll("[data-analysis-link-error-close]");
+      const linkErrorMessage = document.querySelector("[data-analysis-link-error-message]");
       const caseRefField = document.querySelector("[data-analysis-case-ref]");
       const linkedRecordIdField = document.getElementById("analysis-linked-record-id");
       const linkedClientNameField = document.getElementById("analysis-linked-client-name");
       const linkedClientCard = document.getElementById("analysis-linked-client-card");
+      const linkedClientRemoveButton = document.getElementById("analysis-linked-client-remove");
       const linkedClientDisplay = document.getElementById("analysis-linked-client-display");
       const linkedClientCaseRef = document.getElementById("analysis-linked-client-case-ref");
       const linkedClientStatus = document.getElementById("analysis-linked-client-status");
       const manualToggleButton = document.querySelector("[data-analysis-manual-toggle]");
+      const manualIcon = document.getElementById("analysis-manual-icon");
+      const manualTitle = document.getElementById("analysis-manual-title");
+      const manualSubcopy = document.getElementById("analysis-manual-subcopy");
+      const manualAction = document.getElementById("analysis-manual-action");
       const manualPanel = document.querySelector("[data-analysis-manual-panel]");
       const manualWidget = document.querySelector("[data-analysis-manual-widget]");
       const manualWidgetClose = document.querySelectorAll("[data-analysis-manual-close]");
@@ -218,8 +242,65 @@
       const params = new URLSearchParams(window.location.search);
       const urlCaseRef = String(params.get("caseRef") || "").trim().toUpperCase();
       const urlRecordId = String(params.get("id") || "").trim();
+      const manualCompletedVariant = String(params.get("manualCompleted") || "").trim();
       let linkedRecord = null;
       let manualModeEnabled = false;
+
+      function getManualWorkflowLabel(variant) {
+        const normalized = String(variant || "").trim();
+        if (normalized === "manual-protection-modeling") {
+          return "Protection Modeling Inputs";
+        }
+        if (normalized === "manual-simplified") {
+          return "Simplified PMI";
+        }
+        if (normalized === "manual-minimum-inputs") {
+          return "Minimum Inputs";
+        }
+        return "Manual Workflow";
+      }
+
+      function syncManualTriggerState() {
+        const temporaryAnalysisSession = window.getLensTemporaryAnalysisSession?.();
+        const temporaryAnalysisSummary = window.getLensTemporaryAnalysisSummary?.();
+        const activeManualState = temporaryAnalysisSession?.hasData
+          ? temporaryAnalysisSession
+          : (temporaryAnalysisSummary?.hasData
+            ? temporaryAnalysisSummary
+            : (manualCompletedVariant ? { hasData: true, variant: manualCompletedVariant } : null));
+        const hasManualSession = Boolean(activeManualState?.hasData);
+        const label = getManualWorkflowLabel(activeManualState?.variant);
+        const manualDisabled = Boolean(linkedRecord);
+
+        if (manualToggleButton) {
+          manualToggleButton.classList.toggle("is-complete", hasManualSession);
+          manualToggleButton.classList.toggle("is-disabled", manualDisabled);
+          manualToggleButton.disabled = manualDisabled;
+        }
+        if (manualIcon) {
+          manualIcon.src = hasManualSession
+            ? "../Images/docs_24dp_E3E3E3_FILL0_wght300_GRAD0_opsz24.svg"
+            : "../Images/edit_24dp_E3E3E3_FILL0_wght300_GRAD0_opsz24.svg";
+          manualIcon.alt = hasManualSession ? `${label} completed` : "Enter details manually";
+        }
+        if (manualTitle) {
+          manualTitle.textContent = hasManualSession ? `${label} Completed` : "Enter Details Manually";
+        }
+        if (manualSubcopy) {
+          if (manualDisabled) {
+            manualSubcopy.textContent = "Manual entry is unavailable while a client profile is linked.";
+          } else {
+            manualSubcopy.textContent = hasManualSession
+              ? "Manual analysis inputs have been saved for this session."
+              : "No saved profile? You can enter all details manually.";
+          }
+        }
+        if (manualAction) {
+          manualAction.textContent = manualDisabled
+            ? "Unavailable"
+            : (hasManualSession ? "Review or Change ->" : "Enter Manually ->");
+        }
+      }
 
       function syncContinueState() {
         const canContinue = Boolean(linkedRecord || manualModeEnabled);
@@ -338,6 +419,7 @@
           if (!manualModeEnabled) {
             setEntryMode("");
           }
+          syncManualTriggerState();
           syncContinueState();
           return;
         }
@@ -345,6 +427,11 @@
         linkOpenButtons.forEach(function (button) {
           button.classList.add("is-linked");
         });
+        closeManualWidget();
+        if (manualModeEnabled) {
+          manualModeEnabled = false;
+          window.clearLensTemporaryAnalysisSession?.();
+        }
         if (linkOpenButtons[0]) {
           linkOpenButtons[0].innerHTML = `
           <span class="preliminary-link-button-primary">${String(record.displayName || "").trim()}</span>
@@ -369,15 +456,105 @@
         if (linkedClientStatus) {
           linkedClientStatus.textContent = String(record.statusGroup || "").trim() || "Pending";
         }
-        if (!manualModeEnabled) {
-          setEntryMode("linked");
-        }
+        setEntryMode("linked");
+        syncManualTriggerState();
         syncContinueState();
       }
 
       function syncLinkedClientFromCaseRef() {
         const matchedRecord = findRecordByCaseRef(caseRefField?.value || "");
         updateLinkedClientButton(matchedRecord);
+      }
+
+      function getCompletedPmiPayload(record) {
+        if (!record || typeof record !== "object") {
+          return null;
+        }
+
+        const latestPayload = (function () {
+          if (record.protectionModeling && typeof record.protectionModeling === "object") {
+            return record.protectionModeling;
+          }
+
+          if (Array.isArray(record.protectionModelingEntries) && record.protectionModelingEntries.length) {
+            return record.protectionModelingEntries[record.protectionModelingEntries.length - 1];
+          }
+
+          return null;
+        })();
+
+        if (!latestPayload || typeof latestPayload !== "object") {
+          return null;
+        }
+
+        if (record.pmiCompleted === true || latestPayload.completed === true) {
+          return latestPayload;
+        }
+
+        return null;
+      }
+
+      function openLinkErrorModal(message) {
+        if (!linkErrorModal) {
+          return;
+        }
+
+        if (linkErrorMessage) {
+          linkErrorMessage.textContent = message || "This client needs a completed PMI form before it can be linked into analysis.";
+        }
+
+        linkErrorModal.hidden = false;
+        linkErrorModal.classList.add("is-open");
+        document.body.classList.add("is-modal-open");
+      }
+
+      function closeLinkErrorModal() {
+        if (!linkErrorModal) {
+          return;
+        }
+
+        linkErrorModal.hidden = true;
+        linkErrorModal.classList.remove("is-open");
+        document.body.classList.remove("is-modal-open");
+      }
+
+      function getMissingPmiLinkMessage(record) {
+        const displayName = String(record?.displayName || "").trim() || "This client";
+        return `${displayName} can't be linked yet because there is no completed PMI form saved on the profile. Complete Protection Modeling Inputs or Simplified PMI first.`;
+      }
+
+      function tryLinkRecord(record, options) {
+        const nextRecord = record && typeof record === "object" ? record : null;
+        const shouldCloseSearch = Boolean(options?.closeSearch);
+        const shouldSwitchToCaseRefTab = Boolean(options?.switchToCaseRefTab);
+
+        if (!nextRecord) {
+          return false;
+        }
+
+        if (!getCompletedPmiPayload(nextRecord)) {
+          if (caseRefField && shouldSwitchToCaseRefTab) {
+            caseRefField.value = "";
+          }
+          window.setLensLinkedCaseRef?.("");
+          window.setLensLinkedRecordId?.("");
+          updateLinkedClientButton(null);
+          openLinkErrorModal(getMissingPmiLinkMessage(nextRecord));
+          return false;
+        }
+
+        if (caseRefField) {
+          caseRefField.value = String(nextRecord.caseRef || "").trim();
+          window.setLensLinkedCaseRef?.(caseRefField.value);
+        }
+        window.setLensLinkedRecordId?.(String(nextRecord.id || "").trim());
+        syncLinkedClientFromCaseRef();
+
+        if (shouldCloseSearch) {
+          closeLinkModal();
+        }
+
+        return true;
       }
 
       function openLinkModal() {
@@ -438,13 +615,7 @@
           button.className = "profile-search-result-button";
           button.textContent = `${record.displayName} - ${record.caseRef}`;
           button.addEventListener("click", function () {
-            if (caseRefField) {
-              caseRefField.value = String(record.caseRef || "").trim();
-              window.setLensLinkedCaseRef?.(caseRefField.value);
-            }
-            window.setLensLinkedRecordId?.(String(record.id || "").trim());
-            syncLinkedClientFromCaseRef();
-            closeLinkModal();
+            tryLinkRecord(record, { closeSearch: true });
           });
           linkModalResults.appendChild(button);
         });
@@ -460,9 +631,14 @@
         caseRefField.addEventListener("input", function () {
           caseRefField.value = String(caseRefField.value || "").toUpperCase();
           const matchedRecord = findRecordByCaseRef(caseRefField.value);
-          window.setLensLinkedCaseRef?.(matchedRecord ? String(matchedRecord.caseRef || "").trim() : "");
-          window.setLensLinkedRecordId?.(matchedRecord ? String(matchedRecord.id || "").trim() : "");
-          syncLinkedClientFromCaseRef();
+          if (!matchedRecord) {
+            window.setLensLinkedCaseRef?.("");
+            window.setLensLinkedRecordId?.("");
+            updateLinkedClientButton(null);
+            return;
+          }
+
+          tryLinkRecord(matchedRecord, { switchToCaseRefTab: true });
         });
       }
 
@@ -472,6 +648,22 @@
             event.preventDefault();
             event.stopImmediatePropagation();
             window.alert("Link a client profile or choose manual entry before continuing.");
+            return;
+          }
+
+          if (linkedRecord && !manualModeEnabled) {
+            const completedPmiPayload = getCompletedPmiPayload(linkedRecord);
+            if (!completedPmiPayload) {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+              openLinkErrorModal(getMissingPmiLinkMessage(linkedRecord));
+              return;
+            }
+
+            window.setLensLinkedCaseRef?.(String(linkedRecord.caseRef || "").trim());
+            window.setLensLinkedRecordId?.(String(linkedRecord.id || "").trim());
+            window.clearLensTemporaryAnalysisSession?.();
+            syncManualTriggerState();
           }
         }, true);
       }
@@ -489,7 +681,21 @@
       linkModalClose.forEach(function (button) {
         button.addEventListener("click", closeLinkModal);
       });
+      linkedClientRemoveButton?.addEventListener("click", function () {
+        if (caseRefField) {
+          caseRefField.value = "";
+        }
+        window.setLensLinkedCaseRef?.("");
+        window.setLensLinkedRecordId?.("");
+        updateLinkedClientButton(null);
+      });
+      linkErrorClose.forEach(function (button) {
+        button.addEventListener("click", closeLinkErrorModal);
+      });
       manualToggleButton?.addEventListener("click", function () {
+        if (manualToggleButton.disabled) {
+          return;
+        }
         if (manualWidget?.hidden) {
           openManualWidget();
         } else {
@@ -505,24 +711,53 @@
         if (event.key === "Escape" && linkModal && !linkModal.hidden) {
           closeLinkModal();
         }
+        if (event.key === "Escape" && linkErrorModal && !linkErrorModal.hidden) {
+          closeLinkErrorModal();
+        }
         if (event.key === "Escape" && manualWidget && !manualWidget.hidden) {
           closeManualWidget();
         }
       });
 
       linkModal?.querySelector(".profile-search-modal-backdrop")?.addEventListener("click", closeLinkModal);
+      linkErrorModal?.querySelector(".client-add-modal-backdrop")?.addEventListener("click", closeLinkErrorModal);
 
-      const linkedFromId = findRecordById(urlRecordId || window.getLensLinkedRecordId?.());
-      const linkedFromCaseRef = findRecordByCaseRef(urlCaseRef || window.getLensLinkedCaseRef?.());
-      const initialRecord = linkedFromId || linkedFromCaseRef;
+      const temporaryAnalysisSession = window.getLensTemporaryAnalysisSession?.();
+      const temporaryAnalysisSummary = window.getLensTemporaryAnalysisSummary?.();
+      if (manualCompletedVariant) {
+        window.saveLensTemporaryAnalysisSession?.({
+          variant: manualCompletedVariant,
+          sourcePage: "profile-return",
+          data: temporaryAnalysisSession?.data || {}
+        });
+      }
+      const hasTemporaryManualSession = Boolean(
+        manualCompletedVariant || temporaryAnalysisSession?.hasData || temporaryAnalysisSummary?.hasData
+      );
 
-      if (initialRecord && caseRefField) {
-        caseRefField.value = String(initialRecord.caseRef || "").trim();
-        window.setLensLinkedCaseRef?.(caseRefField.value);
-        window.setLensLinkedRecordId?.(String(initialRecord.id || "").trim());
+      if (hasTemporaryManualSession) {
+        if (caseRefField) {
+          caseRefField.value = "";
+        }
+        window.setLensLinkedCaseRef?.("");
+        window.setLensLinkedRecordId?.("");
+        updateLinkedClientButton(null);
+        setManualMode(true);
+      } else {
+        const linkedFromId = findRecordById(urlRecordId || window.getLensLinkedRecordId?.());
+        const linkedFromCaseRef = findRecordByCaseRef(urlCaseRef || window.getLensLinkedCaseRef?.());
+        const initialRecord = linkedFromId || linkedFromCaseRef;
+
+        if (initialRecord && caseRefField) {
+          caseRefField.value = String(initialRecord.caseRef || "").trim();
+          window.setLensLinkedCaseRef?.(caseRefField.value);
+          window.setLensLinkedRecordId?.(String(initialRecord.id || "").trim());
+        }
+
+        syncLinkedClientFromCaseRef();
       }
 
-      syncLinkedClientFromCaseRef();
+      syncManualTriggerState();
       setLinkTab("search");
       syncContinueState();
     })();

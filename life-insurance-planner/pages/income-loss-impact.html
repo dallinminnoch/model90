@@ -9,75 +9,116 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css">
 </head>
-<body data-step="income-loss">
+<body data-step="income-loss" class="income-loss-page">
   <main class="workflow-shell">
     <div id="workflow-nav"></div>
-    <section class="page-intro">
+
+    <section class="page-intro income-loss-intro">
       <div>
-        <div class="section-label">Step 2</div>
+        <div class="section-label">Step 2 of 7</div>
         <h1>Income Loss Impact</h1>
-        <p class="intro-copy">Frame how earnings disruption affects the household so the later estimate is anchored in the real cost of replacing income over time.</p>
+        <p class="intro-copy">See how long current assets can support the household if income stops, debts are cleared, and the family must live off available resources until financial crisis hits.</p>
       </div>
     </section>
 
-    <div class="panel-grid">
-      <aside class="sidebar-panel">
-        <div class="panel-stack">
-          <div class="info-card">
-            <div class="section-label">Discussion Focus</div>
-            <h3 class="card-title">Household Stability</h3>
-            <p class="card-copy">Use this step to focus the conversation on what disappears first if earned income stops and what duration of support the family would realistically need.</p>
+    <section class="income-loss-layout">
+      <div class="income-loss-main-card">
+        <div class="income-loss-card-header">
+          <div>
+            <h2>Income Impact Timeline</h2>
+            <p id="income-loss-source-copy">Waiting for planning inputs.</p>
           </div>
-          <div class="info-card">
-            <span class="badge">Key Inputs</span>
-            <ul class="compact-list">
-              <li><span>Primary income source</span><strong>Required</strong></li>
-              <li><span>Replacement horizon</span><strong>Required</strong></li>
-              <li><span>Monthly obligations</span><strong>Helpful</strong></li>
-            </ul>
+          <button class="income-loss-help-button" type="button" aria-label="More information">?</button>
+        </div>
+
+        <div id="income-loss-empty-state" class="income-loss-empty-state" hidden>
+          <h3>No analysis inputs available yet</h3>
+          <p>Link a client with Protection Modeling data or complete one of the manual input workflows to generate the income loss timeline.</p>
+        </div>
+
+        <div id="income-loss-content">
+          <div class="income-loss-chart-card">
+            <div class="income-loss-chart-header">
+              <div>
+                <h3>Assets Remaining Over Time</h3>
+                <p id="income-loss-chart-caption">After debts and immediate obligations are paid at death.</p>
+              </div>
+              <div class="income-loss-chart-note" id="income-loss-crisis-note">Financial crisis in 0 years</div>
+            </div>
+
+            <div class="income-loss-chart-shell">
+              <div class="income-loss-y-axis" id="income-loss-y-axis"></div>
+              <div class="income-loss-chart-stage">
+                <div class="income-loss-phase-band" id="income-loss-phase-band"></div>
+                <div class="income-loss-bars" id="income-loss-bars"></div>
+                <div class="income-loss-tooltip" id="income-loss-tooltip" hidden></div>
+                <div class="income-loss-x-axis" id="income-loss-x-axis"></div>
+              </div>
+            </div>
+
+            <div class="income-loss-phase-legend" id="income-loss-phase-legend"></div>
+
+            <div class="income-loss-slider-card">
+              <div>
+                <span class="section-label">Scenario</span>
+                <strong>Age of Death</strong>
+              </div>
+              <div class="income-loss-slider-shell">
+                <input id="income-loss-age-slider" type="range" min="35" max="80" step="1" value="45">
+                <div class="income-loss-slider-meta">
+                  <span id="income-loss-current-age">Current age: 45</span>
+                  <strong id="income-loss-selected-age">Death age: 45</strong>
+                </div>
+              </div>
+            </div>
+
+            <p class="income-loss-summary-caption">Based on income replacement methodology</p>
           </div>
+
+          <div class="income-loss-summary-strip">
+            <article class="income-loss-summary-stat">
+              <span>Assets Last</span>
+              <strong id="income-loss-assets-last">0 years</strong>
+            </article>
+            <article class="income-loss-summary-stat">
+              <span>Peak Annual Gap</span>
+              <strong id="income-loss-peak-gap">$0</strong>
+            </article>
+            <article class="income-loss-summary-stat">
+              <span>Financial Crisis Age</span>
+              <strong id="income-loss-crisis-age">Age 45</strong>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <aside class="income-loss-side-card">
+        <div class="income-loss-side-section">
+          <h3>Total Need: <span id="income-loss-side-total-need">$0</span></h3>
+        </div>
+
+        <div class="income-loss-side-metric">
+          <span>Peak Annual Gap</span>
+          <strong id="income-loss-side-peak-gap">$0</strong>
+        </div>
+        <div class="income-loss-side-metric">
+          <span>Total Need</span>
+          <strong id="income-loss-side-total-need-duplicate">$0</strong>
+        </div>
+        <div class="income-loss-side-metric">
+          <span>Duration</span>
+          <strong id="income-loss-side-duration">0 years</strong>
+        </div>
+
+        <div class="income-loss-side-footnote">
+          <p id="income-loss-side-copy">Based on income replacement methodology</p>
         </div>
       </aside>
+    </section>
 
-      <section class="content-panel">
-        <div class="results-banner">
-          <div class="result-kicker">Income Loss View</div>
-          <div class="result-value">$1,980,000 placeholder</div>
-          <p class="result-caption">This page can later calculate the total household exposure created by the loss of earned income before other method overlays are applied.</p>
-        </div>
-
-        <div class="analysis-grid">
-          <article class="analysis-card">
-            <div class="section-label">Income</div>
-            <h3 class="card-title">Annual Replacement</h3>
-            <div class="card-value">$165,000 placeholder</div>
-            <p class="card-copy">Estimated annual cash flow the household would need to preserve lifestyle, housing, and dependent support.</p>
-          </article>
-          <article class="analysis-card">
-            <div class="section-label">Duration</div>
-            <h3 class="card-title">Support Horizon</h3>
-            <div class="card-value">12 years placeholder</div>
-            <p class="card-copy">A practical time window for transition, debt stabilization, and dependent milestones.</p>
-          </article>
-          <article class="analysis-card">
-            <div class="section-label">Exposure</div>
-            <h3 class="card-title">Total Impact</h3>
-            <div class="card-value">$1,980,000 placeholder</div>
-            <p class="card-copy">The combined impact of replacing earned income long enough for the household to regain footing.</p>
-          </article>
-        </div>
-
-        <div class="actions-row">
-          <a class="btn btn-primary" href="analysis-estimate.html">Continue to Estimate Need</a>
-        </div>
-      </section>
-
-      <aside class="support-panel">
-        <div class="info-card">
-          <div class="section-label">Meeting Use</div>
-          <p class="card-copy">This step helps advisors connect coverage need to actual household disruption before moving into blended estimate logic and methodology comparisons.</p>
-        </div>
-      </aside>
+    <div class="actions-row income-loss-actions">
+      <a class="btn btn-secondary" href="profile.html">Back</a>
+      <a class="btn btn-primary" href="analysis-estimate.html">Continue to Next Step</a>
     </div>
   </main>
 
@@ -87,5 +128,329 @@
   <script src="../site-header.js"></script>
   <script src="../app.js"></script>
   <script src="../lens-workflow.js"></script>
+  <script>
+    (function () {
+      const slider = document.getElementById("income-loss-age-slider");
+      const emptyState = document.getElementById("income-loss-empty-state");
+      const content = document.getElementById("income-loss-content");
+      const barsHost = document.getElementById("income-loss-bars");
+      const phaseBand = document.getElementById("income-loss-phase-band");
+      const phaseLegend = document.getElementById("income-loss-phase-legend");
+      const tooltip = document.getElementById("income-loss-tooltip");
+      const yAxis = document.getElementById("income-loss-y-axis");
+      const xAxis = document.getElementById("income-loss-x-axis");
+      const selectedAge = document.getElementById("income-loss-selected-age");
+      const currentAgeLabel = document.getElementById("income-loss-current-age");
+
+      function formatCurrency(value) {
+        const number = Number(value || 0);
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: 0
+        }).format(number);
+      }
+
+      function setText(id, value) {
+        const element = document.getElementById(id);
+        if (element) {
+          element.textContent = value;
+        }
+      }
+
+      function buildSourceSummary(analysisSource) {
+        if (!analysisSource) {
+          return "Waiting for planning inputs.";
+        }
+
+        if (analysisSource.sourceType === "temporary") {
+          const variant = String(analysisSource.session?.variant || "").trim();
+          const labels = {
+            "manual-protection-modeling": "Temporary Protection Modeling Inputs",
+            "manual-simplified": "Temporary Simplified PMI",
+            "manual-minimum-inputs": "Temporary Minimum Inputs"
+          };
+          return labels[variant] || "Temporary manual analysis inputs";
+        }
+
+        const clientName = String(analysisSource.record?.displayName || "").trim() || "linked client";
+        return `Using saved planning inputs from ${clientName}.`;
+      }
+
+      function getPhaseConfig(duration) {
+        const highDependency = Math.max(1, Math.min(duration, 10));
+        const transition = Math.max(0, Math.min(duration - highDependency, 6));
+        const independent = Math.max(0, duration - highDependency - transition);
+
+        return [
+          { key: "high", label: "High Dependency Phase", years: highDependency, multiplier: 1, helper: "0 - 10 years" },
+          { key: "transition", label: "Transition Phase", years: transition, multiplier: 0.72, helper: "11 - 16 years" },
+          { key: "independent", label: "Independent Phase", years: independent, multiplier: 0.45, helper: "17+ years" }
+        ].filter((phase) => phase.years > 0);
+      }
+
+      function buildPreviewAnalysisSource() {
+        return {
+          sourceType: "preview",
+          record: null,
+          buckets: {
+            currentAge: 45,
+            yearsUntilRetirement: 20,
+            supportDuration: 18,
+            annualIncomeToReplace: 120000,
+            availableAssetsTotal: 780000,
+            debtPayoffTotal: 180000,
+            finalExpensesTotal: 30000,
+            immediateLiquidityBuffer: 25000,
+            educationFundingTotal: 0,
+            specialOneTimeGoals: 0,
+            emergencyReserveGoal: 0,
+            otherSurvivorLumpSumNeed: 0
+          }
+        };
+      }
+
+      function computeIncomeLossScenario(analysisSource, deathAge) {
+        const buckets = analysisSource?.buckets || {};
+        const currentAge = Math.max(35, Number(buckets.currentAge || analysisSource?.record?.age || 45));
+        const yearsUntilDeath = Math.max(0, deathAge - currentAge);
+        const yearsUntilRetirement = Math.max(1, Number(buckets.yearsUntilRetirement || 15));
+        const fallbackDuration = Math.max(1, yearsUntilRetirement - yearsUntilDeath);
+        const supportDuration = Math.max(1, Number(buckets.supportDuration || fallbackDuration || 12));
+        const phaseConfig = getPhaseConfig(supportDuration);
+        const annualGapBase = Math.max(0, Number(buckets.annualIncomeToReplace || 0));
+        const immediateHit = Math.max(
+          0,
+          Number(buckets.debtPayoffTotal || 0)
+          + Number(buckets.finalExpensesTotal || 0)
+          + Number(buckets.immediateLiquidityBuffer || 0)
+          + Number(buckets.educationFundingTotal || 0)
+          + Number(buckets.specialOneTimeGoals || 0)
+          + Number(buckets.emergencyReserveGoal || 0)
+          + Number(buckets.otherSurvivorLumpSumNeed || 0)
+        );
+        const availableAssets = Math.max(0, Number(buckets.availableAssetsTotal || 0));
+        const startingAssets = Math.max(0, availableAssets - immediateHit);
+        const bars = [];
+        let remainingAssets = startingAssets;
+        let crisisYear = 0;
+        let peakAnnualGap = 0;
+        let phaseYearCursor = 0;
+
+        phaseConfig.forEach((phase) => {
+          for (let phaseYear = 1; phaseYear <= phase.years; phaseYear += 1) {
+            phaseYearCursor += 1;
+            const annualGap = Math.max(0, annualGapBase * phase.multiplier);
+            const assetsBefore = remainingAssets;
+            remainingAssets = Math.max(0, remainingAssets - annualGap);
+            peakAnnualGap = Math.max(peakAnnualGap, annualGap);
+
+            if (!crisisYear && assetsBefore > 0 && remainingAssets <= 0) {
+              crisisYear = phaseYearCursor;
+            }
+
+            bars.push({
+              year: phaseYearCursor,
+              age: deathAge + phaseYearCursor - 1,
+              phase: phase.label,
+              phaseKey: phase.key,
+              annualGap,
+              assetsBefore,
+              assetsAfter: remainingAssets
+            });
+          }
+        });
+
+        if (!bars.length) {
+          bars.push({
+            year: 1,
+            age: deathAge,
+            phase: "High Dependency Phase",
+            phaseKey: "high",
+            annualGap: annualGapBase,
+            assetsBefore: startingAssets,
+            assetsAfter: Math.max(0, startingAssets - annualGapBase)
+          });
+          peakAnnualGap = annualGapBase;
+          crisisYear = startingAssets <= 0 ? 1 : 0;
+        }
+
+        if (!crisisYear) {
+          crisisYear = startingAssets > 0 ? bars.length : 1;
+        }
+
+        return {
+          currentAge,
+          deathAge,
+          supportDuration: bars.length,
+          annualGapBase,
+          availableAssets,
+          immediateHit,
+          startingAssets,
+          crisisYear,
+          crisisAge: deathAge + crisisYear,
+          peakAnnualGap,
+          totalDrawdown: immediateHit + bars.slice(0, crisisYear).reduce((sum, item) => sum + item.annualGap, 0),
+          bars,
+          phaseConfig
+        };
+      }
+
+      function renderYAxis(maxValue) {
+        const tickValues = [maxValue, maxValue * 0.66, maxValue * 0.33, 0];
+        yAxis.innerHTML = tickValues.map((value) => {
+          return `<span>${formatCurrency(Math.max(0, value)).replace(".00", "")}</span>`;
+        }).join("");
+      }
+
+      function renderXAxis(scenario) {
+        const tickCount = Math.min(5, Math.max(2, scenario.bars.length));
+        const tickIndexes = [];
+
+        for (let index = 0; index < tickCount; index += 1) {
+          const ratio = tickCount === 1 ? 0 : index / (tickCount - 1);
+          const barIndex = Math.min(scenario.bars.length - 1, Math.round(ratio * (scenario.bars.length - 1)));
+          if (!tickIndexes.includes(barIndex)) {
+            tickIndexes.push(barIndex);
+          }
+        }
+
+        xAxis.innerHTML = tickIndexes.map((barIndex) => {
+          const bar = scenario.bars[barIndex];
+          return `<span>${bar.age}</span>`;
+        }).join("");
+      }
+
+      function renderPhaseBand(scenario) {
+        phaseBand.innerHTML = scenario.phaseConfig.map((phase) => {
+          const width = `${(phase.years / scenario.supportDuration) * 100}%`;
+          return `<div class="income-loss-phase-block is-${phase.key}" style="width:${width};"><span>${phase.label}</span></div>`;
+        }).join("");
+
+        phaseLegend.innerHTML = scenario.phaseConfig.map((phase) => {
+          return `
+            <div class="income-loss-legend-item">
+              <span class="income-loss-legend-swatch is-${phase.key}"></span>
+              <div>
+                <strong>${phase.label}</strong>
+                <p>${phase.helper}</p>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderBars(scenario) {
+        const maxAssets = Math.max(1, scenario.startingAssets);
+        const chartWidth = barsHost.clientWidth || 1;
+        barsHost.innerHTML = "";
+        tooltip.hidden = true;
+
+        scenario.bars.forEach((bar) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = `income-loss-bar is-${bar.phaseKey}`;
+          button.style.height = `${Math.max(8, (bar.assetsBefore / maxAssets) * 100)}%`;
+          button.style.width = `${Math.max(18, chartWidth / Math.max(scenario.bars.length, 6) - 6)}px`;
+          button.setAttribute("aria-label", `Year ${bar.year}`);
+
+          const showTooltip = () => {
+            tooltip.hidden = false;
+            tooltip.innerHTML = `
+              <strong>Year ${bar.year}</strong>
+              <span>Age ${bar.age}</span>
+              <span>Phase: ${bar.phase}</span>
+              <span>Annual drawdown: ${formatCurrency(bar.annualGap)}</span>
+              <span>Assets remaining: ${formatCurrency(bar.assetsAfter)}</span>
+            `;
+
+            const buttonRect = button.getBoundingClientRect();
+            const hostRect = barsHost.getBoundingClientRect();
+            const left = buttonRect.left - hostRect.left + (buttonRect.width / 2);
+            tooltip.style.left = `${left}px`;
+            tooltip.style.bottom = `${button.offsetHeight + 24}px`;
+          };
+
+          const hideTooltip = () => {
+            tooltip.hidden = true;
+          };
+
+          button.addEventListener("mouseenter", showTooltip);
+          button.addEventListener("focus", showTooltip);
+          button.addEventListener("mouseleave", hideTooltip);
+          button.addEventListener("blur", hideTooltip);
+          barsHost.appendChild(button);
+        });
+      }
+
+      function renderScenario(analysisSource, deathAge) {
+        const activeSource = analysisSource && (
+          Number(analysisSource?.buckets?.availableAssetsTotal || 0) > 0
+          || Number(analysisSource?.buckets?.annualIncomeToReplace || 0) > 0
+          || Number(analysisSource?.buckets?.debtPayoffTotal || 0) > 0
+        ) ? analysisSource : buildPreviewAnalysisSource();
+        const scenario = computeIncomeLossScenario(activeSource, deathAge);
+        const isPreview = activeSource.sourceType === "preview";
+
+        emptyState.hidden = true;
+        content.hidden = false;
+
+        const maxAxisValue = Math.max(scenario.startingAssets, scenario.peakAnnualGap, scenario.availableAssets, 10000);
+        renderYAxis(maxAxisValue);
+        renderXAxis(scenario);
+        renderPhaseBand(scenario);
+        renderBars(scenario);
+
+        setText("income-loss-source-copy", isPreview
+          ? "Previewing the timeline layout. Link a client or complete a manual input workflow to replace this with live analysis data."
+          : buildSourceSummary(activeSource));
+        setText("income-loss-chart-caption", isPreview
+          ? "Preview scenario shown until live planning inputs are available."
+          : `Available assets after an immediate ${formatCurrency(scenario.immediateHit)} payoff hit.`);
+        setText("income-loss-crisis-note", `Financial crisis in ${scenario.crisisYear} ${scenario.crisisYear === 1 ? "year" : "years"}`);
+        setText("income-loss-assets-last", `${scenario.crisisYear} ${scenario.crisisYear === 1 ? "year" : "years"}`);
+        setText("income-loss-peak-gap", formatCurrency(scenario.peakAnnualGap));
+        setText("income-loss-crisis-age", `Age ${scenario.crisisAge}`);
+        setText("income-loss-assets-total", formatCurrency(scenario.availableAssets));
+        setText("income-loss-immediate-hit", formatCurrency(scenario.immediateHit));
+        setText("income-loss-starting-assets", formatCurrency(scenario.startingAssets));
+        setText("income-loss-annual-gap", formatCurrency(scenario.annualGapBase));
+        setText("income-loss-total-drawdown", formatCurrency(scenario.totalDrawdown));
+        setText("income-loss-side-total-need", formatCurrency(scenario.totalDrawdown));
+        setText("income-loss-side-total-need-duplicate", formatCurrency(scenario.totalDrawdown));
+        setText("income-loss-side-peak-gap", formatCurrency(scenario.peakAnnualGap));
+        setText("income-loss-side-duration", `${scenario.crisisYear} ${scenario.crisisYear === 1 ? "year" : "years"}`);
+
+        const subjectName = String(activeSource.record?.displayName || "").trim();
+        setText("income-loss-side-copy", isPreview
+          ? "This is a visual preview of the income-loss timeline. It will switch to actual linked or temporary analysis data once inputs are available."
+          : activeSource.sourceType === "temporary"
+            ? "Using temporary manual inputs saved inside this analysis session. Leaving the analysis tool will clear them."
+            : "Using saved Protection Modeling data linked to this client profile.");
+      }
+
+      const analysisSource = window.getLensAnalysisSource?.();
+      const sliderSource = analysisSource && (
+        Number(analysisSource?.buckets?.currentAge || analysisSource?.record?.age || 0) > 0
+      ) ? analysisSource : buildPreviewAnalysisSource();
+      const baseAge = Math.max(35, Number(sliderSource?.buckets?.currentAge || sliderSource?.record?.age || 45));
+      const yearsUntilRetirement = Math.max(10, Number(sliderSource?.buckets?.yearsUntilRetirement || 20));
+      const maxAge = Math.max(baseAge + 25, baseAge + yearsUntilRetirement + 10, 80);
+
+      slider.min = String(baseAge);
+      slider.max = String(maxAge);
+      slider.value = String(baseAge);
+      currentAgeLabel.textContent = `Current age: ${baseAge}`;
+      selectedAge.textContent = `Death age: ${baseAge}`;
+
+      slider.addEventListener("input", function () {
+        const deathAge = Number(slider.value || baseAge);
+        selectedAge.textContent = `Death age: ${deathAge}`;
+        renderScenario(analysisSource, deathAge);
+      });
+
+      renderScenario(analysisSource, baseAge);
+    })();
+  </script>
 </body>
 </html>

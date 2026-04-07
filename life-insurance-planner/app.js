@@ -17,7 +17,10 @@
     pendingClientRecords: "lensPendingClientRecords",
     linkedCaseRef: "lensLinkedCaseRef",
     linkedRecordId: "lensLinkedRecordId",
-    federalTaxBrackets: "lensFederalTaxBrackets"
+    federalTaxBrackets: "lensFederalTaxBrackets",
+    temporaryAnalysisSession: "lensTemporaryAnalysisSession",
+    temporaryAnalysisSummary: "lensTemporaryAnalysisSummary",
+    analysisInternalNavigation: "lensAnalysisInternalNavigation"
   };
 
   const DEFAULT_SINGLE_FEDERAL_TAX_BRACKETS = [
@@ -2200,6 +2203,260 @@
     return snapshot;
   }
 
+  function loadSessionJson(key) {
+    try {
+      return JSON.parse(sessionStorage.getItem(key) || "null");
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function saveSessionJson(key, value) {
+    sessionStorage.setItem(key, JSON.stringify(value));
+    return value;
+  }
+
+  function parseMoneyValue(value) {
+    const normalized = Number(String(value || "").replace(/[^0-9.-]/g, ""));
+    return Number.isFinite(normalized) ? normalized : 0;
+  }
+
+  function clampPercentValue(value) {
+    return Math.max(0, Math.min(100, parseMoneyValue(value)));
+  }
+
+  function getTruthyYes(value) {
+    return ["yes", "true", "1", "included"].includes(String(value || "").trim().toLowerCase());
+  }
+
+  function getTemporaryAnalysisSession() {
+    const session = loadSessionJson(STORAGE_KEYS.temporaryAnalysisSession);
+    return session && typeof session === "object" ? session : null;
+  }
+
+  function clearTemporaryAnalysisSession() {
+    sessionStorage.removeItem(STORAGE_KEYS.temporaryAnalysisSession);
+    sessionStorage.removeItem(STORAGE_KEYS.temporaryAnalysisSummary);
+  }
+
+  function markAnalysisInternalNavigation() {
+    sessionStorage.setItem(STORAGE_KEYS.analysisInternalNavigation, "true");
+  }
+
+  function consumeAnalysisInternalNavigation() {
+    const flagged = sessionStorage.getItem(STORAGE_KEYS.analysisInternalNavigation) === "true";
+    sessionStorage.removeItem(STORAGE_KEYS.analysisInternalNavigation);
+    return flagged;
+  }
+
+  function saveTemporaryAnalysisSession(payload) {
+    if (!payload || typeof payload !== "object") {
+      clearTemporaryAnalysisSession();
+      return null;
+    }
+
+    const nextSession = {
+      hasData: true,
+      savedAt: new Date().toISOString(),
+      variant: String(payload.variant || "").trim(),
+      sourcePage: String(payload.sourcePage || "").trim(),
+      data: payload.data && typeof payload.data === "object" ? payload.data : {},
+      meta: payload.meta && typeof payload.meta === "object" ? payload.meta : {}
+    };
+
+    saveSessionJson(STORAGE_KEYS.temporaryAnalysisSummary, {
+      hasData: true,
+      variant: nextSession.variant,
+      savedAt: nextSession.savedAt
+    });
+    return saveSessionJson(STORAGE_KEYS.temporaryAnalysisSession, nextSession);
+  }
+
+  function getTemporaryAnalysisSummary() {
+    const summary = loadSessionJson(STORAGE_KEYS.temporaryAnalysisSummary);
+    return summary && typeof summary === "object" ? summary : null;
+  }
+
+  function applySnapshotToForm(form, snapshot) {
+    if (!form || !snapshot || typeof snapshot !== "object") {
+      return;
+    }
+
+    Object.entries(snapshot).forEach(([name, value]) => {
+      const control = form.elements.namedItem(name);
+
+      if (!control || value == null || value === "") {
+        return;
+      }
+
+      if (control instanceof RadioNodeList) {
+        Array.from(control).forEach((input) => {
+          input.checked = String(input.value) === String(value);
+        });
+        return;
+      }
+
+      if (control.type === "checkbox") {
+        control.checked = Boolean(value);
+        return;
+      }
+
+      control.value = value;
+      control.dispatchEvent?.(new Event("input", { bubbles: true }));
+      control.dispatchEvent?.(new Event("change", { bubbles: true }));
+    });
+  }
+
+  function restoreTemporaryAnalysisForm(form, variant) {
+    const session = getTemporaryAnalysisSession();
+    if (!session || !session.hasData || String(session.variant || "").trim() !== String(variant || "").trim()) {
+      return null;
+    }
+
+    applySnapshotToForm(form, session.data || {});
+    return session;
+  }
+
+  function getClientRecordByReference(recordId, caseRef) {
+    const normalizedId = String(recordId || "").trim();
+    const normalizedCaseRef = normalizeCaseRef(caseRef);
+    const records = getClientRecords();
+
+    if (normalizedId) {
+      const matchedById = records.find((record) => String(record?.id || "").trim() === normalizedId);
+      if (matchedById) {
+        return matchedById;
+      }
+    }
+
+    if (normalizedCaseRef) {
+      return records.find((record) => normalizeCaseRef(record?.caseRef) === normalizedCaseRef) || null;
+    }
+
+    return null;
+  }
+
+  function getLatestProtectionModelingPayload(record) {
+    if (!record || typeof record !== "object") {
+      return null;
+    }
+
+    if (record.protectionModeling && typeof record.protectionModeling === "object") {
+      return record.protectionModeling;
+    }
+
+    if (Array.isArray(record.protectionModelingEntries) && record.protectionModelingEntries.length) {
+      return record.protectionModelingEntries[record.protectionModelingEntries.length - 1];
+    }
+
+    return null;
+  }
+
+  function buildAnalysisBucketsFromData(rawData, meta) {
+    const data = rawData && typeof rawData === "object" ? rawData : {};
+    const context = meta && typeof meta === "object" ? meta : {};
+    const educationFundingTotal = parseMoneyValue(data.educationFundingTotal)
+      || ((parseMoneyValue(data.estimatedCostPerChild) * Math.max(0, parseMoneyValue(data.childrenNeedingFunding))) * (clampPercentValue(data.costToFundPercent || 100) / 100));
+    const finalExpensesTotal = parseMoneyValue(data.finalExpensesTotal)
+      || parseMoneyValue(data.funeralBurialEstimate)
+      + parseMoneyValue(data.medicalEndOfLifeCosts)
+      + parseMoneyValue(data.estateSettlementCosts);
+    const debtPayoffTotal = parseMoneyValue(data.debtPayoffTotal)
+      || parseMoneyValue(data.mortgageBalance)
+      + parseMoneyValue(data.otherPersonalDebtTotal)
+      + parseMoneyValue(data.otherRealEstateLoans)
+      + parseMoneyValue(data.autoLoans)
+      + parseMoneyValue(data.creditCardDebt)
+      + parseMoneyValue(data.studentLoans)
+      + parseMoneyValue(data.personalLoans)
+      + parseMoneyValue(data.businessDebt);
+    const availableAssetsTotal = parseMoneyValue(data.availableAssetsTotal)
+      || parseMoneyValue(data.liquidAssetsAvailable)
+      || (
+        parseMoneyValue(data.cashSavings)
+        + parseMoneyValue(data.emergencyFund)
+        + parseMoneyValue(data.brokerageAccounts)
+        + (getTruthyYes(data.retirementAssetsIncludeInOffset) || !data.retirementAssetsIncludeInOffset
+          ? parseMoneyValue(data.retirementAssetsAvailable) || (parseMoneyValue(data.retirementAssets) * (clampPercentValue(data.retirementAssetsPercentAvailable || 100) / 100))
+          : 0)
+        + (getTruthyYes(data.businessValueIncludeInOffset) || !data.businessValueIncludeInOffset
+          ? parseMoneyValue(data.businessValueAvailable) || (parseMoneyValue(data.businessValue) * (clampPercentValue(data.businessValuePercentAvailable || 100) / 100))
+          : 0)
+        + parseMoneyValue(data.otherAssetsAvailable)
+      );
+    const existingCoverageTotal = parseMoneyValue(data.existingCoverageTotal)
+      || parseMoneyValue(data.individualDeathBenefit)
+      + parseMoneyValue(data.groupLifeCoverage)
+      + parseMoneyValue(data.currentCoverageAmount)
+      + parseMoneyValue(data.currentLifeInsuranceCoverage);
+    const survivorNetAnnualIncome = parseMoneyValue(data.survivorNetAnnualIncome)
+      || parseMoneyValue(data.spouseNetAnnualIncome)
+      || parseMoneyValue(data.survivorIncome)
+      || parseMoneyValue(data.spouseIncome);
+    const baseNetIncome = parseMoneyValue(data.netAnnualIncome) || parseMoneyValue(data.grossAnnualIncome);
+    const annualIncomeToReplace = parseMoneyValue(data.annualIncomeToReplace) || Math.max(baseNetIncome - survivorNetAnnualIncome, 0);
+    const yearsUntilRetirement = Math.max(0, Math.round(parseMoneyValue(data.yearsUntilRetirement)));
+    const yearsUntilDeath = Math.max(0, Math.round(parseMoneyValue(context.yearsUntilDeath)));
+    const supportDuration = Math.max(
+      1,
+      Math.round(parseMoneyValue(data.incomeReplacementDuration) || Math.max(yearsUntilRetirement - yearsUntilDeath, 0) || 12)
+    );
+    const currentAge = Math.max(
+      0,
+      Math.round(parseMoneyValue(context.currentAge) || parseMoneyValue(data.currentAge) || parseMoneyValue(data.age))
+    );
+
+    return {
+      currentAge,
+      yearsUntilRetirement,
+      annualIncomeToReplace,
+      survivorNetAnnualIncome,
+      supportDuration,
+      immediateLiquidityBuffer: parseMoneyValue(data.immediateLiquidityBuffer),
+      debtPayoffTotal,
+      finalExpensesTotal,
+      educationFundingTotal,
+      specialOneTimeGoals: parseMoneyValue(data.specialOneTimeGoals),
+      emergencyReserveGoal: parseMoneyValue(data.emergencyReserveGoal),
+      otherSurvivorLumpSumNeed: parseMoneyValue(data.otherSurvivorLumpSumNeed),
+      availableAssetsTotal,
+      existingCoverageTotal,
+      incomeGrowthRate: clampPercentValue(data.incomeGrowthRate),
+      employerBenefitsValue: parseMoneyValue(data.employerBenefitsValue),
+      variant: String(context.variant || "").trim()
+    };
+  }
+
+  function getActiveAnalysisSource() {
+    const temporarySession = getTemporaryAnalysisSession();
+    if (temporarySession?.hasData) {
+      return {
+        sourceType: "temporary",
+        session: temporarySession,
+        record: null,
+        buckets: buildAnalysisBucketsFromData(temporarySession.data || {}, {
+          ...(temporarySession.meta || {}),
+          variant: temporarySession.variant
+        })
+      };
+    }
+
+    const linkedRecord = getClientRecordByReference(getLinkedRecordId(), getLinkedCaseRef());
+    const modelingPayload = getLatestProtectionModelingPayload(linkedRecord);
+    const linkedData = modelingPayload?.data || {};
+
+    return {
+      sourceType: "linked",
+      session: null,
+      record: linkedRecord,
+      buckets: buildAnalysisBucketsFromData(linkedData, {
+        currentAge: parseMoneyValue(linkedRecord?.age) || calculateAgeFromDate(linkedRecord?.dateOfBirth),
+        variant: String(modelingPayload?.variant || "").trim()
+      }),
+      modelingPayload
+    };
+  }
+
   function updateClientRecordByCaseRef(caseRef, updater) {
     const normalizedCaseRef = normalizeCaseRef(caseRef);
     if (!normalizedCaseRef || typeof updater !== "function") {
@@ -3080,15 +3337,156 @@
     return true;
   }
 
+  const ANALYSIS_TOOL_PATHS = new Set([
+    "profile.html",
+    "manual-protection-modeling-inputs.html",
+    "manual-simplified-pmi.html",
+    "manual-minimum-inputs.html",
+    "income-loss-impact.html",
+    "analysis-estimate.html",
+    "analysis-detail.html",
+    "recommendations.html",
+    "planner.html",
+    "summary.html"
+  ]);
+
+  function getPathBasename(value) {
+    const normalized = String(value || "").trim();
+    if (!normalized) {
+      return "";
+    }
+
+    const withoutQuery = normalized.split("#")[0].split("?")[0];
+    const parts = withoutQuery.split("/").filter(Boolean);
+    return parts.length ? parts[parts.length - 1].toLowerCase() : "";
+  }
+
+  function isAnalysisToolPath(value) {
+    return ANALYSIS_TOOL_PATHS.has(getPathBasename(value));
+  }
+
+  function ensureTemporaryAnalysisLeaveModal() {
+    let modal = document.querySelector("[data-analysis-leave-modal]");
+    if (modal) {
+      return modal;
+    }
+
+    modal = document.createElement("div");
+    modal.className = "lens-leave-modal";
+    modal.setAttribute("data-analysis-leave-modal", "");
+    modal.hidden = true;
+    modal.innerHTML = `
+      <div class="lens-leave-modal-backdrop" data-analysis-leave-stay></div>
+      <div class="lens-leave-modal-panel" role="dialog" aria-modal="true" aria-labelledby="analysis-leave-title">
+        <h2 id="analysis-leave-title">Leave analysis?</h2>
+        <p>If you leave the analysis tool, temporary manual input data will be lost.</p>
+        <div class="lens-leave-modal-actions">
+          <button class="btn btn-secondary" type="button" data-analysis-leave-stay>Stay</button>
+          <button class="btn btn-primary" type="button" data-analysis-leave-confirm>Leave</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    return modal;
+  }
+
+  function initializeTemporaryAnalysisLeaveGuard() {
+    if (!isAnalysisToolPath(window.location.pathname)) {
+      return;
+    }
+
+    if (document.body.dataset.analysisLeaveGuardInitialized === "true") {
+      return;
+    }
+    document.body.dataset.analysisLeaveGuardInitialized = "true";
+
+    let allowUnload = consumeAnalysisInternalNavigation();
+    const modal = ensureTemporaryAnalysisLeaveModal();
+    const stayButtons = Array.from(modal.querySelectorAll("[data-analysis-leave-stay]"));
+    const leaveButton = modal.querySelector("[data-analysis-leave-confirm]");
+
+    function closeModal() {
+      modal.hidden = true;
+      document.body.classList.remove("is-modal-open");
+    }
+
+    function openModal(onLeave) {
+      modal.hidden = false;
+      document.body.classList.add("is-modal-open");
+
+      const handleLeave = () => {
+        allowUnload = true;
+        clearTemporaryAnalysisSession();
+        closeModal();
+        onLeave?.();
+      };
+
+      leaveButton.onclick = handleLeave;
+      stayButtons.forEach((button) => {
+        button.onclick = closeModal;
+      });
+    }
+
+    window.addEventListener("beforeunload", (event) => {
+      if (allowUnload || !getTemporaryAnalysisSession()?.hasData) {
+        return;
+      }
+
+      event.preventDefault();
+      event.returnValue = "";
+    });
+
+    document.addEventListener("click", (event) => {
+      const anchor = event.target.closest("a[href]");
+      if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) {
+        return;
+      }
+
+      const nextUrl = new URL(anchor.getAttribute("href"), window.location.href);
+      if (!getTemporaryAnalysisSession()?.hasData || nextUrl.href === window.location.href) {
+        return;
+      }
+
+      if (isAnalysisToolPath(nextUrl.pathname)) {
+        allowUnload = true;
+        markAnalysisInternalNavigation();
+        return;
+      }
+
+      event.preventDefault();
+      openModal(() => {
+        window.location.href = nextUrl.href;
+      });
+    }, true);
+  }
+
   window.saveLensClientCreationForm = saveClientCreationForm;
   window.getLensLinkedCaseRef = getLinkedCaseRef;
   window.setLensLinkedCaseRef = setLinkedCaseRef;
   window.getLensLinkedRecordId = getLinkedRecordId;
   window.setLensLinkedRecordId = setLinkedRecordId;
+  window.getLensTemporaryAnalysisSession = getTemporaryAnalysisSession;
+  window.getLensTemporaryAnalysisSummary = getTemporaryAnalysisSummary;
+  window.saveLensTemporaryAnalysisSession = saveTemporaryAnalysisSession;
+  window.clearLensTemporaryAnalysisSession = clearTemporaryAnalysisSession;
+  window.restoreLensTemporaryAnalysisForm = restoreTemporaryAnalysisForm;
+  window.getLensAnalysisSource = getActiveAnalysisSource;
+  window.beginLensAnalysisInternalNavigation = markAnalysisInternalNavigation;
   window.getLensFederalTaxBrackets = getFederalTaxBracketOptions;
   window.serializeLensFormSnapshot = serializeFormSnapshot;
   window.saveLensLinkedWorkflowSection = saveLinkedWorkflowSection;
   window.saveLensLinkedWorkflowSectionWithFallback = saveLinkedWorkflowSectionWithFallback;
+  document.addEventListener("DOMContentLoaded", () => {
+    if (isAnalysisToolPath(window.location.pathname)) {
+      initializeTemporaryAnalysisLeaveGuard();
+      return;
+    }
+
+    if (getTemporaryAnalysisSession()?.hasData) {
+      clearTemporaryAnalysisSession();
+    }
+  });
 
   function formatCurrency(value) {
     const number = Number(value);
