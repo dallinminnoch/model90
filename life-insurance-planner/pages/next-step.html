@@ -1623,59 +1623,19 @@
           return null;
         }
 
-        if (window.saveLensLinkedWorkflowSection) {
-          const savedRecord = window.saveLensLinkedWorkflowSection(linkedCaseRef, "protectionModeling", draft, {
+        if (window.saveLensLinkedWorkflowSectionWithFallback) {
+          return window.saveLensLinkedWorkflowSectionWithFallback(linkedCaseRef, "protectionModeling", draft, {
             variant: form.dataset.pmiDraftKey || "advisor",
             page: "next-step"
           });
-          if (savedRecord) {
-            return savedRecord;
-          }
         }
 
-        const normalizedCaseRef = linkedCaseRef.toLowerCase();
-        const key = getCurrentClientRecordsStorageKey();
-        const today = new Date().toISOString().slice(0, 10);
-
-        try {
-          const records = JSON.parse(localStorage.getItem(key) || "[]");
-          if (!Array.isArray(records)) {
-            return null;
-          }
-
-          const recordIndex = records.findIndex((record) => String(record?.caseRef || "").trim().toLowerCase() === normalizedCaseRef);
-          if (recordIndex < 0) {
-            return null;
-          }
-
-          const currentRecord = records[recordIndex] || {};
-          const sectionPayload = {
-            completed: true,
-            linkedCaseRef,
-            savedAt: today,
-            variant: form.dataset.pmiDraftKey || "advisor",
-            page: "next-step",
-            data: draft && typeof draft === "object" ? draft : {}
-          };
-          const existingEntries = Array.isArray(currentRecord.protectionModelingEntries)
-            ? currentRecord.protectionModelingEntries.slice()
-            : [];
-          const updatedRecord = {
-            ...currentRecord,
-            lastUpdatedDate: today,
-            lastReview: today,
-            protectionModelingEntries: [...existingEntries, sectionPayload],
-            protectionModeling: sectionPayload,
-            pmiCompleted: true
-          };
-          const nextRecords = records.slice();
-          nextRecords[recordIndex] = updatedRecord;
-          localStorage.setItem(key, JSON.stringify(nextRecords));
-          return updatedRecord;
-        } catch (_error) {
-        }
-
-        return null;
+        return window.saveLensLinkedWorkflowSection
+          ? window.saveLensLinkedWorkflowSection(linkedCaseRef, "protectionModeling", draft, {
+              variant: form.dataset.pmiDraftKey || "advisor",
+              page: "next-step"
+            })
+          : null;
       }
 
       function syncLinkedStateOfResidence() {

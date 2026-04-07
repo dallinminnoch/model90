@@ -469,11 +469,12 @@
 
       continueButton.addEventListener("click", () => {
         const linkedCaseRef = window.getLensLinkedCaseRef?.() || "";
-        if (!linkedCaseRef || !window.saveLensLinkedWorkflowSection || !window.serializeLensFormSnapshot) {
+        const saveLinkedSection = window.saveLensLinkedWorkflowSectionWithFallback || window.saveLensLinkedWorkflowSection;
+        if (!linkedCaseRef || !saveLinkedSection || !window.serializeLensFormSnapshot) {
           return;
         }
 
-        window.saveLensLinkedWorkflowSection(
+        saveLinkedSection(
           linkedCaseRef,
           "preliminaryUnderwriting",
           window.serializeLensFormSnapshot(form),

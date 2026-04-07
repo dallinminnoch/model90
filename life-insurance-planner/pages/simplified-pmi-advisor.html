@@ -890,52 +890,19 @@
           return null;
         }
 
-        if (window.saveLensLinkedWorkflowSection) {
-          const savedRecord = window.saveLensLinkedWorkflowSection(linkedCaseRef, "protectionModeling", draft, {
+        if (window.saveLensLinkedWorkflowSectionWithFallback) {
+          return window.saveLensLinkedWorkflowSectionWithFallback(linkedCaseRef, "protectionModeling", draft, {
             variant: form.dataset.pmiDraftKey || "simplified-advisor",
             page: "simplified-pmi-advisor"
           });
-          if (savedRecord) {
-            return savedRecord;
-          }
         }
 
-        const linkedEntry = getLinkedRecordEntry();
-        if (!linkedEntry) {
-          return null;
-        }
-
-        const today = new Date().toISOString().slice(0, 10);
-
-        try {
-          const currentRecord = linkedEntry.record || {};
-          const sectionPayload = {
-            completed: true,
-            linkedCaseRef,
-            savedAt: today,
-            variant: form.dataset.pmiDraftKey || "simplified-advisor",
-            page: "simplified-pmi-advisor",
-            data: draft && typeof draft === "object" ? draft : {}
-          };
-          const existingEntries = Array.isArray(currentRecord.protectionModelingEntries)
-            ? currentRecord.protectionModelingEntries.slice()
-            : [];
-          const updatedRecord = {
-            ...currentRecord,
-            lastUpdatedDate: today,
-            lastReview: today,
-            protectionModelingEntries: [...existingEntries, sectionPayload],
-            protectionModeling: sectionPayload,
-            pmiCompleted: true
-          };
-          const nextRecords = linkedEntry.records.slice();
-          nextRecords[linkedEntry.recordIndex] = updatedRecord;
-          localStorage.setItem(linkedEntry.key, JSON.stringify(nextRecords));
-          return updatedRecord;
-        } catch (_error) {
-        }
-
-        return null;
+        return window.saveLensLinkedWorkflowSection
+          ? window.saveLensLinkedWorkflowSection(linkedCaseRef, "protectionModeling", draft, {
+              variant: form.dataset.pmiDraftKey || "simplified-advisor",
+              page: "simplified-pmi-advisor"
+            })
+          : null;
       }
 
       function clampCostToFundPercent() {
