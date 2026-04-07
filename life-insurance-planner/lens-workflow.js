@@ -1,6 +1,6 @@
 (function () {
   const WORKFLOW_STEPS = [
-    { id: "profile-1", label: "Intake Form", path: "profile.html" },
+    { id: "profile-1", label: "Analysis Setup", path: "profile.html" },
     { id: "income-loss", label: "Income Loss Impact", path: "income-loss-impact.html" },
     { id: "estimate", label: "Estimate Need", path: "analysis-estimate.html" },
     { id: "detail", label: "Detailed Analysis", path: "analysis-detail.html" },
@@ -145,13 +145,18 @@
   function getCurrentStepCompletion(currentStep) {
     if (currentStep === "profile-1") {
       const entryMode = document.getElementById("analysis-entry-mode");
-      const linkedRecordId = document.getElementById("analysis-linked-record-id");
-      const hasLinkedProfile = Boolean(String(linkedRecordId?.value || "").trim());
-      const hasEntryMode = Boolean(String(entryMode?.value || "").trim());
+      const linkedClientCard = document.getElementById("analysis-linked-client-card");
+      const linkedClientName = document.getElementById("analysis-linked-client-display");
+      const hasLinkedProfile = Boolean(
+        linkedClientCard &&
+        !linkedClientCard.hidden &&
+        String(linkedClientName?.textContent || "").trim() &&
+        String(linkedClientName?.textContent || "").trim() !== "Not linked"
+      );
       if (hasLinkedProfile) {
         return 0.5;
       }
-      if (hasEntryMode) {
+      if (String(entryMode?.value || "").trim() === "manual") {
         return 1;
       }
       return 0;

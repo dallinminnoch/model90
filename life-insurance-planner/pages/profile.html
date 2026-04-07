@@ -17,7 +17,7 @@
         <section class="page-intro lens-intake-intro">
           <div>
             <div class="section-label">Step 1</div>
-            <h1>Intake Form</h1>
+            <h1>Analysis Setup</h1>
             <p class="intro-copy">Start by linking a saved client profile, or enter details manually.</p>
           </div>
         </section>
@@ -153,6 +153,22 @@
     </div>
   </main>
 
+  <div class="lens-manual-widget" data-analysis-manual-widget hidden>
+    <div class="lens-manual-widget-backdrop" data-analysis-manual-close></div>
+    <div class="lens-manual-widget-panel" role="dialog" aria-modal="true" aria-labelledby="analysis-manual-widget-title">
+      <button class="lens-manual-widget-close" type="button" aria-label="Close manual options" data-analysis-manual-close>x</button>
+      <div class="lens-manual-widget-header">
+        <h2 id="analysis-manual-widget-title">Choose Manual Workflow</h2>
+        <p>Select which manual input path you want to use for this analysis.</p>
+      </div>
+      <div class="lens-manual-widget-options">
+        <a class="lens-manual-widget-option" href="manual-protection-modeling-inputs.html" data-loading-link>Protection Modeling Inputs</a>
+        <a class="lens-manual-widget-option" href="manual-simplified-pmi.html" data-loading-link>Simplified PMI</a>
+        <a class="lens-manual-widget-option" href="manual-minimum-inputs.html" data-loading-link>Minimum Inputs</a>
+      </div>
+    </div>
+  </div>
+
   <div class="profile-search-modal" data-analysis-link-modal hidden>
     <div class="profile-search-modal-backdrop" data-analysis-link-close></div>
     <div class="profile-search-modal-panel" role="dialog" aria-modal="true" aria-labelledby="analysis-link-modal-title">
@@ -193,6 +209,8 @@
       const linkedClientStatus = document.getElementById("analysis-linked-client-status");
       const manualToggleButton = document.querySelector("[data-analysis-manual-toggle]");
       const manualPanel = document.querySelector("[data-analysis-manual-panel]");
+      const manualWidget = document.querySelector("[data-analysis-manual-widget]");
+      const manualWidgetClose = document.querySelectorAll("[data-analysis-manual-close]");
       const entryModeField = document.getElementById("analysis-entry-mode");
       const continueButton = document.getElementById("analysis-intake-continue");
       const linkTabs = Array.from(document.querySelectorAll("[data-analysis-link-tab]"));
@@ -230,6 +248,22 @@
         } else if (!linkedRecord) {
           setEntryMode("");
         }
+      }
+
+      function openManualWidget() {
+        if (!manualWidget) {
+          return;
+        }
+        manualWidget.hidden = false;
+        manualToggleButton?.classList.add("is-active");
+      }
+
+      function closeManualWidget() {
+        if (!manualWidget) {
+          return;
+        }
+        manualWidget.hidden = true;
+        manualToggleButton?.classList.remove("is-active");
       }
 
       function setLinkTab(mode) {
@@ -456,12 +490,23 @@
         button.addEventListener("click", closeLinkModal);
       });
       manualToggleButton?.addEventListener("click", function () {
-        setManualMode(!manualModeEnabled);
+        if (manualWidget?.hidden) {
+          openManualWidget();
+        } else {
+          closeManualWidget();
+        }
+      });
+
+      manualWidgetClose.forEach(function (button) {
+        button.addEventListener("click", closeManualWidget);
       });
 
       document.addEventListener("keydown", function (event) {
         if (event.key === "Escape" && linkModal && !linkModal.hidden) {
           closeLinkModal();
+        }
+        if (event.key === "Escape" && manualWidget && !manualWidget.hidden) {
+          closeManualWidget();
         }
       });
 

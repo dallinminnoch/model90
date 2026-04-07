@@ -125,7 +125,7 @@
   ];
 
   const allSteps = [
-    { id: "profile-1", label: "Intake Form", path: "profile.html" },
+    { id: "profile-1", label: "Analysis Setup", path: "profile.html" },
     { id: "income-loss", label: "Income Loss Impact", path: "income-loss-impact.html" },
     { id: "estimate", label: "Estimate Need", path: "analysis-estimate.html" },
     { id: "detail", label: "Detailed Analysis", path: "analysis-detail.html" },

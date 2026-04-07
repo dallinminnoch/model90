@@ -3,24 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simplified PMI Confidential | LENS</title>
+  <title>Simplified PMI Manual | LENS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css">
 </head>
-<body class="home-page prospect-page profile-creation-page" data-page="simplified-pmi-confidential">
+<body class="home-page prospect-page profile-creation-page" data-page="manual-simplified-pmi">
   <main class="home-shell app-home-shell prospect-shell">
     <section class="prospect-stage">
       <section class="prospect-empty-panel">
         <div class="prospect-panel-header">
-          <a class="prospect-return-button" href="protection-modeling-inputs.html" data-loading-link>Previous</a>
-          <h1>Simplified PMI Confidential</h1>
-          <div class="confidential-inputs-badge" aria-label="Confidential Inputs">
-            <span class="entry-mode-icon entry-mode-icon-locked" aria-hidden="true"></span>
-            <span>Confidential Inputs</span>
-          </div>
-          <button class="confidential-calculator-toggle" type="button" data-calculator-toggle aria-expanded="false" aria-controls="confidential-calculator" aria-label="Open calculator">
+          <a class="prospect-return-button" href="profile.html" data-loading-link>Previous</a>
+          <h1>Simplified PMI</h1>
+          <button class="confidential-calculator-toggle" type="button" data-calculator-toggle aria-expanded="false" aria-controls="protection-calculator" aria-label="Open calculator">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <rect x="4" y="2.1" width="16" height="19.8" rx="1.6" fill="#ffffff" stroke="#000000" stroke-width="1.2"></rect>
               <rect x="6.85" y="4.5" width="10.3" height="3.05" rx="0.65" fill="#000000" opacity="0.12"></rect>
@@ -36,7 +32,7 @@
             </svg>
           </button>
         </div>
-        <form class="profile-creation-form" id="protection-modeling-form" data-pmi-draft-key="simplified-confidential">
+        <form class="profile-creation-form" id="protection-modeling-form" data-pmi-draft-key="manual-simplified">
           <section class="profile-form-section">
             <div class="profile-form-section-heading">
               <h2>Household Income</h2>
@@ -306,14 +302,14 @@
           </section>
 
           <div class="actions-row">
-            <button class="btn btn-secondary pmi-save-exit-button" type="button" data-pmi-save-exit>Save and Exit</button>
+            <button class="btn btn-secondary pmi-save-exit-button" type="button" data-pmi-save-exit>Continue</button>
           </div>
         </form>
       </section>
     </section>
   </main>
 
-  <div class="floating-calculator" id="confidential-calculator" hidden aria-hidden="true">
+  <div class="floating-calculator" id="protection-calculator" hidden aria-hidden="true">
     <div class="floating-calculator-header" data-calculator-drag-handle><button class="floating-calculator-close" type="button" aria-label="Close calculator">×</button>
     </div>
     <div class="floating-calculator-body">
@@ -481,7 +477,7 @@
       }
 
       const toggleButton = document.querySelector("[data-calculator-toggle]");
-      const calculator = document.getElementById("confidential-calculator");
+      const calculator = document.getElementById("protection-calculator");
       const closeButton = calculator ? calculator.querySelector(".floating-calculator-close") : null;
       const dragHandle = calculator ? calculator.querySelector("[data-calculator-drag-handle]") : null;
       const display = calculator ? calculator.querySelector(".floating-calculator-display") : null;
@@ -676,73 +672,7 @@
         return;
       }
 
-      const storageKey = `lipPlannerProtectionDraft:${form.dataset.pmiDraftKey || "simplified-confidential"}`;
       const costToFundPercentField = form.elements.namedItem("costToFundPercent");
-      const urlLinkedCaseRef = new URLSearchParams(window.location.search).get("caseRef");
-
-      if (urlLinkedCaseRef) {
-        window.setLensLinkedCaseRef?.(urlLinkedCaseRef);
-      }
-
-      function getCurrentClientRecordsStorageKey() {
-        let session = null;
-        try {
-          session = JSON.parse(localStorage.getItem("lipPlannerAuthSession") || "null");
-        } catch (_error) {
-          session = null;
-        }
-
-        const identity = session?.email ? String(session.email).trim().toLowerCase() : "guest";
-        return `lensClientRecords:${identity}`;
-      }
-
-      function getLinkedRecordEntry() {
-        const linkedCaseRef = String(urlLinkedCaseRef || window.getLensLinkedCaseRef?.() || "").trim().toLowerCase();
-        if (!linkedCaseRef) {
-          return null;
-        }
-
-        const key = getCurrentClientRecordsStorageKey();
-        try {
-          const records = JSON.parse(localStorage.getItem(key) || "[]");
-          if (!Array.isArray(records)) {
-            return null;
-          }
-
-          const recordIndex = records.findIndex((record) => String(record?.caseRef || "").trim().toLowerCase() === linkedCaseRef);
-          if (recordIndex >= 0) {
-            return { key, records, recordIndex, record: records[recordIndex] };
-          }
-        } catch (_error) {
-        }
-
-        return null;
-      }
-
-      function getLinkedRecord() {
-        return getLinkedRecordEntry()?.record || null;
-      }
-
-      function saveLinkedPmiEntry(draft) {
-        const linkedCaseRef = String(urlLinkedCaseRef || window.getLensLinkedCaseRef?.() || "").trim();
-        if (!linkedCaseRef) {
-          return null;
-        }
-
-        if (window.saveLensLinkedWorkflowSectionWithFallback) {
-          return window.saveLensLinkedWorkflowSectionWithFallback(linkedCaseRef, "protectionModeling", draft, {
-            variant: form.dataset.pmiDraftKey || "simplified-confidential",
-            page: "simplified-pmi-confidential"
-          });
-        }
-
-        return window.saveLensLinkedWorkflowSection
-          ? window.saveLensLinkedWorkflowSection(linkedCaseRef, "protectionModeling", draft, {
-              variant: form.dataset.pmiDraftKey || "simplified-confidential",
-              page: "simplified-pmi-confidential"
-            })
-          : null;
-      }
 
       function clampCostToFundPercent() {
         if (!costToFundPercentField || !("value" in costToFundPercentField)) {
@@ -760,82 +690,9 @@
         }
       }
 
-      function restoreDraft() {
-        try {
-          const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
-          Object.entries(saved).forEach(([name, value]) => {
-            const control = form.elements.namedItem(name);
-            if (!control || value === "" || value == null) {
-              return;
-            }
-
-            if (control instanceof RadioNodeList) {
-              Array.from(control).forEach((input) => {
-                input.checked = input.value === value;
-              });
-              return;
-            }
-
-            if (control.type === "checkbox") {
-              control.checked = Boolean(value);
-              return;
-            }
-
-            control.value = value ?? "";
-            if (control.tagName === "INPUT") {
-              control.dispatchEvent(new Event("input", { bubbles: true }));
-            }
-          });
-          clampCostToFundPercent();
-        } catch (_error) {
-        }
-      }
-
-      function serializeForm() {
-        const draft = {};
-
-        Array.from(form.elements).forEach((element) => {
-          if (!element.name || element.disabled) {
-            return;
-          }
-
-          if (element.type === "radio") {
-            if (element.checked) {
-              draft[element.name] = element.value;
-            }
-            return;
-          }
-
-          if (element.type === "checkbox") {
-            draft[element.name] = element.checked;
-            return;
-          }
-
-          draft[element.name] = element.value;
-        });
-
-        return draft;
-      }
-
       saveExitButton.addEventListener("click", () => {
         clampCostToFundPercent();
-        const draft = serializeForm();
-        localStorage.setItem(storageKey, JSON.stringify(draft));
-        const linkedRecord = saveLinkedPmiEntry(draft);
-        const linkedRecordId = String(linkedRecord?.id || getLinkedRecord()?.id || "").trim();
-        const linkedCaseRef = String(linkedRecord?.caseRef || getLinkedRecord()?.caseRef || urlLinkedCaseRef || window.getLensLinkedCaseRef?.() || "").trim();
-
-        if (linkedRecordId) {
-          window.location.href = `client-detail.html?id=${encodeURIComponent(linkedRecordId)}&tab=planning`;
-          return;
-        }
-
-        if (linkedCaseRef) {
-          window.location.href = `client-detail.html?caseRef=${encodeURIComponent(linkedCaseRef)}&tab=planning`;
-          return;
-        }
-
-        window.location.href = "clients.html";
+        window.scrollTo({ top: 0, behavior: "smooth" });
       });
 
       if (costToFundPercentField) {
@@ -844,7 +701,6 @@
         costToFundPercentField.addEventListener("blur", clampCostToFundPercent);
       }
 
-      restoreDraft();
     })();
   </script>
 </body>
