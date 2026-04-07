@@ -463,15 +463,31 @@
       document.addEventListener("DOMContentLoaded", () => {
         const params = new URLSearchParams(window.location.search);
         const caseRefFromUrl = String(params.get("caseRef") || "").trim().toUpperCase();
+        const recordIdFromUrl = String(params.get("id") || window.getLensLinkedRecordId?.() || "").trim();
         const form = document.getElementById("preliminary-underwriting-form");
         const saveButton = document.querySelector("[data-preliminary-save-button]");
 
         if (caseRefFromUrl) {
           window.setLensLinkedCaseRef?.(caseRefFromUrl);
         }
+        if (recordIdFromUrl) {
+          window.setLensLinkedRecordId?.(recordIdFromUrl);
+        }
 
         function getLinkedCaseRef() {
           return String(caseRefFromUrl || window.getLensLinkedCaseRef?.() || "").trim().toUpperCase();
+        }
+
+        function getCurrentClientRecordsStorageKey() {
+          let session = null;
+          try {
+            session = JSON.parse(localStorage.getItem("lipPlannerAuthSession") || "null");
+          } catch (_error) {
+            session = null;
+          }
+
+          const identity = session?.email ? String(session.email).trim().toLowerCase() : "guest";
+          return `lensClientRecords:${identity}`;
         }
 
         function serializePreliminaryFormSnapshot(targetForm) {
@@ -502,29 +518,56 @@
             return null;
           }
 
-          if (window.saveLensLinkedWorkflowSectionWithFallback) {
-            return window.saveLensLinkedWorkflowSectionWithFallback(
-              linkedCaseRef,
-              "preliminaryUnderwriting",
-              draft,
-              {
-                variant: "preliminary-only",
-                page: "preliminary-only-form"
+          const storageKey = getCurrentClientRecordsStorageKey();
+          const today = new Date().toISOString().slice(0, 10);
+
+          try {
+            const records = JSON.parse(localStorage.getItem(storageKey) || "[]");
+            if (!Array.isArray(records)) {
+              return null;
+            }
+
+            const recordIndex = records.findIndex((record) => {
+              const currentId = String(record?.id || "").trim();
+              const currentCaseRef = String(record?.caseRef || "").trim().toUpperCase();
+              if (recordIdFromUrl && currentId === recordIdFromUrl) {
+                return true;
               }
-            );
+              return currentCaseRef === linkedCaseRef;
+            });
+
+            if (recordIndex < 0) {
+              return null;
+            }
+
+            const currentRecord = records[recordIndex] || {};
+            const sectionPayload = {
+              completed: true,
+              linkedCaseRef,
+              savedAt: today,
+              variant: "preliminary-only",
+              page: "preliminary-only-form",
+              data: draft && typeof draft === "object" ? draft : {}
+            };
+            const updatedRecord = {
+              ...currentRecord,
+              lastUpdatedDate: today,
+              lastReview: today,
+              preliminaryUnderwriting: sectionPayload,
+              preliminaryUnderwritingCompleted: true
+            };
+            const nextRecords = records.slice();
+            nextRecords[recordIndex] = updatedRecord;
+            localStorage.setItem(storageKey, JSON.stringify(nextRecords));
+            window.setLensLinkedCaseRef?.(linkedCaseRef);
+            if (recordIdFromUrl) {
+              window.setLensLinkedRecordId?.(recordIdFromUrl);
+            }
+            return updatedRecord;
+          } catch (_error) {
           }
 
-          return window.saveLensLinkedWorkflowSection
-            ? window.saveLensLinkedWorkflowSection(
-                linkedCaseRef,
-                "preliminaryUnderwriting",
-                draft,
-                {
-                  variant: "preliminary-only",
-                  page: "preliminary-only-form"
-                }
-              )
-            : null;
+          return null;
         }
 
         if (!getLinkedCaseRef()) {

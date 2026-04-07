@@ -17,6 +17,7 @@
     language: "lensLanguage",
     pendingClientRecords: "lensPendingClientRecords",
     linkedCaseRef: "lensLinkedCaseRef",
+    linkedRecordId: "lensLinkedRecordId",
     federalTaxBrackets: "lensFederalTaxBrackets"
   };
 
@@ -2215,6 +2216,21 @@
     return normalizeCaseRef(sessionStorage.getItem(STORAGE_KEYS.linkedCaseRef));
   }
 
+  function setLinkedRecordId(recordId) {
+    const normalized = String(recordId || "").trim();
+    if (!normalized) {
+      sessionStorage.removeItem(STORAGE_KEYS.linkedRecordId);
+      return "";
+    }
+
+    sessionStorage.setItem(STORAGE_KEYS.linkedRecordId, normalized);
+    return normalized;
+  }
+
+  function getLinkedRecordId() {
+    return String(sessionStorage.getItem(STORAGE_KEYS.linkedRecordId) || "").trim();
+  }
+
   function serializeFormSnapshot(form) {
     const formData = new FormData(form);
     const snapshot = {};
@@ -3120,6 +3136,8 @@
   window.saveLensClientCreationForm = saveClientCreationForm;
   window.getLensLinkedCaseRef = getLinkedCaseRef;
   window.setLensLinkedCaseRef = setLinkedCaseRef;
+  window.getLensLinkedRecordId = getLinkedRecordId;
+  window.setLensLinkedRecordId = setLinkedRecordId;
   window.getLensFederalTaxBrackets = getFederalTaxBracketOptions;
   window.serializeLensFormSnapshot = serializeFormSnapshot;
   window.saveLensLinkedWorkflowSection = saveLinkedWorkflowSection;

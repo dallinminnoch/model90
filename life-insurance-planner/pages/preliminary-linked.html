@@ -75,6 +75,8 @@
       const linkModalClose = document.querySelectorAll("[data-preliminary-link-close]");
       const caseRefField = document.querySelector("[data-preliminary-case-ref]");
       const continueButton = document.querySelector("[data-preliminary-continue]");
+      const urlCaseRef = String(new URLSearchParams(window.location.search).get("caseRef") || "").trim().toUpperCase();
+      const urlRecordId = String(new URLSearchParams(window.location.search).get("id") || "").trim();
       let linkedRecord = null;
 
       function getClientRecordsStorageKey() {
@@ -134,7 +136,7 @@
           <span class="preliminary-link-button-secondary">Click to change</span>
         `;
         if (continueButton) {
-          continueButton.href = `preliminary-only-form.html?caseRef=${encodeURIComponent(String(record.caseRef || "").trim())}`;
+          continueButton.href = `preliminary-only-form.html?caseRef=${encodeURIComponent(String(record.caseRef || "").trim())}&id=${encodeURIComponent(String(record.id || "").trim())}`;
           continueButton.setAttribute("aria-disabled", "false");
           continueButton.setAttribute("tabindex", "0");
           continueButton.classList.remove("is-disabled");
@@ -251,7 +253,25 @@
 
         const linkedCaseRef = String(linkedRecord.caseRef || "").trim();
         window.setLensLinkedCaseRef?.(linkedCaseRef);
+        window.setLensLinkedRecordId?.(String(linkedRecord.id || "").trim());
       });
+
+      if (caseRefField && urlCaseRef) {
+        caseRefField.value = urlCaseRef;
+        window.setLensLinkedCaseRef?.(urlCaseRef);
+        if (urlRecordId) {
+          window.setLensLinkedRecordId?.(urlRecordId);
+        }
+      }
+
+      if (!caseRefField?.value && urlRecordId) {
+        const matchedById = loadClientRecords().find((record) => String(record?.id || "").trim() === urlRecordId) || null;
+        if (matchedById && caseRefField) {
+          caseRefField.value = String(matchedById.caseRef || "").trim().toUpperCase();
+          window.setLensLinkedCaseRef?.(caseRefField.value);
+          window.setLensLinkedRecordId?.(String(matchedById.id || "").trim());
+        }
+      }
 
       syncLinkedClientFromCaseRef();
       renderLinkResults();

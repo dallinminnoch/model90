@@ -827,6 +827,47 @@
         }).join('<div class="client-policy-modal-divider"></div>');
       }
 
+      function getChecklistAction(record, item) {
+        if (!record || !item || item.complete) {
+          return null;
+        }
+
+        const caseRef = String(record.caseRef || "").trim();
+        const encodedCaseRef = encodeURIComponent(caseRef);
+        const recordId = String(record.id || "").trim();
+        const encodedRecordId = encodeURIComponent(recordId);
+
+        if (item.label === "Preliminary Underwriting" && caseRef) {
+          return {
+            href: `preliminary-linked.html?caseRef=${encodedCaseRef}&id=${encodedRecordId}`,
+            label: "Open Form"
+          };
+        }
+
+        if (item.label === "Protection Modeling Inputs" && caseRef) {
+          return {
+            href: `protection-modeling-inputs.html?caseRef=${encodedCaseRef}`,
+            label: "Open Form"
+          };
+        }
+
+        if (item.label === "Complete Analysis" && caseRef) {
+          return {
+            href: `analysis-estimate.html?caseRef=${encodedCaseRef}`,
+            label: "Open Form"
+          };
+        }
+
+        if (item.label === "Create Profile") {
+          return {
+            href: "profile-only-form.html",
+            label: "Open Form"
+          };
+        }
+
+        return null;
+      }
+
       function renderRiskAnalysisCard(record) {
         const data = record.preliminaryUnderwriting?.data || {};
         const conditions = formatListValue(data.majorMedicalConditions);
@@ -962,12 +1003,12 @@
         `;
       }
 
-      function renderChecklistCard(title, items) {
+      function renderChecklistCard(title, items, record) {
         const incompleteItems = items.filter(function (item) { return !item.complete; });
         const completedCount = items.length - incompleteItems.length;
         const nextItem = incompleteItems[0] || null;
         const nextActionTitle = nextItem ? nextItem.label : "All core steps complete";
-        const nextActionDetail = nextItem ? nextItem.detail : "This account has all required core items completed.";
+        const nextAction = nextItem ? getChecklistAction(record, nextItem) : null;
 
         return `
           <section class="client-detail-card client-detail-card-compact client-detail-card-checklist">
@@ -975,24 +1016,45 @@
               <h2>${escapeHtml(title)}</h2>
             </div>
             <div class="client-checklist-next ${nextItem ? "is-incomplete" : "is-complete"}">
-              <div class="client-checklist-next-top">
-                <span class="client-checklist-next-label">Next Action</span>
-                <div class="client-checklist-next-row">
-                  <strong>${escapeHtml(nextActionTitle)}</strong>
-                  <img class="client-checklist-next-icon" src="../Images/start_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" alt="" aria-hidden="true">
+              ${nextAction ? `
+                <a class="client-checklist-next-button" href="${escapeHtml(nextAction.href)}" data-linked-case-ref="${escapeHtml(String(record?.caseRef || "").trim())}" data-linked-record-id="${escapeHtml(String(record?.id || "").trim())}">
+                  <span class="client-checklist-next-top">
+                    <span class="client-checklist-next-label">Next Action</span>
+                    <span class="client-checklist-next-row">
+                      <strong>${escapeHtml(nextActionTitle)}</strong>
+                      <img class="client-checklist-next-icon" src="../Images/start_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" alt="" aria-hidden="true">
+                    </span>
+                  </span>
+                </a>
+              ` : `
+                <div class="client-checklist-next-top">
+                  <span class="client-checklist-next-label">Next Action</span>
+                  <div class="client-checklist-next-row">
+                    <strong>${escapeHtml(nextActionTitle)}</strong>
+                    <img class="client-checklist-next-icon" src="../Images/start_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" alt="" aria-hidden="true">
+                  </div>
                 </div>
-              </div>
+              `}
             </div>
             <div class="client-checklist-progress">${completedCount} of ${items.length} complete</div>
             <div class="client-checklist-list">
               ${items.map(function (item) {
+                const action = getChecklistAction(record, item);
                 return `
                   <div class="client-checklist-row ${item.complete ? "is-complete" : "is-incomplete"}">
                     <div class="client-checklist-row-copy">
                       <strong>${escapeHtml(item.label)}</strong>
                       <span>${escapeHtml(item.detail)}</span>
                     </div>
-                    <span class="client-checklist-status">${item.complete ? "Complete" : "Incomplete"}</span>
+                    ${item.complete ? `
+                      <span class="client-checklist-status">Complete</span>
+                    ` : action ? `
+                      <a class="client-checklist-action" href="${escapeHtml(action.href)}" data-linked-case-ref="${escapeHtml(String(record?.caseRef || "").trim())}" data-linked-record-id="${escapeHtml(String(record?.id || "").trim())}">
+                        ${escapeHtml(action.label)}
+                      </a>
+                    ` : `
+                      <span class="client-checklist-status">Incomplete</span>
+                    `}
                   </div>
                 `;
               }).join("")}
@@ -1266,7 +1328,7 @@
                         { label: "Preliminary Underwriting", complete: Boolean(record.preliminaryUnderwritingCompleted), detail: preliminaryStatus },
                         { label: "Protection Modeling Inputs", complete: Boolean(record.pmiCompleted), detail: pmiStatus },
                         { label: "Complete Analysis", complete: hasAnalysisCompleted, detail: analysisStatus }
-                      ])}
+                      ], record)}
                       ${renderNotesWidget(record)}
                     </div>
                     <div class="client-profile-dashboard-side">
@@ -2428,6 +2490,19 @@
           openPmiDetailModal();
         });
       }
+
+      host.querySelectorAll("[data-linked-case-ref]").forEach(function (link) {
+        link.addEventListener("click", function () {
+          const linkedCaseRef = String(link.getAttribute("data-linked-case-ref") || "").trim();
+          const linkedRecordId = String(link.getAttribute("data-linked-record-id") || "").trim();
+          if (linkedCaseRef) {
+            window.setLensLinkedCaseRef?.(linkedCaseRef);
+          }
+          if (linkedRecordId) {
+            window.setLensLinkedRecordId?.(linkedRecordId);
+          }
+        });
+      });
 
       pmiDetailCloseButtons.forEach(function (button) {
         button.addEventListener("click", function () {
