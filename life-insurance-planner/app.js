@@ -13,7 +13,6 @@
     clientRecords: "lensClientRecords",
     authUsers: "lipPlannerAuthUsers",
     authSession: "lipPlannerAuthSession",
-    workflowNavExpanded: "lipPlannerWorkflowNavExpanded",
     language: "lensLanguage",
     pendingClientRecords: "lensPendingClientRecords",
     linkedCaseRef: "lensLinkedCaseRef",
@@ -126,9 +125,8 @@
   ];
 
   const allSteps = [
-    { id: "profile-1", label: "Client Profile 1", path: "profile.html" },
-    { id: "profile-2", label: "Client Profile 2", path: "profile-2.html" },
-    { id: "profile-3", label: "Client Profile 3", path: "profile-3.html" },
+    { id: "profile-1", label: "Intake Form", path: "profile.html" },
+    { id: "income-loss", label: "Income Loss Impact", path: "income-loss-impact.html" },
     { id: "estimate", label: "Estimate Need", path: "analysis-estimate.html" },
     { id: "detail", label: "Detailed Analysis", path: "analysis-detail.html" },
     { id: "recommendations", label: "Coverage Options", path: "recommendations.html" },
@@ -354,7 +352,6 @@
     safeInitialize("client-directory", initializeClientDirectory);
     safeInitialize("client-detail-page", initializeClientDetailPage);
     safeInitialize("client-directory-nav-links", initializeClientDirectoryNavLinks);
-    safeInitialize("workflow-nav-fallback", ensureWorkflowNavVisible);
   });
 
   function initializeLanguageSelector() {
@@ -907,56 +904,6 @@
       </header>
     `;
 
-    initializeWorkflowNavState(navHost);
-  }
-
-  function ensureWorkflowNavVisible() {
-    const navHost = document.getElementById("workflow-nav");
-    const currentStep = document.body.dataset.step;
-
-    if (!navHost || !currentStep || navHost.children.length) {
-      return;
-    }
-
-    const steps = getActiveSteps(currentStep);
-    const currentIndex = steps.findIndex((step) => step.id === currentStep);
-    if (currentIndex < 0) {
-      return;
-    }
-
-    navHost.className = "workflow-nav is-persisted-expanded";
-    navHost.innerHTML = `
-      <header class="workflow-header">
-        <div class="step-track" style="--step-count:${steps.length}">
-          ${steps.map((step, index) => renderStep(step, index, currentIndex)).join("")}
-        </div>
-      </header>
-    `;
-  }
-
-  function initializeWorkflowNavState(navHost) {
-    const shouldPersistExpanded = sessionStorage.getItem(STORAGE_KEYS.workflowNavExpanded) === "true";
-
-    if (shouldPersistExpanded) {
-      navHost.classList.add("is-persisted-expanded");
-      const clearPersistedState = (event) => {
-        if (navHost.contains(event.target)) {
-          return;
-        }
-
-        navHost.classList.remove("is-persisted-expanded");
-        sessionStorage.removeItem(STORAGE_KEYS.workflowNavExpanded);
-        document.removeEventListener("mousemove", clearPersistedState);
-      };
-
-      document.addEventListener("mousemove", clearPersistedState);
-    }
-
-    navHost.querySelectorAll(".step-item").forEach((item) => {
-      item.addEventListener("click", () => {
-        sessionStorage.setItem(STORAGE_KEYS.workflowNavExpanded, "true");
-      });
-    });
   }
 
   function initializeReturnHomeButton() {
@@ -988,7 +935,7 @@
 
     return `
       <a class="step-item ${stateClass}" href="${step.path}">
-        <span class="step-number">Step ${index + 1}</span>
+        <span class="step-number">${index + 1}</span>
         <span class="step-title">${step.label}</span>
       </a>
     `;

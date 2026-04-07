@@ -9,21 +9,39 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css">
 </head>
-<body class="home-page lens-page">
+<body class="home-page lens-page lens-start-page">
   <main class="home-shell">
-    <section class="lens-landing">
-      <section class="lens-hero-shell">
-        <header class="lens-hero-header">
-          <h1 class="lens-hero-title">Life Evaluation &amp; Needs System.</h1>
-          <p class="lens-hero-subtitle">Estimate coverage need, compare planning methods, and shape a clear recommendation in one guided analysis.</p>
-          <div class="lens-hero-actions">
+    <section class="lens-start-layout">
+      <section class="lens-start-main">
+        <section class="page-intro lens-start-intro">
+          <div>
+            <div class="section-label">Overview</div>
+            <h1 class="lens-hero-title">Life Evaluation &amp; Needs System.</h1>
+            <p class="lens-hero-subtitle">Estimate coverage need, compare planning methods, and shape a clear recommendation in one guided analysis.</p>
+          </div>
+        </section>
+
+        <section class="lens-start-card">
+          <div class="lens-start-card-header">
+            <div>
+              <h2 class="section-title">Start Analysis</h2>
+              <p class="helper-text">Review a live preview of the planning outputs, then launch the guided intake flow.</p>
+            </div>
             <a class="btn btn-primary lens-start-button" href="profile.html" id="start-planning">Start Analysis</a>
           </div>
-        </header>
 
-        <div class="lens-hero-body">
+          <div class="lens-start-note">
+            <div class="lens-intake-note-icon">
+              <img class="lens-intake-icon-svg" src="../Images/emoji_objects_24dp_E3E3E3_FILL0_wght300_GRAD0_opsz24.svg" alt="Helpful note">
+            </div>
+            <div>
+              <strong>The analysis flow saves each step automatically.</strong>
+              <p>You can start from a linked client profile, move through the guided steps, and return later without losing progress.</p>
+            </div>
+          </div>
+
           <aside class="lens-hero-visual" aria-label="Workflow summary">
-          <div class="lens-analysis-stage" data-lens-card-stage>
+            <div class="lens-analysis-stage" data-lens-card-stage>
             <section class="lens-analysis-card is-visible" data-lens-card>
               <div class="lens-analysis-section">
                 <span class="lens-analysis-label">Coverage Need</span>
@@ -305,14 +323,49 @@
                 <p>The goal is protecting future lifestyle planning, not only near-term obligations.</p>
               </section>
             </section>
-          </div>
+            </div>
           </aside>
-        </div>
-
-        <footer class="lens-hero-footer">
-          <p class="lens-hero-footnote">Takes a few minutes</p>
-        </footer>
+        </section>
       </section>
+
+      <aside class="lens-start-rail">
+        <section class="lens-intake-sidecard">
+          <h3>This tool includes</h3>
+          <ul class="lens-intake-side-list">
+            <li><span class="lens-intake-mini-icon">IN</span><span>Intake form and linked client entry</span></li>
+            <li><span class="lens-intake-mini-icon">IL</span><span>Income loss impact framing</span></li>
+            <li><span class="lens-intake-mini-icon">NA</span><span>Needs analysis and estimate views</span></li>
+          </ul>
+          <p class="lens-intake-side-meta">A few minutes to get through the guided setup</p>
+        </section>
+
+        <section class="lens-intake-sidecard">
+          <h3>What you can surface</h3>
+          <ul class="lens-intake-prompt-list">
+            <li>
+              <span class="lens-intake-mini-icon">CG</span>
+              <div>
+                <strong>Coverage gap</strong>
+                <p>Show the difference between current coverage and practical protection need.</p>
+              </div>
+            </li>
+            <li>
+              <span class="lens-intake-mini-icon">MV</span>
+              <div>
+                <strong>Method comparison</strong>
+                <p>Contrast HLV, DIME, and needs-based views without overwhelming the client.</p>
+              </div>
+            </li>
+            <li>
+              <span class="lens-intake-mini-icon">RC</span>
+              <div>
+                <strong>Recommendation path</strong>
+                <p>Move from analysis into coverage options, planning strategy, and final review.</p>
+              </div>
+            </li>
+          </ul>
+        </section>
+      </aside>
     </section>
   </main>
 

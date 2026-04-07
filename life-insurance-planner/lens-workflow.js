@@ -1,8 +1,7 @@
 (function () {
   const WORKFLOW_STEPS = [
-    { id: "profile-1", label: "Client Profile 1", path: "profile.html" },
-    { id: "profile-2", label: "Client Profile 2", path: "profile-2.html" },
-    { id: "profile-3", label: "Client Profile 3", path: "profile-3.html" },
+    { id: "profile-1", label: "Intake Form", path: "profile.html" },
+    { id: "income-loss", label: "Income Loss Impact", path: "income-loss-impact.html" },
     { id: "estimate", label: "Estimate Need", path: "analysis-estimate.html" },
     { id: "detail", label: "Detailed Analysis", path: "analysis-detail.html" },
     { id: "recommendations", label: "Coverage Options", path: "recommendations.html" },
@@ -72,6 +71,116 @@
     });
   }
 
+  function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+  }
+
+  function isVisibleField(field) {
+    if (!field) {
+      return false;
+    }
+
+    if (field.disabled || field.type === "hidden") {
+      return false;
+    }
+
+    if (field.closest("[hidden]")) {
+      return false;
+    }
+
+    const styles = window.getComputedStyle(field);
+    if (styles.display === "none" || styles.visibility === "hidden") {
+      return false;
+    }
+
+    return true;
+  }
+
+  function getFieldCompletionRatio(fields) {
+    const radioGroups = new Map();
+    let total = 0;
+    let completed = 0;
+
+    fields.forEach(function (field) {
+      if (!isVisibleField(field) || field.readOnly) {
+        return;
+      }
+
+      const tagName = field.tagName.toLowerCase();
+      const type = String(field.type || "").toLowerCase();
+
+      if (tagName === "button" || ["button", "submit", "reset"].includes(type)) {
+        return;
+      }
+
+      if ((type === "radio" || type === "checkbox") && field.name) {
+        const groupKey = `${type}:${field.name}`;
+        if (!radioGroups.has(groupKey)) {
+          radioGroups.set(groupKey, []);
+        }
+        radioGroups.get(groupKey).push(field);
+        return;
+      }
+
+      total += 1;
+      if (String(field.value || "").trim()) {
+        completed += 1;
+      }
+    });
+
+    radioGroups.forEach(function (group) {
+      total += 1;
+      if (group.some(function (field) { return field.checked; })) {
+        completed += 1;
+      }
+    });
+
+    if (!total) {
+      return 0;
+    }
+
+    return completed / total;
+  }
+
+  function getCurrentStepCompletion(currentStep) {
+    if (currentStep === "profile-1") {
+      const entryMode = document.getElementById("analysis-entry-mode");
+      const linkedRecordId = document.getElementById("analysis-linked-record-id");
+      const hasLinkedProfile = Boolean(String(linkedRecordId?.value || "").trim());
+      const hasEntryMode = Boolean(String(entryMode?.value || "").trim());
+      if (hasLinkedProfile) {
+        return 0.5;
+      }
+      if (hasEntryMode) {
+        return 1;
+      }
+      return 0;
+    }
+
+    const scopedForm = document.querySelector("main.workflow-shell form");
+    const fields = Array.from((scopedForm || document).querySelectorAll("input, select, textarea"));
+    return getFieldCompletionRatio(fields);
+  }
+
+  function updateWorkflowProgress() {
+    const navHost = document.getElementById("workflow-nav");
+    const currentStep = document.body.dataset.step;
+    const currentIndex = getCurrentStepIndex(currentStep);
+    const track = navHost?.querySelector(".step-track");
+
+    if (!track || currentIndex < 0) {
+      return;
+    }
+
+    const stepCount = WORKFLOW_STEPS.length;
+    const currentCompletion = clamp(getCurrentStepCompletion(currentStep), 0, 1);
+    const segmentCount = Math.max(stepCount - 1, 1);
+    const progressRatio = clamp((currentIndex + currentCompletion) / segmentCount, 0, 1);
+
+    track.style.setProperty("--step-count", String(stepCount));
+    track.style.setProperty("--progress-ratio", String(progressRatio));
+  }
+
   function renderWorkflowNav() {
     const navHost = document.getElementById("workflow-nav");
     const currentStep = document.body.dataset.step;
@@ -84,7 +193,7 @@
     navHost.className = "workflow-nav";
     navHost.innerHTML = `
       <header class="workflow-header">
-        <div class="step-track" style="--step-count:${WORKFLOW_STEPS.length}">
+        <div class="step-track" style="--step-count:${WORKFLOW_STEPS.length};--progress-ratio:0;">
           ${WORKFLOW_STEPS.map(function (step, index) {
             let stateClass = "";
             if (index < currentIndex) {
@@ -95,7 +204,7 @@
 
             return `
               <a class="step-item ${stateClass}" href="${step.path}">
-                <span class="step-number">Step ${index + 1}</span>
+                <span class="step-number">${index + 1}</span>
                 <span class="step-title">${escapeHtml(step.label)}</span>
               </a>
             `;
@@ -103,6 +212,13 @@
         </div>
       </header>
     `;
+
+    updateWorkflowProgress();
+    document.addEventListener("input", updateWorkflowProgress, true);
+    document.addEventListener("change", updateWorkflowProgress, true);
+    document.addEventListener("click", function () {
+      window.setTimeout(updateWorkflowProgress, 0);
+    }, true);
   }
 
   function initializeProfileForms() {
