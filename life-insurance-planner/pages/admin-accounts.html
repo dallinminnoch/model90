@@ -104,6 +104,34 @@
       </section>
       <p class="panel-copy admin-tax-bracket-feedback" id="admin-payroll-tax-feedback"></p>
     </section>
+    <section class="admin-accounts-panel">
+      <div class="admin-panel-header">
+        <div class="section-label">Planning Configuration</div>
+        <h2>Housing Maintenance Recommendations</h2>
+        <p class="panel-copy">Set the recommended monthly maintenance reserve by home size and home age. Advanced PMI homeowner scenarios use this table to auto-fill the maintenance field.</p>
+      </div>
+      <table class="admin-tax-bracket-table" id="admin-maintenance-table">
+        <thead>
+          <tr>
+            <th>Square Footage Tier</th>
+            <th>Min Sq Ft</th>
+            <th>Max Sq Ft</th>
+            <th>0-10 Years</th>
+            <th>11-25 Years</th>
+            <th>26-40 Years</th>
+            <th>41+ Years</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="admin-maintenance-body"></tbody>
+      </table>
+      <div class="admin-tax-bracket-actions">
+        <button class="admin-action-button" type="button" id="admin-maintenance-add">Add Tier</button>
+        <button class="admin-action-button" type="button" id="admin-maintenance-reset">Reset Defaults</button>
+        <button class="admin-action-button" type="button" id="admin-maintenance-save">Save Changes</button>
+      </div>
+      <p class="panel-copy admin-tax-bracket-feedback" id="admin-maintenance-feedback"></p>
+    </section>
   </main>
 
   <script src="../data.js"></script>
@@ -117,12 +145,19 @@
       const standardDeductionStorageKey = "lensStandardDeductions";
       const stateStorageKey = "lensStateIncomeTaxBrackets";
       const payrollStorageKey = "lensPayrollTaxConfig";
+      const maintenanceStorageKey = "lensHousingMaintenanceConfig";
       const filingStatuses = [
         "Single",
         "Married Filing Jointly",
         "Married Filing Separately",
         "Head of Household",
         "Qualifying Surviving Spouse"
+      ];
+      const defaultMaintenanceRows = [
+        { label: "Under 1,500 sq ft", minSqFt: "0", maxSqFt: "1499", age0To10: "120", age11To25: "180", age26To40: "260", age41Plus: "360" },
+        { label: "1,500-2,499 sq ft", minSqFt: "1500", maxSqFt: "2499", age0To10: "165", age11To25: "235", age26To40: "325", age41Plus: "430" },
+        { label: "2,500-3,499 sq ft", minSqFt: "2500", maxSqFt: "3499", age0To10: "215", age11To25: "295", age26To40: "395", age41Plus: "520" },
+        { label: "3,500+ sq ft", minSqFt: "3500", maxSqFt: "", age0To10: "285", age11To25: "375", age26To40: "490", age41Plus: "635" }
       ];
       const states = [
         { code: "AL", name: "Alabama" },
@@ -270,6 +305,11 @@
       const payrollTaxAddButton = document.getElementById("admin-payroll-tax-add");
       const payrollTaxResetButton = document.getElementById("admin-payroll-tax-reset");
       const payrollTaxSaveButton = document.getElementById("admin-payroll-tax-save");
+      const maintenanceBody = document.getElementById("admin-maintenance-body");
+      const maintenanceFeedback = document.getElementById("admin-maintenance-feedback");
+      const maintenanceAddButton = document.getElementById("admin-maintenance-add");
+      const maintenanceResetButton = document.getElementById("admin-maintenance-reset");
+      const maintenanceSaveButton = document.getElementById("admin-maintenance-save");
 
       if (!federalGroupsHost || !standardDeductionGroupsHost || !stateGroupsHost || !payrollTaxBody || !additionalMedicareBody || !payrollTaxFeedback || !payrollTaxAddButton || !payrollTaxResetButton || !payrollTaxSaveButton) {
         return;
@@ -473,6 +513,42 @@
         }
       }
 
+      function normalizeMaintenanceRow(row) {
+        if (!row || typeof row !== "object") {
+          return null;
+        }
+
+        const normalized = {
+          label: String(row.label || "").trim(),
+          minSqFt: String(row.minSqFt || "").replace(/[^0-9]/g, "").trim(),
+          maxSqFt: String(row.maxSqFt || "").replace(/[^0-9]/g, "").trim(),
+          age0To10: String(row.age0To10 || "").replace(/[^0-9.]/g, "").trim(),
+          age11To25: String(row.age11To25 || "").replace(/[^0-9.]/g, "").trim(),
+          age26To40: String(row.age26To40 || "").replace(/[^0-9.]/g, "").trim(),
+          age41Plus: String(row.age41Plus || "").replace(/[^0-9.]/g, "").trim()
+        };
+
+        if (!normalized.label && !normalized.minSqFt && !normalized.maxSqFt && !normalized.age0To10 && !normalized.age11To25 && !normalized.age26To40 && !normalized.age41Plus) {
+          return null;
+        }
+
+        return normalized;
+      }
+
+      function readStoredMaintenanceConfig() {
+        try {
+          const raw = JSON.parse(localStorage.getItem(maintenanceStorageKey) || "null");
+          if (!Array.isArray(raw) || !raw.length) {
+            return defaultMaintenanceRows.map((row) => ({ ...row }));
+          }
+
+          const normalized = raw.map(normalizeMaintenanceRow).filter(Boolean);
+          return normalized.length ? normalized : defaultMaintenanceRows.map((row) => ({ ...row }));
+        } catch (_error) {
+          return defaultMaintenanceRows.map((row) => ({ ...row }));
+        }
+      }
+
       function renderFederalGroups(config, feedbackByStatus) {
         federalGroupsHost.innerHTML = filingStatuses.map((status) => {
           const rows = Array.isArray(config[status]) && config[status].length
@@ -658,6 +734,22 @@
         payrollTaxFeedback.textContent = feedbackMessage || "";
       }
 
+      function renderMaintenanceRows(rows, feedbackMessage) {
+        maintenanceBody.innerHTML = rows.map((row, index) => `
+          <tr class="admin-tax-bracket-row">
+            <td><input class="admin-tax-bracket-input" type="text" value="${escapeHtml(row.label)}" data-maintenance-label data-maintenance-index="${index}" placeholder="1,500-2,499 sq ft"></td>
+            <td><input class="admin-tax-bracket-input" type="text" value="${escapeHtml(row.minSqFt)}" data-maintenance-min data-maintenance-index="${index}" placeholder="1500"></td>
+            <td><input class="admin-tax-bracket-input" type="text" value="${escapeHtml(row.maxSqFt)}" data-maintenance-max data-maintenance-index="${index}" placeholder="2499"></td>
+            <td><input class="admin-tax-bracket-input" type="text" value="${escapeHtml(row.age0To10)}" data-maintenance-age-0-10 data-maintenance-index="${index}" placeholder="165"></td>
+            <td><input class="admin-tax-bracket-input" type="text" value="${escapeHtml(row.age11To25)}" data-maintenance-age-11-25 data-maintenance-index="${index}" placeholder="235"></td>
+            <td><input class="admin-tax-bracket-input" type="text" value="${escapeHtml(row.age26To40)}" data-maintenance-age-26-40 data-maintenance-index="${index}" placeholder="325"></td>
+            <td><input class="admin-tax-bracket-input" type="text" value="${escapeHtml(row.age41Plus)}" data-maintenance-age-41-plus data-maintenance-index="${index}" placeholder="430"></td>
+            <td class="admin-tax-bracket-actions-cell"><button class="admin-action-button admin-tax-bracket-remove" type="button" data-maintenance-remove="${index}">Remove</button></td>
+          </tr>
+        `).join("");
+        maintenanceFeedback.textContent = feedbackMessage || "";
+      }
+
       function collectPayrollTaxRows() {
         const additionalMedicareThresholds = Object.fromEntries(
           filingStatuses.map((status) => [
@@ -672,6 +764,18 @@
           wageBase: (isMedicareTaxName(row.querySelector("[data-payroll-tax-name]")?.value) || isAdditionalMedicareTaxName(row.querySelector("[data-payroll-tax-name]")?.value)) ? "" : String(row.querySelector("[data-payroll-tax-wage-base]")?.value || "").trim(),
           thresholds: isAdditionalMedicareTaxName(row.querySelector("[data-payroll-tax-name]")?.value) ? additionalMedicareThresholds : undefined
         })).filter((row) => row.name || row.rate || row.wageBase);
+      }
+
+      function collectMaintenanceRows() {
+        return Array.from(maintenanceBody.querySelectorAll("tr")).map((row) => normalizeMaintenanceRow({
+          label: row.querySelector("[data-maintenance-label]")?.value,
+          minSqFt: row.querySelector("[data-maintenance-min]")?.value,
+          maxSqFt: row.querySelector("[data-maintenance-max]")?.value,
+          age0To10: row.querySelector("[data-maintenance-age-0-10]")?.value,
+          age11To25: row.querySelector("[data-maintenance-age-11-25]")?.value,
+          age26To40: row.querySelector("[data-maintenance-age-26-40]")?.value,
+          age41Plus: row.querySelector("[data-maintenance-age-41-plus]")?.value
+        })).filter(Boolean);
       }
 
       function collectFederalRowsForStatus(status) {
@@ -939,10 +1043,52 @@
         renderPayrollTaxRows(nextRows, "Payroll tax rows saved.");
       });
 
+      maintenanceBody.addEventListener("click", (event) => {
+        const removeButton = event.target.closest("[data-maintenance-remove]");
+        if (!removeButton) {
+          return;
+        }
+
+        const currentRows = collectMaintenanceRows();
+        const nextRows = currentRows.filter((_row, index) => String(index) !== String(removeButton.getAttribute("data-maintenance-remove")));
+        renderMaintenanceRows(nextRows.length ? nextRows : defaultMaintenanceRows.map((row) => ({ ...row })), "");
+      });
+
+      maintenanceAddButton.addEventListener("click", () => {
+        const currentRows = collectMaintenanceRows();
+        renderMaintenanceRows([...currentRows, {
+          label: "",
+          minSqFt: "",
+          maxSqFt: "",
+          age0To10: "",
+          age11To25: "",
+          age26To40: "",
+          age41Plus: ""
+        }], "");
+      });
+
+      maintenanceResetButton.addEventListener("click", () => {
+        const nextRows = defaultMaintenanceRows.map((row) => ({ ...row }));
+        localStorage.setItem(maintenanceStorageKey, JSON.stringify(nextRows));
+        renderMaintenanceRows(nextRows, "Housing maintenance defaults restored.");
+      });
+
+      maintenanceSaveButton.addEventListener("click", () => {
+        const nextRows = collectMaintenanceRows();
+        if (!nextRows.length) {
+          renderMaintenanceRows(readStoredMaintenanceConfig(), "Add at least one housing maintenance tier.");
+          return;
+        }
+
+        localStorage.setItem(maintenanceStorageKey, JSON.stringify(nextRows));
+        renderMaintenanceRows(nextRows, "Housing maintenance recommendations saved.");
+      });
+
       renderFederalGroups(readStoredFederalConfig(), {});
       renderStandardDeductionGroups(readStoredStandardDeductionConfig(), {});
       renderStateGroups(readStoredStateConfig(), {});
       renderPayrollTaxRows(readStoredPayrollConfig(), "");
+      renderMaintenanceRows(readStoredMaintenanceConfig(), "");
     })();
   </script>
 </body>

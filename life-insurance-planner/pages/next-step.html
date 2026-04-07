@@ -229,18 +229,18 @@
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
-              <div class="field-group profile-net-income-highlight primary-net-income-group">
+              <div class="field-group primary-net-income-group">
                 <label for="net-annual-income">Net Annual Income</label>
                 <div class="profile-currency-field">
                   <input id="net-annual-income" name="netAnnualIncome" type="text" inputmode="decimal" readonly>
-                  <span class="profile-currency-suffix">USD</span>
+                  <button class="net-income-action" type="button" data-net-income-action="primary">Edit</button>
                 </div>
               </div>
-              <div class="field-group profile-net-income-highlight spouse-net-income-group">
+              <div class="field-group spouse-net-income-group">
                 <label for="spouse-net-annual-income">Spouse Net Annual Income</label>
                 <div class="profile-currency-field">
                   <input id="spouse-net-annual-income" name="spouseNetAnnualIncome" type="text" inputmode="decimal" readonly>
-                  <span class="profile-currency-suffix">USD</span>
+                  <button class="net-income-action" type="button" data-net-income-action="spouse">Edit</button>
                 </div>
               </div>
             </div>
@@ -253,166 +253,154 @@
             </div>
             <div class="form-grid">
               <div class="field-group">
-                <label for="income-growth-rate">Income Growth Rate Assumption</label>
+                  <label for="income-growth-rate">Annual Income Growth Rate Assumption</label>
                 <div class="profile-currency-field">
                   <input id="income-growth-rate" class="profile-small-number-field" name="incomeGrowthRate" type="number" min="0" max="25" step="0.1">
                   <span class="profile-currency-suffix">%</span>
                 </div>
               </div>
               <div class="field-group">
-                <label for="bonus-variable-income">Bonus / Variable Income</label>
+                  <label for="bonus-variable-income">Annual Bonus / Variable Income</label>
                 <div class="profile-currency-field">
                   <input id="bonus-variable-income" name="bonusVariableIncome" type="number" min="0" step="1000">
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
               <div class="field-group">
-                <label for="years-until-retirement">Years Until Retirement</label>
+                  <label for="years-until-retirement">Estimated Years Until Retirement</label>
                 <input id="years-until-retirement" class="profile-small-number-field" name="yearsUntilRetirement" type="number" min="0" max="80" step="1">
               </div>
               <div class="field-group">
-                <label for="employer-benefits-value">Employer Benefits Value</label>
+                  <label for="employer-benefits-value">Annual Employer Benefits Value</label>
                 <div class="profile-currency-field">
                   <input id="employer-benefits-value" name="employerBenefitsValue" type="number" min="0" step="1000">
                   <span class="profile-currency-suffix">USD</span>
                 </div>
-              </div>
-              <div class="field-group">
-                <label for="household-income-use">Percent of Income Used for Household</label>
-                <div class="profile-currency-field">
-                  <input id="household-income-use" class="profile-small-number-field" name="householdIncomeUsePercent" type="number" min="0" max="100" step="1">
-                  <span class="profile-currency-suffix">%</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="target-income-replacement-percentage">Target Income Replacement Percentage</label>
-                <div class="profile-currency-field">
-                  <input id="target-income-replacement-percentage" class="profile-small-number-field" name="targetIncomeReplacementPercentage" type="number" min="0" max="100" step="0.1">
-                  <span class="profile-currency-suffix">%</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="effective-tax-rate">Effective Tax Rate</label>
-                <div class="profile-currency-field">
-                  <input id="effective-tax-rate" class="profile-small-number-field" name="effectiveTaxRate" type="number" min="0" max="100" step="0.1">
-                  <span class="profile-currency-suffix">%</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="calculation-basis">Calculation Basis</label>
-                <select id="calculation-basis" name="calculationBasis">
-                  <option value="">Please select</option>
-                  <option value="Nominal">Nominal</option>
-                  <option value="Real">Real</option>
-                </select>
-              </div>
-              <div class="field-group">
-                <label for="income-confidence-level">Income Data Confidence</label>
-                <select id="income-confidence-level" name="incomeConfidenceLevel">
-                  <option value="">Optional</option>
-                  <option value="Exact">Exact</option>
-                  <option value="Estimated">Estimated</option>
-                  <option value="Unknown">Unknown</option>
-                </select>
               </div>
             </div>
           </section>
 
           <section class="profile-form-section">
             <div class="profile-form-section-heading">
-              <h2>Expenses and Lifestyle</h2>
+              <h2>Housing Costs, Debts and Liabilities</h2>
             </div>
             <div class="form-grid">
               <div class="field-group">
-                <label for="monthly-housing-cost">Monthly Housing Cost</label>
+                <label for="housing-status">Housing Status</label>
+                <select id="housing-status" name="housingStatus">
+                  <option value="">Please select</option>
+                  <option value="Homeowner">Homeowner</option>
+                  <option value="Owns Free and Clear">Owns Free and Clear</option>
+                  <option value="Renter">Renter</option>
+                </select>
+              </div>
+              <div class="field-group full-width income-calculation-circle-row" aria-hidden="true">
+                <span class="income-calculation-circle" data-housing-status-circle="Homeowner" title="Homeowner"></span>
+                <span class="income-calculation-circle" data-housing-status-circle="Owns Free and Clear" title="Owns Free and Clear"></span>
+                <span class="income-calculation-circle" data-housing-status-circle="Renter" title="Renter"></span>
+              </div>
+              <div class="field-group" data-housing-visibility="renter">
+                <label for="monthly-housing-cost">All-In Monthly Rent</label>
                 <div class="profile-currency-field">
                   <input id="monthly-housing-cost" name="monthlyHousingCost" type="number" min="0" step="50">
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
-              <div class="field-group">
-                <label for="utilities-cost">Utilities</label>
-                <div class="profile-currency-field">
-                  <input id="utilities-cost" name="utilitiesCost" type="number" min="0" step="50">
+              <div class="field-group" data-housing-visibility="renter">
+                <label for="relocation-reserve">Relocation Reserve</label>
+                <div class="profile-currency-field" id="relocation-reserve-shell">
+                  <input id="relocation-reserve" name="relocationReserve" type="number" min="0" step="50">
                   <span class="profile-currency-suffix">USD</span>
+                  <span class="profile-recommended-label">(Recommended minimum)</span>
                 </div>
               </div>
-              <div class="field-group">
-                <label for="food-cost">Food</label>
-                <div class="profile-currency-field">
-                  <input id="food-cost" name="foodCost" type="number" min="0" step="50">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="insurance-cost">Insurance</label>
-                <div class="profile-currency-field">
-                  <input id="insurance-cost" name="insuranceCost" type="number" min="0" step="50">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="transportation-cost">Transportation</label>
-                <div class="profile-currency-field">
-                  <input id="transportation-cost" name="transportationCost" type="number" min="0" step="50">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="travel-discretionary-cost">Travel / Discretionary</label>
-                <div class="profile-currency-field">
-                  <input id="travel-discretionary-cost" name="travelDiscretionaryCost" type="number" min="0" step="50">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="subscriptions-cost">Subscriptions / Non-Essentials</label>
-                <div class="profile-currency-field">
-                  <input id="subscriptions-cost" name="subscriptionsCost" type="number" min="0" step="50">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="current-total-monthly-spending">Current Total Monthly Spending</label>
-                <div class="profile-currency-field">
-                  <input id="current-total-monthly-spending" name="currentTotalMonthlySpending" type="number" min="0" step="50">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="expenses-confidence-level">Expense Data Confidence</label>
-                <select id="expenses-confidence-level" name="expensesConfidenceLevel">
-                  <option value="">Optional</option>
-                  <option value="Exact">Exact</option>
-                  <option value="Estimated">Estimated</option>
-                  <option value="Unknown">Unknown</option>
-                </select>
-              </div>
-              </div>
-            </section>
-
-          <section class="profile-form-section">
-            <div class="profile-form-section-heading">
-              <h2>Debt and Liabilities</h2>
-            </div>
-            <div class="form-grid">
-              <div class="field-group">
+              <div class="field-group" data-housing-visibility="homeowner">
                 <label for="mortgage-balance">Mortgage Balance</label>
                 <div class="profile-currency-field">
                   <input id="mortgage-balance" name="mortgageBalance" type="number" min="0" step="1000">
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
-              <div class="field-group">
-                <label for="mortgage-term-remaining">Mortgage Remaining Term</label>
-                <input id="mortgage-term-remaining" class="profile-small-number-field" name="mortgageTermRemaining" type="number" min="0" max="50" step="1">
-              </div>
-              <div class="field-group">
-                <label for="mortgage-interest-rate">Interest Rate</label>
+              <div class="field-group" data-housing-visibility="selected">
+                <label for="utilities-cost">Monthly Utilities</label>
                 <div class="profile-currency-field">
-                  <input id="mortgage-interest-rate" class="profile-small-number-field" name="mortgageInterestRate" type="number" min="0" max="25" step="0.01">
-                  <span class="profile-currency-suffix">%</span>
+                  <input id="utilities-cost" name="utilitiesCost" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
                 </div>
+              </div>
+              <div class="field-group" data-housing-visibility="selected">
+                <label for="housing-insurance-cost">Monthly Housing Insurance</label>
+                <div class="profile-currency-field">
+                  <input id="housing-insurance-cost" name="housingInsuranceCost" type="number" min="0" step="25">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group field-group--compact-owner-row" data-housing-visibility="homeowner">
+                <label for="mortgage-term-remaining-years">Mortgage Remaining Term and Interest Rate</label>
+                <div class="profile-owner-term-row">
+                  <div class="profile-dual-unit-field">
+                    <div class="profile-inline-unit-field">
+                      <input id="mortgage-term-remaining-years" class="profile-small-number-field" name="mortgageTermRemainingYears" type="number" min="0" max="50" step="1">
+                      <span class="profile-inline-unit">Years</span>
+                    </div>
+                    <div class="profile-inline-unit-field">
+                      <input id="mortgage-term-remaining-months" class="profile-small-number-field" name="mortgageTermRemainingMonths" type="number" min="0" max="11" step="1">
+                      <span class="profile-inline-unit">Months</span>
+                    </div>
+                    <input id="mortgage-term-remaining" name="mortgageTermRemaining" type="hidden">
+                  </div>
+                  <div class="profile-currency-field profile-owner-rate-field">
+                    <input id="mortgage-interest-rate" class="profile-small-number-field" name="mortgageInterestRate" type="number" min="0" max="25" step="0.01">
+                    <span class="profile-currency-suffix">%</span>
+                  </div>
+                </div>
+              </div>
+              <div class="field-group" data-housing-visibility="property-tax">
+                <label for="property-tax">Annual Property Tax</label>
+                <div class="profile-currency-field">
+                  <input id="property-tax" name="propertyTax" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group" data-housing-visibility="owner">
+                <label for="monthly-hoa-cost">Monthly HOA</label>
+                <div class="profile-currency-field">
+                  <input id="monthly-hoa-cost" name="monthlyHoaCost" type="number" min="0" step="25">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group field-group--compact-owner-row" data-housing-visibility="owner">
+                <label for="home-square-footage">Home Square Footage and Age</label>
+                <div class="profile-owner-meta-row">
+                  <select id="home-square-footage" class="profile-owner-square-footage" name="homeSquareFootage">
+                    <option value="">Sq Ft</option>
+                    <option value="Under 1,500 sq ft">Under 1,500</option>
+                    <option value="1,500-2,499 sq ft">1,500-2,499</option>
+                    <option value="2,500-3,499 sq ft">2,500-3,499</option>
+                    <option value="3,500+ sq ft">3,500+</option>
+                  </select>
+                  <div class="profile-inline-unit-field">
+                    <input id="home-age-years" class="profile-small-number-field" name="homeAgeYears" type="number" min="0" max="250" step="1">
+                    <span class="profile-inline-unit">Years</span>
+                  </div>
+                </div>
+              </div>
+              <div class="field-group" data-housing-visibility="owner">
+                <label for="monthly-maintenance-recommendation">Recommended Monthly Maintenance / Repairs</label>
+                <div class="profile-currency-field">
+                  <input id="monthly-maintenance-recommendation" name="monthlyMaintenanceRecommendation" type="text" inputmode="decimal" readonly>
+                  <button class="net-income-action" type="button" data-maintenance-action="primary">Edit</button>
+                </div>
+              </div>
+              <div class="field-group full-width field-group--centered-result" data-housing-visibility="selected">
+                <label for="calculated-monthly-mortgage-payment">Calculated Monthly Burden</label>
+                <div class="profile-currency-field">
+                  <input id="calculated-monthly-mortgage-payment" name="calculatedMonthlyMortgagePayment" type="text" inputmode="decimal" readonly>
+                  <button class="net-income-action" type="button" data-mortgage-payment-action="primary">Edit</button>
+                </div>
+              </div>
+              <div class="field-group full-width section-divider-field" aria-hidden="true">
+                <span class="section-divider-line"></span>
               </div>
               <div class="field-group">
                 <label for="other-real-estate-loans">Other Real Estate Loans</label>
@@ -455,15 +443,6 @@
                   <input id="business-debt" name="businessDebt" type="number" min="0" step="1000">
                   <span class="profile-currency-suffix">USD</span>
                 </div>
-              </div>
-              <div class="field-group">
-                <label for="debt-confidence-level">Debt Data Confidence</label>
-                <select id="debt-confidence-level" name="debtConfidenceLevel">
-                  <option value="">Optional</option>
-                  <option value="Exact">Exact</option>
-                  <option value="Estimated">Estimated</option>
-                  <option value="Unknown">Unknown</option>
-                </select>
               </div>
             </div>
           </section>
@@ -848,6 +827,63 @@
                   <span class="profile-currency-suffix">%</span>
                 </div>
               </div>
+              <div class="field-group">
+                <label for="household-income-use">Estimated % of Income Used for Household</label>
+                <div class="profile-currency-field">
+                  <input id="household-income-use" class="profile-small-number-field" name="householdIncomeUsePercent" type="text" inputmode="decimal" readonly>
+                  <span class="profile-currency-suffix">%</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="profile-form-section">
+            <div class="profile-form-section-heading">
+              <h2>Expenses and Lifestyle</h2>
+            </div>
+            <div class="form-grid">
+              <div class="field-group">
+                <label for="food-cost">Food</label>
+                <div class="profile-currency-field">
+                  <input id="food-cost" name="foodCost" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="insurance-cost">Insurance</label>
+                <div class="profile-currency-field">
+                  <input id="insurance-cost" name="insuranceCost" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="transportation-cost">Transportation</label>
+                <div class="profile-currency-field">
+                  <input id="transportation-cost" name="transportationCost" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="travel-discretionary-cost">Travel / Discretionary</label>
+                <div class="profile-currency-field">
+                  <input id="travel-discretionary-cost" name="travelDiscretionaryCost" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="subscriptions-cost">Subscriptions / Non-Essentials</label>
+                <div class="profile-currency-field">
+                  <input id="subscriptions-cost" name="subscriptionsCost" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="current-total-monthly-spending">Current Total Monthly Spending</label>
+                <div class="profile-currency-field">
+                  <input id="current-total-monthly-spending" name="currentTotalMonthlySpending" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -1122,31 +1158,28 @@
         "bonus-variable-income": "Bonuses, commissions, or other variable pay to include in the plan.",
         "years-until-retirement": "Expected years until the main earner plans to retire.",
         "employer-benefits-value": "Estimated annual value of employer-provided benefits tied to the insured, such as health insurance subsidy, retirement match, pension accrual, disability coverage, or other workplace benefits the household would lose at death.",
-        "household-income-use": "Portion of income used to support the household rather than personal spending.",
-        "target-income-replacement-percentage": "Target percentage of income to replace for survivor planning.",
-        "effective-tax-rate": "Estimated blended tax rate used for future net-income modeling.",
-        "calculation-basis": "Whether future planning should later be framed in nominal or inflation-adjusted terms.",
-        "income-confidence-level": "Confidence level for the income values entered in this section.",
+        "household-income-use": "Auto-calculated percentage of household net income used to cover recurring household expenses that remain after death.",
         "federal-tax-bracket": "Select the federal marginal tax bracket to use for future net-income modeling. These options are maintained in restricted Account Administration.",
-        "monthly-housing-cost": "Average monthly housing payment or rent.",
-        "utilities-cost": "Average monthly utilities.",
+        "monthly-housing-cost": "All-in monthly rent for renter scenarios, including pet fees or technology fees. Utilities are entered separately.",
+        "utilities-cost": "Average monthly utilities across all housing statuses.",
+        "calculated-monthly-mortgage-payment": "Auto-calculated monthly mortgage payment from balance, remaining term, and interest rate. You can edit it to override the calculated amount.",
         "food-cost": "Average monthly food spending.",
         "insurance-cost": "Monthly insurance costs such as health, auto, and other recurring coverage.",
         "transportation-cost": "Monthly transportation spending, including fuel, maintenance, transit, and vehicle costs.",
         "travel-discretionary-cost": "Optional spending such as travel, entertainment, and discretionary purchases.",
         "subscriptions-cost": "Monthly nonessential recurring subscriptions.",
         "current-total-monthly-spending": "Current combined monthly household spending.",
-        "expenses-confidence-level": "Confidence level for the expense values entered in this section.",
         "mortgage-balance": "Current unpaid mortgage balance.",
-        "mortgage-term-remaining": "Remaining years on the mortgage.",
+        "mortgage-term-remaining-years": "Remaining years on the mortgage term.",
+        "mortgage-term-remaining-months": "Additional remaining months on the mortgage term.",
         "mortgage-interest-rate": "Mortgage interest rate, if used in the analysis.",
+        "property-tax": "Average property tax obligation for homeowner scenarios.",
         "other-real-estate-loans": "Loans secured by other real estate.",
         "auto-loans": "Outstanding auto loan balances.",
         "credit-card-debt": "Revolving credit card balances.",
         "student-loans": "Outstanding student loan balances.",
         "personal-loans": "Other unsecured personal loans.",
         "business-debt": "Business debt that would matter if the client died.",
-        "debt-confidence-level": "Confidence level for the debt balances entered in this section.",
         "children-needing-funding": "Number of children expected to need education funding.",
         "years-until-college": "Years until each child starts college. Example values can be entered in order.",
         "estimated-cost-per-child": "Estimated education cost per child.",
@@ -1468,6 +1501,26 @@
       const spousePayrollTaxesField = form.elements.namedItem("spousePayrollTaxes");
       const netAnnualIncomeField = form.elements.namedItem("netAnnualIncome");
       const spouseNetAnnualIncomeField = form.elements.namedItem("spouseNetAnnualIncome");
+      const primaryNetIncomeAction = form.querySelector('[data-net-income-action="primary"]');
+      const spouseNetIncomeAction = form.querySelector('[data-net-income-action="spouse"]');
+      const monthlyMortgagePaymentField = form.elements.namedItem("calculatedMonthlyMortgagePayment");
+      const monthlyMortgagePaymentAction = form.querySelector('[data-mortgage-payment-action="primary"]');
+      const maintenanceRecommendationField = form.elements.namedItem("monthlyMaintenanceRecommendation");
+      const maintenanceRecommendationAction = form.querySelector('[data-maintenance-action="primary"]');
+      const householdIncomeUseField = form.elements.namedItem("householdIncomeUsePercent");
+      const expenseReductionAtDeathField = form.elements.namedItem("expenseReductionAtDeath");
+      const utilitiesCostField = form.elements.namedItem("utilitiesCost");
+      const relocationReserveField = form.elements.namedItem("relocationReserve");
+      const housingInsuranceCostField = form.elements.namedItem("housingInsuranceCost");
+      const monthlyHoaCostField = form.elements.namedItem("monthlyHoaCost");
+      const homeSquareFootageField = form.elements.namedItem("homeSquareFootage");
+      const homeAgeYearsField = form.elements.namedItem("homeAgeYears");
+      const mortgageTermRemainingYearsField = form.elements.namedItem("mortgageTermRemainingYears");
+      const mortgageTermRemainingMonthsField = form.elements.namedItem("mortgageTermRemainingMonths");
+      const mortgageTermRemainingField = form.elements.namedItem("mortgageTermRemaining");
+      const foodCostField = form.elements.namedItem("foodCost");
+      const insuranceCostField = form.elements.namedItem("insuranceCost");
+      const transportationCostField = form.elements.namedItem("transportationCost");
       const incomeCalculationGrid = form.querySelector(".income-calculation-grid");
       const derivedDraftFieldNames = new Set([
         "linkedMaritalStatusDisplay",
@@ -1482,13 +1535,23 @@
         "primaryPayrollTaxes",
         "spousePayrollTaxes",
         "netAnnualIncome",
-        "spouseNetAnnualIncome"
+        "spouseNetAnnualIncome",
+        "mortgageTermRemaining",
+        "calculatedMonthlyMortgagePayment",
+        "monthlyMaintenanceRecommendation"
       ]);
       const urlLinkedCaseRef = new URLSearchParams(window.location.search).get("caseRef");
       const federalTaxBracketStorageKey = "lensFederalTaxBrackets";
       const standardDeductionStorageKey = "lensStandardDeductions";
       const stateTaxBracketStorageKey = "lensStateIncomeTaxBrackets";
       const payrollTaxStorageKey = "lensPayrollTaxConfig";
+      const maintenanceStorageKey = "lensHousingMaintenanceConfig";
+      const defaultHousingMaintenanceRows = [
+        { label: "Under 1,500 sq ft", minSqFt: "0", maxSqFt: "1499", age0To10: "120", age11To25: "180", age26To40: "260", age41Plus: "360" },
+        { label: "1,500-2,499 sq ft", minSqFt: "1500", maxSqFt: "2499", age0To10: "165", age11To25: "235", age26To40: "325", age41Plus: "430" },
+        { label: "2,500-3,499 sq ft", minSqFt: "2500", maxSqFt: "3499", age0To10: "215", age11To25: "295", age26To40: "395", age41Plus: "520" },
+        { label: "3,500+ sq ft", minSqFt: "3500", maxSqFt: "", age0To10: "285", age11To25: "375", age26To40: "490", age41Plus: "635" }
+      ];
       const defaultFederalRowsByStatus = {
         "Single": [
           { rate: "10%", minIncome: "0", maxIncome: "12400" },
@@ -1773,9 +1836,110 @@
 
       function syncIncomeCalculationCurrencyFormatting() {
         getIncomeCalculationCurrencyFields().forEach((field) => {
+          if (field === netAnnualIncomeField || field === spouseNetAnnualIncomeField) {
+            return;
+          }
           const numericValue = parseCurrencyLikeNumber(field.value);
           field.value = formatNumberWithCommas(numericValue);
         });
+      }
+
+      function formatNetIncomeDisplay(value) {
+        return `$${formatNumberWithCommas(value)}`;
+      }
+
+      function setNetIncomeActionLabel(field, actionButton) {
+        if (!field || field instanceof RadioNodeList || !actionButton) {
+          return;
+        }
+
+        actionButton.textContent = field.dataset.manualOverride === "true" ? "Reset" : "Edit";
+      }
+
+      function clearNetIncomeManualOverride(field, actionButton) {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        delete field.dataset.manualOverride;
+        delete field.dataset.manualValue;
+        setNetIncomeActionLabel(field, actionButton);
+      }
+
+      function lockNetIncomeField(field, actionButton, options = {}) {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        const shouldUseCalculatedValue = options.useCalculatedValue === true || field.dataset.manualOverride !== "true";
+        const numericValue = shouldUseCalculatedValue
+          ? parseCurrencyLikeNumber(field.dataset.calculatedValue)
+          : parseCurrencyLikeNumber(field.dataset.manualValue);
+
+        field.setAttribute("readonly", "readonly");
+        field.closest(".profile-currency-field")?.classList.remove("is-editing");
+        delete field.dataset.editing;
+        field.value = field.dataset.shouldBeBlank === "true" ? "" : formatNetIncomeDisplay(numericValue);
+        setNetIncomeActionLabel(field, actionButton);
+      }
+
+      function beginNetIncomeEdit(field, actionButton) {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        field.dataset.editing = "true";
+        field.removeAttribute("readonly");
+        field.closest(".profile-currency-field")?.classList.add("is-editing");
+        const currentValue = field.dataset.manualOverride === "true"
+          ? parseCurrencyLikeNumber(field.dataset.manualValue)
+          : parseCurrencyLikeNumber(field.dataset.calculatedValue);
+        field.value = String(currentValue || 0);
+        setNetIncomeActionLabel(field, actionButton);
+        field.focus();
+        field.select();
+      }
+
+      function finalizeNetIncomeEdit(field, actionButton) {
+        if (!field || field instanceof RadioNodeList || field.dataset.editing !== "true") {
+          return;
+        }
+
+        const typedValue = parseCurrencyLikeNumber(field.value);
+        const calculatedValue = parseCurrencyLikeNumber(field.dataset.calculatedValue);
+
+        if (field.value.trim() && typedValue !== calculatedValue) {
+          field.dataset.manualOverride = "true";
+          field.dataset.manualValue = String(typedValue);
+        } else {
+          clearNetIncomeManualOverride(field, actionButton);
+        }
+
+        lockNetIncomeField(field, actionButton);
+      }
+
+      function applyNetIncomeValue(field, actionButton, calculatedValue, options = {}) {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        field.dataset.calculatedValue = String(calculatedValue);
+        field.dataset.shouldBeBlank = options.blank === true ? "true" : "false";
+
+        if (options.blank === true) {
+          clearNetIncomeManualOverride(field, actionButton);
+          field.value = "";
+          setNetIncomeActionLabel(field, actionButton);
+          return;
+        }
+
+        if (field.dataset.manualOverride === "true") {
+          lockNetIncomeField(field, actionButton);
+          return;
+        }
+
+        field.value = formatNetIncomeDisplay(calculatedValue);
+        setNetIncomeActionLabel(field, actionButton);
       }
 
       function readStoredStandardDeductionConfig() {
@@ -1938,6 +2102,36 @@
         });
       }
 
+      function normalizeMaintenanceConfigRow(row) {
+        if (!row || typeof row !== "object") {
+          return null;
+        }
+
+        return {
+          label: String(row.label || "").trim(),
+          minSqFt: String(row.minSqFt || "").replace(/[^0-9]/g, "").trim(),
+          maxSqFt: String(row.maxSqFt || "").replace(/[^0-9]/g, "").trim(),
+          age0To10: String(row.age0To10 || "").replace(/[^0-9.]/g, "").trim(),
+          age11To25: String(row.age11To25 || "").replace(/[^0-9.]/g, "").trim(),
+          age26To40: String(row.age26To40 || "").replace(/[^0-9.]/g, "").trim(),
+          age41Plus: String(row.age41Plus || "").replace(/[^0-9.]/g, "").trim()
+        };
+      }
+
+      function readStoredMaintenanceConfig() {
+        try {
+          const raw = JSON.parse(localStorage.getItem(maintenanceStorageKey) || "null");
+          if (!Array.isArray(raw) || !raw.length) {
+            return defaultHousingMaintenanceRows.map((row) => ({ ...row }));
+          }
+
+          const normalized = raw.map(normalizeMaintenanceConfigRow).filter(Boolean);
+          return normalized.length ? normalized : defaultHousingMaintenanceRows.map((row) => ({ ...row }));
+        } catch (_error) {
+          return defaultHousingMaintenanceRows.map((row) => ({ ...row }));
+        }
+      }
+
       function getSelectedBracketRate(field) {
         return window.LensPmiTaxUtils.getSelectedBracketRate(field, parsePercentLikeNumber);
       }
@@ -2046,6 +2240,48 @@
         form.querySelectorAll("[data-filing-status-circle]").forEach((circle) => {
           circle.classList.toggle("is-active", circle.getAttribute("data-filing-status-circle") === selectedFilingStatus);
         });
+      }
+
+      function syncHousingStatusCircles() {
+        const housingStatusField = form.elements.namedItem("housingStatus");
+        if (!housingStatusField || housingStatusField instanceof RadioNodeList) {
+          return;
+        }
+
+        const selectedHousingStatus = String(housingStatusField.value || "").trim();
+        form.querySelectorAll("[data-housing-status-circle]").forEach((circle) => {
+          circle.classList.toggle("is-active", circle.getAttribute("data-housing-status-circle") === selectedHousingStatus);
+        });
+      }
+
+      function syncHousingStatusFieldVisibility() {
+        const housingStatusField = form.elements.namedItem("housingStatus");
+        if (!housingStatusField || housingStatusField instanceof RadioNodeList) {
+          return;
+        }
+
+        const selectedHousingStatus = String(housingStatusField.value || "").trim();
+        const isHomeowner = selectedHousingStatus === "Homeowner";
+        const isRenter = selectedHousingStatus === "Renter";
+        const isOwner = selectedHousingStatus === "Homeowner" || selectedHousingStatus === "Owns Free and Clear";
+        const hasPropertyTax = selectedHousingStatus === "Homeowner" || selectedHousingStatus === "Owns Free and Clear";
+        const hasHousingStatus = Boolean(selectedHousingStatus);
+
+        const setHousingFieldGroupState = (selector, isVisible) => {
+          form.querySelectorAll(selector).forEach((group) => {
+            group.classList.toggle("is-hidden", !isVisible);
+            group.classList.toggle("is-disabled", !isVisible);
+            group.querySelectorAll("input, select, button").forEach((control) => {
+              control.disabled = !isVisible;
+            });
+          });
+        };
+
+        setHousingFieldGroupState('[data-housing-visibility="renter"]', isRenter);
+        setHousingFieldGroupState('[data-housing-visibility="homeowner"]', isHomeowner);
+        setHousingFieldGroupState('[data-housing-visibility="owner"]', isOwner);
+        setHousingFieldGroupState('[data-housing-visibility="property-tax"]', hasPropertyTax);
+        setHousingFieldGroupState('[data-housing-visibility="selected"]', hasHousingStatus);
       }
 
       function syncIncomeCalculationSpouseFields() {
@@ -2536,9 +2772,7 @@
                 stateTaxes.primary,
                 payrollTaxes.primary
               );
-          netAnnualIncomeField.value = incomeCalculationMode === "joint"
-            ? `$${formatNumberWithCommas(primaryNetIncome)}`
-            : formatNumberWithCommas(primaryNetIncome);
+          applyNetIncomeValue(netAnnualIncomeField, primaryNetIncomeAction, primaryNetIncome);
         }
 
         if (spouseNetAnnualIncomeField && !(spouseNetAnnualIncomeField instanceof RadioNodeList)) {
@@ -2550,10 +2784,247 @@
                 payrollTaxes.spouse
               )
             : 0;
-          spouseNetAnnualIncomeField.value = incomeCalculationMode === "separate"
-            ? formatNumberWithCommas(spouseNetIncome)
-            : "";
+          applyNetIncomeValue(
+            spouseNetAnnualIncomeField,
+            spouseNetIncomeAction,
+            spouseNetIncome,
+            { blank: incomeCalculationMode !== "separate" }
+          );
         }
+      }
+
+      function getHouseholdNetIncomeBasis() {
+        const incomeCalculationMode = getIncomeCalculationMode();
+        const primaryNetIncome = parseCurrencyLikeNumber(netAnnualIncomeField?.value);
+        const spouseNetIncome = parseCurrencyLikeNumber(spouseNetAnnualIncomeField?.value);
+
+        if (incomeCalculationMode === "separate") {
+          return primaryNetIncome + spouseNetIncome;
+        }
+
+        return primaryNetIncome;
+      }
+
+      function syncEstimatedHouseholdIncomeUse() {
+        if (!householdIncomeUseField || householdIncomeUseField instanceof RadioNodeList) {
+          return;
+        }
+
+        const annualHouseholdExpenses = [
+          utilitiesCostField,
+          foodCostField,
+          insuranceCostField,
+          transportationCostField
+        ].reduce((total, field) => total + (parseCurrencyLikeNumber(field?.value) * 12), 0);
+        const expenseReductionPercent = Math.min(100, Math.max(0, parsePercentLikeNumber(expenseReductionAtDeathField?.value)));
+        const adjustedAnnualHouseholdExpenses = annualHouseholdExpenses * (1 - (expenseReductionPercent / 100));
+        const householdNetIncomeBasis = getHouseholdNetIncomeBasis();
+
+        if (!adjustedAnnualHouseholdExpenses || !householdNetIncomeBasis) {
+          householdIncomeUseField.value = "";
+          return;
+        }
+
+        const estimatedPercent = Math.min(999, (adjustedAnnualHouseholdExpenses / householdNetIncomeBasis) * 100);
+        householdIncomeUseField.value = Number.isFinite(estimatedPercent)
+          ? estimatedPercent.toFixed(1).replace(/\.0$/, "")
+          : "";
+      }
+
+      function syncMortgageTermRemainingField() {
+        if (!mortgageTermRemainingField || mortgageTermRemainingField instanceof RadioNodeList) {
+          return;
+        }
+
+        const years = Math.max(0, Math.round(parseCurrencyLikeNumber(mortgageTermRemainingYearsField?.value)));
+        const months = Math.min(11, Math.max(0, Math.round(parseCurrencyLikeNumber(mortgageTermRemainingMonthsField?.value))));
+
+        if (mortgageTermRemainingYearsField && !(mortgageTermRemainingYearsField instanceof RadioNodeList)) {
+          mortgageTermRemainingYearsField.value = mortgageTermRemainingYearsField.value === "" && !years ? "" : String(years);
+        }
+
+        if (mortgageTermRemainingMonthsField && !(mortgageTermRemainingMonthsField instanceof RadioNodeList)) {
+          mortgageTermRemainingMonthsField.value = mortgageTermRemainingMonthsField.value === "" && !months ? "" : String(months);
+        }
+
+        if (!years && !months) {
+          mortgageTermRemainingField.value = "";
+          return;
+        }
+
+        const combinedYears = years + (months / 12);
+        mortgageTermRemainingField.value = combinedYears.toFixed(2).replace(/\.00$/, "");
+      }
+
+      function getRecommendedRelocationReserveAmount() {
+        const housingStatusField = form.elements.namedItem("housingStatus");
+        const selectedHousingStatus = housingStatusField && !(housingStatusField instanceof RadioNodeList)
+          ? String(housingStatusField.value || "").trim()
+          : "";
+
+        if (selectedHousingStatus !== "Renter") {
+          return null;
+        }
+
+        const monthlyRent = parseCurrencyLikeNumber(form.elements.namedItem("monthlyHousingCost")?.value);
+        if (!monthlyRent) {
+          return null;
+        }
+
+        return monthlyRent * 3;
+      }
+
+      function syncRelocationReserveField() {
+        if (!relocationReserveField || relocationReserveField instanceof RadioNodeList) {
+          return;
+        }
+
+        const shell = relocationReserveField.closest(".profile-currency-field");
+        const recommendedAmount = getRecommendedRelocationReserveAmount();
+        const currentValue = parseCurrencyLikeNumber(relocationReserveField.value);
+
+        if (!Number.isFinite(recommendedAmount) || recommendedAmount <= 0) {
+          shell?.classList.remove("is-recommended");
+          if (relocationReserveField.dataset.manualEdited !== "true" && !currentValue) {
+            relocationReserveField.value = "";
+          }
+          return;
+        }
+
+        if (relocationReserveField.dataset.manualEdited === "true") {
+          shell?.classList.remove("is-recommended");
+          return;
+        }
+
+        if (currentValue && Math.abs(currentValue - Math.round(recommendedAmount)) > 0.5) {
+          relocationReserveField.dataset.manualEdited = "true";
+          shell?.classList.remove("is-recommended");
+          return;
+        }
+
+        relocationReserveField.value = String(Math.round(recommendedAmount));
+        shell?.classList.add("is-recommended");
+      }
+
+      function getMaintenanceAgeBand(ageYears) {
+        if (ageYears <= 10) {
+          return "age0To10";
+        }
+        if (ageYears <= 25) {
+          return "age11To25";
+        }
+        if (ageYears <= 40) {
+          return "age26To40";
+        }
+        return "age41Plus";
+      }
+
+      function getRecommendedMaintenanceAmount() {
+        const housingStatusField = form.elements.namedItem("housingStatus");
+        const selectedHousingStatus = housingStatusField && !(housingStatusField instanceof RadioNodeList)
+          ? String(housingStatusField.value || "").trim()
+          : "";
+
+        if (selectedHousingStatus !== "Homeowner" && selectedHousingStatus !== "Owns Free and Clear") {
+          return null;
+        }
+
+        const squareFootageLabel = homeSquareFootageField && !(homeSquareFootageField instanceof RadioNodeList)
+          ? String(homeSquareFootageField.value || "").trim()
+          : "";
+        const homeAgeYears = Math.max(0, Math.round(parseCurrencyLikeNumber(homeAgeYearsField?.value)));
+
+        if (homeAgeYearsField && !(homeAgeYearsField instanceof RadioNodeList)) {
+          homeAgeYearsField.value = homeAgeYearsField.value === "" && !homeAgeYears ? "" : String(homeAgeYears);
+        }
+
+        if (!squareFootageLabel) {
+          return null;
+        }
+
+        const matchingRow = readStoredMaintenanceConfig().find((row) => String(row?.label || "").trim() === squareFootageLabel);
+        if (!matchingRow) {
+          return null;
+        }
+
+        return parseCurrencyLikeNumber(matchingRow[getMaintenanceAgeBand(homeAgeYears)]);
+      }
+
+      function syncMaintenanceRecommendationField() {
+        if (!maintenanceRecommendationField || maintenanceRecommendationField instanceof RadioNodeList) {
+          return;
+        }
+
+        const recommendedAmount = getRecommendedMaintenanceAmount();
+        applyNetIncomeValue(
+          maintenanceRecommendationField,
+          maintenanceRecommendationAction,
+          recommendedAmount || 0,
+          { blank: !Number.isFinite(recommendedAmount) || recommendedAmount <= 0 }
+        );
+      }
+
+      function calculateMonthlyMortgagePaymentAmount() {
+        const housingStatusField = form.elements.namedItem("housingStatus");
+        const selectedHousingStatus = housingStatusField && !(housingStatusField instanceof RadioNodeList)
+          ? String(housingStatusField.value || "").trim()
+          : "";
+        const monthlyUtilities = parseCurrencyLikeNumber(utilitiesCostField?.value);
+        const monthlyHousingInsurance = parseCurrencyLikeNumber(housingInsuranceCostField?.value);
+        const monthlyHoaCost = parseCurrencyLikeNumber(monthlyHoaCostField?.value);
+        const monthlyPropertyTax = parseCurrencyLikeNumber(form.elements.namedItem("propertyTax")?.value) / 12;
+        const monthlyMaintenance = parseCurrencyLikeNumber(maintenanceRecommendationField?.value);
+
+        if (!selectedHousingStatus) {
+          return null;
+        }
+
+        if (selectedHousingStatus === "Renter") {
+          const monthlyRent = parseCurrencyLikeNumber(form.elements.namedItem("monthlyHousingCost")?.value);
+          const renterTotal = monthlyRent + monthlyUtilities + monthlyHousingInsurance;
+          return renterTotal > 0 ? renterTotal : null;
+        }
+
+        if (selectedHousingStatus === "Owns Free and Clear") {
+          const freeAndClearTotal = monthlyUtilities + monthlyPropertyTax + monthlyHousingInsurance + monthlyMaintenance + monthlyHoaCost;
+          return freeAndClearTotal > 0 ? freeAndClearTotal : null;
+        }
+
+        const principal = parseCurrencyLikeNumber(form.elements.namedItem("mortgageBalance")?.value);
+        const years = Math.max(0, Math.round(parseCurrencyLikeNumber(mortgageTermRemainingYearsField?.value)));
+        const months = Math.min(11, Math.max(0, Math.round(parseCurrencyLikeNumber(mortgageTermRemainingMonthsField?.value))));
+        const totalMonths = (years * 12) + months;
+        const annualRate = parseCurrencyLikeNumber(form.elements.namedItem("mortgageInterestRate")?.value);
+
+        if (!principal || !totalMonths) {
+          const fallbackTotal = monthlyUtilities + monthlyPropertyTax + monthlyHousingInsurance + monthlyMaintenance + monthlyHoaCost;
+          return fallbackTotal > 0 ? fallbackTotal : null;
+        }
+
+        if (!annualRate) {
+          return (principal / totalMonths) + monthlyUtilities + monthlyPropertyTax + monthlyHousingInsurance + monthlyMaintenance + monthlyHoaCost;
+        }
+
+        const monthlyRate = annualRate / 1200;
+        if (!monthlyRate) {
+          return (principal / totalMonths) + monthlyUtilities + monthlyPropertyTax + monthlyHousingInsurance + monthlyMaintenance + monthlyHoaCost;
+        }
+
+        return (principal * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -totalMonths)))) + monthlyUtilities + monthlyPropertyTax + monthlyHousingInsurance + monthlyMaintenance + monthlyHoaCost;
+      }
+
+      function syncMonthlyMortgagePaymentField() {
+        if (!monthlyMortgagePaymentField || monthlyMortgagePaymentField instanceof RadioNodeList) {
+          return;
+        }
+
+        const calculatedPayment = calculateMonthlyMortgagePaymentAmount();
+        applyNetIncomeValue(
+          monthlyMortgagePaymentField,
+          monthlyMortgagePaymentAction,
+          calculatedPayment || 0,
+          { blank: !Number.isFinite(calculatedPayment) || calculatedPayment <= 0 }
+        );
       }
 
       function syncAllTaxDerivedFields() {
@@ -2564,6 +3035,7 @@
         syncSpouseStateTaxBracketSelection();
         syncPayrollTaxFields();
         syncNetAnnualIncomeFields();
+        syncEstimatedHouseholdIncomeUse();
       }
 
       function syncStateOfResidenceDisplay() {
@@ -2672,6 +3144,51 @@
               control.dispatchEvent(new Event("input", { bubbles: true }));
             }
           });
+          if (mortgageTermRemainingYearsField && !(mortgageTermRemainingYearsField instanceof RadioNodeList) && mortgageTermRemainingMonthsField && !(mortgageTermRemainingMonthsField instanceof RadioNodeList)) {
+            const combinedTerm = parseCurrencyLikeNumber(saved.mortgageTermRemaining);
+            if (combinedTerm && !saved.mortgageTermRemainingYears && !saved.mortgageTermRemainingMonths) {
+              const wholeYears = Math.floor(combinedTerm);
+              const remainingMonths = Math.round((combinedTerm - wholeYears) * 12);
+              mortgageTermRemainingYearsField.value = String(wholeYears);
+              mortgageTermRemainingMonthsField.value = String(remainingMonths);
+            }
+          }
+          if (monthlyMortgagePaymentField && !(monthlyMortgagePaymentField instanceof RadioNodeList)) {
+            if (saved.calculatedMonthlyMortgagePaymentManualOverride) {
+              monthlyMortgagePaymentField.dataset.manualOverride = "true";
+              monthlyMortgagePaymentField.dataset.manualValue = String(parseCurrencyLikeNumber(saved.calculatedMonthlyMortgagePayment));
+            } else {
+              clearNetIncomeManualOverride(monthlyMortgagePaymentField, monthlyMortgagePaymentAction);
+            }
+            setNetIncomeActionLabel(monthlyMortgagePaymentField, monthlyMortgagePaymentAction);
+          }
+          if (maintenanceRecommendationField && !(maintenanceRecommendationField instanceof RadioNodeList)) {
+            if (saved.monthlyMaintenanceRecommendationManualOverride) {
+              maintenanceRecommendationField.dataset.manualOverride = "true";
+              maintenanceRecommendationField.dataset.manualValue = String(parseCurrencyLikeNumber(saved.monthlyMaintenanceRecommendation));
+            } else {
+              clearNetIncomeManualOverride(maintenanceRecommendationField, maintenanceRecommendationAction);
+            }
+            setNetIncomeActionLabel(maintenanceRecommendationField, maintenanceRecommendationAction);
+          }
+          if (netAnnualIncomeField && !(netAnnualIncomeField instanceof RadioNodeList)) {
+            if (saved.netAnnualIncomeManualOverride) {
+              netAnnualIncomeField.dataset.manualOverride = "true";
+              netAnnualIncomeField.dataset.manualValue = String(parseCurrencyLikeNumber(saved.netAnnualIncome));
+            } else {
+              clearNetIncomeManualOverride(netAnnualIncomeField, primaryNetIncomeAction);
+            }
+            setNetIncomeActionLabel(netAnnualIncomeField, primaryNetIncomeAction);
+          }
+          if (spouseNetAnnualIncomeField && !(spouseNetAnnualIncomeField instanceof RadioNodeList)) {
+            if (saved.spouseNetAnnualIncomeManualOverride) {
+              spouseNetAnnualIncomeField.dataset.manualOverride = "true";
+              spouseNetAnnualIncomeField.dataset.manualValue = String(parseCurrencyLikeNumber(saved.spouseNetAnnualIncome));
+            } else {
+              clearNetIncomeManualOverride(spouseNetAnnualIncomeField, spouseNetIncomeAction);
+            }
+            setNetIncomeActionLabel(spouseNetAnnualIncomeField, spouseNetIncomeAction);
+          }
           clampCostToFundPercent();
           syncLinkedMaritalStatus();
           syncFilingStatusOptions();
@@ -2679,6 +3196,10 @@
           syncDeductionMethodState();
           syncLinkedStateOfResidence();
           syncStateOfResidenceDisplay();
+          syncMortgageTermRemainingField();
+          syncRelocationReserveField();
+          syncMaintenanceRecommendationField();
+          syncMonthlyMortgagePaymentField();
         } catch (_error) {
         }
       }
@@ -2710,6 +3231,26 @@
           draft[element.name] = element.value;
         });
 
+        if (netAnnualIncomeField && !(netAnnualIncomeField instanceof RadioNodeList) && netAnnualIncomeField.dataset.manualOverride === "true") {
+          draft.netAnnualIncome = parseCurrencyLikeNumber(netAnnualIncomeField.dataset.manualValue);
+          draft.netAnnualIncomeManualOverride = true;
+        }
+
+        if (spouseNetAnnualIncomeField && !(spouseNetAnnualIncomeField instanceof RadioNodeList) && spouseNetAnnualIncomeField.dataset.manualOverride === "true") {
+          draft.spouseNetAnnualIncome = parseCurrencyLikeNumber(spouseNetAnnualIncomeField.dataset.manualValue);
+          draft.spouseNetAnnualIncomeManualOverride = true;
+        }
+
+        if (monthlyMortgagePaymentField && !(monthlyMortgagePaymentField instanceof RadioNodeList) && monthlyMortgagePaymentField.dataset.manualOverride === "true") {
+          draft.calculatedMonthlyMortgagePayment = parseCurrencyLikeNumber(monthlyMortgagePaymentField.dataset.manualValue);
+          draft.calculatedMonthlyMortgagePaymentManualOverride = true;
+        }
+
+        if (maintenanceRecommendationField && !(maintenanceRecommendationField instanceof RadioNodeList) && maintenanceRecommendationField.dataset.manualOverride === "true") {
+          draft.monthlyMaintenanceRecommendation = parseCurrencyLikeNumber(maintenanceRecommendationField.dataset.manualValue);
+          draft.monthlyMaintenanceRecommendationManualOverride = true;
+        }
+
         return draft;
       }
 
@@ -2735,6 +3276,132 @@
         costToFundPercentField.addEventListener("change", clampCostToFundPercent);
         costToFundPercentField.addEventListener("blur", clampCostToFundPercent);
       }
+
+      [
+        mortgageTermRemainingYearsField,
+        mortgageTermRemainingMonthsField
+      ].forEach((field) => {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        field.addEventListener("input", () => {
+          syncMortgageTermRemainingField();
+          syncMonthlyMortgagePaymentField();
+        });
+        field.addEventListener("change", () => {
+          syncMortgageTermRemainingField();
+          syncMonthlyMortgagePaymentField();
+        });
+        field.addEventListener("blur", () => {
+          syncMortgageTermRemainingField();
+          syncMonthlyMortgagePaymentField();
+        });
+      });
+
+      [
+        form.elements.namedItem("mortgageBalance"),
+        form.elements.namedItem("mortgageInterestRate"),
+        form.elements.namedItem("monthlyHousingCost"),
+        form.elements.namedItem("propertyTax"),
+        relocationReserveField,
+        utilitiesCostField,
+        housingInsuranceCostField,
+        monthlyHoaCostField,
+        homeSquareFootageField,
+        homeAgeYearsField
+      ].forEach((field) => {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        field.addEventListener("input", () => {
+          if (field === relocationReserveField) {
+            relocationReserveField.dataset.manualEdited = "true";
+            relocationReserveField.closest(".profile-currency-field")?.classList.remove("is-recommended");
+          }
+          syncRelocationReserveField();
+          syncMaintenanceRecommendationField();
+          syncMonthlyMortgagePaymentField();
+        });
+        field.addEventListener("change", () => {
+          if (field === relocationReserveField) {
+            relocationReserveField.dataset.manualEdited = "true";
+            relocationReserveField.closest(".profile-currency-field")?.classList.remove("is-recommended");
+          }
+          syncRelocationReserveField();
+          syncMaintenanceRecommendationField();
+          syncMonthlyMortgagePaymentField();
+        });
+        field.addEventListener("blur", () => {
+          syncRelocationReserveField();
+          syncMaintenanceRecommendationField();
+          syncMonthlyMortgagePaymentField();
+        });
+      });
+
+      [
+        utilitiesCostField,
+        foodCostField,
+        insuranceCostField,
+        transportationCostField,
+        expenseReductionAtDeathField
+      ].forEach((field) => {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        field.addEventListener("input", syncEstimatedHouseholdIncomeUse);
+        field.addEventListener("change", syncEstimatedHouseholdIncomeUse);
+        field.addEventListener("blur", syncEstimatedHouseholdIncomeUse);
+      });
+
+      [
+        [netAnnualIncomeField, primaryNetIncomeAction],
+        [spouseNetAnnualIncomeField, spouseNetIncomeAction],
+        [monthlyMortgagePaymentField, monthlyMortgagePaymentAction],
+        [maintenanceRecommendationField, maintenanceRecommendationAction]
+      ].forEach(([field, actionButton]) => {
+        if (!field || field instanceof RadioNodeList || !actionButton) {
+          return;
+        }
+
+        setNetIncomeActionLabel(field, actionButton);
+
+        actionButton.addEventListener("mousedown", (event) => {
+          event.preventDefault();
+        });
+
+        actionButton.addEventListener("click", () => {
+          if (field.dataset.editing === "true" || field.dataset.manualOverride === "true") {
+            clearNetIncomeManualOverride(field, actionButton);
+            lockNetIncomeField(field, actionButton, { useCalculatedValue: true });
+            if (field === maintenanceRecommendationField) {
+              syncMonthlyMortgagePaymentField();
+            }
+            return;
+          }
+
+          beginNetIncomeEdit(field, actionButton);
+        });
+
+        field.addEventListener("input", () => {
+          if (field.dataset.editing !== "true") {
+            return;
+          }
+
+          const typedValue = parseCurrencyLikeNumber(field.value);
+          const calculatedValue = parseCurrencyLikeNumber(field.dataset.calculatedValue);
+          actionButton.textContent = field.value.trim() && typedValue !== calculatedValue ? "Reset" : "Edit";
+        });
+
+        field.addEventListener("blur", () => {
+          finalizeNetIncomeEdit(field, actionButton);
+          if (field === maintenanceRecommendationField) {
+            syncMonthlyMortgagePaymentField();
+          }
+        });
+      });
 
       const survivorWorkingSelect = form.elements.namedItem("survivorContinuesWorking");
       if (survivorWorkingSelect && !(survivorWorkingSelect instanceof RadioNodeList)) {
@@ -2841,6 +3508,19 @@
         stateOfResidenceField.addEventListener("input", syncStateTaxState);
       }
 
+      const housingStatusField = form.elements.namedItem("housingStatus");
+      if (housingStatusField && !(housingStatusField instanceof RadioNodeList)) {
+        const syncHousingStatusState = () => {
+          syncHousingStatusCircles();
+          syncHousingStatusFieldVisibility();
+          syncRelocationReserveField();
+          syncMaintenanceRecommendationField();
+          syncMonthlyMortgagePaymentField();
+        };
+        housingStatusField.addEventListener("change", syncHousingStatusState);
+        housingStatusField.addEventListener("input", syncHousingStatusState);
+      }
+
       [federalTaxBracketField, spouseFederalTaxBracketField, stateIncomeTaxBracketField, spouseStateIncomeTaxBracketField].forEach((field) => {
         if (!field || field instanceof RadioNodeList) {
           return;
@@ -2870,9 +3550,16 @@
       syncStateOfResidenceDisplay();
       populateStateTaxBracketOptions();
       populateSpouseStateTaxBracketOptions();
+      syncHousingStatusCircles();
+      syncHousingStatusFieldVisibility();
+      syncMortgageTermRemainingField();
+      syncRelocationReserveField();
+      syncMaintenanceRecommendationField();
+      syncMonthlyMortgagePaymentField();
       syncAllTaxDerivedFields();
       syncIncomeCalculationCurrencyFormatting();
       syncSurvivorshipAdjustments();
+      syncEstimatedHouseholdIncomeUse();
     })();
   </script>
 </body>

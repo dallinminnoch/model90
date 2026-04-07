@@ -77,11 +77,19 @@
                 <span class="section-label">Scenario</span>
                 <strong>Age of Death</strong>
               </div>
-              <div class="income-loss-slider-shell">
-                <input id="income-loss-age-slider" type="range" min="35" max="80" step="1" value="45">
-                <div class="income-loss-slider-meta">
-                  <span id="income-loss-current-age">Current age: 45</span>
-                  <strong id="income-loss-selected-age">Death age: 45</strong>
+              <div class="income-loss-scenario-controls">
+                <div class="income-loss-slider-shell">
+                  <input id="income-loss-age-slider" type="range" min="35" max="80" step="1" value="45">
+                  <div class="income-loss-slider-meta">
+                    <span id="income-loss-current-age">Current age: 45</span>
+                    <strong id="income-loss-selected-age">Death age: 45</strong>
+                  </div>
+                </div>
+                <div class="income-loss-strategy-control">
+                  <button class="income-loss-strategy-button" type="button" id="income-loss-strategy-button">
+                    Asset Access Strategy
+                  </button>
+                  <p>Full Liquidation, Partial, Withdrawals + Growth, or Liquidate at Age</p>
                 </div>
               </div>
             </div>
@@ -212,15 +220,70 @@
         }
       }
 
+      function loadDirectJson(storage, key) {
+        try {
+          return JSON.parse(storage.getItem(key) || "null");
+        } catch (_error) {
+          return null;
+        }
+      }
+
+      function normalizeCaseRef(value) {
+        return String(value || "").trim().toUpperCase();
+      }
+
+      function loadDirectLinkedAnalysisSource() {
+        const linkedRecordId = String(sessionStorage.getItem("lensLinkedRecordId") || "").trim();
+        const linkedCaseRef = normalizeCaseRef(sessionStorage.getItem("lensLinkedCaseRef"));
+        const authSession = loadDirectJson(localStorage, "lipPlannerAuthSession");
+        const identity = authSession?.email ? String(authSession.email).trim().toLowerCase() : "guest";
+        const storageKey = `lensClientRecords:${identity}`;
+        const records = loadDirectJson(localStorage, storageKey);
+
+        if (!Array.isArray(records)) {
+          return null;
+        }
+
+        const linkedRecord = records.find((record) => {
+          const recordId = String(record?.id || "").trim();
+          const recordCaseRef = normalizeCaseRef(record?.caseRef);
+          return (linkedRecordId && recordId === linkedRecordId) || (linkedCaseRef && recordCaseRef === linkedCaseRef);
+        }) || null;
+
+        if (!linkedRecord) {
+          return null;
+        }
+
+        const modelingPayload = linkedRecord.protectionModeling && typeof linkedRecord.protectionModeling === "object"
+          ? linkedRecord.protectionModeling
+          : (Array.isArray(linkedRecord.protectionModelingEntries) && linkedRecord.protectionModelingEntries.length
+            ? linkedRecord.protectionModelingEntries[linkedRecord.protectionModelingEntries.length - 1]
+            : null);
+
+        if (!modelingPayload || typeof window.buildLensAnalysisBucketsFromData !== "function") {
+          return null;
+        }
+
+        const linkedData = modelingPayload.data && typeof modelingPayload.data === "object"
+          ? modelingPayload.data
+          : modelingPayload;
+
+        return {
+          sourceType: "linked",
+          session: null,
+          record: linkedRecord,
+          modelingPayload,
+          buckets: window.buildLensAnalysisBucketsFromData(linkedData, {
+            currentAge: Number(linkedRecord?.age || 0),
+            variant: String(modelingPayload?.variant || "").trim()
+          })
+        };
+      }
+
       function resolveAnalysisSource() {
-        const helperSource = window.getLensAnalysisSource?.() || null;
         const temporarySession = window.getLensTemporaryAnalysisSession?.() || loadDirectTemporaryAnalysisSession();
 
         if (temporarySession?.hasData) {
-          if (helperSource?.sourceType === "temporary" && helperSource?.buckets) {
-            return helperSource;
-          }
-
           if (typeof window.buildLensAnalysisBucketsFromData === "function") {
             return {
               sourceType: "temporary",
@@ -234,7 +297,7 @@
           }
         }
 
-        return helperSource;
+        return loadDirectLinkedAnalysisSource() || window.getLensAnalysisSource?.() || null;
       }
 
       function hasLiveAnalysisSource(analysisSource) {

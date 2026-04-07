@@ -1625,6 +1625,56 @@ select option:disabled {
   gap: 0.45rem;
 }
 
+.profile-dual-unit-field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.field-group--compact-owner-row .profile-owner-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.field-group--compact-owner-row .profile-owner-term-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.profile-owner-square-footage {
+  width: 10.5rem;
+  min-width: 10.5rem;
+  max-width: 10.5rem;
+}
+
+.profile-owner-rate-field {
+  width: 7.5rem;
+  min-width: 7.5rem;
+}
+
+.profile-owner-rate-field input.profile-small-number-field {
+  width: 4.75rem;
+  min-width: 4.75rem;
+  max-width: 4.75rem;
+}
+
+.field-group--centered-result {
+  justify-items: center;
+}
+
+.field-group--centered-result > label {
+  text-align: center;
+  width: 100%;
+}
+
+.field-group--centered-result .profile-currency-field {
+  width: min(100%, 24rem);
+}
+
 .profile-currency-field.is-recommended input {
   color: #8b94a3;
   font-style: italic;
@@ -6612,21 +6662,16 @@ body.lens-start-page .lens-intake-sidecard {
   grid-column: 1 / -1;
 }
 
-.profile-creation-form .field-group.profile-net-income-highlight {
-  padding: 0.8rem 0.9rem 0.95rem;
-  border-radius: 0.9rem;
-  background: linear-gradient(180deg, rgba(219, 241, 228, 0.94) 0%, rgba(203, 232, 215, 0.9) 100%);
-  border: 1px solid rgba(88, 151, 109, 0.2);
+.section-divider-field {
+  margin: 0.1rem 0 0.15rem;
+  padding-top: 0.15rem;
 }
 
-.profile-creation-form .field-group.profile-net-income-highlight > label {
-  font-weight: 800;
-  color: #1f5b34;
-}
-
-.profile-creation-form .field-group.profile-net-income-highlight input[readonly] {
-  font-weight: 800;
-  color: #1f5b34;
+.section-divider-line {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: rgba(160, 174, 192, 0.95);
 }
 
 .profile-creation-form .income-calculation-grid.income-calculation-grid-single .primary-net-income-group,
@@ -6634,24 +6679,98 @@ body.lens-start-page .lens-intake-sidecard {
   grid-column: 1 / -1;
   justify-self: center;
   width: min(100%, 24rem);
+  margin-top: 0.35rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(160, 174, 192, 0.95);
+}
+
+.profile-creation-form .income-calculation-grid.income-calculation-grid-separate .primary-net-income-group,
+.profile-creation-form .income-calculation-grid .spouse-net-income-group {
+  margin-top: 0.35rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(160, 174, 192, 0.95);
 }
 
 .profile-creation-form .income-calculation-grid.income-calculation-grid-single .primary-net-income-group > label,
-.profile-creation-form .income-calculation-grid.income-calculation-grid-joint .primary-net-income-group > label {
+.profile-creation-form .income-calculation-grid.income-calculation-grid-joint .primary-net-income-group > label,
+.profile-creation-form .income-calculation-grid.income-calculation-grid-separate .primary-net-income-group > label,
+.profile-creation-form .income-calculation-grid .spouse-net-income-group > label {
   justify-content: center;
   text-align: center;
   width: 100%;
 }
 
 .profile-creation-form .income-calculation-grid.income-calculation-grid-single .primary-net-income-group .profile-currency-field,
-.profile-creation-form .income-calculation-grid.income-calculation-grid-joint .primary-net-income-group .profile-currency-field {
+.profile-creation-form .income-calculation-grid.income-calculation-grid-joint .primary-net-income-group .profile-currency-field,
+.profile-creation-form .income-calculation-grid.income-calculation-grid-separate .primary-net-income-group .profile-currency-field,
+.profile-creation-form .income-calculation-grid .spouse-net-income-group .profile-currency-field {
   justify-self: center;
   width: 100%;
 }
 
-.profile-creation-form .income-calculation-grid.income-calculation-grid-single .primary-net-income-group input[readonly],
-.profile-creation-form .income-calculation-grid.income-calculation-grid-joint .primary-net-income-group input[readonly] {
+.profile-creation-form .income-calculation-grid .primary-net-income-group input[readonly],
+.profile-creation-form .income-calculation-grid .spouse-net-income-group input[readonly] {
   text-align: center;
+  font-weight: 800;
+  color: #18263b;
+}
+
+.profile-creation-form .income-calculation-grid .primary-net-income-group .profile-currency-field,
+.profile-creation-form .income-calculation-grid .spouse-net-income-group .profile-currency-field {
+  position: relative;
+}
+
+.profile-creation-form .income-calculation-grid .primary-net-income-group input,
+.profile-creation-form .income-calculation-grid .spouse-net-income-group input {
+  padding-left: 4.4rem;
+  padding-right: 4.4rem;
+}
+
+.profile-creation-form input[name="calculatedMonthlyMortgagePayment"],
+.profile-creation-form input[name="monthlyMaintenanceRecommendation"] {
+  padding-left: 4.4rem;
+  padding-right: 4.4rem;
+  text-align: center;
+  font-weight: 800;
+  color: #18263b;
+}
+
+.profile-creation-form input[name="calculatedMonthlyMortgagePayment"][readonly],
+.profile-creation-form input[name="monthlyMaintenanceRecommendation"][readonly] {
+  background: #f8fbff;
+}
+
+.profile-creation-form .field-group .profile-currency-field.is-editing input[name="calculatedMonthlyMortgagePayment"],
+.profile-creation-form .field-group .profile-currency-field.is-editing input[name="monthlyMaintenanceRecommendation"] {
+  border-color: #5b47ff;
+  box-shadow: 0 0 0 3px rgba(91, 71, 255, 0.12);
+  background: #fff;
+}
+
+.profile-creation-form .income-calculation-grid .primary-net-income-group .profile-currency-field.is-editing input,
+.profile-creation-form .income-calculation-grid .spouse-net-income-group .profile-currency-field.is-editing input {
+  border-color: #5b47ff;
+  box-shadow: 0 0 0 3px rgba(91, 71, 255, 0.12);
+  background: #fff;
+}
+
+.net-income-action {
+  position: absolute;
+  right: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #5b47ff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.net-income-action:hover,
+.net-income-action:focus-visible {
+  color: #4333cf;
 }
 
 .profile-creation-form .income-calculation-grid.income-calculation-grid-joint .primary-net-income-group .profile-currency-suffix {
@@ -7197,8 +7316,46 @@ body.lens-intake-page .workflow-shell {
   border-top: 1px solid rgba(207, 216, 229, 0.75);
 }
 
+.income-loss-scenario-controls {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .income-loss-slider-shell {
   width: min(460px, 100%);
+}
+
+.income-loss-strategy-control {
+  display: grid;
+  justify-items: end;
+  gap: 0.35rem;
+  min-width: 250px;
+}
+
+.income-loss-strategy-button {
+  appearance: none;
+  min-height: 2.6rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(207, 216, 229, 0.95);
+  border-radius: 0.8rem;
+  background: #ffffff;
+  color: #20384d;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: default;
+  box-shadow: 0 8px 18px rgba(16, 33, 52, 0.05);
+}
+
+.income-loss-strategy-control p {
+  margin: 0;
+  color: #6b7c94;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  text-align: right;
+  max-width: 240px;
 }
 
 .income-loss-slider-shell input[type="range"] {
@@ -7661,6 +7818,20 @@ body.lens-intake-page .workflow-shell {
 
   .income-loss-chart-shell {
     grid-template-columns: 1fr;
+  }
+
+  .income-loss-scenario-controls {
+    flex-direction: column;
+  }
+
+  .income-loss-strategy-control {
+    justify-items: start;
+    min-width: 0;
+  }
+
+  .income-loss-strategy-control p {
+    text-align: left;
+    max-width: none;
   }
 
   .income-loss-y-axis {
