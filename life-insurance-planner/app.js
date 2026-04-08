@@ -1933,72 +1933,144 @@
       return;
     }
 
-    title.textContent = record.displayName || "Client Detail";
-    subtitle.textContent = `${getClientStatusDisplay(record.statusGroup)} | ${record.caseRef || "Case ref pending"}`;
+    const isHousehold = record.viewType === "households";
+    const dependentsCount = Number(record.dependentsCount || 0);
+    const membersCount = Number(record.insured || 0);
+    const householdMembersDisplay = Number.isFinite(membersCount) && membersCount > 0
+      ? String(membersCount)
+      : "Not provided";
+    const policiesDisplay = getPoliciesDisplay(record);
+    const dependentAgesDisplay = String(record.dependentAges || "").trim() || "Not provided";
 
-    const sections = [
-      {
-        title: "Overview",
-        fields: [
-          ["Client", record.displayName],
-          ["Case Ref", record.caseRef],
-          ["Client Status", getClientStatusDisplay(record.statusGroup)],
-          ["Priority", getPriorityDisplay(record.priority)],
-          ["Source", record.source],
-          ["Date Created", formatDateForDirectory(getDirectoryCreatedDate(record))],
-          ["Coverage Amount", formatCurrencyCompact(record.coverageAmount)],
-          ["Coverage Gap", formatCurrencyCompact(record.coverageGap)]
-        ]
-      },
-      {
-        title: "Profile Information",
-        fields: [
-          ["First Name", record.firstName],
-          ["Middle Name", record.middleName],
-          ["Last Name", record.lastName],
-          ["Preferred Name", record.preferredName],
-          ["Date of Birth", formatDateForDirectory(record.dateOfBirth)],
-          ["Age", record.age],
-          ["Insurance Rating Sex", record.insuranceRatingSex],
-          ["Marital Status", record.maritalStatus],
-          ["Spouse/Partner Date of Birth", formatDateForDirectory(record.spouseDateOfBirth)],
-          ["Spouse/Partner Age", record.spouseAge]
-        ]
-      },
-      {
-        title: "Contact",
-        fields: [
-          ["Email Address", record.emailAddress],
-          ["Phone Number", record.phoneNumber],
-          ["Preferred Contact Method", record.preferredContactMethod],
-          ["Street Address", record.streetAddress],
-          ["City", record.city],
-          ["State", record.state],
-          ["ZIP Code", record.zipCode],
-          ["Country", record.country]
-        ]
-      },
-      {
-        title: "Household and Advisory",
-        fields: [
-          ["Household / Company Role", record.householdRole],
-          ["Business Type", record.businessType],
-          ["Business Planning Focus", record.businessPlanningFocus],
-          ["Ownership %", record.ownershipPercent],
-          ["Buy-Sell / Key Person Relevant?", record.businessCoverageRelevance],
-          ["Assignment Name", record.householdName],
-          ["Assignment Type", record.profileGroupType],
-          ["Dependents / Children", record.hasDependents],
-          ["Amount of Dependents / Children", record.dependentsCount],
-          ["Current Children Ages", record.dependentAges],
-          ["Projected Dependents / Children", record.projectedDependents],
-          ["Projected Dependents Count", record.projectedDependentsCount],
-          ["Advisor Name", record.advisorName],
-          ["Firm Name", record.firmName],
-          ["Client Notes", record.clientNotes]
-        ]
-      }
-    ];
+    function buildIndividualSections(currentRecord) {
+      return [
+        {
+          title: "Overview",
+          fields: [
+            ["Client", currentRecord.displayName],
+            ["Case Ref", currentRecord.caseRef],
+            ["Client Status", getClientStatusDisplay(currentRecord.statusGroup)],
+            ["Priority", getPriorityDisplay(currentRecord.priority)],
+            ["Source", currentRecord.source],
+            ["Date Created", formatDateForDirectory(getDirectoryCreatedDate(currentRecord))],
+            ["Coverage Amount", formatCurrencyCompact(currentRecord.coverageAmount)],
+            ["Coverage Gap", formatCurrencyCompact(currentRecord.coverageGap)]
+          ]
+        },
+        {
+          title: "Profile Information",
+          fields: [
+            ["First Name", currentRecord.firstName],
+            ["Middle Name", currentRecord.middleName],
+            ["Last Name", currentRecord.lastName],
+            ["Preferred Name", currentRecord.preferredName],
+            ["Date of Birth", formatDateForDirectory(currentRecord.dateOfBirth)],
+            ["Age", currentRecord.age],
+            ["Insurance Rating Sex", currentRecord.insuranceRatingSex],
+            ["Marital Status", currentRecord.maritalStatus],
+            ["Spouse/Partner Date of Birth", formatDateForDirectory(currentRecord.spouseDateOfBirth)],
+            ["Spouse/Partner Age", currentRecord.spouseAge]
+          ]
+        },
+        {
+          title: "Contact",
+          fields: [
+            ["Email Address", currentRecord.emailAddress],
+            ["Phone Number", currentRecord.phoneNumber],
+            ["Preferred Contact Method", currentRecord.preferredContactMethod],
+            ["Street Address", currentRecord.streetAddress],
+            ["City", currentRecord.city],
+            ["State", currentRecord.state],
+            ["ZIP Code", currentRecord.zipCode],
+            ["Country", currentRecord.country]
+          ]
+        },
+        {
+          title: "Household and Advisory",
+          fields: [
+            ["Household / Company Role", currentRecord.householdRole],
+            ["Business Type", currentRecord.businessType],
+            ["Business Planning Focus", currentRecord.businessPlanningFocus],
+            ["Ownership %", currentRecord.ownershipPercent],
+            ["Buy-Sell / Key Person Relevant?", currentRecord.businessCoverageRelevance],
+            ["Assignment Name", currentRecord.householdName],
+            ["Assignment Type", currentRecord.profileGroupType],
+            ["Dependents / Children", currentRecord.hasDependents],
+            ["Amount of Dependents / Children", currentRecord.dependentsCount],
+            ["Current Children Ages", currentRecord.dependentAges],
+            ["Projected Dependents / Children", currentRecord.projectedDependents],
+            ["Projected Dependents Count", currentRecord.projectedDependentsCount],
+            ["Advisor Name", currentRecord.advisorName],
+            ["Firm Name", currentRecord.firmName],
+            ["Client Notes", currentRecord.clientNotes]
+          ]
+        }
+      ];
+    }
+
+    function buildHouseholdSections(currentRecord) {
+      return [
+        {
+          title: "Overview",
+          fields: [
+            ["Household", currentRecord.displayName],
+            ["Case Ref", currentRecord.caseRef],
+            ["Date Created", formatDateForDirectory(getDirectoryCreatedDate(currentRecord))],
+            ["Members", householdMembersDisplay],
+            ["Dependents", dependentsCount || "0"],
+            ["Policies", policiesDisplay],
+            ["Coverage Gap", formatCurrencyCompact(currentRecord.coverageGap)],
+            ["Priority", getPriorityDisplay(currentRecord.priority)]
+          ]
+        },
+        {
+          title: "Household Members",
+          fields: [
+            ["Primary Adults", householdMembersDisplay],
+            ["Marital Status", currentRecord.maritalStatus],
+            ["Spouse / Partner Age", currentRecord.spouseAge],
+            ["Current Children Ages", dependentAgesDisplay]
+          ]
+        },
+        {
+          title: "Household Structure",
+          fields: [
+            ["Dependents / Children", currentRecord.hasDependents],
+            ["Current Dependents Count", dependentsCount || "0"],
+            ["Projected Dependents / Children", currentRecord.projectedDependents],
+            ["Projected Dependents Count", currentRecord.projectedDependentsCount],
+            ["Assignment Name", currentRecord.householdName || currentRecord.displayName],
+            ["Assignment Type", currentRecord.profileGroupType]
+          ]
+        },
+        {
+          title: "Coverage and Planning",
+          fields: [
+            ["Coverage Gap", formatCurrencyCompact(currentRecord.coverageGap)],
+            ["Coverage Amount", formatCurrencyCompact(currentRecord.coverageAmount)],
+            ["Policies", policiesDisplay],
+            ["Business Planning Focus", currentRecord.businessPlanningFocus],
+            ["Buy-Sell / Key Person Relevant?", currentRecord.businessCoverageRelevance]
+          ]
+        },
+        {
+          title: "Advisor Notes",
+          fields: [
+            ["Advisor Name", currentRecord.advisorName],
+            ["Firm Name", currentRecord.firmName],
+            ["Source", currentRecord.source],
+            ["Client Notes", currentRecord.clientNotes]
+          ]
+        }
+      ];
+    }
+
+    title.textContent = record.displayName || (isHousehold ? "Household Detail" : "Client Detail");
+    subtitle.textContent = isHousehold
+      ? `Household Profile | ${record.caseRef || "Case ref pending"}`
+      : `${getClientStatusDisplay(record.statusGroup)} | ${record.caseRef || "Case ref pending"}`;
+
+    const sections = isHousehold ? buildHouseholdSections(record) : buildIndividualSections(record);
 
     host.innerHTML = sections.map((section) => `
       <section class="client-detail-card">

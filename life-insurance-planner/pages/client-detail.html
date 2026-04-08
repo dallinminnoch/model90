@@ -166,6 +166,64 @@
         }).join("");
       }
 
+      function getAvatarAge(ageValue, dateOfBirthValue) {
+        const numericAge = Number(ageValue);
+        if (Number.isFinite(numericAge) && numericAge > 0) {
+          return Math.max(0, Math.min(100, numericAge));
+        }
+
+        const birthDateValue = String(dateOfBirthValue || "").trim();
+        if (!birthDateValue) {
+          return null;
+        }
+
+        const birthDate = new Date(`${birthDateValue}T00:00:00`);
+        if (Number.isNaN(birthDate.getTime())) {
+          return null;
+        }
+
+        const today = new Date();
+        let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+        const monthDifference = today.getMonth() - birthDate.getMonth();
+        if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+          calculatedAge -= 1;
+        }
+
+        return Number.isFinite(calculatedAge) ? Math.max(0, Math.min(100, calculatedAge)) : null;
+      }
+
+      function interpolateNumber(start, end, progress) {
+        return start + ((end - start) * progress);
+      }
+
+      function getAvatarHue(ageValue, dateOfBirthValue) {
+        const age = getAvatarAge(ageValue, dateOfBirthValue);
+        if (age === null) {
+          return 210;
+        }
+
+        if (age <= 18) {
+          return interpolateNumber(48, 60, age / 18);
+        }
+
+        if (age <= 30) {
+          return interpolateNumber(60, 210, (age - 18) / 12);
+        }
+
+        if (age <= 65) {
+          return interpolateNumber(210, 280, (age - 30) / 35);
+        }
+
+        return interpolateNumber(280, 360, (age - 65) / 35);
+      }
+
+      function getAvatarBackground(ageValue, dateOfBirthValue) {
+        const hue = getAvatarHue(ageValue, dateOfBirthValue);
+        const highlightHue = hue;
+        const shadowHue = (hue + 22) % 360;
+        return `linear-gradient(135deg, hsl(${highlightHue} 72% 66%), hsl(${shadowHue} 68% 44%))`;
+      }
+
       function getAccountMilestones(record) {
         const hasProfile = Boolean(String(record.id || "").trim());
         const hasPreliminary = Boolean(record.preliminaryUnderwritingCompleted);
@@ -444,6 +502,48 @@
         }
 
         return null;
+      }
+
+      function getPrimaryLinkedClientForHousehold(householdRecord) {
+        const householdId = String(householdRecord?.id || "").trim();
+        if (!householdId) {
+          return null;
+        }
+
+        const records = loadJson(localStorage, getRecordsStorageKey());
+        if (!Array.isArray(records)) {
+          return null;
+        }
+
+        const linkedIndividuals = records.filter(function (item) {
+          return String(item?.viewType || "").trim() === "individuals"
+            && String(item?.householdId || "").trim() === householdId;
+        });
+
+        if (!linkedIndividuals.length) {
+          return null;
+        }
+
+        return linkedIndividuals.find(function (item) {
+          return String(item?.householdRole || "").trim().toLowerCase() === "primary client";
+        }) || linkedIndividuals[0] || null;
+      }
+
+      function getLinkedIndividualsForHousehold(householdRecord) {
+        const householdId = String(householdRecord?.id || "").trim();
+        if (!householdId) {
+          return [];
+        }
+
+        const records = loadJson(localStorage, getRecordsStorageKey());
+        if (!Array.isArray(records)) {
+          return [];
+        }
+
+        return records.filter(function (item) {
+          return String(item?.viewType || "").trim() === "individuals"
+            && String(item?.householdId || "").trim() === householdId;
+        });
       }
 
       function getRequestedTab() {
@@ -1194,9 +1294,21 @@
       function renderProfile(record) {
         const status = getClientStatusDisplay(record.statusGroup);
         const priority = getPriorityDisplay(normalizePriority(record.priority));
+        const isHousehold = String(record.viewType || "").trim() === "households";
         const householdName = formatValue(record.householdName);
         const subtitleParts = [status, formatValue(record.caseRef)];
         const householdDisplay = householdName === "Not provided" ? "No household linked" : householdName;
+        const dependentAgesDisplay = formatValue(record.dependentAges);
+        const policyCount = Array.isArray(record.coveragePolicies) ? record.coveragePolicies.length : Number(record.policyCount || 0);
+        const membersCount = Number(record.insured || 0);
+        const createdDateDisplay = formatDate(record.dateProfileCreated || record.lastUpdatedDate);
+        const primaryLinkedClient = isHousehold ? getPrimaryLinkedClientForHousehold(record) : null;
+        const linkedHouseholdMembers = isHousehold ? getLinkedIndividualsForHousehold(record) : [];
+        const householdLeadName = formatValue(
+          primaryLinkedClient?.displayName
+          || `${String(record.preferredName || record.firstName || "").trim()} ${String(record.lastName || "").trim()}`.trim()
+          || String(record.displayName || "").replace(/\s+Household$/i, "").trim()
+        );
         const hasCoveragePlaced = (Array.isArray(record.coveragePolicies) && record.coveragePolicies.length > 0)
           || record.statusGroup === "coverage-placed"
           || record.statusGroup === "closed";
@@ -1217,6 +1329,278 @@
         const analysisStatus = hasAnalysisCompleted
           ? `Saved ${formatDate(record.analysisCompletedDate || record.lastUpdatedDate)}`
           : "Incomplete";
+
+        if (isHousehold) {
+          const membersLabel = `${Number.isFinite(membersCount) && membersCount > 0 ? membersCount : 0} member${Number.isFinite(membersCount) && membersCount === 1 ? "" : "s"}`;
+          const dependentsLabel = `${Number(record.dependentsCount || 0) || 0} dependent${Number(record.dependentsCount || 0) === 1 ? "" : "s"}`;
+          const coverageSummaryLabel = Number(record.coverageAmount || 0) > 0 ? "Coverage in force" : "No coverage";
+          const adequacyPercent = Number(record.coverageGap || 0) > 0
+            ? Math.max(0, Math.min(100, Math.round((Number(record.coverageAmount || 0) / (Number(record.coverageAmount || 0) + Number(record.coverageGap || 0))) * 100)))
+            : (Number(record.coverageAmount || 0) > 0 ? 100 : 0);
+          const totalCoveragePercent = adequacyPercent;
+          const householdMemberButtons = linkedHouseholdMembers.length
+            ? linkedHouseholdMembers.map(function (member) {
+              return `
+                <a class="client-household-member-button" href="client-detail.html?id=${escapeHtml(String(member.id || "").trim())}">
+                  <span class="client-household-member-avatar" style="background:${escapeHtml(getAvatarBackground(member.age, member.dateOfBirth))};">${escapeHtml(getInitials(formatValue(member.displayName)))}</span>
+                  <span class="client-household-member-button-copy">
+                    <strong>${escapeHtml(formatValue(member.displayName))}</strong>
+                    <em>${escapeHtml(formatValue(member.caseRef))}</em>
+                  </span>
+                  <span class="client-household-member-button-role">${escapeHtml(formatValue(member.householdRole))}</span>
+                </a>
+              `;
+            }).join("")
+            : `
+              <button class="client-household-member-button is-placeholder" type="button">
+                <span class="client-household-member-avatar is-placeholder">--</span>
+                <span class="client-household-member-button-copy">
+                  <strong>No linked members yet</strong>
+                  <em>Profile links will appear here</em>
+                </span>
+                <span class="client-household-member-button-role">Pending</span>
+              </button>
+            `;
+          return `
+            <div class="client-profile-shell client-profile-shell-household">
+              <section class="client-profile-main client-profile-main-household client-profile-main-household-single">
+                <a class="client-profile-backlink client-profile-backlink-household" href="clients.html">
+                  <span>Return to Client Directory</span>
+                </a>
+                <section class="client-detail-card client-household-top-card">
+                  <div class="client-household-top-card-copy">
+                    <h2 class="client-profile-household-title">
+                      <span>${escapeHtml(formatValue(record.displayName))}</span>
+                    </h2>
+                    <p>${escapeHtml(`${membersLabel} · ${dependentsLabel} · ${coverageSummaryLabel}`)}</p>
+                  </div>
+                  <div class="client-household-top-card-meta">
+                    <span># Case Ref&nbsp;&nbsp;${escapeHtml(formatValue(record.caseRef))}</span>
+                    <span>Advisor ${escapeHtml(formatValue(record.advisorName))}</span>
+                    <span>Created ${escapeHtml(createdDateDisplay)}</span>
+                  </div>
+                </section>
+
+                <div class="client-profile-tab-panels">
+                  <section class="client-profile-tab-panel is-active client-profile-tab-panel-household" data-client-panel="overview">
+                    <div class="client-household-dashboard">
+                      <section class="client-detail-card client-household-panel client-household-panel-overview">
+                        <div class="client-detail-card-header">
+                          <h2>${escapeHtml(String(record.lastName || record.displayName || "").replace(/\s+Household$/i, "").trim() || "Household")} Overview</h2>
+                        </div>
+                        <div class="client-household-overview-shell">
+                          <div class="client-household-kpi-row">
+                            <div class="client-household-kpi">
+                              <span class="client-household-kpi-label">Members</span>
+                              <strong>${escapeHtml(String(Number.isFinite(membersCount) && membersCount > 0 ? membersCount : 0))}</strong>
+                            </div>
+                            <div class="client-household-kpi">
+                              <span class="client-household-kpi-label">Dependents</span>
+                              <strong>${escapeHtml(String(Number(record.dependentsCount || 0) || 0))}</strong>
+                            </div>
+                            <div class="client-household-kpi">
+                              <span class="client-household-kpi-label">Policies</span>
+                              <strong>${escapeHtml(String(Number.isFinite(policyCount) ? policyCount : 0))}</strong>
+                            </div>
+                          </div>
+
+                          <div class="client-household-primary-panel">
+                            <div class="client-household-primary-topline">Primary Client</div>
+                            <div class="client-household-earner-row">
+                              <span class="client-household-mini-avatar">${escapeHtml(getInitials(householdLeadName))}</span>
+                              <div class="client-household-primary-copy">
+                                <strong class="client-household-primary-name">${escapeHtml(householdLeadName)}</strong>
+                                <span>${escapeHtml(formatValue(primaryLinkedClient?.householdRole || "Primary Client"))}</span>
+                              </div>
+                              <span class="client-household-role-pill">Primary</span>
+                            </div>
+                          </div>
+
+                          <div class="client-household-contact-panel">
+                            <div class="client-household-subcard-title">Contact Details</div>
+                            <div class="client-household-contact-list">
+                              <div class="client-household-contact-row">
+                                <span>Phone</span>
+                                <strong>${escapeHtml(formatValue(primaryLinkedClient?.phoneNumber || record.phoneNumber))}</strong>
+                              </div>
+                              <div class="client-household-contact-row">
+                                <span>Email</span>
+                                <strong>${escapeHtml(formatValue(primaryLinkedClient?.emailAddress || record.emailAddress))}</strong>
+                              </div>
+                              <div class="client-household-contact-row">
+                                <span>Preferred Contact</span>
+                                <strong>${escapeHtml(formatValue(primaryLinkedClient?.preferredContactMethod || record.preferredContactMethod))}</strong>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="client-household-facts-panel">
+                            <div class="client-household-subcard-title">Household Facts</div>
+                            <div class="client-household-facts-grid">
+                              <div class="client-household-fact">
+                                <span>Marital Status</span>
+                                <strong>${escapeHtml(formatValue(primaryLinkedClient?.maritalStatus || record.maritalStatus))}</strong>
+                              </div>
+                              <div class="client-household-fact">
+                                <span>Children Ages</span>
+                                <strong>${escapeHtml(dependentAgesDisplay)}</strong>
+                              </div>
+                              <div class="client-household-fact">
+                                <span>Advisor</span>
+                                <strong>${escapeHtml(formatValue(record.advisorName))}</strong>
+                              </div>
+                              <div class="client-household-fact">
+                                <span>Created</span>
+                                <strong>${escapeHtml(createdDateDisplay)}</strong>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </section>
+
+                      <div class="client-household-right-rail">
+                        <div class="client-household-top-rail">
+                          <div class="client-household-members-column">
+                            <section class="client-detail-card client-household-panel client-household-members-panel">
+                              <div class="client-detail-card-header client-household-card-header-action">
+                                <h2>Household Members</h2>
+                                <button class="client-household-header-action" type="button">+ Add New</button>
+                              </div>
+                              <div class="client-household-member-list">
+                                ${householdMemberButtons}
+                              </div>
+                            </section>
+
+                            <section class="client-detail-card client-household-panel client-household-coverage-panel-wide">
+                              <div class="client-detail-card-header">
+                                <h2>Total Household Coverage</h2>
+                              </div>
+                            <div class="client-household-coverage-row">
+                              <div><strong>${escapeHtml(formatCoverageCardCurrency(record.coverageAmount))}</strong> Coverage</div>
+                              <div class="client-household-coverage-accent">${escapeHtml(formatCoverageCardCurrency(record.coverageGap))}</div>
+                            </div>
+                            <div class="client-household-progress-bar"><span style="width:${escapeHtml(String(adequacyPercent))}%"></span></div>
+                            <div class="client-household-progress-meta"><span>Coverage Adequacy</span><span>${escapeHtml(String(adequacyPercent))}%</span></div>
+                          </section>
+                          </div>
+
+                          <section class="client-detail-card client-household-panel client-household-actions-panel">
+                            <div class="client-detail-card-header">
+                              <h2>Quick Actions</h2>
+                            </div>
+                            <div class="client-household-action-list">
+                                <button class="client-household-quick-action" type="button">
+                                  <span class="client-household-quick-icon is-purple">⌂</span>
+                                  <span><strong>Add Dependent</strong></span>
+                                  <span aria-hidden="true">›</span>
+                                </button>
+                                <button class="client-household-quick-action" type="button">
+                                  <span class="client-household-quick-icon is-purple">+</span>
+                                  <span><strong>Add Spouse / Partner</strong></span>
+                                  <span aria-hidden="true">›</span>
+                                </button>
+                                <button class="client-household-quick-action" type="button">
+                                  <span class="client-household-quick-icon is-gold">↗</span>
+                                  <span><strong>Add Policy</strong></span>
+                                  <span aria-hidden="true">›</span>
+                                </button>
+                                <button class="client-household-quick-action" type="button">
+                                  <span class="client-household-quick-icon is-gold">▣</span>
+                                  <span><strong>Open PMI</strong></span>
+                                  <span aria-hidden="true">›</span>
+                                </button>
+                                <button class="client-household-quick-action" type="button">
+                                  <span class="client-household-quick-icon is-green">∿</span>
+                                  <span><strong>Open Analysis</strong></span>
+                                  <span aria-hidden="true">›</span>
+                                </button>
+                              </div>
+                          </section>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="client-profile-tab-panel client-profile-tab-panel-household" data-client-panel="household" hidden>
+                    <div class="client-profile-dashboard client-profile-dashboard-household">
+                      <div class="client-profile-dashboard-main">
+                        ${renderSummaryCard("Household Members", [
+                          { label: "Adults in Household", value: Number.isFinite(membersCount) && membersCount > 0 ? String(membersCount) : "0" },
+                          { label: "Marital Status", value: formatValue(record.maritalStatus) },
+                          { label: "Spouse / Partner Age", value: formatValue(record.spouseAge) },
+                          { label: "Preferred Contact", value: formatValue(record.preferredContactMethod) }
+                        ])}
+                        ${renderSummaryCard("Dependents", [
+                          { label: "Dependents / Children", value: formatValue(record.hasDependents) },
+                          { label: "Current Dependents Count", value: String(Number(record.dependentsCount || 0) || 0) },
+                          { label: "Current Children Ages", value: dependentAgesDisplay },
+                          { label: "Projected Dependents", value: formatValue(record.projectedDependents) },
+                          { label: "Projected Dependents Count", value: formatValue(record.projectedDependentsCount) }
+                        ])}
+                      </div>
+                      <div class="client-profile-dashboard-side">
+                        ${renderSummaryCard("Household Advisory", [
+                          { label: "Household Role", value: formatValue(record.householdRole) },
+                          { label: "Assignment Name", value: householdDisplay },
+                          { label: "Assignment Type", value: formatValue(record.profileGroupType) },
+                          { label: "Source", value: formatValue(record.source) },
+                          { label: "Priority", value: priority }
+                        ])}
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="client-profile-tab-panel client-profile-tab-panel-household" data-client-panel="planning" hidden>
+                    <div class="client-profile-dashboard client-profile-dashboard-household">
+                      ${renderAnalysisPreviewCard(record)}
+                      <div class="client-profile-dashboard-main">
+                        ${renderPmiEntryCard(record)}
+                        ${renderPreliminaryResultsCard(record)}
+                      </div>
+                      <div class="client-profile-dashboard-side">
+                        ${renderRiskAnalysisCard(record)}
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="client-profile-tab-panel client-profile-tab-panel-household" data-client-panel="notes" hidden>
+                    <div class="client-profile-dashboard client-profile-dashboard-household">
+                      <div class="client-profile-dashboard-main">
+                        ${renderSummaryCard("Household Notes", [
+                          { label: "Client Notes", value: formatValue(record.clientNotes) },
+                          { label: "Source", value: formatValue(record.source) },
+                          { label: "Last Review", value: formatDate(record.lastReview || record.lastUpdatedDate || record.dateProfileCreated) }
+                        ])}
+                        ${renderNotesWidget(record)}
+                      </div>
+                    </div>
+                  </section>
+                </div>
+
+                <div class="client-detail-stat-modal" data-stat-modal hidden>
+                  <div class="client-detail-stat-modal-backdrop" data-stat-modal-close></div>
+                  <div class="client-detail-stat-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-detail-stat-modal-title">
+                    <h2 id="client-detail-stat-modal-title" data-stat-modal-title>Edit Value</h2>
+                    <label class="client-detail-stat-editor-label client-detail-stat-modal-label">
+                      <span data-stat-modal-label>Edit Value</span>
+                      <input
+                        class="client-detail-stat-editor-input"
+                        type="text"
+                        inputmode="decimal"
+                        value="0"
+                        data-stat-modal-input
+                      >
+                    </label>
+                    <div class="client-detail-stat-editor-actions">
+                      <button class="client-detail-stat-editor-cancel" type="button" data-stat-modal-cancel>Cancel</button>
+                      <button class="client-detail-stat-editor-save" type="button" data-stat-modal-save>Save</button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          `;
+        }
 
         return `
           <div class="client-profile-shell">
