@@ -6674,6 +6674,20 @@ body.lens-start-page .lens-intake-sidecard {
   background: rgba(160, 174, 192, 0.95);
 }
 
+.form-subgroup-label {
+  margin: 0;
+  padding-top: 0.15rem;
+}
+
+.form-subgroup-label span {
+  display: block;
+  color: #3b4f6a;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .profile-creation-form .income-calculation-grid.income-calculation-grid-single .primary-net-income-group,
 .profile-creation-form .income-calculation-grid.income-calculation-grid-joint .primary-net-income-group {
   grid-column: 1 / -1;

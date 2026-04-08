@@ -298,7 +298,7 @@
 
           <section class="profile-form-section">
             <div class="profile-form-section-heading">
-              <h2>Housing Costs, Debts and Liabilities</h2>
+              <h2>Housing Costs</h2>
             </div>
             <div class="form-grid">
               <div class="field-group">
@@ -396,7 +396,7 @@
                     <option value="3,500+ sq ft">3,500+</option>
                   </select>
                   <div class="profile-inline-unit-field">
-                    <input id="home-age-years" class="profile-small-number-field" name="homeAgeYears" type="number" min="0" max="250" step="1">
+                    <input id="home-age-years" class="profile-small-number-field" name="homeAgeYears" type="text" inputmode="numeric" placeholder="Years">
                     <span class="profile-inline-unit">Years</span>
                   </div>
                 </div>
@@ -415,48 +415,154 @@
                   <button class="net-income-action" type="button" data-mortgage-payment-action="primary">Edit</button>
                 </div>
               </div>
-              <div class="field-group full-width section-divider-field" aria-hidden="true">
-                <span class="section-divider-line"></span>
-              </div>
+            </div>
+          </section>
+
+          <section class="profile-form-section">
+            <div class="profile-form-section-heading">
+              <h2>Debts and Liabilities</h2>
+            </div>
+            <div class="form-grid">
               <div class="field-group">
-                <label for="other-real-estate-loans">Other Real Estate Loans</label>
+                <label for="other-real-estate-loans">HELOC / Second Mortgage / Other Property Loans</label>
                 <div class="profile-currency-field">
                   <input id="other-real-estate-loans" name="otherRealEstateLoans" type="number" min="0" step="1000">
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
               <div class="field-group">
-                <label for="auto-loans">Auto Loans</label>
+                <label for="auto-loans">Remaining Auto Loan Balances</label>
                 <div class="profile-currency-field">
                   <input id="auto-loans" name="autoLoans" type="number" min="0" step="1000">
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
               <div class="field-group">
-                <label for="credit-card-debt">Credit Card Debt</label>
+                <label for="credit-card-debt">Revolving Credit Card Debt</label>
                 <div class="profile-currency-field">
                   <input id="credit-card-debt" name="creditCardDebt" type="number" min="0" step="100">
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
               <div class="field-group">
-                <label for="student-loans">Student Loans</label>
+                <label for="student-loans">Remaining Student Loan Balances</label>
                 <div class="profile-currency-field">
                   <input id="student-loans" name="studentLoans" type="number" min="0" step="1000">
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
               <div class="field-group">
-                <label for="personal-loans">Personal Loans</label>
+                <label for="personal-loans">Remaining Personal Loan Balances</label>
                 <div class="profile-currency-field">
                   <input id="personal-loans" name="personalLoans" type="number" min="0" step="1000">
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
               <div class="field-group">
-                <label for="business-debt">Business Debt</label>
+                <label for="tax-liabilities">Tax Liabilities / IRS or State Tax Debt</label>
+                <div class="profile-currency-field">
+                  <input id="tax-liabilities" name="taxLiabilities" type="number" min="0" step="1000">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="business-debt">Business Loan / Credit Obligations</label>
                 <div class="profile-currency-field">
                   <input id="business-debt" name="businessDebt" type="number" min="0" step="1000">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="other-loan-obligations">Other Loan Obligations</label>
+                <div class="profile-currency-field">
+                  <input id="other-loan-obligations" name="otherLoanObligations" type="number" min="0" step="1000">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="profile-form-section">
+            <div class="profile-form-section-heading">
+              <h2>Expenses and Lifestyle</h2>
+            </div>
+            <div class="form-grid">
+              <div class="field-group full-width form-subgroup-label">
+                <span>Household Spending</span>
+              </div>
+              <div class="field-group">
+                <label for="insurance-cost">Non-Housing Monthly Insurance</label>
+                <div class="profile-currency-field">
+                  <input id="insurance-cost" name="insuranceCost" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="healthcare-out-of-pocket-cost">Healthcare / Out-of-Pocket Medical</label>
+                <div class="profile-currency-field">
+                  <input id="healthcare-out-of-pocket-cost" name="healthcareOutOfPocketCost" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="food-cost">Monthly Food / Grocery Cost</label>
+                <div class="profile-currency-field">
+                  <input id="food-cost" name="foodCost" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="transportation-cost">Monthly Transportation Cost</label>
+                <div class="profile-currency-field">
+                  <input id="transportation-cost" name="transportationCost" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="childcare-dependent-care-cost">Childcare / Dependent Care</label>
+                <div class="profile-currency-field">
+                  <input id="childcare-dependent-care-cost" name="childcareDependentCareCost" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="phone-internet-cost">Phone / Internet</label>
+                <div class="profile-currency-field">
+                  <input id="phone-internet-cost" name="phoneInternetCost" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="household-supplies-cost">Household Essentials / Supplies</label>
+                <div class="profile-currency-field">
+                  <input id="household-supplies-cost" name="householdSuppliesCost" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="other-household-expenses">Other Household Expenses</label>
+                <div class="profile-currency-field">
+                  <input id="other-household-expenses" name="otherHouseholdExpenses" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group full-width section-divider-field" aria-hidden="true">
+                <span class="section-divider-line"></span>
+              </div>
+              <div class="field-group full-width form-subgroup-label">
+                <span>Personal Spending That May Disappear</span>
+              </div>
+              <div class="field-group">
+                <label for="travel-discretionary-cost">Entertainment / Travel</label>
+                <div class="profile-currency-field">
+                  <input id="travel-discretionary-cost" name="travelDiscretionaryCost" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="subscriptions-cost">Recurring Personal Spending</label>
+                <div class="profile-currency-field">
+                  <input id="subscriptions-cost" name="subscriptionsCost" type="number" min="0" step="50">
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
@@ -855,56 +961,6 @@
 
           <section class="profile-form-section">
             <div class="profile-form-section-heading">
-              <h2>Expenses and Lifestyle</h2>
-            </div>
-            <div class="form-grid">
-              <div class="field-group">
-                <label for="food-cost">Food</label>
-                <div class="profile-currency-field">
-                  <input id="food-cost" name="foodCost" type="number" min="0" step="50">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="insurance-cost">Insurance</label>
-                <div class="profile-currency-field">
-                  <input id="insurance-cost" name="insuranceCost" type="number" min="0" step="50">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="transportation-cost">Transportation</label>
-                <div class="profile-currency-field">
-                  <input id="transportation-cost" name="transportationCost" type="number" min="0" step="50">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="travel-discretionary-cost">Travel / Discretionary</label>
-                <div class="profile-currency-field">
-                  <input id="travel-discretionary-cost" name="travelDiscretionaryCost" type="number" min="0" step="50">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="subscriptions-cost">Subscriptions / Non-Essentials</label>
-                <div class="profile-currency-field">
-                  <input id="subscriptions-cost" name="subscriptionsCost" type="number" min="0" step="50">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="current-total-monthly-spending">Current Total Monthly Spending</label>
-                <div class="profile-currency-field">
-                  <input id="current-total-monthly-spending" name="currentTotalMonthlySpending" type="number" min="0" step="50">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section class="profile-form-section">
-            <div class="profile-form-section-heading">
               <h2>Survivorship Adjustments</h2>
             </div>
             <div class="form-grid">
@@ -1179,18 +1235,23 @@
         "monthly-housing-cost": "All-in monthly rent for renter scenarios, including pet fees or technology fees. Utilities are entered separately.",
         "utilities-cost": "Average monthly utilities across all housing statuses.",
         "calculated-monthly-mortgage-payment": "Auto-calculated monthly mortgage payment from balance, remaining term, and interest rate. You can edit it to override the calculated amount.",
-        "food-cost": "Average monthly food spending.",
-        "insurance-cost": "Monthly insurance costs such as health, auto, and other recurring coverage.",
+        "food-cost": "Average monthly grocery and household food spending.",
+        "insurance-cost": "Monthly non-housing insurance costs such as health, auto, umbrella, and other recurring coverage.",
         "transportation-cost": "Monthly transportation spending, including fuel, maintenance, transit, and vehicle costs.",
-        "travel-discretionary-cost": "Optional spending such as travel, entertainment, and discretionary purchases.",
-        "subscriptions-cost": "Monthly nonessential recurring subscriptions.",
-        "current-total-monthly-spending": "Current combined monthly household spending.",
+        "childcare-dependent-care-cost": "Monthly childcare, babysitting, nanny, after-school care, elder care, or other dependent-care costs that support the household.",
+        "household-supplies-cost": "Monthly household essentials spending such as toiletries, cleaning supplies, paper goods, diapers, and other routine home supplies.",
+        "phone-internet-cost": "Monthly phone, wireless, and home internet costs used by the household.",
+        "healthcare-out-of-pocket-cost": "Monthly out-of-pocket healthcare spending, such as copays, prescriptions, therapies, and recurring medical costs not already captured elsewhere.",
+        "other-household-expenses": "Other recurring household costs that do not fit the listed categories but would likely continue after death.",
+        "travel-discretionary-cost": "Use this for optional leisure experiences such as vacations, concerts, sporting events, nights out, recreation, and other entertainment or travel spending. Do not include routine recurring personal purchases here.",
+        "subscriptions-cost": "Use this for recurring personal discretionary costs such as streaming subscriptions, salon or grooming costs, clothing, hobbies, memberships, and other routine nonessential spending. Do not include travel, vacations, or entertainment outings here.",
+        "current-total-monthly-spending": "Auto-calculated total for the Expenses and Lifestyle section. You can edit it if you want to override the estimate.",
         "mortgage-balance": "Current unpaid mortgage balance.",
         "mortgage-term-remaining-years": "Remaining years on the mortgage term.",
         "mortgage-term-remaining-months": "Additional remaining months on the mortgage term.",
         "mortgage-interest-rate": "Mortgage interest rate, if used in the analysis.",
         "property-tax": "Average property tax obligation for homeowner scenarios.",
-        "other-real-estate-loans": "Loans secured by other real estate.",
+        "other-real-estate-loans": "Include HELOC balances, second mortgages, and debt tied to other owned properties that should still be considered in the household need analysis.",
         "auto-loans": "Outstanding auto loan balances.",
         "credit-card-debt": "Revolving credit card balances.",
         "student-loans": "Outstanding student loan balances.",
@@ -1536,6 +1597,8 @@
       const foodCostField = form.elements.namedItem("foodCost");
       const insuranceCostField = form.elements.namedItem("insuranceCost");
       const transportationCostField = form.elements.namedItem("transportationCost");
+      const travelDiscretionaryCostField = form.elements.namedItem("travelDiscretionaryCost");
+      const subscriptionsCostField = form.elements.namedItem("subscriptionsCost");
       const incomeCalculationGrid = form.querySelector(".income-calculation-grid");
       const derivedDraftFieldNames = new Set([
         "linkedMaritalStatusDisplay",
@@ -2906,6 +2969,40 @@
         return "age41Plus";
       }
 
+      function normalizeHomeAgeYearsValue() {
+        if (!homeAgeYearsField || homeAgeYearsField instanceof RadioNodeList) {
+          return 0;
+        }
+
+        const rawValue = String(homeAgeYearsField.value || "").trim();
+        if (!rawValue) {
+          homeAgeYearsField.value = "";
+          return 0;
+        }
+
+        const numericValue = Math.max(0, Math.round(parseCurrencyLikeNumber(rawValue)));
+        if (numericValue > 41) {
+          homeAgeYearsField.value = "42+";
+          return 42;
+        }
+
+        homeAgeYearsField.value = String(numericValue);
+        return numericValue;
+      }
+
+      function parseHomeAgeYearsValue() {
+        if (!homeAgeYearsField || homeAgeYearsField instanceof RadioNodeList) {
+          return 0;
+        }
+
+        const rawValue = String(homeAgeYearsField.value || "").trim();
+        if (!rawValue) {
+          return 0;
+        }
+
+        return Math.max(0, Math.round(parseCurrencyLikeNumber(rawValue)));
+      }
+
       function getRecommendedMaintenanceAmount() {
         const housingStatusField = form.elements.namedItem("housingStatus");
         const selectedHousingStatus = housingStatusField && !(housingStatusField instanceof RadioNodeList)
@@ -2919,11 +3016,7 @@
         const squareFootageLabel = homeSquareFootageField && !(homeSquareFootageField instanceof RadioNodeList)
           ? String(homeSquareFootageField.value || "").trim()
           : "";
-        const homeAgeYears = Math.max(0, Math.round(parseCurrencyLikeNumber(homeAgeYearsField?.value)));
-
-        if (homeAgeYearsField && !(homeAgeYearsField instanceof RadioNodeList)) {
-          homeAgeYearsField.value = homeAgeYearsField.value === "" && !homeAgeYears ? "" : String(homeAgeYears);
-        }
+        const homeAgeYears = parseHomeAgeYearsValue();
 
         if (!squareFootageLabel) {
           return null;
@@ -3273,7 +3366,9 @@
             relocationReserveField.dataset.manualEdited = "true";
             relocationReserveField.closest(".profile-currency-field")?.classList.remove("is-recommended");
           }
-          syncRelocationReserveField();
+          if (field !== homeAgeYearsField) {
+            syncRelocationReserveField();
+          }
           syncMaintenanceRecommendationField();
           syncMonthlyMortgagePaymentField();
         });
@@ -3282,11 +3377,17 @@
             relocationReserveField.dataset.manualEdited = "true";
             relocationReserveField.closest(".profile-currency-field")?.classList.remove("is-recommended");
           }
+          if (field === homeAgeYearsField) {
+            normalizeHomeAgeYearsValue();
+          }
           syncRelocationReserveField();
           syncMaintenanceRecommendationField();
           syncMonthlyMortgagePaymentField();
         });
         field.addEventListener("blur", () => {
+          if (field === homeAgeYearsField) {
+            normalizeHomeAgeYearsValue();
+          }
           syncRelocationReserveField();
           syncMaintenanceRecommendationField();
           syncMonthlyMortgagePaymentField();
@@ -3298,15 +3399,29 @@
         foodCostField,
         insuranceCostField,
         transportationCostField,
+        travelDiscretionaryCostField,
+        subscriptionsCostField,
         expenseReductionAtDeathField
       ].forEach((field) => {
         if (!field || field instanceof RadioNodeList) {
           return;
         }
 
-        field.addEventListener("input", syncEstimatedHouseholdIncomeUse);
-        field.addEventListener("change", syncEstimatedHouseholdIncomeUse);
-        field.addEventListener("blur", syncEstimatedHouseholdIncomeUse);
+        field.addEventListener("input", () => {
+          syncEstimatedHouseholdIncomeUse();
+          if (field !== expenseReductionAtDeathField && field !== utilitiesCostField) {
+          }
+        });
+        field.addEventListener("change", () => {
+          syncEstimatedHouseholdIncomeUse();
+          if (field !== expenseReductionAtDeathField && field !== utilitiesCostField) {
+          }
+        });
+        field.addEventListener("blur", () => {
+          syncEstimatedHouseholdIncomeUse();
+          if (field !== expenseReductionAtDeathField && field !== utilitiesCostField) {
+          }
+        });
       });
 
       [
