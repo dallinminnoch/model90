@@ -99,6 +99,14 @@
               <button class="profile-interest-button is-active" type="button" data-interest-button="family">Family Interest</button>
               <button class="profile-interest-button" type="button" data-interest-button="business">Business Interest</button>
             </div>
+            <div class="profile-interest-variants" aria-label="Interest variation">
+              <div class="profile-interest-variant is-active" data-interest-variant="family" aria-label="Family Interest active">
+                <span class="profile-interest-variant-dot" aria-hidden="true"></span>
+              </div>
+              <div class="profile-interest-variant" data-interest-variant="business" aria-label="Business Interest inactive">
+                <span class="profile-interest-variant-dot" aria-hidden="true"></span>
+              </div>
+            </div>
             <div class="form-grid">
               <div class="profile-household-top-row full-width">
                 <div class="field-group profile-household-role-field">
@@ -111,7 +119,10 @@
                   <option value="Key Employee" data-business-only>Key Employee</option>
                 </select>
                 </div>
-                <div class="field-group">
+              </div>
+              <div class="profile-interest-panel full-width is-active" data-interest-panel="family">
+                <div class="profile-household-top-row">
+                  <div class="field-group">
                 <label for="marital-status">Marital Status <span class="profile-required-star" aria-hidden="true">*</span></label>
                 <select id="marital-status" name="maritalStatus" required>
                   <option value="Single">Single</option>
@@ -122,13 +133,48 @@
                   <option value="Separated">Separated</option>
                 </select>
                 </div>
-                <div class="field-group">
+                  </div>
+                  <div class="field-group">
                   <label for="spouse-date-of-birth">Spouse/Partner Date of Birth</label>
                   <input id="spouse-date-of-birth" name="spouseDateOfBirth" type="date" data-spouse-date-of-birth>
-                </div>
-                <div class="field-group profile-compact-field-group">
+                  </div>
+                  <div class="field-group profile-compact-field-group">
                   <label for="spouse-age">Age</label>
                   <input id="spouse-age" class="profile-age-field" name="spouseAge" type="number" readonly data-spouse-age-field>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-interest-panel full-width" data-interest-panel="business">
+                <div class="profile-business-row">
+                  <div class="field-group">
+                    <label for="business-type">Business Type</label>
+                    <select id="business-type" name="businessType" data-business-field>
+                      <option value="Operating Company">Operating Company</option>
+                      <option value="Professional Practice">Professional Practice</option>
+                      <option value="Partnership">Partnership</option>
+                      <option value="Closely Held Family Business">Closely Held Family Business</option>
+                    </select>
+                  </div>
+                  <div class="field-group">
+                    <label for="business-planning-focus">Business Planning Focus</label>
+                    <select id="business-planning-focus" name="businessPlanningFocus" data-business-field>
+                      <option value="Key Person Coverage">Key Person Coverage</option>
+                      <option value="Buy-Sell Planning">Buy-Sell Planning</option>
+                      <option value="Business Continuity">Business Continuity</option>
+                      <option value="Executive Retention">Executive Retention</option>
+                    </select>
+                  </div>
+                  <div class="field-group">
+                    <label for="ownership-percent">Ownership %</label>
+                    <input id="ownership-percent" class="profile-yes-no-field" name="ownershipPercent" type="number" min="0" max="100" step="1" data-business-field>
+                  </div>
+                  <div class="field-group">
+                    <label for="buy-sell-relevant">Buy-Sell / Key Person Relevant?</label>
+                    <select id="buy-sell-relevant" class="profile-yes-no-field" name="businessCoverageRelevance" data-business-field>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
                 </div>
               </div>
               <div class="field-group">
@@ -160,40 +206,14 @@
                         <option value="Yes">Yes</option>
                       </select>
                     </div>
-                    <div class="field-group">
-                      <label for="dependents-count">Amount of Dependents / Children</label>
-                      <input id="dependents-count" class="profile-yes-no-field" name="dependentsCount" type="number" min="0" step="1">
-                    </div>
-                    <div class="field-group">
-                      <label for="youngest-dependent-age">Age of Youngest Dependent / Child</label>
-                      <div class="profile-currency-field">
-                        <input id="youngest-dependent-age" class="profile-yes-no-field" name="youngestDependentAge" type="number" min="0" step="1">
-                        <span class="profile-currency-suffix">Years</span>
+                    <div class="field-group full-width">
+                      <label>Current Children / Dependents</label>
+                      <input id="dependents-count" name="dependentsCount" type="hidden" value="0">
+                      <input id="dependent-ages" name="dependentAges" type="hidden" value="">
+                      <div class="profile-dependent-builder">
+                        <div id="dependent-list" class="profile-dependent-list"></div>
+                        <button id="add-dependent-button" class="button tertiary-button profile-dependent-add-button" type="button">Add Dependent</button>
                       </div>
-                    </div>
-                    <div class="field-group">
-                      <label for="education-funding-per-dependent">Desired Education Funding (Per Dependent)</label>
-                      <div class="profile-currency-field">
-                        <input id="education-funding-per-dependent" class="profile-education-funding-field" name="educationFundingPerDependent" type="number" min="0" step="5000" list="education-funding-options">
-                        <span class="profile-currency-suffix">USD</span>
-                      </div>
-                      <datalist id="education-funding-options">
-                        <option value="5000"></option>
-                        <option value="10000"></option>
-                        <option value="15000"></option>
-                        <option value="20000"></option>
-                        <option value="25000"></option>
-                        <option value="30000"></option>
-                        <option value="35000"></option>
-                        <option value="40000"></option>
-                        <option value="45000"></option>
-                        <option value="50000"></option>
-                        <option value="55000"></option>
-                        <option value="60000"></option>
-                        <option value="65000"></option>
-                        <option value="70000"></option>
-                        <option value="75000"></option>
-                      </datalist>
                     </div>
                   </div>
                   <div class="profile-dependent-secondary-row full-width">
@@ -207,20 +227,6 @@
                     <div class="field-group">
                       <label for="projected-dependents-count">Amount of Desired Dependents / Children</label>
                       <input id="projected-dependents-count" class="profile-yes-no-field" name="projectedDependentsCount" type="number" min="0" step="1">
-                    </div>
-                    <div class="field-group">
-                      <label for="same-education-funding">Same Education Funding?</label>
-                      <select id="same-education-funding" class="profile-yes-no-field" name="sameEducationFunding">
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
-                      </select>
-                    </div>
-                    <div class="field-group">
-                      <label for="projected-education-funding-per-dependent">Desired Education Funding (Per Dependent)</label>
-                      <div class="profile-currency-field">
-                        <input id="projected-education-funding-per-dependent" class="profile-education-funding-field" name="projectedEducationFundingPerDependent" type="number" min="0" step="5000" list="education-funding-options">
-                        <span class="profile-currency-suffix">USD</span>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -407,18 +413,20 @@
       const employmentDetailFields = document.querySelectorAll("[data-employment-detail-field]");
       const hasDependentsField = document.getElementById("has-dependents");
       const dependentsCountField = document.getElementById("dependents-count");
-      const youngestDependentAgeField = document.getElementById("youngest-dependent-age");
-      const educationFundingPerDependentField = document.getElementById("education-funding-per-dependent");
+      const dependentAgesField = document.getElementById("dependent-ages");
+      const dependentList = document.getElementById("dependent-list");
+      const addDependentButton = document.getElementById("add-dependent-button");
       const projectedDependentsField = document.getElementById("projected-dependents");
       const projectedDependentsCountField = document.getElementById("projected-dependents-count");
-      const sameEducationFundingField = document.getElementById("same-education-funding");
-      const projectedEducationFundingPerDependentField = document.getElementById("projected-education-funding-per-dependent");
       const profilePriorityDropdown = document.querySelector("[data-profile-priority-dropdown]");
       const profilePriorityTrigger = document.querySelector("[data-profile-priority-trigger]");
       const profilePriorityInput = document.querySelector("[data-profile-priority-input]");
       const profilePriorityOptions = document.querySelectorAll("[data-profile-priority-option]");
       const acquisitionSourceField = document.querySelector("[data-acquisition-source]");
       const acquisitionSourceOtherField = document.querySelector("[data-acquisition-source-other]");
+      const interestVariants = document.querySelectorAll("[data-interest-variant]");
+      const interestPanels = document.querySelectorAll("[data-interest-panel]");
+      const businessFields = document.querySelectorAll("[data-business-field]");
       const familyAssignmentOptions = document.querySelectorAll("[data-family-assignment]");
       const businessAssignmentOptions = document.querySelectorAll("[data-business-assignment]");
       const searchHouseholdsButton = document.querySelector("[data-search-households]");
@@ -526,8 +534,30 @@
         interestButtons.forEach(function (button) {
           button.classList.toggle("is-active", button.dataset.interestButton === nextValue);
         });
+        interestVariants.forEach(function (variant) {
+          variant.classList.toggle("is-active", variant.dataset.interestVariant === nextValue);
+        });
+        interestPanels.forEach(function (panel) {
+          const isActive = panel.dataset.interestPanel === nextValue;
+          panel.classList.toggle("is-active", isActive);
+          panel.classList.toggle("is-hidden", !isActive);
+        });
+        businessFields.forEach(function (field) {
+          const disableField = nextValue !== "business";
+          field.disabled = disableField;
+          field.closest(".field-group")?.classList.toggle("is-disabled", disableField);
+          if (disableField) {
+            if (field.tagName === "SELECT") {
+              field.selectedIndex = 0;
+            } else {
+              field.value = "";
+            }
+          }
+        });
         syncHouseholdRoleOptions(nextValue);
         syncAssignmentModeOptions(nextValue);
+        syncDependentFieldsetState();
+        syncSpouseFields();
       }
 
       function syncHouseholdRoleOptions(interestType) {
@@ -635,12 +665,9 @@
           [
             hasDependentsField,
             dependentsCountField,
-            youngestDependentAgeField,
-            educationFundingPerDependentField,
+            dependentAgesField,
             projectedDependentsField,
-            projectedDependentsCountField,
-            sameEducationFundingField,
-            projectedEducationFundingPerDependentField
+            projectedDependentsCountField
           ].forEach(function (field) {
             if (!field) {
               return;
@@ -652,7 +679,12 @@
               field.value = "";
             }
           });
+          if (dependentList) {
+            dependentList.innerHTML = "";
+          }
         }
+
+        syncDependentBuilderDisabledState();
       }
 
       function syncEmploymentDetailFields() {
@@ -671,23 +703,142 @@
         });
       }
 
+      function getDependentAgeValues() {
+        if (!dependentList) {
+          return [];
+        }
+
+        return Array.from(dependentList.querySelectorAll("[data-dependent-age-input]"))
+          .map(function (input) {
+            return String(input.value || "").trim();
+          });
+      }
+
+      function syncDependentHiddenFields() {
+        if (dependentsCountField) {
+          dependentsCountField.value = String(getDependentAgeValues().length);
+        }
+        if (dependentAgesField) {
+          dependentAgesField.value = getDependentAgeValues().join(", ");
+        }
+      }
+
+      function syncDependentEntryLabels() {
+        if (!dependentList) {
+          return;
+        }
+
+        Array.from(dependentList.querySelectorAll("[data-dependent-entry]")).forEach(function (entry, index) {
+          const label = entry.querySelector("[data-dependent-entry-label]");
+          if (label) {
+            label.textContent = `Dependent ${index + 1}`;
+          }
+        });
+      }
+
+      function syncDependentBuilderDisabledState() {
+        const disabled = dependentFields?.disabled || String(hasDependentsField?.value || "No") !== "Yes";
+        if (addDependentButton) {
+          addDependentButton.disabled = disabled;
+        }
+        if (!dependentList) {
+          return;
+        }
+
+        dependentList.querySelectorAll("input, button").forEach(function (element) {
+          if (element === addDependentButton) {
+            return;
+          }
+          element.disabled = disabled;
+        });
+      }
+
+      function removeDependentEntry(entry) {
+        entry?.remove();
+        syncDependentEntryLabels();
+        syncDependentHiddenFields();
+        syncDependentBuilderDisabledState();
+      }
+
+      function createDependentEntry(ageValue) {
+        if (!dependentList) {
+          return;
+        }
+
+        const entry = document.createElement("div");
+        entry.className = "profile-dependent-entry";
+        entry.setAttribute("data-dependent-entry", "");
+        entry.innerHTML = `
+          <div class="profile-dependent-entry-header">
+            <span class="profile-dependent-entry-label" data-dependent-entry-label></span>
+            <button class="profile-dependent-entry-remove" type="button">Remove</button>
+          </div>
+          <div class="profile-dependent-entry-body">
+            <label>Age</label>
+            <div class="profile-currency-field">
+              <input class="profile-yes-no-field" data-dependent-age-input type="number" min="0" step="1" value="">
+              <span class="profile-currency-suffix">Years</span>
+            </div>
+          </div>
+        `;
+
+        const input = entry.querySelector("[data-dependent-age-input]");
+        const removeButton = entry.querySelector(".profile-dependent-entry-remove");
+        if (input) {
+          input.value = String(ageValue || "");
+          input.addEventListener("input", syncDependentHiddenFields);
+          input.addEventListener("change", syncDependentHiddenFields);
+        }
+        removeButton?.addEventListener("click", function () {
+          removeDependentEntry(entry);
+        });
+
+        dependentList.appendChild(entry);
+        syncDependentEntryLabels();
+        syncDependentHiddenFields();
+        syncDependentBuilderDisabledState();
+      }
+
+      function rebuildDependentEntriesFromStoredValue() {
+        if (!dependentList) {
+          return;
+        }
+
+        dependentList.innerHTML = "";
+        const storedAges = String(dependentAgesField?.value || "")
+          .split(",")
+          .map(function (value) {
+            return String(value || "").trim();
+          })
+          .filter(Boolean);
+
+        if (storedAges.length) {
+          storedAges.forEach(createDependentEntry);
+          return;
+        }
+
+        const fallbackCount = Number(dependentsCountField?.value || 0);
+        for (let index = 0; index < fallbackCount; index += 1) {
+          createDependentEntry("");
+        }
+      }
+
       function syncDependentsCountField() {
-        if (!dependentsCountField && !youngestDependentAgeField && !educationFundingPerDependentField) {
+        if (!dependentsCountField && !dependentAgesField) {
           return;
         }
 
         const disableCount = String(hasDependentsField?.value || "No") !== "Yes";
-        [dependentsCountField, youngestDependentAgeField, educationFundingPerDependentField].forEach(function (field) {
-          if (!field) {
-            return;
-          }
-
-          field.disabled = disableCount;
-          field.closest(".field-group")?.classList.toggle("is-disabled", disableCount);
-          if (disableCount) {
-            field.value = "";
-          }
+        [dependentsCountField, dependentAgesField].forEach(function (field) {
+          field && (field.disabled = disableCount);
         });
+
+        addDependentButton?.closest(".field-group")?.classList.toggle("is-disabled", disableCount);
+        if (disableCount && dependentList) {
+          dependentList.innerHTML = "";
+          syncDependentHiddenFields();
+        }
+        syncDependentBuilderDisabledState();
       }
 
       function setProjectedFieldDisabled(field, disabled, preserveValue) {
@@ -707,38 +858,14 @@
       }
 
       function syncProjectedDependentsFields() {
-        const hasCurrentDependents = String(hasDependentsField?.value || "No") === "Yes";
         const hasProjectedDependents = String(projectedDependentsField?.value || "No") === "Yes";
-        const projectedCount = Number(projectedDependentsCountField?.value || 0);
-        const hasProjectedCount = projectedCount > 0;
-        const sameEducationFunding = String(sameEducationFundingField?.value || "Yes") === "Yes";
 
         if (!hasProjectedDependents) {
           setProjectedFieldDisabled(projectedDependentsCountField, true);
-          setProjectedFieldDisabled(sameEducationFundingField, true);
-          setProjectedFieldDisabled(projectedEducationFundingPerDependentField, true);
           return;
         }
 
         setProjectedFieldDisabled(projectedDependentsCountField, false);
-
-        if (!hasProjectedCount) {
-          setProjectedFieldDisabled(sameEducationFundingField, true);
-          setProjectedFieldDisabled(projectedEducationFundingPerDependentField, true);
-          return;
-        }
-
-        if (!hasCurrentDependents) {
-          setProjectedFieldDisabled(sameEducationFundingField, true);
-          setProjectedFieldDisabled(projectedEducationFundingPerDependentField, false);
-          return;
-        }
-
-        setProjectedFieldDisabled(sameEducationFundingField, false);
-        if (sameEducationFunding && projectedEducationFundingPerDependentField && educationFundingPerDependentField) {
-          projectedEducationFundingPerDependentField.value = educationFundingPerDependentField.value;
-        }
-        setProjectedFieldDisabled(projectedEducationFundingPerDependentField, sameEducationFunding, sameEducationFunding);
       }
 
       function syncAcquisitionSourceField() {
@@ -841,9 +968,9 @@
       projectedDependentsField?.addEventListener("change", syncProjectedDependentsFields);
       projectedDependentsCountField?.addEventListener("input", syncProjectedDependentsFields);
       projectedDependentsCountField?.addEventListener("change", syncProjectedDependentsFields);
-      sameEducationFundingField?.addEventListener("change", syncProjectedDependentsFields);
-      educationFundingPerDependentField?.addEventListener("input", syncProjectedDependentsFields);
-      educationFundingPerDependentField?.addEventListener("change", syncProjectedDependentsFields);
+      addDependentButton?.addEventListener("click", function () {
+        createDependentEntry("");
+      });
       acquisitionSourceField?.addEventListener("change", syncAcquisitionSourceField);
       profilePriorityTrigger?.addEventListener("click", function () {
         profilePriorityDropdown?.classList.toggle("is-open");
@@ -872,6 +999,7 @@
       syncAssignmentNameField();
       syncDependentFieldsetState();
       syncEmploymentDetailFields();
+      rebuildDependentEntriesFromStoredValue();
       syncDependentsCountField();
       syncProjectedDependentsFields();
       syncAcquisitionSourceField();
@@ -1122,11 +1250,8 @@
           hasDependents: String(formData.get("hasDependents") || "No"),
           projectedDependents: String(formData.get("projectedDependents") || "No"),
           projectedDependentsCount: Number(formData.get("projectedDependentsCount") || 0),
-          sameEducationFunding: String(formData.get("sameEducationFunding") || "Yes"),
-          projectedEducationFundingPerDependent: Number(formData.get("projectedEducationFundingPerDependent") || 0),
           dependentsCount: Number(formData.get("dependentsCount") || 0),
-          youngestDependentAge: Number(formData.get("youngestDependentAge") || 0),
-          educationFundingPerDependent: Number(formData.get("educationFundingPerDependent") || 0),
+          dependentAges: String(formData.get("dependentAges") || "").trim(),
           emailAddress: String(formData.get("emailAddress") || "").trim(),
           phoneNumber: String(formData.get("phoneNumber") || "").trim(),
           preferredContactMethod: String(formData.get("preferredContactMethod") || ""),

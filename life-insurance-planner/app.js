@@ -50,7 +50,7 @@
       displayName: "Carter Household",
       lastName: "Carter",
       summary: "Household protection review",
-      caseRef: "CL/80421",
+      caseRef: "HH/80421",
       lastReview: "2026-03-10",
       insured: "2",
       source: "Referral",
@@ -114,7 +114,7 @@
       displayName: "Mitchell Household",
       lastName: "Mitchell",
       summary: "Coverage review before renewal",
-      caseRef: "CL/80501",
+      caseRef: "HH/80501",
       lastReview: "2026-03-02",
       insured: "2",
       source: "Client Referral",
@@ -1454,6 +1454,11 @@
     const paginationHost = document.getElementById("client-pagination-numbers");
     const prevPageButton = document.getElementById("client-prev-page");
     const nextPageButton = document.getElementById("client-next-page");
+    const nameHeading = document.getElementById("client-table-heading-name");
+    const insuredHeading = document.getElementById("client-table-heading-insured");
+    const coverageHeading = document.getElementById("client-table-heading-coverage");
+    const sourceHeading = document.getElementById("client-table-heading-source");
+    const statusHeading = document.getElementById("client-table-heading-status");
     const addClientModal = document.querySelector("[data-add-client-modal]");
     const addClientModalCloseTargets = document.querySelectorAll("[data-add-client-modal-close]");
 
@@ -1512,6 +1517,28 @@
           counter.textContent = String(counts[button.dataset.clientStatus] || 0);
         }
       });
+    }
+
+    function syncTableHeadings() {
+      if (nameHeading) {
+        nameHeading.textContent = activeView === "households" ? "Household" : "Client";
+      }
+      if (insuredHeading) {
+        insuredHeading.textContent = activeView === "households" ? "Members" : "Insured";
+        insuredHeading.classList.toggle("is-households-view", activeView === "households");
+      }
+      if (coverageHeading) {
+        coverageHeading.textContent = activeView === "households" ? "Coverage Gap" : "Coverage Amount";
+        coverageHeading.classList.toggle("is-households-view", activeView === "households");
+      }
+      if (sourceHeading) {
+        sourceHeading.textContent = activeView === "households" ? "Dependents" : "Source";
+        sourceHeading.classList.toggle("is-households-view", activeView === "households");
+      }
+      if (statusHeading) {
+        statusHeading.textContent = activeView === "households" ? "Policies" : "Client Status";
+        statusHeading.classList.toggle("is-households-view", activeView === "households");
+      }
     }
 
     function syncExportButtonState() {
@@ -1694,6 +1721,7 @@
         });
       });
 
+      syncTableHeadings();
       renderPagination(totalPages);
       syncStatusButtons();
       syncExportButtonState();
@@ -1917,7 +1945,7 @@
           ["Client Status", getClientStatusDisplay(record.statusGroup)],
           ["Priority", getPriorityDisplay(record.priority)],
           ["Source", record.source],
-          ["Last Review", formatDateForDirectory(record.lastReview)],
+          ["Date Created", formatDateForDirectory(getDirectoryCreatedDate(record))],
           ["Coverage Amount", formatCurrencyCompact(record.coverageAmount)],
           ["Coverage Gap", formatCurrencyCompact(record.coverageGap)]
         ]
@@ -1954,15 +1982,17 @@
         title: "Household and Advisory",
         fields: [
           ["Household / Company Role", record.householdRole],
+          ["Business Type", record.businessType],
+          ["Business Planning Focus", record.businessPlanningFocus],
+          ["Ownership %", record.ownershipPercent],
+          ["Buy-Sell / Key Person Relevant?", record.businessCoverageRelevance],
           ["Assignment Name", record.householdName],
           ["Assignment Type", record.profileGroupType],
           ["Dependents / Children", record.hasDependents],
           ["Amount of Dependents / Children", record.dependentsCount],
-          ["Age of Youngest Dependent / Child", record.youngestDependentAge],
-          ["Education Funding (Per Dependent)", record.educationFundingPerDependent ? formatCurrencyCompact(record.educationFundingPerDependent) : ""],
+          ["Current Children Ages", record.dependentAges],
           ["Projected Dependents / Children", record.projectedDependents],
           ["Projected Dependents Count", record.projectedDependentsCount],
-          ["Projected Education Funding", record.projectedEducationFundingPerDependent ? formatCurrencyCompact(record.projectedEducationFundingPerDependent) : ""],
           ["Advisor Name", record.advisorName],
           ["Firm Name", record.firmName],
           ["Client Notes", record.clientNotes]
@@ -2112,14 +2142,16 @@
           firstName,
           lastName,
           summary: String(record.summary || record.clientNotes || "New client profile"),
-          caseRef: String(record.caseRef || `CL/${80401 + index}`),
+          caseRef: normalizeRecordCaseRef(viewType, record.caseRef, index),
           lastReview: String(record.lastReview || record.lastUpdatedDate || record.dateProfileCreated || formatDateInputValue(new Date())),
+          dateProfileCreated: String(record.dateProfileCreated || record.lastReview || record.lastUpdatedDate || formatDateInputValue(new Date())),
           insured: String(record.insured || (viewType === "individuals" ? "Yes" : "1")),
           source: String(record.source || record.dataSource || "Advisor Entered"),
           statusGroup,
           priority: normalizePriority(record.priority),
           coverageAmount: Number(record.coverageAmount || 0),
-          coverageGap: Number(record.coverageGap || 0)
+          coverageGap: Number(record.coverageGap || 0),
+          policyCount: Number(record.policyCount || 0)
         };
       });
   }
@@ -2137,17 +2169,37 @@
     return loadJson(STORAGE_KEYS.authSession);
   }
 
-  function buildNextCaseRef(records) {
+  function buildNextCaseRef(records, prefix) {
+    const normalizedPrefix = String(prefix || "CL").trim().toUpperCase();
     const highestNumber = records.reduce((highest, record) => {
-      const match = String(record.caseRef || "").match(/CL\/(\d+)/);
+      const match = String(record.caseRef || "").match(new RegExp(`${normalizedPrefix}/(\\d+)`));
       return match ? Math.max(highest, Number(match[1])) : highest;
     }, 80400);
 
-    return `CL/${highestNumber + 1}`;
+    return `${normalizedPrefix}/${highestNumber + 1}`;
   }
 
   function normalizeCaseRef(value) {
     return String(value || "").trim().toUpperCase();
+  }
+
+  function normalizeRecordCaseRef(viewType, caseRef, index) {
+    const normalizedViewType = String(viewType || "").trim();
+    const normalizedCaseRef = normalizeCaseRef(caseRef);
+
+    if (normalizedViewType === "households") {
+      const householdMatch = normalizedCaseRef.match(/(?:HH|CL)\/(\d+)/);
+      if (householdMatch) {
+        return `HH/${householdMatch[1]}`;
+      }
+      return `HH/${80401 + index}`;
+    }
+
+    if (!normalizedCaseRef) {
+      return `CL/${80401 + index}`;
+    }
+
+    return normalizedCaseRef;
   }
 
   function setLinkedCaseRef(caseRef) {
@@ -2758,23 +2810,26 @@
   function renderClientRow(record, isSelected) {
     const clientStatus = getClientStatusDisplay(record.statusGroup);
     const priority = normalizePriority(record.priority);
+    const isHouseholdAvatar = record.viewType === "households";
+    const avatarClasses = `client-avatar${isHouseholdAvatar ? " client-avatar-household" : ""}`;
+    const avatarStyle = isHouseholdAvatar ? "" : ` style="background: ${getAvatarBackground(record.age, record.dateOfBirth)};"`;
 
     return `
       <div class="client-table client-table-clickable" role="row" tabindex="0" data-client-open="${record.id}">
         <div class="client-table-cell client-table-cell-check"><input type="checkbox" aria-label="Select ${record.displayName}" data-client-checkbox="${record.id}" ${isSelected ? "checked" : ""}></div>
         <div class="client-table-cell client-table-cell-client">
-          <span class="client-avatar" style="background: ${getAvatarBackground(record.age, record.dateOfBirth)};">${getInitials(record.displayName)}</span>
+          <span class="${avatarClasses}"${avatarStyle}>${getInitials(record.displayName, record.viewType, record.lastName)}</span>
           <div>
             <strong>${record.displayName}</strong>
             <span>${getClientDirectorySubtitle(record)}</span>
           </div>
         </div>
         <div class="client-table-cell">${record.caseRef}</div>
-        <div class="client-table-cell client-table-cell-last-review">${formatDateForDirectory(record.lastReview)}</div>
+        <div class="client-table-cell client-table-cell-last-review">${formatDateForDirectory(getDirectoryCreatedDate(record))}</div>
         <div class="client-table-cell client-table-cell-insured-value">${record.insured}</div>
-        <div class="client-table-cell client-table-cell-source-value">${record.source}</div>
-        <div class="client-table-cell client-table-cell-status-value">${clientStatus}</div>
-        <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(record.coverageAmount)}</div>
+        <div class="client-table-cell client-table-cell-source-value${record.viewType === "households" ? " is-households-view" : ""}">${record.viewType === "households" ? getDependentsDisplay(record) : record.source}</div>
+        <div class="client-table-cell client-table-cell-status-value${record.viewType === "households" ? " is-households-view" : ""}">${record.viewType === "households" ? getPoliciesDisplay(record) : clientStatus}</div>
+        <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(record.viewType === "households" ? record.coverageGap : record.coverageAmount)}</div>
         <div class="client-table-cell client-table-cell-value client-table-cell-priority-value">
           <div class="client-priority-dropdown" data-priority-dropdown="${record.id}">
             <button class="client-priority-button ${priority ? `client-priority-button-${priority}` : "client-priority-button-unset"}" type="button" data-priority-trigger aria-expanded="false">
@@ -2792,11 +2847,11 @@
   }
 
   function exportClientRecords(records) {
-    const header = ["Client", "Case Ref", "Last Review", "Insured", "Source", "Client Status", "Coverage Amount", "Priority"];
+    const header = ["Client", "Case Ref", "Date Created", "Insured", "Source", "Client Status", "Coverage Amount", "Priority"];
     const rows = records.map((record) => [
       record.displayName,
       record.caseRef,
-      formatDateForDirectory(record.lastReview),
+      formatDateForDirectory(getDirectoryCreatedDate(record)),
       record.insured,
       record.source,
       getClientStatusDisplay(record.statusGroup),
@@ -2828,7 +2883,7 @@
       <tr>
         <td>${escapeHtml(record.displayName)}</td>
         <td>${escapeHtml(record.caseRef)}</td>
-        <td>${escapeHtml(formatDateForDirectory(record.lastReview))}</td>
+        <td>${escapeHtml(formatDateForDirectory(getDirectoryCreatedDate(record)))}</td>
         <td>${escapeHtml(record.insured)}</td>
         <td>${escapeHtml(record.source)}</td>
         <td>${escapeHtml(getClientStatusDisplay(record.statusGroup))}</td>
@@ -2885,7 +2940,7 @@
               <tr>
                 <th>Client</th>
                 <th>Case Ref</th>
-                <th>Last Review</th>
+                <th>Date Created</th>
                 <th>Insured</th>
                 <th>Source</th>
                 <th>Client Status</th>
@@ -2995,6 +3050,10 @@
     return `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}/${date.getFullYear()}`;
   }
 
+  function getDirectoryCreatedDate(record) {
+    return String(record?.dateProfileCreated || record?.lastReview || "").trim();
+  }
+
   function formatCurrencyCompact(value) {
     const amount = Number(value || 0);
     return new Intl.NumberFormat("en-US", {
@@ -3015,7 +3074,19 @@
     writeClientRecords(records);
   }
 
-  function getInitials(name) {
+  function getInitials(name, viewType, lastName) {
+    if (viewType === "households") {
+      const householdLastInitial = getLastInitial(lastName);
+      if (householdLastInitial) {
+        return householdLastInitial;
+      }
+
+      const trimmed = String(name || "").trim().replace(/\s+Household$/i, "");
+      const parts = trimmed.split(/\s+/).filter(Boolean);
+      const fallbackLastName = parts.length ? parts[parts.length - 1] : "";
+      return (fallbackLastName.charAt(0).toUpperCase() || "H");
+    }
+
     return String(name || "")
       .split(" ")
       .filter(Boolean)
@@ -3082,6 +3153,20 @@
     }
 
     return "No household linked";
+  }
+
+  function getDependentsDisplay(record) {
+    const count = Number(record?.dependentsCount || 0);
+    if (Number.isFinite(count) && count > 0) {
+      return String(count);
+    }
+
+    return String(record?.hasDependents || "").trim().toLowerCase() === "yes" ? "Yes" : "-";
+  }
+
+  function getPoliciesDisplay(record) {
+    const count = Number(record?.policyCount || 0);
+    return Number.isFinite(count) && count > 0 ? String(count) : "0";
   }
 
   function populateForm(form, values) {
@@ -3268,7 +3353,7 @@
         displayName: householdName,
         lastName,
         summary: isCompany ? "Company profile" : "Household profile",
-        caseRef: buildNextCaseRef(nextRecords),
+        caseRef: buildNextCaseRef(nextRecords, isCompany ? "CL" : "HH"),
         lastReview: lastUpdatedDate,
         insured: "1",
         source,
@@ -3299,7 +3384,7 @@
       lastName,
       preferredName,
       summary,
-      caseRef: buildNextCaseRef(nextRecords),
+      caseRef: buildNextCaseRef(nextRecords, "CL"),
       lastReview: lastUpdatedDate,
       insured: "Yes",
       source,
@@ -3319,14 +3404,15 @@
       spouseDateOfBirth: String(formData.get("spouseDateOfBirth") || ""),
       spouseAge: Number(formData.get("spouseAge") || 0),
       householdRole: String(formData.get("householdRole") || ""),
+      businessType: String(formData.get("businessType") || ""),
+      businessPlanningFocus: String(formData.get("businessPlanningFocus") || ""),
+      ownershipPercent: Number(formData.get("ownershipPercent") || 0),
+      businessCoverageRelevance: String(formData.get("businessCoverageRelevance") || ""),
       hasDependents: String(formData.get("hasDependents") || "No"),
       projectedDependents: String(formData.get("projectedDependents") || "No"),
       projectedDependentsCount: Number(formData.get("projectedDependentsCount") || 0),
-      sameEducationFunding: String(formData.get("sameEducationFunding") || "Yes"),
-      projectedEducationFundingPerDependent: Number(formData.get("projectedEducationFundingPerDependent") || 0),
       dependentsCount: Number(formData.get("dependentsCount") || 0),
-      youngestDependentAge: Number(formData.get("youngestDependentAge") || 0),
-      educationFundingPerDependent: Number(formData.get("educationFundingPerDependent") || 0),
+      dependentAges: String(formData.get("dependentAges") || "").trim(),
       emailAddress: String(formData.get("emailAddress") || "").trim(),
       phoneNumber: String(formData.get("phoneNumber") || "").trim(),
       preferredContactMethod: String(formData.get("preferredContactMethod") || ""),

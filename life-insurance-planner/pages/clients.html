@@ -69,7 +69,7 @@
             <input type="search" placeholder="Search for Clients">
           </form>
           <nav class="client-status-tabs" aria-label="Client status filters">
-            <button class="client-status-tab is-active" type="button" data-client-status="all"><span class="client-status-tab-label">All Clients</span><span class="client-status-tab-count" data-status-count="all">0</span></button>
+                <button class="client-status-tab is-active" type="button" data-client-status="all"><span class="client-status-tab-label">View All</span><span class="client-status-tab-count" data-status-count="all">0</span></button>
             <button class="client-status-tab" type="button" data-client-status="prospects"><span class="client-status-tab-label">Prospects</span><span class="client-status-tab-count" data-status-count="prospects">0</span></button>
             <button class="client-status-tab" type="button" data-client-status="in-review"><span class="client-status-tab-label">In Review</span><span class="client-status-tab-count" data-status-count="in-review">0</span></button>
             <button class="client-status-tab" type="button" data-client-status="coverage-placed"><span class="client-status-tab-label">Coverage Placed</span><span class="client-status-tab-count" data-status-count="coverage-placed">0</span></button>
@@ -100,17 +100,17 @@
         <section class="client-table-card">
           <div class="client-table client-table-header" role="row">
             <div class="client-table-cell client-table-cell-check"></div>
-            <div class="client-table-cell client-table-cell-client">Client</div>
+            <div class="client-table-cell client-table-cell-client" id="client-table-heading-name">Client</div>
             <div class="client-table-cell">Case Ref</div>
-            <div class="client-table-cell client-table-cell-last-review">Last Review</div>
-            <div class="client-table-cell client-table-cell-insured-title">Insured</div>
-            <div class="client-table-cell client-table-cell-source-title">Source</div>
-            <div class="client-table-cell client-table-cell-status-title">Client Status</div>
-            <div class="client-table-cell client-table-cell-nowrap client-table-cell-coverage-amount-title">Coverage Amount</div>
+            <div class="client-table-cell client-table-cell-last-review">Date Created</div>
+            <div class="client-table-cell client-table-cell-insured-title" id="client-table-heading-insured">Insured</div>
+            <div class="client-table-cell client-table-cell-source-title" id="client-table-heading-source">Source</div>
+            <div class="client-table-cell client-table-cell-status-title" id="client-table-heading-status">Client Status</div>
+            <div class="client-table-cell client-table-cell-nowrap client-table-cell-coverage-amount-title" id="client-table-heading-coverage">Coverage Amount</div>
             <div class="client-table-cell client-table-cell-value client-table-cell-priority-title">Priority</div>
           </div>
           <div id="client-table-rows"></div>
-          <div class="client-empty-state" id="client-empty-state" hidden>No client records match the current filters.</div>
+          <div class="client-empty-state" id="client-empty-state" hidden>No Results</div>
 
           <footer class="client-table-footer">
             <button class="client-pagination-button" type="button" id="client-prev-page">Previous</button>
@@ -203,6 +203,11 @@
       const itemsDropdown = document.querySelector("[data-items-dropdown]");
       const itemsTrigger = document.querySelector("[data-items-trigger]");
       const itemsOptions = Array.from(document.querySelectorAll("[data-items-option]"));
+      const nameHeading = document.getElementById("client-table-heading-name");
+      const insuredHeading = document.getElementById("client-table-heading-insured");
+      const coverageHeading = document.getElementById("client-table-heading-coverage");
+      const sourceHeading = document.getElementById("client-table-heading-source");
+      const statusHeading = document.getElementById("client-table-heading-status");
 
       if (!rowsHost) {
         return;
@@ -269,7 +274,19 @@
         return "Prospects";
       }
 
-      function getInitials(name) {
+      function getInitials(name, viewType, lastName) {
+        if (viewType === "households") {
+          const householdLastInitial = getLastInitial(lastName);
+          if (householdLastInitial) {
+            return householdLastInitial;
+          }
+
+          const trimmed = String(name || "").trim().replace(/\s+Household$/i, "");
+          const parts = trimmed.split(/\s+/).filter(Boolean);
+          const fallbackLastName = parts.length ? parts[parts.length - 1] : "";
+          return fallbackLastName.charAt(0).toUpperCase() || "H";
+        }
+
         return String(name || "")
           .split(" ")
           .filter(Boolean)
@@ -372,6 +389,46 @@
         return `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}/${date.getFullYear()}`;
       }
 
+      function getDirectoryCreatedDate(record) {
+        return String(record?.dateProfileCreated || record?.lastReview || "").trim();
+      }
+
+      function getDependentsDisplay(record) {
+        const count = Number(record?.dependentsCount || 0);
+        if (Number.isFinite(count) && count > 0) {
+          return String(count);
+        }
+        return String(record?.hasDependents || "").trim().toLowerCase() === "yes" ? "Yes" : "-";
+      }
+
+      function getPoliciesDisplay(record) {
+        const count = Number(record?.policyCount || 0);
+        return Number.isFinite(count) && count > 0 ? String(count) : "0";
+      }
+
+      function normalizeCaseRef(value) {
+        return String(value || "").trim().toUpperCase();
+      }
+
+      function normalizeRecordCaseRef(viewType, caseRef, index) {
+        const normalizedViewType = String(viewType || "").trim();
+        const normalizedCaseRef = normalizeCaseRef(caseRef);
+
+        if (normalizedViewType === "households") {
+          const householdMatch = normalizedCaseRef.match(/(?:HH|CL)\/(\d+)/);
+          if (householdMatch) {
+            return `HH/${householdMatch[1]}`;
+          }
+          return `HH/${80401 + index}`;
+        }
+
+        if (!normalizedCaseRef) {
+          return `CL/${80401 + index}`;
+        }
+
+        return normalizedCaseRef;
+      }
+
       function normalizeRecord(record, index) {
         const preferredName = String(record.preferredName || "").trim();
         const firstName = String(record.firstName || "").trim();
@@ -387,14 +444,16 @@
           displayName: displayName,
           lastName: lastName,
           summary: String(record.summary || record.clientNotes || "New client profile"),
-          caseRef: String(record.caseRef || ""),
+          caseRef: normalizeRecordCaseRef(["individuals", "households", "companies"].includes(String(record.viewType || "")) ? String(record.viewType) : "individuals", record.caseRef, index),
           lastReview: String(record.lastReview || record.lastUpdatedDate || record.dateProfileCreated || ""),
+          dateProfileCreated: String(record.dateProfileCreated || record.lastReview || record.lastUpdatedDate || ""),
           insured: String(record.insured || "Yes"),
           source: String(record.source || record.dataSource || "Advisor Entered"),
           statusGroup: ["prospects", "in-review", "coverage-placed", "closed"].includes(String(record.statusGroup || "")) ? String(record.statusGroup) : "prospects",
           priority: normalizePriority(record.priority),
           coverageAmount: Number(record.coverageAmount || 0),
-          coverageGap: Number(record.coverageGap || 0)
+          coverageGap: Number(record.coverageGap || 0),
+          policyCount: Number(record.policyCount || 0)
         };
       }
 
@@ -465,6 +524,28 @@
         });
       }
 
+      function syncTableHeadings() {
+        if (nameHeading) {
+          nameHeading.textContent = activeView === "households" ? "Household" : "Client";
+        }
+        if (insuredHeading) {
+          insuredHeading.textContent = activeView === "households" ? "Members" : "Insured";
+          insuredHeading.classList.toggle("is-households-view", activeView === "households");
+        }
+        if (coverageHeading) {
+          coverageHeading.textContent = activeView === "households" ? "Coverage Gap" : "Coverage Amount";
+          coverageHeading.classList.toggle("is-households-view", activeView === "households");
+        }
+        if (sourceHeading) {
+          sourceHeading.textContent = activeView === "households" ? "Dependents" : "Source";
+          sourceHeading.classList.toggle("is-households-view", activeView === "households");
+        }
+        if (statusHeading) {
+          statusHeading.textContent = activeView === "households" ? "Policies" : "Client Status";
+          statusHeading.classList.toggle("is-households-view", activeView === "households");
+        }
+      }
+
       function syncLetterButtons() {
         letterButtons.forEach(function (button) {
           button.classList.toggle("is-active", button.dataset.clientLetter === activeLetter);
@@ -507,22 +588,25 @@
 
       function renderRow(record) {
         const priority = normalizePriority(record.priority);
+        const isHouseholdAvatar = record.viewType === "households";
+        const avatarClasses = `client-avatar${isHouseholdAvatar ? " client-avatar-household" : ""}`;
+        const avatarStyle = isHouseholdAvatar ? "" : ` style="background: ${getAvatarBackground(record.age, record.dateOfBirth)};"`;
         return `
           <div class="client-table client-table-clickable" role="row" tabindex="0" data-client-open="${record.id}">
             <div class="client-table-cell client-table-cell-check"><input type="checkbox" aria-label="Select ${record.displayName}"></div>
             <div class="client-table-cell client-table-cell-client">
-              <span class="client-avatar" style="background: ${getAvatarBackground(record.age, record.dateOfBirth)};">${getInitials(record.displayName)}</span>
+              <span class="${avatarClasses}"${avatarStyle}>${getInitials(record.displayName, record.viewType, record.lastName)}</span>
               <div>
                 <strong>${record.displayName}</strong>
                 <span>${getClientDirectorySubtitle(record)}</span>
               </div>
             </div>
             <div class="client-table-cell">${record.caseRef || "--"}</div>
-            <div class="client-table-cell client-table-cell-last-review">${formatDateForDirectory(record.lastReview)}</div>
+            <div class="client-table-cell client-table-cell-last-review">${formatDateForDirectory(getDirectoryCreatedDate(record))}</div>
             <div class="client-table-cell client-table-cell-insured-value">${record.insured}</div>
-            <div class="client-table-cell client-table-cell-source-value">${record.source}</div>
-            <div class="client-table-cell client-table-cell-status-value">${getClientStatusDisplay(record.statusGroup)}</div>
-            <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(record.coverageAmount)}</div>
+            <div class="client-table-cell client-table-cell-source-value${activeView === "households" ? " is-households-view" : ""}">${activeView === "households" ? getDependentsDisplay(record) : record.source}</div>
+            <div class="client-table-cell client-table-cell-status-value${activeView === "households" ? " is-households-view" : ""}">${activeView === "households" ? getPoliciesDisplay(record) : getClientStatusDisplay(record.statusGroup)}</div>
+            <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(activeView === "households" ? record.coverageGap : record.coverageAmount)}</div>
             <div class="client-table-cell client-table-cell-value client-table-cell-priority-value">
               <div class="client-priority-dropdown" data-priority-dropdown="${record.id}">
                 <button class="client-priority-button ${priority ? `client-priority-button-${priority}` : "client-priority-button-unset"}" type="button" data-priority-trigger aria-expanded="false">
@@ -640,6 +724,7 @@
         bindRowClicks();
         syncStatusButtons();
         syncViewButtons();
+        syncTableHeadings();
         syncLetterButtons();
         syncItemsShown();
         renderPagination(totalPages);

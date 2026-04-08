@@ -1358,15 +1358,60 @@ textarea {
 }
 
 .profile-interest-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  width: 100%;
+}
+
+.profile-interest-variants {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-top: 0.7rem;
+  width: 100%;
+}
+
+.profile-interest-variant {
   display: inline-flex;
   align-items: center;
-  gap: 0.7rem;
+  justify-content: center;
+}
+
+.profile-interest-variant-dot {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(196, 205, 217, 0.95);
+  background: #ffffff;
+}
+
+.profile-interest-variant.is-active .profile-interest-variant-dot {
+  background: #2f6b52;
+  border-color: #2f6b52;
 }
 
 .profile-household-top-row {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: minmax(0, 0.92fr) minmax(0, 0.95fr) minmax(0, 1.18fr) 5.25rem;
+  gap: var(--space-md);
+  align-items: end;
+}
+
+.profile-interest-panel {
+  grid-column: 1 / -1;
+}
+
+.profile-interest-panel.is-hidden {
+  display: none;
+}
+
+.profile-business-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-md);
   align-items: end;
 }
@@ -1717,14 +1762,25 @@ select option:disabled {
 }
 
 .profile-dependent-row {
-  display: inline-grid;
-  grid-template-columns: repeat(4, max-content);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(13rem, 1fr));
   align-items: flex-start;
   gap: 0.8rem 1rem;
+  width: 100%;
 }
 
 .profile-dependent-row > .field-group:last-child {
   margin-left: 0.45rem;
+}
+
+.profile-dependent-row > .field-group.full-width {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-left: 0;
+}
+
+.profile-dependent-row > .field-group.full-width::before {
+  display: none;
 }
 
 .profile-dependent-row .field-group label {
@@ -1772,6 +1828,90 @@ select option:disabled {
 
 .profile-dependent-secondary-row .field-group label {
   white-space: nowrap;
+}
+
+.profile-dependent-builder {
+  display: grid;
+  gap: 0.9rem;
+  width: 100%;
+}
+
+.profile-dependent-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.profile-dependent-entry {
+  border: 1px solid #d8deea;
+  border-radius: 16px;
+  background: #f9fbff;
+  padding: 0.9rem 1rem;
+  display: grid;
+  gap: 0.7rem;
+  width: min(100%, 13rem);
+  flex: 0 1 13rem;
+}
+
+.profile-dependent-entry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.profile-dependent-entry-label {
+  color: #182033;
+  font-size: 0.96rem;
+  font-weight: 700;
+}
+
+.profile-dependent-entry-remove {
+  border: none;
+  background: transparent;
+  color: #7f8796;
+  cursor: pointer;
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 0;
+}
+
+.profile-dependent-entry-remove:hover {
+  color: #182033;
+}
+
+.profile-dependent-entry-body {
+  width: min(100%, 11rem);
+}
+
+.profile-dependent-entry-body label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #5f6777;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.profile-dependent-add-button {
+  justify-self: start;
+  border: 1px solid #111827;
+  background: #111827;
+  color: #ffffff;
+  border-radius: 0.85rem;
+  padding: 0.62rem 0.9rem;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.profile-dependent-add-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.profile-dependent-add-button:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 
 .profile-placeholder-select.is-placeholder {
@@ -3162,8 +3302,6 @@ body.is-modal-open {
 }
 
 .client-table-header {
-  display: flex;
-  align-items: center;
   background: #f8faff;
   color: #000000;
   font-size: 0.85rem;
@@ -3175,26 +3313,17 @@ body.is-modal-open {
   color: #000000;
 }
 
-.client-table-header .client-table-cell-check {
-  width: 44px;
-  flex: 0 0 44px;
-}
-
-.client-table-header .client-table-cell-client {
-  flex: 0 0 240px;
-}
-
-.client-table-header .client-table-cell:not(.client-table-cell-check):not(.client-table-cell-client) {
-  flex: 1 1 0;
-}
-
 .client-table-cell {
   color: #445065;
   font-size: 0.94rem;
 }
 
 .client-table-cell-last-review {
-  transform: translateX(-0.5rem);
+  transform: translateX(-0.38rem);
+}
+
+.client-table-header .client-table-cell-last-review {
+  transform: translateX(-0.8rem);
 }
 
 .client-table-cell-source-value {
@@ -3204,16 +3333,32 @@ body.is-modal-open {
   transform: translateX(-3.6rem);
 }
 
+.client-table-cell-source-value.is-households-view {
+  transform: translateX(-2.67rem);
+}
+
 .client-table-cell-source-title {
   transform: translateX(-1.15rem);
+}
+
+.client-table-cell-source-title.is-households-view {
+  transform: translateX(-1.35rem);
 }
 
 .client-table-cell-status-title {
   transform: translateX(-2.7rem);
 }
 
+.client-table-cell-status-title.is-households-view {
+  transform: translateX(-0.65rem);
+}
+
 .client-table-cell-insured-title {
   transform: translateX(0.2rem);
+}
+
+.client-table-cell-insured-title.is-households-view {
+  transform: translateX(-0.15rem);
 }
 
 .client-table-cell-priority-title {
@@ -3224,6 +3369,10 @@ body.is-modal-open {
   transform: translateX(-1.8rem);
   color: #000000;
   font-weight: 800;
+}
+
+.client-table-cell-coverage-amount-title.is-households-view {
+  transform: translateX(-1.15rem);
 }
 
 .client-table-cell-insured-value {
@@ -3238,7 +3387,11 @@ body.is-modal-open {
   justify-content: center;
   text-align: center;
   white-space: nowrap;
-  transform: translateX(-3.85rem);
+  transform: translateX(-3.65rem);
+}
+
+.client-table-cell-status-value.is-households-view {
+  transform: translateX(-2.95rem);
 }
 
 .client-table-cell-coverage-amount-value {
@@ -3297,6 +3450,14 @@ body.is-modal-open {
     flex: 0 0 auto;
     padding: 0;
     vertical-align: middle;
+}
+
+.client-avatar-household {
+    background: #ffffff;
+    border: 1px solid #111111;
+    color: #111111;
+    font-size: 1.1rem;
+    font-weight: 800;
 }
 
 .client-avatar-amber { background: linear-gradient(135deg, #e2a862, #be6c3a); }
