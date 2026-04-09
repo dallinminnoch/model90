@@ -1096,7 +1096,9 @@
         const type = String(entry?.type || "").trim().toLowerCase();
         const direction = getActivityDirection(entry);
         return (type === "phone" || type === "email" || type === "text") && direction === "outbound"
-          || type === "schedule";
+          || type === "schedule"
+          || type === "illustration-requested"
+          || type === "application-submitted";
       }
 
       function isResponseActivity(entry) {
@@ -1104,7 +1106,9 @@
         const direction = getActivityDirection(entry);
         return (type === "phone" || type === "email" || type === "text") && direction === "inbound"
           || type === "meeting"
-          || type === "face";
+          || type === "face"
+          || type === "document-received"
+          || type === "policy-delivered";
       }
 
       function getResponseRateSummary(activityEntries) {
@@ -1116,7 +1120,7 @@
 
         if (!outboundCount) {
           return {
-            label: "Unknown",
+            label: responseCount ? "Needs Response" : "Unknown",
             ratio: null
           };
         }
@@ -1131,16 +1135,15 @@
         if (ratio > 0) {
           return { label: "Low", ratio };
         }
-        return { label: "None", ratio: 0 };
+        return { label: "Awaiting Response", ratio: 0 };
       }
 
       function getActivityTrackerSummary(record) {
-        const lastContactRaw = record.lastContactDate || record.lastUpdatedDate || record.dateProfileCreated;
-        const relativeContact = getActivityRelativeTime(lastContactRaw);
         const activityEntries = Array.isArray(record.activityLog) ? record.activityLog : [];
         const latestActivityDate = activityEntries.length
           ? String(activityEntries[0]?.date || "").trim()
-          : String(lastContactRaw || "").trim();
+          : String(record.lastContactDate || record.lastUpdatedDate || record.dateProfileCreated || "").trim();
+        const relativeContact = getActivityRelativeTime(latestActivityDate);
         const latestActivityAge = getActivityAgeInDays(latestActivityDate);
         const responseRate = getResponseRateSummary(activityEntries);
 
@@ -1177,7 +1180,7 @@
         }
 
         return {
-          lastContactDisplay: formatDate(lastContactRaw),
+          lastContactDisplay: formatDate(latestActivityDate),
           relativeContact: relativeContact || "Not provided",
           status,
           statusTone,
@@ -1262,14 +1265,14 @@
           ? String(record.clientNotes || "").trim().split(/\r?\n+/).map(function (line) { return line.trim(); }).filter(Boolean).slice(0, 3)
           : [];
         const previewItems = activityEntries.length
-          ? activityEntries.map(function (entry) {
+          ? activityEntries.map(function (entry, index) {
               const preview = getActivityPreviewParts(entry);
               if (!preview.label && !preview.subject && !preview.detail) {
                 return "";
               }
               const stamp = entry?.date ? getActivityRelativeTime(entry.date) : "";
               return `
-                <article class="client-activity-entry-card">
+                <button type="button" class="client-activity-entry-card is-clickable" data-activity-entry-open="${index}">
                   <span class="client-activity-entry-icon ${getActivityIconClass(String(entry?.type || "").trim().toLowerCase())}" aria-hidden="true">${escapeHtml(getActivityIcon(String(entry?.type || "").trim().toLowerCase()))}</span>
                   <div class="client-activity-entry-copy">
                     <div class="client-activity-entry-title-row">
@@ -1278,7 +1281,7 @@
                     </div>
                     ${preview.detail ? `<p class="client-activity-entry-detail">${escapeHtml(preview.detail)}</p>` : ""}
                   </div>
-                </article>
+                </button>
               `;
             }).filter(Boolean)
           : fallbackNotes.map(function (line) {
@@ -1491,6 +1494,62 @@
               </div>
             </div>
           </section>
+        `;
+      }
+
+      function renderActivityDetailModalBody(entry) {
+        if (!entry) {
+          return "";
+        }
+        const isEditing = Boolean(activeActivityEditMode);
+        const preview = getActivityPreviewParts(entry);
+        const typeLabel = getActivityPreviewLabel(entry);
+        const direction = getActivityDirection(entry);
+        const savedDate = String(entry?.date || "").trim() || "";
+        const summary = String(entry?.summary || "").trim();
+        const detailText = preview.detail || summary || "";
+        return `
+          <form class="client-activity-detail-form" data-activity-detail-form>
+          <div class="client-activity-field-grid">
+            <label class="client-activity-field">
+              <span>Activity</span>
+              <input class="client-activity-input" type="text" value="${escapeHtml(typeLabel || "Activity")}" readonly>
+            </label>
+            <label class="client-activity-field">
+              <span>Date</span>
+              <input class="client-activity-input" type="date" name="date" value="${escapeHtml(savedDate)}" ${isEditing ? "" : "readonly"}>
+            </label>
+            ${direction ? `
+              <label class="client-activity-field">
+                <span>Direction</span>
+                ${isEditing ? `
+                  <select class="client-activity-select" name="direction">
+                    <option value="Outbound" ${direction === "Outbound" ? "selected" : ""}>Outbound</option>
+                    <option value="Inbound" ${direction === "Inbound" ? "selected" : ""}>Inbound</option>
+                  </select>
+                ` : `
+                  <input class="client-activity-input" type="text" value="${escapeHtml(direction)}" readonly>
+                `}
+              </label>
+            ` : ""}
+            ${preview.subject ? `
+              <label class="client-activity-field">
+                <span>Subject</span>
+                <input class="client-activity-input" type="text" name="subject" value="${escapeHtml(preview.subject)}" ${isEditing ? "" : "readonly"}>
+              </label>
+            ` : ""}
+          </div>
+          <label class="client-activity-field">
+            <span>Details</span>
+            <textarea class="client-activity-textarea client-activity-detail-textarea" name="detail" rows="8" ${isEditing ? "" : "readonly"}>${escapeHtml(detailText)}</textarea>
+          </label>
+          <div class="client-activity-detail-footer">
+            <button class="client-activity-detail-edit ${isEditing ? "is-saving" : "is-editing"}" type="${isEditing ? "submit" : "button"}" data-activity-detail-edit-toggle>${isEditing ? "Save" : "Edit"}</button>
+            <button class="client-policy-delete-button client-activity-delete-button" type="button" data-activity-delete-toggle aria-label="Delete activity">
+              <span class="client-activity-delete-image" aria-hidden="true"></span>
+            </button>
+          </div>
+          </form>
         `;
       }
 
@@ -2245,6 +2304,31 @@
               </div>
             </div>
           </div>
+          <div class="client-policy-modal client-activity-widget-modal client-activity-detail-modal" data-activity-detail-modal hidden>
+            <div class="client-activity-widget-modal-backdrop" data-activity-detail-close></div>
+            <div class="client-activity-widget-modal-panel client-activity-detail-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-activity-detail-modal-title">
+              <div class="client-activity-widget-header client-activity-detail-header">
+                <button type="button" class="client-activity-widget-back client-activity-detail-back" data-activity-detail-close>Back</button>
+                <button class="client-activity-modal-close" type="button" data-activity-detail-close aria-label="Close activity preview">×</button>
+              </div>
+              <div class="client-activity-widget-heading client-activity-detail-modal-heading">
+                <h2 id="client-activity-detail-modal-title" data-activity-detail-title>Saved Activity</h2>
+                <p>Review the saved activity details for this profile.</p>
+              </div>
+              <div class="client-activity-widget-body client-activity-detail-body" data-activity-detail-body></div>
+            </div>
+          </div>
+          <div class="client-policy-modal client-policy-delete-modal" data-activity-delete-modal hidden>
+            <div class="client-policy-modal-backdrop" data-activity-delete-close></div>
+            <div class="client-policy-modal-panel client-policy-delete-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-activity-delete-modal-title">
+              <h2 id="client-activity-delete-modal-title">Delete Activity?</h2>
+              <p class="client-policy-delete-copy">Are you sure you want to delete this activity? This will remove it from the tracker and saved activity history.</p>
+              <div class="client-policy-delete-actions">
+                <button class="client-policy-delete-cancel" type="button" data-activity-delete-close>No</button>
+                <button class="client-policy-delete-confirm" type="button" data-activity-delete-confirm>Yes, Delete</button>
+              </div>
+            </div>
+          </div>
           <div class="client-policy-modal" data-pmi-detail-modal hidden>
             <div class="client-policy-modal-backdrop" data-pmi-detail-close></div>
             <div class="client-policy-modal-panel client-pmi-detail-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-pmi-detail-modal-title">
@@ -2379,6 +2463,12 @@
       const policyDeleteModal = host.querySelector("[data-policy-delete-modal]");
       const policyDeleteModalCloseButtons = host.querySelectorAll("[data-policy-delete-modal-close]");
       const policyDeleteConfirm = host.querySelector("[data-policy-delete-confirm]");
+      const activityDetailModal = host.querySelector("[data-activity-detail-modal]");
+      const activityDetailBody = host.querySelector("[data-activity-detail-body]");
+      const activityDetailTitle = host.querySelector("[data-activity-detail-title]");
+      const activityDeleteModal = host.querySelector("[data-activity-delete-modal]");
+      const activityDeleteCloseButtons = host.querySelectorAll("[data-activity-delete-close]");
+      const activityDeleteConfirm = host.querySelector("[data-activity-delete-confirm]");
       const pmiDetailModal = host.querySelector("[data-pmi-detail-modal]");
       const pmiDetailModalBody = host.querySelector("[data-pmi-detail-body]");
       const pmiDetailOpen = host.querySelector("[data-pmi-detail-open]");
@@ -2412,12 +2502,14 @@
       let activePolicyIndex = -1;
       let coverageAdequacyAnimationFrame = 0;
       let activeActivityType = "";
+      let activeActivityIndex = -1;
+      let activeActivityEditMode = false;
       let activeActivityModal = null;
       let activeActivityTrigger = null;
       let activityWidgetSourceTrigger = null;
 
       function syncModalLock() {
-        const anyModalOpen = policyModal?.hidden === false || policyListModal?.hidden === false || policyDeleteModal?.hidden === false || pmiDetailModal?.hidden === false || statModal?.hidden === false || activityWidgetModal?.hidden === false;
+        const anyModalOpen = policyModal?.hidden === false || policyListModal?.hidden === false || policyDeleteModal?.hidden === false || activityDetailModal?.hidden === false || activityDeleteModal?.hidden === false || pmiDetailModal?.hidden === false || statModal?.hidden === false || activityWidgetModal?.hidden === false;
         document.body.classList.toggle("is-modal-open", anyModalOpen);
       }
 
@@ -3050,12 +3142,9 @@
         const nextNotes = [entry.noteLine, existingNotes].filter(Boolean).join("\n");
         const nextFields = {
           activityLog: existingLog,
-          clientNotes: nextNotes
+          clientNotes: nextNotes,
+          lastContactDate: entry.date || getActivityDefaultDate()
         };
-
-        if (entry.lastContactDate) {
-          nextFields.lastContactDate = entry.lastContactDate;
-        }
 
         if (entry.lastReview) {
           nextFields.lastReview = entry.lastReview;
@@ -3095,10 +3184,26 @@
           container.innerHTML = renderActivityPreview(record);
         });
 
-        const lastContact = formatDate(record.lastContactDate || record.lastUpdatedDate || record.dateProfileCreated);
+        const latestActivityDate = Array.isArray(record.activityLog) && record.activityLog.length
+          ? String(record.activityLog[0]?.date || "").trim()
+          : String(record.lastContactDate || record.lastUpdatedDate || record.dateProfileCreated || "").trim();
+        const lastContact = formatDate(latestActivityDate);
         activityLastContactLabels.forEach(function (label) {
           label.textContent = `Last Contact ${lastContact}`;
         });
+
+        if (activityDetailModal && activityDetailModal.hidden === false) {
+          const entries = Array.isArray(record.activityLog) ? record.activityLog : [];
+          if (activeActivityIndex < 0 || activeActivityIndex >= entries.length) {
+            closeActivityDetailModal();
+          } else if (activityDetailBody) {
+            const activeEntry = entries[activeActivityIndex];
+            if (activityDetailTitle) {
+              activityDetailTitle.textContent = `${getActivityPreviewLabel(activeEntry)} Activity`;
+            }
+            activityDetailBody.innerHTML = renderActivityDetailModalBody(activeEntry);
+          }
+        }
       }
 
       function refreshCoverageAdequacy(animateFromZero) {
@@ -3328,6 +3433,207 @@
         syncModalLock();
       }
 
+      function openActivityDetailModal(index) {
+        const entries = Array.isArray(record.activityLog) ? record.activityLog : [];
+        const entry = entries[index];
+        if (!activityDetailModal || !activityDetailBody || !entry) {
+          return;
+        }
+        activeActivityIndex = index;
+        activeActivityEditMode = false;
+        if (activityDetailTitle) {
+          activityDetailTitle.textContent = `${getActivityPreviewLabel(entry)} Activity`;
+        }
+        activityDetailBody.innerHTML = renderActivityDetailModalBody(entry);
+        activityDetailModal.hidden = false;
+        window.requestAnimationFrame(function () {
+          activityDetailModal.classList.add("is-open");
+        });
+        syncModalLock();
+      }
+
+      function closeActivityDetailModal() {
+        if (!activityDetailModal) {
+          return;
+        }
+        activityDetailModal.classList.remove("is-open");
+        window.setTimeout(function () {
+          if (!activityDetailModal.classList.contains("is-open")) {
+            activityDetailModal.hidden = true;
+          }
+        }, 180);
+        if (!activityDeleteModal || activityDeleteModal.hidden) {
+          activeActivityIndex = -1;
+          activeActivityEditMode = false;
+        }
+        syncModalLock();
+      }
+
+      function openActivityDeleteModal() {
+        if (!activityDeleteModal || activeActivityIndex < 0) {
+          return;
+        }
+        activityDeleteModal.hidden = false;
+        syncModalLock();
+      }
+
+      function closeActivityDeleteModal() {
+        if (!activityDeleteModal) {
+          return;
+        }
+        activityDeleteModal.hidden = true;
+        syncModalLock();
+      }
+
+      function removeFirstMatchingNoteLine(notes, targetLine) {
+        const normalizedTarget = String(targetLine || "").trim();
+        const noteLines = String(notes || "").split(/\r?\n+/);
+        let removed = false;
+        return noteLines.filter(function (line) {
+          const normalizedLine = String(line || "").trim();
+          if (!removed && normalizedTarget && normalizedLine === normalizedTarget) {
+            removed = true;
+            return false;
+          }
+          return Boolean(normalizedLine);
+        }).join("\n");
+      }
+
+      function replaceFirstMatchingNoteLine(notes, oldLine, nextLine) {
+        const normalizedOld = String(oldLine || "").trim();
+        const normalizedNext = String(nextLine || "").trim();
+        const noteLines = String(notes || "").split(/\r?\n+/);
+        let replaced = false;
+        const nextLines = noteLines.map(function (line) {
+          const normalizedLine = String(line || "").trim();
+          if (!replaced && normalizedOld && normalizedLine === normalizedOld) {
+            replaced = true;
+            return normalizedNext;
+          }
+          return normalizedLine;
+        }).filter(Boolean);
+        if (!replaced && normalizedNext) {
+          nextLines.unshift(normalizedNext);
+        }
+        return nextLines.join("\n");
+      }
+
+      function buildEditedActivityEntry(originalEntry, formData) {
+        const toValue = function (key) {
+          return String(formData.get(key) || "").trim();
+        };
+        const type = String(originalEntry?.type || "").trim().toLowerCase();
+        const subject = toValue("subject") || String(originalEntry?.subject || "").trim();
+        const detail = toValue("detail");
+        const date = toValue("date") || String(originalEntry?.date || "").trim() || getActivityDefaultDate();
+        const direction = toValue("direction") || String(originalEntry?.direction || "").trim();
+        const label = getActivityPreviewLabel(originalEntry);
+
+        if (type === "note") {
+          return {
+            ...originalEntry,
+            type,
+            date,
+            subject: subject || detail,
+            detailRemainder: subject && detail ? detail : "",
+            summary: subject ? `Note: ${subject}${detail ? ` - ${detail}` : ""}` : `Note: ${detail}`
+          };
+        }
+
+        return {
+          ...originalEntry,
+          type,
+          date,
+          direction,
+          subject,
+          detailRemainder: detail,
+          summary: `${label}${direction ? ` (${direction})` : ""}${subject ? `: ${subject}` : ""}${detail ? ` - ${detail}` : ""}`
+        };
+      }
+
+      function deleteActivity(index) {
+        const records = loadJson(localStorage, getRecordsStorageKey());
+        if (!Array.isArray(records) || index < 0) {
+          return false;
+        }
+
+        const recordIndex = records.findIndex(function (item) {
+          return String(item?.id || "").trim() === String(record.id || "").trim();
+        });
+
+        if (recordIndex === -1) {
+          return false;
+        }
+
+        const currentRecord = records[recordIndex];
+        const activityEntries = Array.isArray(currentRecord.activityLog) ? currentRecord.activityLog.slice() : [];
+        if (index >= activityEntries.length) {
+          return false;
+        }
+
+        const removedEntry = activityEntries.splice(index, 1)[0];
+        const nextNotes = removeFirstMatchingNoteLine(currentRecord.clientNotes, removedEntry?.summary || "");
+        const latestActivityDate = activityEntries.length ? String(activityEntries[0]?.date || "").trim() : "";
+        const today = new Date().toISOString().slice(0, 10);
+        const nextRecord = {
+          ...currentRecord,
+          activityLog: activityEntries,
+          clientNotes: nextNotes,
+          lastUpdatedDate: today,
+          lastReview: today,
+          lastContactDate: latestActivityDate || ""
+        };
+
+        records[recordIndex] = nextRecord;
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+        Object.assign(record, nextRecord);
+        return true;
+      }
+
+      function updateActivity(index, nextEntry) {
+        const records = loadJson(localStorage, getRecordsStorageKey());
+        if (!Array.isArray(records) || index < 0 || !nextEntry) {
+          return false;
+        }
+
+        const recordIndex = records.findIndex(function (item) {
+          return String(item?.id || "").trim() === String(record.id || "").trim();
+        });
+
+        if (recordIndex === -1) {
+          return false;
+        }
+
+        const currentRecord = records[recordIndex];
+        const activityEntries = Array.isArray(currentRecord.activityLog) ? currentRecord.activityLog.slice() : [];
+        if (index >= activityEntries.length) {
+          return false;
+        }
+
+        const previousEntry = activityEntries[index];
+        activityEntries[index] = {
+          ...previousEntry,
+          ...nextEntry
+        };
+
+        const nextNotes = replaceFirstMatchingNoteLine(currentRecord.clientNotes, previousEntry?.summary || "", activityEntries[index]?.summary || "");
+        const latestActivityDate = activityEntries.length ? String(activityEntries[0]?.date || "").trim() : "";
+        const today = new Date().toISOString().slice(0, 10);
+        const nextRecord = {
+          ...currentRecord,
+          activityLog: activityEntries,
+          clientNotes: nextNotes,
+          lastUpdatedDate: today,
+          lastReview: today,
+          lastContactDate: latestActivityDate || ""
+        };
+
+        records[recordIndex] = nextRecord;
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+        Object.assign(record, nextRecord);
+        return true;
+      }
+
       function deletePolicy(index) {
         const records = loadJson(localStorage, getRecordsStorageKey());
         if (!Array.isArray(records) || index < 0) {
@@ -3541,6 +3847,12 @@
         });
       });
 
+      activityDeleteCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          closeActivityDeleteModal();
+        });
+      });
+
       if (viewAllPoliciesButton) {
         viewAllPoliciesButton.addEventListener("click", function () {
           if (viewAllPoliciesButton.disabled) {
@@ -3607,6 +3919,22 @@
           closePolicyDeleteModal();
           closePolicyModal();
           window.location.reload();
+        });
+      }
+
+      if (activityDeleteConfirm) {
+        activityDeleteConfirm.addEventListener("click", function () {
+          if (activeActivityIndex < 0) {
+            return;
+          }
+          const wasDeleted = deleteActivity(activeActivityIndex);
+          closeActivityDeleteModal();
+          if (!wasDeleted) {
+            return;
+          }
+          closeActivityDetailModal();
+          activeActivityIndex = -1;
+          refreshActivityTracker();
         });
       }
 
@@ -3695,6 +4023,54 @@
         });
       }
 
+      host.addEventListener("click", function (event) {
+        const activityEntry = event.target.closest("[data-activity-entry-open]");
+        if (activityEntry && host.contains(activityEntry)) {
+          const index = Number(activityEntry.getAttribute("data-activity-entry-open") || "-1");
+          if (index >= 0) {
+            openActivityDetailModal(index);
+          }
+          return;
+        }
+
+        const activityDetailClose = event.target.closest("[data-activity-detail-close]");
+        if (activityDetailClose && host.contains(activityDetailClose)) {
+          closeActivityDetailModal();
+          return;
+        }
+
+        const activityEditToggle = event.target.closest("[data-activity-detail-edit-toggle]");
+        if (activityEditToggle && host.contains(activityEditToggle)) {
+          if (!activeActivityEditMode) {
+            activeActivityEditMode = true;
+            const entries = Array.isArray(record.activityLog) ? record.activityLog : [];
+            if (activeActivityIndex >= 0 && activityDetailBody && entries[activeActivityIndex]) {
+              activityDetailBody.innerHTML = renderActivityDetailModalBody(entries[activeActivityIndex]);
+            }
+          }
+          return;
+        }
+
+        const activityDeleteToggle = event.target.closest("[data-activity-delete-toggle]");
+        if (activityDeleteToggle && host.contains(activityDeleteToggle)) {
+          openActivityDeleteModal();
+        }
+      });
+
+      host.addEventListener("keydown", function (event) {
+        const activityEntry = event.target.closest("[data-activity-entry-open]");
+        if (activityEntry && host.contains(activityEntry)) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            const index = Number(activityEntry.getAttribute("data-activity-entry-open") || "-1");
+            if (index >= 0) {
+              openActivityDetailModal(index);
+            }
+          }
+          return;
+        }
+      });
+
       document.addEventListener("click", function (event) {
         if (!activeActivityModal || activeActivityModal.hidden || !activeActivityTrigger) {
           return;
@@ -3713,11 +4089,38 @@
           closePolicyModal();
           closePolicyListModal();
           closePolicyDeleteModal();
+          closeActivityDetailModal();
+          closeActivityDeleteModal();
           closePmiDetailModal();
           closeActivityModal();
           closeActivityWidget();
         }
       });
+
+      if (activityDetailModal) {
+        activityDetailModal.addEventListener("submit", function (event) {
+          const form = event.target.closest("[data-activity-detail-form]");
+          if (!form) {
+            return;
+          }
+          event.preventDefault();
+          if (!activeActivityEditMode || activeActivityIndex < 0) {
+            return;
+          }
+          const entries = Array.isArray(record.activityLog) ? record.activityLog : [];
+          const originalEntry = entries[activeActivityIndex];
+          if (!originalEntry) {
+            return;
+          }
+          const nextEntry = buildEditedActivityEntry(originalEntry, new FormData(form));
+          const wasUpdated = updateActivity(activeActivityIndex, nextEntry);
+          if (!wasUpdated) {
+            return;
+          }
+          activeActivityEditMode = false;
+          refreshActivityTracker();
+        });
+      }
 
     })();
   </script>

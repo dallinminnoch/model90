@@ -4600,29 +4600,33 @@ body.client-detail-page .client-detail-header {
 
 .client-activity-summary-card {
   display: grid;
-  min-height: 4.6rem;
-  max-height: 4.6rem;
+  height: 4.3rem;
+  min-height: 4.3rem;
+  max-height: 4.3rem;
   overflow: hidden;
 }
 
 .client-activity-summary-top {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.15rem;
-  flex-wrap: wrap;
+  gap: 0.8rem;
+  padding: 0.82rem 1rem;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .client-activity-status-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.5rem;
-  padding: 0.35rem 0.95rem;
+  flex: 0 0 auto;
+  min-height: 2.2rem;
+  padding: 0.28rem 0.82rem;
   border-radius: 0.8rem;
-  font-size: 0.92rem;
+  font-size: clamp(0.76rem, 0.72rem + 0.2vw, 0.86rem);
   font-weight: 700;
   letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
 .client-activity-status-badge.is-risk {
@@ -4650,9 +4654,12 @@ body.client-detail-page .client-detail-header {
 }
 
 .client-activity-summary-metric {
+  flex: 0 1 auto;
+  min-width: 0;
   color: #1f2a3d;
-  font-size: 0.96rem;
+  font-size: clamp(0.74rem, 0.7rem + 0.22vw, 0.88rem);
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .client-activity-summary-metric strong {
@@ -4759,10 +4766,12 @@ body.client-detail-page .client-detail-header {
 }
 
 .client-activity-entry-card {
+  appearance: none;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
   gap: 0.65rem;
+  width: 100%;
   padding: 0.38rem 0.15rem 0.12rem 0;
   min-height: 3.35rem;
   max-height: 3.35rem;
@@ -4772,6 +4781,8 @@ body.client-detail-page .client-detail-header {
   background: transparent;
   box-shadow: none;
   overflow: hidden;
+  text-align: left;
+  font-family: "Manrope", sans-serif;
 }
 
 .client-activity-entry-card::after {
@@ -4782,6 +4793,19 @@ body.client-detail-page .client-detail-header {
   top: 2.55rem;
   height: 1px;
   background: rgba(235, 239, 245, 0.95);
+}
+
+.client-activity-entry-card.is-clickable {
+  cursor: pointer;
+}
+
+.client-activity-entry-card.is-clickable:hover {
+  background: rgba(244, 247, 252, 0.58);
+}
+
+.client-activity-entry-card.is-clickable:focus-visible {
+  outline: 2px solid rgba(122, 90, 214, 0.2);
+  outline-offset: -1px;
 }
 
 .client-activity-entry-icon {
@@ -4989,9 +5013,9 @@ body.client-detail-page .client-detail-header {
   bottom: calc(100% - 0.08rem);
   z-index: 6;
   transform-origin: bottom center;
-  height: 28.9rem;
-  min-height: 28.9rem;
-  max-height: 28.9rem;
+  height: 28.6rem;
+  min-height: 28.6rem;
+  max-height: 28.6rem;
 }
 
 .client-activity-drawer-panel {
@@ -5576,6 +5600,127 @@ body.client-detail-page .client-detail-header {
   border: 1px solid rgba(173, 55, 55, 0.22);
   background: #fbe7e7;
   color: #8b2f2f;
+}
+
+.client-activity-detail-modal-panel {
+  gap: 1rem;
+}
+
+.client-activity-detail-header {
+  align-items: center;
+}
+
+.client-activity-detail-back {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.client-activity-detail-modal-heading {
+  gap: 0.2rem;
+}
+
+.client-activity-detail-modal-heading h2 {
+  margin: 0;
+  font-size: 1.22rem;
+}
+
+.client-activity-detail-modal-heading p {
+  margin: 0;
+  color: #667084;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.client-activity-detail-body {
+  display: grid;
+  gap: 1rem;
+}
+
+.client-activity-detail-body .client-activity-input[readonly],
+.client-activity-detail-body .client-activity-textarea[readonly] {
+  background: #fbfcfe;
+  color: #17212e;
+  cursor: default;
+}
+
+.client-activity-detail-body .client-activity-input:not([readonly]),
+.client-activity-detail-body .client-activity-select,
+.client-activity-detail-body .client-activity-textarea:not([readonly]) {
+  background: #ffffff;
+}
+
+.client-activity-detail-textarea {
+  min-height: 10.5rem;
+  resize: none;
+}
+
+.client-activity-detail-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 0.45rem;
+}
+
+.client-activity-detail-edit {
+  appearance: none;
+  flex: 0 0 auto;
+  min-width: 5.1rem;
+  min-height: 2.25rem;
+  padding: 0 0.95rem;
+  border-radius: 0.72rem;
+  border: 1px solid rgba(213, 221, 232, 0.95);
+  background: #ffffff;
+  color: #4f5d73;
+  font-family: "Manrope", sans-serif;
+  font-size: 1.02rem;
+  font-weight: 900;
+  line-height: 0.95;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+
+.client-activity-detail-edit:hover,
+.client-activity-detail-edit:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(16, 33, 52, 0.08);
+  outline: none;
+}
+
+.client-activity-detail-edit.is-editing {
+  border-color: rgba(109, 77, 229, 0.18);
+  background: #f7f4ff;
+  color: #5f43d6;
+}
+
+.client-activity-detail-edit.is-saving {
+  border-color: rgba(109, 77, 229, 0.24);
+  background: #6d4de5;
+  color: #ffffff;
+}
+
+.client-activity-delete-button {
+  flex: 0 0 auto;
+  min-height: 2.2rem;
+  min-width: 2.2rem;
+  justify-content: center;
+  gap: 0;
+}
+
+.client-activity-delete-image {
+  width: 1.05rem;
+  height: 1.05rem;
+  display: block;
+  flex: 0 0 auto;
+  background: currentColor;
+  -webkit-mask-image: url("Images/trashcan.png");
+  mask-image: url("Images/trashcan.png");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
 }
 
 .client-policy-modal-grid {
