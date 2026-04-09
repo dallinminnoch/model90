@@ -5025,8 +5025,9 @@ body.client-detail-page .client-detail-header {
   padding: 0;
   border: 0;
   border-radius: 0;
-  background: transparent;
-  box-shadow: 0 18px 34px rgba(16, 33, 52, 0.2);
+  overflow: hidden;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+  box-shadow: none;
   opacity: 0;
   clip-path: inset(calc(100% - 2.1rem) 0 0 0);
   transform: translateY(0.65rem);
@@ -5037,6 +5038,12 @@ body.client-detail-page .client-detail-header {
   opacity: 1;
   clip-path: inset(0 0 0 0);
   transform: translateY(0);
+}
+
+.client-notes-widget-card:has(.client-activity-drawer.is-open) .client-activity-summary-card,
+.client-notes-widget-card:has(.client-activity-drawer.is-open) .client-activity-next-best,
+.client-notes-widget-card:has(.client-activity-drawer.is-open) .client-notes-widget-paper {
+  box-shadow: none;
 }
 
 .client-activity-menu[hidden],
@@ -5050,7 +5057,7 @@ body.client-detail-page .client-detail-header {
   box-sizing: border-box;
   padding: 0.6rem 0.6rem 0.7rem;
   border-radius: 0;
-  background: #ffffff;
+  background: inherit;
 }
 
 .client-activity-modal-header {
