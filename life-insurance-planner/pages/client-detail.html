@@ -504,6 +504,19 @@
         return null;
       }
 
+      function getLatestRecordSnapshot() {
+        const records = loadJson(localStorage, getRecordsStorageKey());
+        if (!Array.isArray(records)) {
+          return record;
+        }
+
+        const matched = records.find(function (item) {
+          return String(item?.id || "").trim() === String(record?.id || "").trim();
+        });
+
+        return matched || record;
+      }
+
       function getPrimaryLinkedClientForHousehold(householdRecord) {
         const householdId = String(householdRecord?.id || "").trim();
         if (!householdId) {
@@ -1027,35 +1040,116 @@
         `;
       }
 
-      function renderNotesWidget(record) {
-        const rawNotes = String(record.clientNotes || "").trim();
-        const noteLines = rawNotes
-          ? rawNotes.split(/\r?\n+/).map(function (line) { return line.trim(); }).filter(Boolean).slice(0, 3)
+      function renderActivityPreview(record) {
+        const activityEntries = Array.isArray(record.activityLog) ? record.activityLog.slice(0, 3) : [];
+        const fallbackNotes = String(record.clientNotes || "").trim()
+          ? String(record.clientNotes || "").trim().split(/\r?\n+/).map(function (line) { return line.trim(); }).filter(Boolean).slice(0, 3)
           : [];
-        const nextFollowUp = formatDate(record.lastReview || record.lastUpdatedDate || record.dateProfileCreated);
+        const previewItems = activityEntries.length
+          ? activityEntries.map(function (entry) {
+              const label = getActivityPreviewLabel(entry);
+              const detail = getActivityPreviewDetail(entry);
+              if (!label && !detail) {
+                return "";
+              }
+              return `
+                <strong>${escapeHtml(label || "Activity")}:</strong>${detail ? ` ${escapeHtml(detail)}` : ""}
+              `;
+            }).filter(Boolean)
+          : fallbackNotes;
+
+        if (!previewItems.length) {
+          return `<p class="client-notes-widget-empty">No activity logged yet.</p>`;
+        }
+
+        return `
+          <div class="client-notes-widget-list">
+            ${previewItems.map(function (line, index) {
+              const entry = activityEntries[index] || null;
+              const stamp = entry?.date ? formatDate(entry.date) : "";
+              return `
+                <div class="client-notes-widget-item">
+                  <span class="client-notes-widget-dot" aria-hidden="true"></span>
+                  <span class="client-notes-widget-copy">${line}</span>
+                  <span class="client-notes-widget-date">${escapeHtml(stamp)}</span>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      }
+
+      function getActivityPreviewLabel(entry) {
+        const type = String(entry?.type || "").trim().toLowerCase();
+        if (type === "note") {
+          return "Note";
+        }
+        if (type === "email") {
+          return "Email";
+        }
+        if (type === "phone") {
+          return "Phone Call";
+        }
+        if (type === "schedule") {
+          return "Scheduled Meeting";
+        }
+        if (type === "meeting") {
+          return "Meeting";
+        }
+        if (type === "reminder") {
+          return "Reminder";
+        }
+        return "";
+      }
+
+      function getActivityPreviewDetail(entry) {
+        if (entry && typeof entry.detail === "string" && entry.detail.trim()) {
+          return entry.detail.trim();
+        }
+
+        const summary = String(entry?.summary || "").trim();
+        const type = String(entry?.type || "").trim().toLowerCase();
+        if (!summary) {
+          return "";
+        }
+
+        if (type === "note") {
+          return summary.replace(/^Note:\s*/i, "");
+        }
+        if (type === "email") {
+          return summary.replace(/^Email\b[\s:]*/i, "");
+        }
+        if (type === "phone") {
+          return summary.replace(/^Phone Call\b[\s:]*/i, "");
+        }
+        if (type === "schedule") {
+          return summary.replace(/^Scheduled\b[\s:]*/i, "");
+        }
+        if (type === "meeting") {
+          return summary;
+        }
+        if (type === "reminder") {
+          return summary.replace(/^Reminder\b[\s:]*/i, "");
+        }
+        return summary;
+      }
+
+      function renderNotesWidget(record, title) {
         const lastContact = formatDate(record.lastContactDate || record.lastUpdatedDate || record.dateProfileCreated);
-        const previewNotes = noteLines;
+        const widgetTitle = String(title || "Activity Tracker");
 
         return `
           <section class="client-detail-card client-detail-card-compact client-notes-widget-card">
             <div class="client-notes-widget-topline">
-              <h2>Activity Tracker</h2>
-              <span class="client-notes-widget-last-contact">Last Contact ${escapeHtml(lastContact)}</span>
+              <h2>${escapeHtml(widgetTitle)}</h2>
+              <span class="client-notes-widget-last-contact" data-activity-last-contact>Last Contact ${escapeHtml(lastContact)}</span>
             </div>
-            <div class="client-notes-widget-paper" aria-hidden="true"></div>
             <div class="client-notes-widget-body">
-              ${previewNotes.length ? `
-                <div class="client-notes-widget-list">
-                  ${previewNotes.map(function (line) {
-                    return `
-                      <div class="client-notes-widget-item">
-                        <span class="client-notes-widget-dot" aria-hidden="true"></span>
-                        <span>${escapeHtml(line)}</span>
-                      </div>
-                    `;
-                  }).join("")}
+              <div class="client-notes-widget-paper">
+                <div data-activity-preview>
+                  ${renderActivityPreview(record)}
                 </div>
-              ` : ""}
+              </div>
               <div class="client-notes-widget-actions">
                 <button type="button" class="client-notes-widget-action client-notes-widget-action-primary" data-activity-log-open>Log Activity</button>
                 <div class="client-activity-drawer" data-activity-modal hidden>
@@ -1299,7 +1393,11 @@
         const subtitleParts = [status, formatValue(record.caseRef)];
         const householdDisplay = householdName === "Not provided" ? "No household linked" : householdName;
         const dependentAgesDisplay = formatValue(record.dependentAges);
-        const policyCount = Array.isArray(record.coveragePolicies) ? record.coveragePolicies.length : Number(record.policyCount || 0);
+        const policies = Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
+        const policyCount = policies.length || Number(record.policyCount || 0);
+        const monthlyPremiumTotal = policies.reduce(function (sum, policy) {
+          return sum + parseCurrencyNumber(policy.premiumAmount);
+        }, 0);
         const membersCount = Number(record.insured || 0);
         const createdDateDisplay = formatDate(record.dateProfileCreated || record.lastUpdatedDate);
         const primaryLinkedClient = isHousehold ? getPrimaryLinkedClientForHousehold(record) : null;
@@ -1461,6 +1559,26 @@
                       <div class="client-household-right-rail">
                         <div class="client-household-top-rail">
                           <div class="client-household-members-column">
+                            <section class="client-detail-card client-household-panel client-household-coverage-panel-wide">
+                              <div class="client-detail-card-header">
+                                <h2>Household Policy Summary</h2>
+                              </div>
+                              <div class="client-household-policy-stats">
+                                <div class="client-household-policy-stat">
+                                  <span class="client-household-policy-stat-label">Monthly Premiums</span>
+                                  <strong>${escapeHtml(formatCoverageCardCurrency(monthlyPremiumTotal))}</strong>
+                                </div>
+                                <div class="client-household-policy-stat">
+                                  <span class="client-household-policy-stat-label">Active Policies</span>
+                                  <strong>${escapeHtml(String(Number.isFinite(policyCount) ? policyCount : 0))}</strong>
+                                </div>
+                                <div class="client-household-policy-stat">
+                                  <span class="client-household-policy-stat-label">Total Coverage</span>
+                                  <strong>${escapeHtml(formatCoverageCardCurrency(record.coverageAmount))}</strong>
+                                </div>
+                              </div>
+                            </section>
+
                             <section class="client-detail-card client-household-panel client-household-members-panel">
                               <div class="client-detail-card-header client-household-card-header-action">
                                 <h2>Household Members</h2>
@@ -1471,17 +1589,6 @@
                               </div>
                             </section>
 
-                            <section class="client-detail-card client-household-panel client-household-coverage-panel-wide">
-                              <div class="client-detail-card-header">
-                                <h2>Total Household Coverage</h2>
-                              </div>
-                            <div class="client-household-coverage-row">
-                              <div><strong>${escapeHtml(formatCoverageCardCurrency(record.coverageAmount))}</strong> Coverage</div>
-                              <div class="client-household-coverage-accent">${escapeHtml(formatCoverageCardCurrency(record.coverageGap))}</div>
-                            </div>
-                            <div class="client-household-progress-bar"><span style="width:${escapeHtml(String(adequacyPercent))}%"></span></div>
-                            <div class="client-household-progress-meta"><span>Coverage Adequacy</span><span>${escapeHtml(String(adequacyPercent))}%</span></div>
-                          </section>
                           </div>
 
                           <section class="client-detail-card client-household-panel client-household-actions-panel">
@@ -1517,6 +1624,8 @@
                               </div>
                           </section>
                         </div>
+
+                        ${renderNotesWidget(record, "Household Activity Tracker")}
                       </div>
                     </div>
                   </section>
@@ -1984,8 +2093,7 @@
       const statModalCancel = host.querySelector("[data-stat-modal-cancel]");
       const statModalSave = host.querySelector("[data-stat-modal-save]");
       const statModalClose = host.querySelector("[data-stat-modal-close]");
-      const activityModal = host.querySelector("[data-activity-modal]");
-      const activityModalOpen = host.querySelector("[data-activity-log-open]");
+      const activityModalOpens = host.querySelectorAll("[data-activity-log-open]");
       const activityModalCloseButtons = host.querySelectorAll("[data-activity-modal-close]");
       const activityMenu = host.querySelector("[data-activity-menu]");
       const activityWidgetModal = host.querySelector("[data-activity-widget-modal]");
@@ -1997,6 +2105,8 @@
       const activityWidgetCancel = host.querySelector("[data-activity-widget-cancel]");
       const activityWidgetCloseButtons = host.querySelectorAll("[data-activity-widget-close]");
       const activityOptionButtons = host.querySelectorAll("[data-activity-option]");
+      const activityPreviewContainers = host.querySelectorAll("[data-activity-preview]");
+      const activityLastContactLabels = host.querySelectorAll("[data-activity-last-contact]");
       const caseRefCopyButton = host.querySelector("[data-case-ref-copy]");
       const coverageAdequacyPercent = host.querySelector("[data-coverage-adequacy-percent]");
       const coverageAdequacyFill = host.querySelector("[data-coverage-adequacy-fill]");
@@ -2005,39 +2115,47 @@
       let activePolicyIndex = -1;
       let coverageAdequacyAnimationFrame = 0;
       let activeActivityType = "";
+      let activeActivityModal = null;
+      let activeActivityTrigger = null;
+      let activityWidgetSourceTrigger = null;
 
       function syncModalLock() {
         const anyModalOpen = policyModal?.hidden === false || policyListModal?.hidden === false || policyDeleteModal?.hidden === false || pmiDetailModal?.hidden === false || statModal?.hidden === false || activityWidgetModal?.hidden === false;
         document.body.classList.toggle("is-modal-open", anyModalOpen);
       }
 
-      function openActivityModal() {
-        if (!activityModal) {
+      function openActivityModal(triggerButton) {
+        const localTrigger = triggerButton || activeActivityTrigger;
+        const localModal = localTrigger?.closest(".client-notes-widget-card")?.querySelector("[data-activity-modal]");
+        if (!localTrigger || !localModal) {
           return;
         }
-        activityModal.hidden = false;
-        if (activityModalOpen) {
-          activityModalOpen.classList.add("is-open");
-        }
+        activeActivityTrigger = localTrigger;
+        activeActivityModal = localModal;
+        localModal.hidden = false;
+        localTrigger.classList.add("is-open");
         window.requestAnimationFrame(function () {
-          activityModal.classList.add("is-open");
+          localModal.classList.add("is-open");
         });
       }
 
       function closeActivityModal() {
-        if (!activityModal) {
+        const modal = activeActivityModal;
+        const trigger = activeActivityTrigger;
+        if (!modal) {
           return;
         }
-        activityModal.classList.remove("is-open");
-        if (activityModalOpen) {
-          activityModalOpen.classList.remove("is-open");
+        modal.classList.remove("is-open");
+        if (trigger) {
+          trigger.classList.remove("is-open");
         }
         window.setTimeout(function () {
-          if (!activityModal.classList.contains("is-open")) {
-            activityModal.hidden = true;
+          if (!modal.classList.contains("is-open")) {
+            modal.hidden = true;
           }
         }, 180);
-        resetActivityWidget();
+        activeActivityModal = null;
+        activeActivityTrigger = null;
       }
 
       function getActivityDefaultDate() {
@@ -2227,6 +2345,7 @@
         }
 
         activeActivityType = type;
+        activityWidgetSourceTrigger = activeActivityTrigger;
         closeActivityModal();
         activityWidgetModal.hidden = false;
         activityWidgetTitle.textContent = config.title;
@@ -2247,6 +2366,7 @@
           if (!activityWidgetModal.classList.contains("is-open")) {
             activityWidgetModal.hidden = true;
             resetActivityWidget();
+            activityWidgetSourceTrigger = null;
             syncModalLock();
           }
         }, 180);
@@ -2263,6 +2383,7 @@
           return {
             type: "note",
             date: getActivityDefaultDate(),
+            detail: title ? `${title} - ${body}` : body,
             noteLine: title ? `Note: ${title} - ${body}` : `Note: ${body}`,
             lastContactDate: getActivityDefaultDate()
           };
@@ -2276,6 +2397,7 @@
           return {
             type: "email",
             date,
+            detail: `${direction}${subject ? `: ${subject}` : ""}${summary ? ` - ${summary}` : ""}`,
             noteLine: `Email (${direction}): ${subject}${summary ? ` - ${summary}` : ""}`,
             lastContactDate: date
           };
@@ -2289,6 +2411,7 @@
           return {
             type: "phone",
             date,
+            detail: `${direction}${outcome ? `: ${outcome}` : ""}${summary ? ` - ${summary}` : ""}`,
             noteLine: `Phone Call (${direction})${outcome ? `: ${outcome}` : ""}${summary ? ` - ${summary}` : ""}`,
             lastContactDate: date
           };
@@ -2303,6 +2426,7 @@
           return {
             type: "schedule",
             date,
+            detail: `${meetingType}${time ? ` at ${time}` : ""}${location ? `, ${location}` : ""} - ${agenda}`,
             noteLine: `Scheduled ${meetingType}${time ? ` at ${time}` : ""}${location ? `, ${location}` : ""} - ${agenda}`,
             lastReview: date
           };
@@ -2317,6 +2441,7 @@
           return {
             type: "meeting",
             date,
+            detail: `${meetingType}${time ? ` at ${time}` : ""}${attendees ? ` with ${attendees}` : ""} - ${summary}`,
             noteLine: `${meetingType}${time ? ` at ${time}` : ""}${attendees ? ` with ${attendees}` : ""} - ${summary}`,
             lastContactDate: date
           };
@@ -2329,6 +2454,7 @@
           return {
             type: "reminder",
             date,
+            detail: `${category} for ${date} - ${summary}`,
             noteLine: `Reminder (${category}) for ${date} - ${summary}`,
             lastReview: date
           };
@@ -2372,14 +2498,15 @@
 
       function saveActivityEntry(entry) {
         if (!entry) {
-          return;
+          return false;
         }
 
         const existingLog = Array.isArray(record.activityLog) ? record.activityLog.slice() : [];
         existingLog.unshift({
           type: entry.type,
           date: entry.date,
-          summary: entry.noteLine
+          summary: entry.noteLine,
+          detail: entry.detail || ""
         });
 
         const existingNotes = String(record.clientNotes || "").trim();
@@ -2399,7 +2526,7 @@
 
         const records = loadJson(localStorage, getRecordsStorageKey());
         if (!Array.isArray(records)) {
-          return;
+          return false;
         }
 
         const recordIndex = records.findIndex(function (item) {
@@ -2407,7 +2534,7 @@
         });
 
         if (recordIndex === -1) {
-          return;
+          return false;
         }
 
         records[recordIndex] = {
@@ -2418,6 +2545,23 @@
 
         localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
         Object.assign(record, nextFields);
+        return true;
+      }
+
+      function refreshActivityTracker() {
+        const latestRecord = getLatestRecordSnapshot();
+        if (latestRecord && latestRecord !== record) {
+          Object.assign(record, latestRecord);
+        }
+
+        activityPreviewContainers.forEach(function (container) {
+          container.innerHTML = renderActivityPreview(record);
+        });
+
+        const lastContact = formatDate(record.lastContactDate || record.lastUpdatedDate || record.dateProfileCreated);
+        activityLastContactLabels.forEach(function (label) {
+          label.textContent = `Last Contact ${lastContact}`;
+        });
       }
 
       function refreshCoverageAdequacy(animateFromZero) {
@@ -2929,15 +3073,16 @@
         });
       }
 
-      if (activityModalOpen) {
-        activityModalOpen.addEventListener("click", function () {
-          if (activityModal && activityModal.hidden === false) {
-          closeActivityModal();
+      activityModalOpens.forEach(function (button) {
+        button.addEventListener("click", function () {
+          const localModal = button.closest(".client-notes-widget-card")?.querySelector("[data-activity-modal]");
+          if (localModal && localModal.hidden === false) {
+            closeActivityModal();
             return;
           }
-          openActivityModal();
+          openActivityModal(button);
         });
-      }
+      });
 
       activityModalCloseButtons.forEach(function (button) {
         button.addEventListener("click", function () {
@@ -2957,9 +3102,10 @@
 
       if (activityWidgetBack) {
         activityWidgetBack.addEventListener("click", function () {
+          const sourceTrigger = activityWidgetSourceTrigger;
           closeActivityWidget();
           window.setTimeout(function () {
-            openActivityModal();
+            openActivityModal(sourceTrigger);
           }, 190);
         });
       }
@@ -2983,9 +3129,13 @@
           if (!entry) {
             return;
           }
-          saveActivityEntry(entry);
+          const wasSaved = saveActivityEntry(entry);
+          if (!wasSaved) {
+            return;
+          }
+          refreshActivityTracker();
           closeActivityWidget();
-          window.location.reload();
+          closeActivityModal();
         });
       }
 
@@ -3009,12 +3159,12 @@
       }
 
       document.addEventListener("click", function (event) {
-        if (!activityModal || activityModal.hidden || !activityModalOpen) {
+        if (!activeActivityModal || activeActivityModal.hidden || !activeActivityTrigger) {
           return;
         }
 
-        const clickedInsideDrawer = activityModal.contains(event.target);
-        const clickedTrigger = activityModalOpen.contains(event.target);
+        const clickedInsideDrawer = activeActivityModal.contains(event.target);
+        const clickedTrigger = activeActivityTrigger.contains(event.target);
 
         if (!clickedInsideDrawer && !clickedTrigger) {
           closeActivityModal();
