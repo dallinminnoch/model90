@@ -1040,23 +1040,235 @@
         `;
       }
 
+      function getActivityRelativeTime(value) {
+        if (!value) {
+          return "";
+        }
+
+        const date = new Date(`${value}T00:00:00`);
+        if (Number.isNaN(date.getTime())) {
+          return "";
+        }
+
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const diffDays = Math.max(0, Math.round((today.getTime() - target.getTime()) / 86400000));
+
+        if (diffDays === 0) {
+          return "Today";
+        }
+        if (diffDays === 1) {
+          return "1 day ago";
+        }
+        if (diffDays < 30) {
+          return `${diffDays} days ago`;
+        }
+        return formatDate(value);
+      }
+
+      function getActivityAgeInDays(value) {
+        if (!value) {
+          return null;
+        }
+
+        const date = new Date(`${value}T00:00:00`);
+        if (Number.isNaN(date.getTime())) {
+          return null;
+        }
+
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        return Math.max(0, Math.round((today.getTime() - target.getTime()) / 86400000));
+      }
+
+      function getActivityDirection(entry) {
+        return String(entry?.direction || "").trim().toLowerCase();
+      }
+
+      function isActivityInLastDays(entry, days) {
+        const age = getActivityAgeInDays(String(entry?.date || "").trim());
+        return age !== null && age <= days;
+      }
+
+      function isOutboundActivity(entry) {
+        const type = String(entry?.type || "").trim().toLowerCase();
+        const direction = getActivityDirection(entry);
+        return (type === "phone" || type === "email" || type === "text") && direction === "outbound"
+          || type === "schedule";
+      }
+
+      function isResponseActivity(entry) {
+        const type = String(entry?.type || "").trim().toLowerCase();
+        const direction = getActivityDirection(entry);
+        return (type === "phone" || type === "email" || type === "text") && direction === "inbound"
+          || type === "meeting"
+          || type === "face";
+      }
+
+      function getResponseRateSummary(activityEntries) {
+        const recentEntries = activityEntries.filter(function (entry) {
+          return isActivityInLastDays(entry, 30);
+        });
+        const outboundCount = recentEntries.filter(isOutboundActivity).length;
+        const responseCount = recentEntries.filter(isResponseActivity).length;
+
+        if (!outboundCount) {
+          return {
+            label: "Unknown",
+            ratio: null
+          };
+        }
+
+        const ratio = responseCount / outboundCount;
+        if (ratio >= 0.7) {
+          return { label: "High", ratio };
+        }
+        if (ratio >= 0.4) {
+          return { label: "Moderate", ratio };
+        }
+        if (ratio > 0) {
+          return { label: "Low", ratio };
+        }
+        return { label: "None", ratio: 0 };
+      }
+
+      function getActivityTrackerSummary(record) {
+        const lastContactRaw = record.lastContactDate || record.lastUpdatedDate || record.dateProfileCreated;
+        const relativeContact = getActivityRelativeTime(lastContactRaw);
+        const activityEntries = Array.isArray(record.activityLog) ? record.activityLog : [];
+        const latestActivityDate = activityEntries.length
+          ? String(activityEntries[0]?.date || "").trim()
+          : String(lastContactRaw || "").trim();
+        const latestActivityAge = getActivityAgeInDays(latestActivityDate);
+        const responseRate = getResponseRateSummary(activityEntries);
+
+        let status = "On Track";
+        let statusTone = "good";
+        let alertCopy = "Recent activity is being tracked consistently.";
+        let nextAction = "Keep the current client touchpoint cadence going.";
+        let quickActionLabel = "Log Follow-Up";
+
+        if (!activityEntries.length) {
+          status = "No Activity";
+          statusTone = "warn";
+          alertCopy = "No activity has been logged on this profile yet.";
+          nextAction = "Log an initial touchpoint to establish momentum.";
+          quickActionLabel = "Log First Activity";
+        } else if (latestActivityAge !== null && latestActivityAge >= 28) {
+          status = "Inactive";
+          statusTone = "inactive";
+          alertCopy = "No activity has been logged for 4 weeks or longer.";
+          nextAction = "Reconnect with the client and re-establish engagement.";
+          quickActionLabel = "Log Reconnect";
+        } else if (latestActivityAge !== null && latestActivityAge > 7) {
+          status = "At Risk";
+          statusTone = "risk";
+          alertCopy = "The last recorded activity is more than 1 week old.";
+          nextAction = "Follow up with client and confirm the next step.";
+          quickActionLabel = "Log Follow-Up Call";
+        } else if (latestActivityAge !== null && latestActivityAge <= 7) {
+          status = "Active";
+          statusTone = "good";
+          alertCopy = "A recent activity was logged within the last week.";
+          nextAction = "Keep the next meeting or follow-up moving forward.";
+          quickActionLabel = "Log Meeting";
+        }
+
+        return {
+          lastContactDisplay: formatDate(lastContactRaw),
+          relativeContact: relativeContact || "Not provided",
+          status,
+          statusTone,
+          responseRate: responseRate.label,
+          alertCopy,
+          nextAction,
+          quickActionLabel
+        };
+      }
+
+      function getActivityIcon(type) {
+        if (type === "phone") {
+          return "☎";
+        }
+        if (type === "text") {
+          return "✆";
+        }
+        if (type === "meeting" || type === "schedule") {
+          return "◫";
+        }
+        if (type === "face") {
+          return "◉";
+        }
+        if (type === "email") {
+          return "✉";
+        }
+        if (type === "reminder") {
+          return "◌";
+        }
+        return "▤";
+      }
+
+      function getActivityIconClass(type) {
+        if (type === "phone") {
+          return "is-blue";
+        }
+        if (type === "text") {
+          return "is-sky";
+        }
+        if (type === "meeting" || type === "schedule") {
+          return "is-indigo";
+        }
+        if (type === "face") {
+          return "is-emerald";
+        }
+        if (type === "email") {
+          return "is-teal";
+        }
+        if (type === "reminder") {
+          return "is-amber";
+        }
+        return "is-slate";
+      }
+
       function renderActivityPreview(record) {
-        const activityEntries = Array.isArray(record.activityLog) ? record.activityLog.slice(0, 3) : [];
+        const activityEntries = Array.isArray(record.activityLog) ? record.activityLog : [];
         const fallbackNotes = String(record.clientNotes || "").trim()
           ? String(record.clientNotes || "").trim().split(/\r?\n+/).map(function (line) { return line.trim(); }).filter(Boolean).slice(0, 3)
           : [];
         const previewItems = activityEntries.length
           ? activityEntries.map(function (entry) {
-              const label = getActivityPreviewLabel(entry);
-              const detail = getActivityPreviewDetail(entry);
-              if (!label && !detail) {
+              const preview = getActivityPreviewParts(entry);
+              if (!preview.label && !preview.subject && !preview.detail) {
                 return "";
               }
+              const stamp = entry?.date ? getActivityRelativeTime(entry.date) : "";
               return `
-                <strong>${escapeHtml(label || "Activity")}:</strong>${detail ? ` ${escapeHtml(detail)}` : ""}
+                <article class="client-activity-entry-card">
+                  <span class="client-activity-entry-icon ${getActivityIconClass(String(entry?.type || "").trim().toLowerCase())}" aria-hidden="true">${escapeHtml(getActivityIcon(String(entry?.type || "").trim().toLowerCase()))}</span>
+                  <div class="client-activity-entry-copy">
+                    <div class="client-activity-entry-title-row">
+                      <div class="client-activity-entry-title"><span class="client-notes-widget-kind">${escapeHtml(preview.label || "Activity")}:</span>${preview.subject ? ` <strong class="client-notes-widget-subject">${escapeHtml(preview.subject)}</strong>` : ""}</div>
+                      <span class="client-activity-entry-date">${escapeHtml(stamp)}</span>
+                    </div>
+                    ${preview.detail ? `<p class="client-activity-entry-detail">${escapeHtml(preview.detail)}</p>` : ""}
+                  </div>
+                </article>
               `;
             }).filter(Boolean)
-          : fallbackNotes;
+          : fallbackNotes.map(function (line) {
+              return `
+                <article class="client-activity-entry-card">
+                  <span class="client-activity-entry-icon is-slate" aria-hidden="true">▤</span>
+                  <div class="client-activity-entry-copy">
+                    <div class="client-activity-entry-title-row">
+                      <div class="client-activity-entry-title"><span class="client-notes-widget-kind">Note:</span> <strong class="client-notes-widget-subject">${escapeHtml(line)}</strong></div>
+                    </div>
+                  </div>
+                </article>
+              `;
+            });
 
         if (!previewItems.length) {
           return `<p class="client-notes-widget-empty">No activity logged yet.</p>`;
@@ -1064,17 +1276,7 @@
 
         return `
           <div class="client-notes-widget-list">
-            ${previewItems.map(function (line, index) {
-              const entry = activityEntries[index] || null;
-              const stamp = entry?.date ? formatDate(entry.date) : "";
-              return `
-                <div class="client-notes-widget-item">
-                  <span class="client-notes-widget-dot" aria-hidden="true"></span>
-                  <span class="client-notes-widget-copy">${line}</span>
-                  <span class="client-notes-widget-date">${escapeHtml(stamp)}</span>
-                </div>
-              `;
-            }).join("")}
+            ${previewItems.join("")}
           </div>
         `;
       }
@@ -1090,11 +1292,17 @@
         if (type === "phone") {
           return "Phone Call";
         }
+        if (type === "text") {
+          return "Text Message";
+        }
         if (type === "schedule") {
           return "Scheduled Meeting";
         }
         if (type === "meeting") {
           return "Meeting";
+        }
+        if (type === "face") {
+          return "Face-to-Face";
         }
         if (type === "reminder") {
           return "Reminder";
@@ -1102,56 +1310,82 @@
         return "";
       }
 
-      function getActivityPreviewDetail(entry) {
-        if (entry && typeof entry.detail === "string" && entry.detail.trim()) {
-          return entry.detail.trim();
+      function getActivityPreviewParts(entry) {
+        const label = getActivityPreviewLabel(entry);
+        const subject = String(entry?.subject || "").trim();
+        const detail = String(entry?.detailRemainder || "").trim();
+
+        if (subject || detail) {
+          return { label, subject, detail };
         }
 
         const summary = String(entry?.summary || "").trim();
-        const type = String(entry?.type || "").trim().toLowerCase();
         if (!summary) {
-          return "";
+          return { label, subject: "", detail: "" };
         }
 
-        if (type === "note") {
-          return summary.replace(/^Note:\s*/i, "");
+        const normalized = summary
+          .replace(/^Note:\s*/i, "")
+          .replace(/^Email\b[\s:]*/i, "")
+          .replace(/^Phone Call\b[\s:]*/i, "")
+          .replace(/^Scheduled\b[\s:]*/i, "")
+          .replace(/^Reminder\b[\s:]*/i, "")
+          .trim();
+
+        const splitters = [" - ", ": ", ", "];
+        for (let index = 0; index < splitters.length; index += 1) {
+          const splitter = splitters[index];
+          const splitIndex = normalized.indexOf(splitter);
+          if (splitIndex > -1) {
+            return {
+              label,
+              subject: normalized.slice(0, splitIndex).trim(),
+              detail: normalized.slice(splitIndex + splitter.length).trim()
+            };
+          }
         }
-        if (type === "email") {
-          return summary.replace(/^Email\b[\s:]*/i, "");
-        }
-        if (type === "phone") {
-          return summary.replace(/^Phone Call\b[\s:]*/i, "");
-        }
-        if (type === "schedule") {
-          return summary.replace(/^Scheduled\b[\s:]*/i, "");
-        }
-        if (type === "meeting") {
-          return summary;
-        }
-        if (type === "reminder") {
-          return summary.replace(/^Reminder\b[\s:]*/i, "");
-        }
-        return summary;
+
+        return { label, subject: normalized, detail: "" };
       }
 
       function renderNotesWidget(record, title) {
-        const lastContact = formatDate(record.lastContactDate || record.lastUpdatedDate || record.dateProfileCreated);
         const widgetTitle = String(title || "Activity Tracker");
+        const summary = getActivityTrackerSummary(record);
 
         return `
           <section class="client-detail-card client-detail-card-compact client-notes-widget-card">
             <div class="client-notes-widget-topline">
               <h2>${escapeHtml(widgetTitle)}</h2>
-              <span class="client-notes-widget-last-contact" data-activity-last-contact>Last Contact ${escapeHtml(lastContact)}</span>
+              <span class="client-notes-widget-last-contact" data-activity-last-contact>Last Contact ${escapeHtml(summary.lastContactDisplay)}</span>
             </div>
             <div class="client-notes-widget-body">
+              <div class="client-activity-summary-card">
+                <div class="client-activity-summary-top">
+                  <span class="client-activity-status-badge is-${escapeHtml(summary.statusTone)}">${escapeHtml(summary.status)}</span>
+                  <span class="client-activity-summary-metric">Last Contact: ${escapeHtml(summary.relativeContact)}</span>
+                  <span class="client-activity-summary-metric">Response Rate: <strong>${escapeHtml(summary.responseRate)}</strong></span>
+                </div>
+              </div>
+              <div class="client-activity-next-best">
+                <div class="client-activity-next-best-copy">
+                  <span class="client-activity-next-best-label">Next Best Action</span>
+                  <strong>${escapeHtml(summary.nextAction)}</strong>
+                </div>
+                <button type="button" class="client-activity-next-best-button" data-activity-log-open>
+                  <span>${escapeHtml(summary.quickActionLabel)}</span>
+                  <span aria-hidden="true">›</span>
+                </button>
+              </div>
               <div class="client-notes-widget-paper">
+                <div class="client-activity-section-title">
+                  <span>Recent Activity</span>
+                </div>
                 <div data-activity-preview>
                   ${renderActivityPreview(record)}
                 </div>
               </div>
               <div class="client-notes-widget-actions">
-                <button type="button" class="client-notes-widget-action client-notes-widget-action-primary" data-activity-log-open>Log Activity</button>
+                <button type="button" class="client-notes-widget-action client-notes-widget-action-primary" data-activity-log-open>+ Log Activity</button>
                 <div class="client-activity-drawer" data-activity-modal hidden>
                   <div class="client-activity-drawer-panel" role="dialog" aria-modal="false" aria-labelledby="client-activity-modal-title">
                     <div class="client-activity-menu" data-activity-menu>
@@ -1167,25 +1401,33 @@
                           <span class="client-activity-option-title">Add Note</span>
                           <span class="client-activity-option-copy">Capture a quick written update.</span>
                         </button>
-                        <button type="button" class="client-activity-option" data-activity-option="email">
-                          <span class="client-activity-option-title">Log Email</span>
-                          <span class="client-activity-option-copy">Record a sent or received email.</span>
+                        <button type="button" class="client-activity-option" data-activity-option="reminder">
+                          <span class="client-activity-option-title">Set Reminder</span>
+                          <span class="client-activity-option-copy">Create a follow-up reminder.</span>
                         </button>
                         <button type="button" class="client-activity-option" data-activity-option="phone">
-                          <span class="client-activity-option-title">Add Phone Call</span>
+                          <span class="client-activity-option-title">Log Phone Call</span>
                           <span class="client-activity-option-copy">Track a call outcome or callback.</span>
                         </button>
                         <button type="button" class="client-activity-option" data-activity-option="schedule">
                           <span class="client-activity-option-title">Schedule Meeting</span>
                           <span class="client-activity-option-copy">Add an upcoming meeting touchpoint.</span>
                         </button>
+                        <button type="button" class="client-activity-option" data-activity-option="text">
+                          <span class="client-activity-option-title">Log Text Message</span>
+                          <span class="client-activity-option-copy">Record a text message touchpoint.</span>
+                        </button>
                         <button type="button" class="client-activity-option" data-activity-option="meeting">
                           <span class="client-activity-option-title">Add Meeting</span>
                           <span class="client-activity-option-copy">Log a meeting that already happened.</span>
                         </button>
-                        <button type="button" class="client-activity-option" data-activity-option="reminder">
-                          <span class="client-activity-option-title">Set Reminder</span>
-                          <span class="client-activity-option-copy">Create a follow-up reminder.</span>
+                        <button type="button" class="client-activity-option" data-activity-option="email">
+                          <span class="client-activity-option-title">Log Email</span>
+                          <span class="client-activity-option-copy">Record a sent or received email.</span>
+                        </button>
+                        <button type="button" class="client-activity-option" data-activity-option="face">
+                          <span class="client-activity-option-title">Log Face-to-Face Interaction</span>
+                          <span class="client-activity-option-copy">Capture an in-person client interaction.</span>
                         </button>
                       </div>
                     </div>
@@ -2232,6 +2474,33 @@
               </label>
             `
           },
+          text: {
+            title: "Log Text Message",
+            copy: "Track a text message and the client response.",
+            fields: `
+              <div class="client-activity-field-grid">
+                <label class="client-activity-field">
+                  <span>Direction</span>
+                  <select class="client-activity-select" name="direction">
+                    <option value="Outbound">Outbound</option>
+                    <option value="Inbound">Inbound</option>
+                  </select>
+                </label>
+                <label class="client-activity-field">
+                  <span>Date</span>
+                  <input class="client-activity-input" type="date" name="date" value="${getActivityDefaultDate()}">
+                </label>
+              </div>
+              <label class="client-activity-field">
+                <span>Subject</span>
+                <input class="client-activity-input" type="text" name="subject" maxlength="140" placeholder="Quick premium follow-up">
+              </label>
+              <label class="client-activity-field">
+                <span>Summary</span>
+                <textarea class="client-activity-textarea" name="summary" rows="4" placeholder="Add the text message details." required></textarea>
+              </label>
+            `
+          },
           schedule: {
             title: "Schedule Meeting",
             copy: "Set the details for an upcoming meeting touchpoint.",
@@ -2295,6 +2564,39 @@
               <label class="client-activity-field">
                 <span>Summary</span>
                 <textarea class="client-activity-textarea" name="summary" rows="4" placeholder="Add the meeting outcome." required></textarea>
+              </label>
+            `
+          },
+          face: {
+            title: "Log Face-to-Face Interaction",
+            copy: "Capture an in-person interaction with the client.",
+            fields: `
+              <div class="client-activity-field-grid client-activity-field-grid-three">
+                <label class="client-activity-field">
+                  <span>Date</span>
+                  <input class="client-activity-input" type="date" name="date" value="${getActivityDefaultDate()}" required>
+                </label>
+                <label class="client-activity-field">
+                  <span>Time</span>
+                  <input class="client-activity-input" type="time" name="time">
+                </label>
+                <label class="client-activity-field">
+                  <span>Interaction Type</span>
+                  <select class="client-activity-select" name="interactionType">
+                    <option value="Office Visit">Office Visit</option>
+                    <option value="Home Visit">Home Visit</option>
+                    <option value="Event Conversation">Event Conversation</option>
+                    <option value="Coffee Meeting">Coffee Meeting</option>
+                  </select>
+                </label>
+              </div>
+              <label class="client-activity-field">
+                <span>Location</span>
+                <input class="client-activity-input" type="text" name="location" maxlength="140" placeholder="Office or event venue">
+              </label>
+              <label class="client-activity-field">
+                <span>Summary</span>
+                <textarea class="client-activity-textarea" name="summary" rows="4" placeholder="Add the interaction summary." required></textarea>
               </label>
             `
           },
@@ -2380,10 +2682,13 @@
         if (type === "note") {
           const title = toValue("title");
           const body = toValue("body");
+          const subject = title || body;
+          const detailRemainder = title && body ? body : "";
           return {
             type: "note",
             date: getActivityDefaultDate(),
-            detail: title ? `${title} - ${body}` : body,
+            subject,
+            detailRemainder,
             noteLine: title ? `Note: ${title} - ${body}` : `Note: ${body}`,
             lastContactDate: getActivityDefaultDate()
           };
@@ -2397,7 +2702,9 @@
           return {
             type: "email",
             date,
-            detail: `${direction}${subject ? `: ${subject}` : ""}${summary ? ` - ${summary}` : ""}`,
+            direction,
+            subject: subject || direction,
+            detailRemainder: `${direction}${subject ? "" : ""}${summary ? ` - ${summary}` : ""}`.replace(/^ - /, "").trim(),
             noteLine: `Email (${direction}): ${subject}${summary ? ` - ${summary}` : ""}`,
             lastContactDate: date
           };
@@ -2411,8 +2718,26 @@
           return {
             type: "phone",
             date,
-            detail: `${direction}${outcome ? `: ${outcome}` : ""}${summary ? ` - ${summary}` : ""}`,
+            direction,
+            subject: outcome || `${direction} Call`,
+            detailRemainder: `${direction}${summary ? ` - ${summary}` : ""}`.trim(),
             noteLine: `Phone Call (${direction})${outcome ? `: ${outcome}` : ""}${summary ? ` - ${summary}` : ""}`,
+            lastContactDate: date
+          };
+        }
+
+        if (type === "text") {
+          const direction = toValue("direction") || "Outbound";
+          const subject = toValue("subject");
+          const summary = toValue("summary");
+          const date = toValue("date") || getActivityDefaultDate();
+          return {
+            type: "text",
+            date,
+            direction,
+            subject: subject || `${direction} Text`,
+            detailRemainder: `${direction}${summary ? ` - ${summary}` : ""}`.trim(),
+            noteLine: `Text Message (${direction})${subject ? `: ${subject}` : ""}${summary ? ` - ${summary}` : ""}`,
             lastContactDate: date
           };
         }
@@ -2426,7 +2751,8 @@
           return {
             type: "schedule",
             date,
-            detail: `${meetingType}${time ? ` at ${time}` : ""}${location ? `, ${location}` : ""} - ${agenda}`,
+            subject: meetingType,
+            detailRemainder: `${time ? `at ${time}` : ""}${location ? `${time ? ", " : ""}${location}` : ""}${agenda ? ` - ${agenda}` : ""}`.trim(),
             noteLine: `Scheduled ${meetingType}${time ? ` at ${time}` : ""}${location ? `, ${location}` : ""} - ${agenda}`,
             lastReview: date
           };
@@ -2441,8 +2767,25 @@
           return {
             type: "meeting",
             date,
-            detail: `${meetingType}${time ? ` at ${time}` : ""}${attendees ? ` with ${attendees}` : ""} - ${summary}`,
+            subject: meetingType,
+            detailRemainder: `${time ? `at ${time}` : ""}${attendees ? `${time ? " " : ""}with ${attendees}` : ""}${summary ? ` - ${summary}` : ""}`.trim(),
             noteLine: `${meetingType}${time ? ` at ${time}` : ""}${attendees ? ` with ${attendees}` : ""} - ${summary}`,
+            lastContactDate: date
+          };
+        }
+
+        if (type === "face") {
+          const date = toValue("date") || getActivityDefaultDate();
+          const time = toValue("time");
+          const interactionType = toValue("interactionType") || "In-Person";
+          const location = toValue("location");
+          const summary = toValue("summary");
+          return {
+            type: "face",
+            date,
+            subject: interactionType,
+            detailRemainder: `${time ? `at ${time}` : ""}${location ? `${time ? ", " : ""}${location}` : ""}${summary ? ` - ${summary}` : ""}`.trim(),
+            noteLine: `Face-to-Face (${interactionType})${time ? ` at ${time}` : ""}${location ? `, ${location}` : ""}${summary ? ` - ${summary}` : ""}`,
             lastContactDate: date
           };
         }
@@ -2454,7 +2797,8 @@
           return {
             type: "reminder",
             date,
-            detail: `${category} for ${date} - ${summary}`,
+            subject: category,
+            detailRemainder: `${date}${summary ? ` - ${summary}` : ""}`.trim(),
             noteLine: `Reminder (${category}) for ${date} - ${summary}`,
             lastReview: date
           };
@@ -2505,8 +2849,10 @@
         existingLog.unshift({
           type: entry.type,
           date: entry.date,
+          direction: entry.direction || "",
           summary: entry.noteLine,
-          detail: entry.detail || ""
+          subject: entry.subject || "",
+          detailRemainder: entry.detailRemainder || ""
         });
 
         const existingNotes = String(record.clientNotes || "").trim();
