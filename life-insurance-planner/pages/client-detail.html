@@ -1201,6 +1201,18 @@
         if (type === "face") {
           return "◉";
         }
+        if (type === "document-received") {
+          return "▣";
+        }
+        if (type === "illustration-requested") {
+          return "◧";
+        }
+        if (type === "application-submitted") {
+          return "◨";
+        }
+        if (type === "policy-delivered") {
+          return "◆";
+        }
         if (type === "email") {
           return "✉";
         }
@@ -1222,6 +1234,18 @@
         }
         if (type === "face") {
           return "is-emerald";
+        }
+        if (type === "document-received") {
+          return "is-gold";
+        }
+        if (type === "illustration-requested") {
+          return "is-violet";
+        }
+        if (type === "application-submitted") {
+          return "is-navy";
+        }
+        if (type === "policy-delivered") {
+          return "is-rose";
         }
         if (type === "email") {
           return "is-teal";
@@ -1271,7 +1295,11 @@
             });
 
         if (!previewItems.length) {
-          return `<p class="client-notes-widget-empty">No activity logged yet.</p>`;
+          return `
+            <div class="client-notes-widget-list is-empty">
+              <p class="client-notes-widget-empty">No activity logged yet.</p>
+            </div>
+          `;
         }
 
         return `
@@ -1303,6 +1331,18 @@
         }
         if (type === "face") {
           return "Face-to-Face";
+        }
+        if (type === "document-received") {
+          return "Document Received";
+        }
+        if (type === "illustration-requested") {
+          return "Illustration Requested";
+        }
+        if (type === "application-submitted") {
+          return "Application Submitted";
+        }
+        if (type === "policy-delivered") {
+          return "Policy Delivered";
         }
         if (type === "reminder") {
           return "Reminder";
@@ -1356,7 +1396,6 @@
           <section class="client-detail-card client-detail-card-compact client-notes-widget-card">
             <div class="client-notes-widget-topline">
               <h2>${escapeHtml(widgetTitle)}</h2>
-              <span class="client-notes-widget-last-contact" data-activity-last-contact>Last Contact ${escapeHtml(summary.lastContactDisplay)}</span>
             </div>
             <div class="client-notes-widget-body">
               <div class="client-activity-summary-card">
@@ -1385,7 +1424,7 @@
                 </div>
               </div>
               <div class="client-notes-widget-actions">
-                <button type="button" class="client-notes-widget-action client-notes-widget-action-primary" data-activity-log-open>+ Log Activity</button>
+                <button type="button" class="client-notes-widget-action client-notes-widget-action-primary" data-activity-log-open>Log Activity</button>
                 <div class="client-activity-drawer" data-activity-modal hidden>
                   <div class="client-activity-drawer-panel" role="dialog" aria-modal="false" aria-labelledby="client-activity-modal-title">
                     <div class="client-activity-menu" data-activity-menu>
@@ -1428,6 +1467,22 @@
                         <button type="button" class="client-activity-option" data-activity-option="face">
                           <span class="client-activity-option-title">Log Face-to-Face Interaction</span>
                           <span class="client-activity-option-copy">Capture an in-person client interaction.</span>
+                        </button>
+                        <button type="button" class="client-activity-option" data-activity-option="document-received">
+                          <span class="client-activity-option-title">Log Document Received</span>
+                          <span class="client-activity-option-copy">Record receipt of required client documents.</span>
+                        </button>
+                        <button type="button" class="client-activity-option" data-activity-option="illustration-requested">
+                          <span class="client-activity-option-title">Log Illustration Requested</span>
+                          <span class="client-activity-option-copy">Track an illustration request milestone.</span>
+                        </button>
+                        <button type="button" class="client-activity-option" data-activity-option="application-submitted">
+                          <span class="client-activity-option-title">Log Application Submitted</span>
+                          <span class="client-activity-option-copy">Capture application submission progress.</span>
+                        </button>
+                        <button type="button" class="client-activity-option" data-activity-option="policy-delivered">
+                          <span class="client-activity-option-title">Log Policy Delivered</span>
+                          <span class="client-activity-option-copy">Record when the policy has been delivered.</span>
                         </button>
                       </div>
                     </div>
@@ -2600,6 +2655,86 @@
               </label>
             `
           },
+          "document-received": {
+            title: "Log Document Received",
+            copy: "Record a received document and what it covered.",
+            fields: `
+              <div class="client-activity-field-grid">
+                <label class="client-activity-field">
+                  <span>Date</span>
+                  <input class="client-activity-input" type="date" name="date" value="${getActivityDefaultDate()}" required>
+                </label>
+                <label class="client-activity-field">
+                  <span>Document Type</span>
+                  <input class="client-activity-input" type="text" name="documentType" maxlength="140" placeholder="APS or income verification">
+                </label>
+              </div>
+              <label class="client-activity-field">
+                <span>Summary</span>
+                <textarea class="client-activity-textarea" name="summary" rows="4" placeholder="Add what was received." required></textarea>
+              </label>
+            `
+          },
+          "illustration-requested": {
+            title: "Log Illustration Requested",
+            copy: "Track an illustration request and what was needed.",
+            fields: `
+              <div class="client-activity-field-grid">
+                <label class="client-activity-field">
+                  <span>Date</span>
+                  <input class="client-activity-input" type="date" name="date" value="${getActivityDefaultDate()}" required>
+                </label>
+                <label class="client-activity-field">
+                  <span>Illustration Type</span>
+                  <input class="client-activity-input" type="text" name="illustrationType" maxlength="140" placeholder="Term or indexed universal life">
+                </label>
+              </div>
+              <label class="client-activity-field">
+                <span>Summary</span>
+                <textarea class="client-activity-textarea" name="summary" rows="4" placeholder="Add the request details." required></textarea>
+              </label>
+            `
+          },
+          "application-submitted": {
+            title: "Log Application Submitted",
+            copy: "Record application submission details.",
+            fields: `
+              <div class="client-activity-field-grid">
+                <label class="client-activity-field">
+                  <span>Date</span>
+                  <input class="client-activity-input" type="date" name="date" value="${getActivityDefaultDate()}" required>
+                </label>
+                <label class="client-activity-field">
+                  <span>Carrier / Product</span>
+                  <input class="client-activity-input" type="text" name="carrier" maxlength="140" placeholder="Carrier and product">
+                </label>
+              </div>
+              <label class="client-activity-field">
+                <span>Summary</span>
+                <textarea class="client-activity-textarea" name="summary" rows="4" placeholder="Add submission details." required></textarea>
+              </label>
+            `
+          },
+          "policy-delivered": {
+            title: "Log Policy Delivered",
+            copy: "Capture policy delivery details and outcome.",
+            fields: `
+              <div class="client-activity-field-grid">
+                <label class="client-activity-field">
+                  <span>Date</span>
+                  <input class="client-activity-input" type="date" name="date" value="${getActivityDefaultDate()}" required>
+                </label>
+                <label class="client-activity-field">
+                  <span>Carrier / Policy</span>
+                  <input class="client-activity-input" type="text" name="carrier" maxlength="140" placeholder="Carrier or policy delivered">
+                </label>
+              </div>
+              <label class="client-activity-field">
+                <span>Summary</span>
+                <textarea class="client-activity-textarea" name="summary" rows="4" placeholder="Add delivery details." required></textarea>
+              </label>
+            `
+          },
           reminder: {
             title: "Set Reminder",
             copy: "Create a follow-up reminder for this account.",
@@ -2786,6 +2921,62 @@
             subject: interactionType,
             detailRemainder: `${time ? `at ${time}` : ""}${location ? `${time ? ", " : ""}${location}` : ""}${summary ? ` - ${summary}` : ""}`.trim(),
             noteLine: `Face-to-Face (${interactionType})${time ? ` at ${time}` : ""}${location ? `, ${location}` : ""}${summary ? ` - ${summary}` : ""}`,
+            lastContactDate: date
+          };
+        }
+
+        if (type === "document-received") {
+          const date = toValue("date") || getActivityDefaultDate();
+          const documentType = toValue("documentType") || "Documents";
+          const summary = toValue("summary");
+          return {
+            type: "document-received",
+            date,
+            subject: documentType,
+            detailRemainder: summary,
+            noteLine: `Document Received: ${documentType}${summary ? ` - ${summary}` : ""}`,
+            lastContactDate: date
+          };
+        }
+
+        if (type === "illustration-requested") {
+          const date = toValue("date") || getActivityDefaultDate();
+          const illustrationType = toValue("illustrationType") || "Illustration";
+          const summary = toValue("summary");
+          return {
+            type: "illustration-requested",
+            date,
+            subject: illustrationType,
+            detailRemainder: summary,
+            noteLine: `Illustration Requested: ${illustrationType}${summary ? ` - ${summary}` : ""}`,
+            lastContactDate: date
+          };
+        }
+
+        if (type === "application-submitted") {
+          const date = toValue("date") || getActivityDefaultDate();
+          const carrier = toValue("carrier") || "Application";
+          const summary = toValue("summary");
+          return {
+            type: "application-submitted",
+            date,
+            subject: carrier,
+            detailRemainder: summary,
+            noteLine: `Application Submitted: ${carrier}${summary ? ` - ${summary}` : ""}`,
+            lastContactDate: date
+          };
+        }
+
+        if (type === "policy-delivered") {
+          const date = toValue("date") || getActivityDefaultDate();
+          const carrier = toValue("carrier") || "Policy";
+          const summary = toValue("summary");
+          return {
+            type: "policy-delivered",
+            date,
+            subject: carrier,
+            detailRemainder: summary,
+            noteLine: `Policy Delivered: ${carrier}${summary ? ` - ${summary}` : ""}`,
             lastContactDate: date
           };
         }

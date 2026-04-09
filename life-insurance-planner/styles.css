@@ -4600,6 +4600,9 @@ body.client-detail-page .client-detail-header {
 
 .client-activity-summary-card {
   display: grid;
+  min-height: 4.6rem;
+  max-height: 4.6rem;
+  overflow: hidden;
 }
 
 .client-activity-summary-top {
@@ -4607,7 +4610,6 @@ body.client-detail-page .client-detail-header {
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.15rem;
-  border-bottom: 1px solid rgba(233, 238, 245, 0.95);
   flex-wrap: wrap;
 }
 
@@ -4668,13 +4670,17 @@ body.client-detail-page .client-detail-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0.8rem;
-  padding: 0.8rem 0.95rem;
+  gap: 0.7rem;
+  padding: 0.65rem 0.9rem;
+  min-height: 4.15rem;
+  max-height: 4.15rem;
+  overflow: hidden;
 }
 
 .client-activity-next-best-copy {
   display: grid;
-  gap: 0.2rem;
+  gap: 0.1rem;
+  align-self: center;
 }
 
 .client-activity-next-best-label {
@@ -4687,7 +4693,7 @@ body.client-detail-page .client-detail-header {
 
 .client-activity-next-best-copy strong {
   color: #245d4c;
-  font-size: 0.92rem;
+  font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
@@ -4700,11 +4706,11 @@ body.client-detail-page .client-detail-header {
   color: #17212e;
   display: inline-flex;
   align-items: center;
-  gap: 0.7rem;
-  min-height: 3rem;
-  padding: 0 0.95rem;
+  gap: 0.55rem;
+  min-height: 2.35rem;
+  padding: 0 0.8rem;
   font-family: "Manrope", sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 700;
   box-shadow: 0 10px 24px rgba(17, 24, 39, 0.04);
   cursor: pointer;
@@ -4712,16 +4718,28 @@ body.client-detail-page .client-detail-header {
 
 .client-notes-widget-paper {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 0.9rem;
   padding: 0.95rem 1rem 1rem;
+  min-height: 14.15rem;
+  max-height: 14.15rem;
+  overflow: hidden;
 }
 
 .client-notes-widget-list {
   display: grid;
-  gap: 0.45rem;
-  max-height: calc((4.15rem * 3) + (0.45rem * 2));
+  gap: 0;
+  height: calc(3.35rem * 3);
+  min-height: calc(3.35rem * 3);
+  max-height: calc(3.35rem * 3);
   overflow-y: auto;
-  padding-right: 0.2rem;
+  overflow-x: hidden;
+  padding: 0.1rem 0.12rem 0 0;
+  align-content: start;
+}
+
+.client-notes-widget-list.is-empty {
+  overflow: hidden;
 }
 
 .client-activity-section-title {
@@ -4745,22 +4763,36 @@ body.client-detail-page .client-detail-header {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
   gap: 0.65rem;
-  padding: 0.62rem 0.75rem;
-  border: 1px solid rgba(223, 229, 238, 0.95);
-  border-radius: 0.65rem;
-  background: #ffffff;
-  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.03);
+  padding: 0.38rem 0.15rem 0.12rem 0;
+  min-height: 3.35rem;
+  max-height: 3.35rem;
+  position: relative;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.client-activity-entry-card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 2.55rem;
+  height: 1px;
+  background: rgba(235, 239, 245, 0.95);
 }
 
 .client-activity-entry-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.45rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 0.32rem;
   color: #ffffff;
-  font-size: 0.85rem;
+  font-size: 0.74rem;
   font-weight: 700;
 }
 
@@ -4780,6 +4812,22 @@ body.client-detail-page .client-detail-header {
   background: linear-gradient(135deg, #5bcaa0, #2f9d72);
 }
 
+.client-activity-entry-icon.is-gold {
+  background: linear-gradient(135deg, #ebc978, #d9a942);
+}
+
+.client-activity-entry-icon.is-violet {
+  background: linear-gradient(135deg, #a989eb, #7a5ad6);
+}
+
+.client-activity-entry-icon.is-navy {
+  background: linear-gradient(135deg, #5877b7, #375391);
+}
+
+.client-activity-entry-icon.is-rose {
+  background: linear-gradient(135deg, #e1929e, #c96c79);
+}
+
 .client-activity-entry-icon.is-teal {
   background: linear-gradient(135deg, #4fb9b0, #348a82);
 }
@@ -4796,6 +4844,7 @@ body.client-detail-page .client-detail-header {
   display: grid;
   gap: 0.12rem;
   min-width: 0;
+  padding-top: 0.02rem;
 }
 
 .client-activity-entry-title-row {
@@ -4808,22 +4857,23 @@ body.client-detail-page .client-detail-header {
 .client-activity-entry-title {
   min-width: 0;
   color: #17212e;
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   line-height: 1.28;
 }
 
 .client-activity-entry-detail {
   margin: 0;
   color: #667084;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   line-height: 1.32;
 }
 
 .client-activity-entry-date {
   color: #667084;
-  font-size: 0.74rem;
-  font-weight: 500;
+  font-size: 0.7rem;
+  font-weight: 700;
   white-space: nowrap;
+  padding-right: 0.6rem;
 }
 
 @media (max-width: 900px) {
@@ -4876,8 +4926,9 @@ body.client-detail-page .client-detail-header {
   color: #667084;
   font-size: 0.95rem;
   line-height: 1.55;
-  min-height: 0;
-  padding: 0.2rem 0;
+  min-height: 100%;
+  margin: 0;
+  padding: 0.4rem 0;
 }
 
 .client-notes-widget-actions {
@@ -4925,6 +4976,7 @@ body.client-detail-page .client-detail-header {
 }
 
 .client-notes-widget-action-primary.is-open {
+  transform: scale(1.02);
   border-color: #6d4de5;
   background: #6d4de5;
   color: #ffffff;
@@ -4934,27 +4986,32 @@ body.client-detail-page .client-detail-header {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(100% - 0.4rem);
+  bottom: calc(100% - 0.08rem);
   z-index: 6;
   transform-origin: bottom center;
+  height: 28.9rem;
+  min-height: 28.9rem;
+  max-height: 28.9rem;
 }
 
 .client-activity-drawer-panel {
   width: 100%;
-  padding: 1rem 1rem 1.25rem;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
   border: 0;
-  border-radius: 0.8rem;
-  background: #ffffff;
-  box-shadow: 0 18px 34px rgba(16, 33, 52, 0.14);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: 0 18px 34px rgba(16, 33, 52, 0.2);
   opacity: 0;
-  clip-path: inset(calc(100% - 2.1rem) 0 0 0 round 0.8rem);
+  clip-path: inset(calc(100% - 2.1rem) 0 0 0);
   transform: translateY(0.65rem);
   transition: clip-path 0.22s ease, transform 0.22s ease, opacity 0.16s ease;
 }
 
 .client-activity-drawer.is-open .client-activity-drawer-panel {
   opacity: 1;
-  clip-path: inset(0 0 0 0 round 0.8rem);
+  clip-path: inset(0 0 0 0);
   transform: translateY(0);
 }
 
@@ -4963,12 +5020,21 @@ body.client-detail-page .client-detail-header {
   display: none;
 }
 
+.client-activity-menu {
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 0.6rem 0.6rem 0.7rem;
+  border-radius: 0;
+  background: #ffffff;
+}
+
 .client-activity-modal-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.7rem;
 }
 
 .client-activity-modal-heading {
@@ -4984,8 +5050,8 @@ body.client-detail-page .client-detail-header {
 .client-activity-modal-heading p {
   margin: 0;
   color: #667084;
-  font-size: 0.88rem;
-  line-height: 1.4;
+  font-size: 0.8rem;
+  line-height: 1.3;
 }
 
 .client-activity-modal-close {
@@ -5001,21 +5067,21 @@ body.client-detail-page .client-detail-header {
 .client-activity-modal-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 0.46rem;
 }
 
 .client-activity-option {
   appearance: none;
-  min-height: 4.5rem;
-  border: 1px solid rgba(213, 221, 232, 0.95);
-  border-radius: 0.65rem;
-  background: #fbfcfe;
+  min-height: 3.64rem;
+  border: 0;
+  border-radius: 0.32rem;
+  background: #f1f4f8;
   color: #17212e;
   font-family: "Manrope", sans-serif;
   display: grid;
-  gap: 0.18rem;
+  gap: 0.1rem;
   align-content: start;
-  padding: 0.85rem 0.9rem;
+  padding: 0.52rem 0.6rem;
   text-align: left;
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
 }
@@ -5029,14 +5095,14 @@ body.client-detail-page .client-detail-header {
 }
 
 .client-activity-option-title {
-  font-size: 0.95rem;
-  font-weight: 800;
+  font-size: 0.79rem;
+  font-weight: 700;
 }
 
 .client-activity-option-copy {
   color: #667084;
-  font-size: 0.78rem;
-  line-height: 1.35;
+  font-size: 0.67rem;
+  line-height: 1.18;
 }
 
 .client-activity-widget {
