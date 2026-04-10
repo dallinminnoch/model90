@@ -863,6 +863,139 @@
         });
       }
 
+      function updateStoredPolicyDocumentFiles(recordId, policyId, updater) {
+        return openPolicyDocumentDb().then(function (db) {
+          if (!db) {
+            throw new Error("Policy document storage is not available in this browser.");
+          }
+
+          return new Promise(function (resolve, reject) {
+            const transaction = db.transaction(POLICY_DOCUMENT_STORE_NAME, "readwrite");
+            const store = transaction.objectStore(POLICY_DOCUMENT_STORE_NAME);
+            const documentKey = buildPolicyDocumentKey(recordId, policyId);
+            const getRequest = store.get(documentKey);
+
+            getRequest.onsuccess = function () {
+              const existingFiles = getStoredPolicyDocumentFiles(getRequest.result);
+              const updatedFiles = updater(existingFiles);
+              const nextFiles = Array.isArray(updatedFiles) ? updatedFiles : [];
+              if (!nextFiles.length) {
+                const deleteRequest = store.delete(documentKey);
+                deleteRequest.onsuccess = function () {
+                  resolve([]);
+                };
+                deleteRequest.onerror = function () {
+                  reject(deleteRequest.error || new Error("Unable to update the policy documents."));
+                };
+                return;
+              }
+
+              const timestamp = new Date().toISOString();
+              const putRequest = store.put({
+                id: documentKey,
+                recordId: String(recordId || "").trim(),
+                policyId: String(policyId || "").trim(),
+                files: nextFiles.map(function (item) {
+                  return {
+                    file: item.file,
+                    name: String(item.name || item.file?.name || "").trim(),
+                    type: String(item.type || item.file?.type || "").trim(),
+                    size: Number(item.size || item.file?.size || 0),
+                    savedAt: String(item.savedAt || timestamp).trim()
+                  };
+                }),
+                savedAt: timestamp
+              });
+
+              putRequest.onsuccess = function () {
+                resolve(nextFiles);
+              };
+
+              putRequest.onerror = function () {
+                reject(putRequest.error || new Error("Unable to update the policy documents."));
+              };
+            };
+
+            getRequest.onerror = function () {
+              reject(getRequest.error || new Error("Unable to read the policy documents."));
+            };
+          });
+        });
+      }
+
+      function syncPolicyDocumentMetadata(recordId, policyId, files) {
+        const records = loadJson(localStorage, getRecordsStorageKey());
+        if (!Array.isArray(records)) {
+          return false;
+        }
+
+        const recordIndex = records.findIndex(function (item) {
+          return String(item?.id || "").trim() === String(recordId || "").trim();
+        });
+        if (recordIndex === -1) {
+          return false;
+        }
+
+        const currentRecord = records[recordIndex];
+        const policies = Array.isArray(currentRecord.coveragePolicies) ? currentRecord.coveragePolicies.slice() : [];
+        const policyIndex = policies.findIndex(function (policy) {
+          return String(policy?.id || "").trim() === String(policyId || "").trim();
+        });
+        if (policyIndex === -1) {
+          return false;
+        }
+
+        const normalizedFiles = Array.from(files || []).map(function (item) {
+          return {
+            name: String(item?.name || "").trim(),
+            type: String(item?.type || "").trim(),
+            size: Number(item?.size || 0),
+            savedAt: String(item?.savedAt || "").trim()
+          };
+        }).filter(function (item) {
+          return Boolean(item.name);
+        });
+
+        const nextPolicy = {
+          ...policies[policyIndex],
+          documents: normalizedFiles,
+          documentName: String(normalizedFiles[0]?.name || "").trim(),
+          documentType: String(normalizedFiles[0]?.type || "").trim(),
+          documentSize: Number(normalizedFiles[0]?.size || 0),
+          documentSavedAt: String(normalizedFiles[0]?.savedAt || "").trim()
+        };
+
+        policies[policyIndex] = nextPolicy;
+
+        const today = new Date().toISOString().slice(0, 10);
+        const nextRecord = {
+          ...currentRecord,
+          coveragePolicies: policies,
+          lastUpdatedDate: today,
+          lastReview: today
+        };
+
+        records[recordIndex] = nextRecord;
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+        Object.assign(record, nextRecord);
+        return true;
+      }
+
+      function normalizePolicyDocumentName(nextName, currentName) {
+        const trimmed = String(nextName || "").trim();
+        if (!trimmed) {
+          return "";
+        }
+
+        const hasExtension = /\.[^.\s]+$/.test(trimmed);
+        if (hasExtension) {
+          return trimmed;
+        }
+
+        const currentExtensionMatch = String(currentName || "").match(/\.[^.\s]+$/);
+        return currentExtensionMatch ? `${trimmed}${currentExtensionMatch[0]}` : trimmed;
+      }
+
       function getPrimaryLinkedClientForHousehold(householdRecord) {
         const householdId = String(householdRecord?.id || "").trim();
         if (!householdId) {
@@ -2816,18 +2949,70 @@
           </div>
           <div class="client-policy-modal" data-policy-modal hidden>
             <div class="client-policy-modal-backdrop" data-policy-modal-close></div>
-            <div class="client-policy-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-policy-modal-title">
-              <div class="client-policy-modal-header">
-                <button class="client-policy-edit-button" type="button" data-policy-edit-toggle>Edit</button>
-                <button class="client-policy-modal-close" type="button" data-policy-modal-close aria-label="Close policy details">×</button>
+            <div class="client-policy-modal-panel client-policy-detail-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-policy-modal-title">
+              <div class="client-policy-modal-hero">
+                <div class="client-policy-modal-header client-policy-detail-modal-header">
+                  <div class="client-policy-modal-hero-copy">
+                    <span class="client-policy-modal-badge" data-policy-modal-badge>Coverage Record</span>
+                    <h2 id="client-policy-modal-title" data-policy-modal-title>Policy Details</h2>
+                    <p class="client-policy-modal-subtitle" data-policy-modal-subtitle>Review the saved coverage details for this policy.</p>
+                  </div>
+                  <div class="client-policy-modal-header-actions">
+                    <button class="client-policy-modal-close" type="button" data-policy-modal-close aria-label="Close policy details">×</button>
+                  </div>
+                </div>
+                <div class="client-policy-modal-metrics" data-policy-modal-metrics></div>
               </div>
-              <h2 id="client-policy-modal-title" data-policy-modal-title>Policy Details</h2>
+              <div class="client-policy-modal-status" data-policy-modal-status></div>
               <div class="client-policy-modal-body" data-policy-modal-body></div>
               <div class="client-policy-modal-footer">
                 <button class="client-policy-delete-button" type="button" data-policy-delete-toggle aria-label="Delete policy">
                   <span class="client-policy-delete-icon" aria-hidden="true"></span>
-                  <span>Delete Policy</span>
                 </button>
+                <button class="client-policy-edit-button" type="button" data-policy-edit-toggle>Edit</button>
+              </div>
+              <div class="client-policy-document-menu" data-policy-document-menu hidden>
+                <button class="client-policy-document-menu-item" type="button" data-policy-document-action="open">Open file</button>
+                <button class="client-policy-document-menu-item" type="button" data-policy-document-action="add-file">Add file</button>
+                <button class="client-policy-document-menu-item" type="button" data-policy-document-action="rename">Rename file</button>
+                <button class="client-policy-document-menu-item" type="button" data-policy-document-action="share">Share file</button>
+                <button class="client-policy-document-menu-item is-danger" type="button" data-policy-document-action="delete">Delete file</button>
+              </div>
+              <input
+                class="client-policy-document-add-input"
+                type="file"
+                data-policy-document-add-input
+                accept=".pdf,.zip,.png,.jpg,.jpeg,.doc,.docx,.heic,.webp"
+                multiple
+                hidden
+                tabindex="-1"
+                aria-hidden="true"
+              >
+            </div>
+          </div>
+          <div class="client-policy-modal client-policy-rename-modal" data-policy-document-rename-modal hidden>
+            <div class="client-policy-modal-backdrop" data-policy-document-rename-close></div>
+            <form class="client-policy-modal-panel client-policy-rename-modal-panel" data-policy-document-rename-form role="dialog" aria-modal="true" aria-labelledby="client-policy-document-rename-title" novalidate>
+              <h2 id="client-policy-document-rename-title">Rename File</h2>
+              <p class="client-policy-rename-copy" data-policy-document-rename-copy>Rename this saved file.</p>
+              <label class="client-policy-rename-field">
+                <span>File Name</span>
+                <input class="client-policy-rename-input" type="text" data-policy-document-rename-input maxlength="240" autocomplete="off">
+              </label>
+              <div class="client-policy-delete-actions">
+                <button class="client-policy-delete-cancel" type="button" data-policy-document-rename-close>Cancel</button>
+                <button class="client-policy-rename-save" type="submit">Save</button>
+              </div>
+            </form>
+          </div>
+          <div class="client-policy-modal client-policy-delete-modal" data-policy-document-delete-modal hidden>
+            <div class="client-policy-modal-backdrop" data-policy-document-delete-close></div>
+            <div class="client-policy-modal-panel client-policy-delete-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-policy-document-delete-title">
+              <h2 id="client-policy-document-delete-title">Delete File?</h2>
+              <p class="client-policy-delete-copy" data-policy-document-delete-copy>Are you sure you want to delete this saved file?</p>
+              <div class="client-policy-delete-actions">
+                <button class="client-policy-delete-cancel" type="button" data-policy-document-delete-close>No</button>
+                <button class="client-policy-delete-confirm" type="button" data-policy-document-delete-confirm>Yes, Delete</button>
               </div>
             </div>
           </div>
@@ -3029,8 +3214,24 @@
       const profileTabs = host.querySelectorAll("[data-client-tab]");
       const profilePanels = host.querySelectorAll("[data-client-panel]");
       const policyModal = host.querySelector("[data-policy-modal]");
+      const policyModalPanel = host.querySelector(".client-policy-detail-modal-panel");
       const policyModalBody = host.querySelector("[data-policy-modal-body]");
       const policyModalTitle = host.querySelector("[data-policy-modal-title]");
+      const policyModalBadge = host.querySelector("[data-policy-modal-badge]");
+      const policyModalSubtitle = host.querySelector("[data-policy-modal-subtitle]");
+      const policyModalMetrics = host.querySelector("[data-policy-modal-metrics]");
+      const policyModalStatus = host.querySelector("[data-policy-modal-status]");
+      const policyDocumentMenu = host.querySelector("[data-policy-document-menu]");
+      const policyDocumentRenameModal = host.querySelector("[data-policy-document-rename-modal]");
+      const policyDocumentRenameForm = host.querySelector("[data-policy-document-rename-form]");
+      const policyDocumentRenameCopy = host.querySelector("[data-policy-document-rename-copy]");
+      const policyDocumentRenameInput = host.querySelector("[data-policy-document-rename-input]");
+      const policyDocumentRenameCloseButtons = host.querySelectorAll("[data-policy-document-rename-close]");
+      const policyDocumentDeleteModal = host.querySelector("[data-policy-document-delete-modal]");
+      const policyDocumentDeleteCopy = host.querySelector("[data-policy-document-delete-copy]");
+      const policyDocumentDeleteCloseButtons = host.querySelectorAll("[data-policy-document-delete-close]");
+      const policyDocumentDeleteConfirm = host.querySelector("[data-policy-document-delete-confirm]");
+      const policyDocumentAddInput = host.querySelector("[data-policy-document-add-input]");
       const policyModalCloseButtons = host.querySelectorAll("[data-policy-modal-close]");
       const policyEditToggle = host.querySelector("[data-policy-edit-toggle]");
       const policyDeleteToggle = host.querySelector("[data-policy-delete-toggle]");
@@ -3106,11 +3307,12 @@
       let activeCoverageStep = 0;
       let activeCoverageDraft = null;
       let activeCoverageDocumentFiles = [];
+      let activePolicyDocumentIndex = -1;
       let coverageWidgetFeedbackTimeout = null;
       let coverageWidgetFeedbackFadeTimeout = null;
 
       function syncModalLock() {
-        const anyModalOpen = policyModal?.hidden === false || policyListModal?.hidden === false || policyDeleteModal?.hidden === false || coverageWidgetModal?.hidden === false || profileDeleteModal?.hidden === false || activityDetailModal?.hidden === false || activityDeleteModal?.hidden === false || pmiDetailModal?.hidden === false || statModal?.hidden === false || activityWidgetModal?.hidden === false;
+        const anyModalOpen = policyModal?.hidden === false || policyDocumentRenameModal?.hidden === false || policyDocumentDeleteModal?.hidden === false || policyListModal?.hidden === false || policyDeleteModal?.hidden === false || coverageWidgetModal?.hidden === false || profileDeleteModal?.hidden === false || activityDetailModal?.hidden === false || activityDeleteModal?.hidden === false || pmiDetailModal?.hidden === false || statModal?.hidden === false || activityWidgetModal?.hidden === false;
         document.body.classList.toggle("is-modal-open", anyModalOpen);
       }
 
@@ -4907,8 +5109,92 @@
         return Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
       }
 
+      function getPolicyTermLengthDisplay(policy) {
+        return formatValue(
+          isCoveragePermanentPolicyType(policy.policyType)
+            ? (policy.termLength || "Permanent Coverage")
+            : (String(policy.policyType || "").trim() === "Term" && String(policy.termLength || "").trim()
+              ? `${String(policy.termLength || "").trim()} Years`
+              : policy.termLength)
+        );
+      }
+
+      function getPolicyModalTitleText(policy) {
+        return formatValue(policy.policyCarrier) === "Not provided"
+          ? "Policy Details"
+          : `${policy.policyCarrier} Policy`;
+      }
+
+      function getPolicyModalBadgeText(policy) {
+        const badgeParts = [];
+        const type = formatValue(policy.policyType);
+        const premiumMode = formatValue(policy.premiumMode);
+        if (type !== "Not provided") {
+          badgeParts.push(type.toUpperCase());
+        }
+        if (premiumMode !== "Not provided") {
+          badgeParts.push(premiumMode.toUpperCase());
+        }
+        return badgeParts.length ? badgeParts.join(" · ") : "COVERAGE RECORD";
+      }
+
+      function getPolicyModalSubtitleText(policy) {
+        return `Insured: ${formatValue(policy.insuredName)} · Owner: ${formatValue(policy.ownerName)}`;
+      }
+
+      function renderPolicyModalMetrics(policy) {
+        const metricCards = [
+          {
+            label: "Face Amount",
+            value: formatCurrency(policy.faceAmount),
+            meta: "Death benefit"
+          },
+          {
+            label: isCoverageSteppedPremiumMode(policy.premiumMode) ? "Final Premium" : "Premium",
+            value: formatCurrency(policy.premiumAmount),
+            meta: isCoverageSteppedPremiumMode(policy.premiumMode)
+              ? `${formatValue(policy.premiumMode)} · Final`
+              : formatValue(policy.premiumMode)
+          },
+          {
+            label: "Term Length",
+            value: getPolicyTermLengthDisplay(policy),
+            meta: formatValue(policy.policyCarrier)
+          }
+        ];
+
+        return metricCards.map(function (card) {
+          return `
+            <div class="client-policy-modal-metric-card">
+              <span class="client-policy-modal-metric-label">${escapeHtml(card.label)}</span>
+              <strong class="client-policy-modal-metric-value">${escapeHtml(card.value)}</strong>
+              <span class="client-policy-modal-metric-meta">${escapeHtml(card.meta)}</span>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderPolicyModalStatus(policy) {
+        const hasEffectiveDate = Boolean(String(policy.effectiveDate || "").trim());
+        return `
+          <span class="client-policy-modal-status-chip is-${hasEffectiveDate ? "active" : "pending"}">
+            <span class="client-policy-modal-status-dot" aria-hidden="true"></span>
+            ${escapeHtml(hasEffectiveDate ? "In-force" : "Pending")}
+          </span>
+          <span class="client-policy-modal-status-meta">Effective date ${escapeHtml(formatDate(policy.effectiveDate))}</span>
+          <span class="client-policy-modal-status-meta">Policy No. ${escapeHtml(formatValue(policy.policyNumber))}</span>
+        `;
+      }
+
       function renderPolicyModalBody(policy) {
         const policyDocuments = getPolicyDocumentEntries(policy);
+        const isRecordComplete = Boolean(String(policy.effectiveDate || "").trim())
+          && Boolean(String(policy.beneficiaryName || "").trim())
+          && policyDocuments.length > 0;
+        const readinessTitle = isRecordComplete ? "Coverage record complete" : "Coverage record in progress";
+        const readinessCopy = isRecordComplete
+          ? "Policy details, beneficiary, and supporting files are saved to this record."
+          : "Add the missing beneficiary, effective date, or files from Edit to finish this coverage record.";
         const premiumFields = isCoverageSteppedPremiumMode(policy.premiumMode)
           ? [
               ["Starting Premium", formatCurrency(policy.startingPremium)],
@@ -4918,59 +5204,77 @@
           : [
               ["Premium Amount", formatCurrency(policy.premiumAmount)]
             ];
+        const detailFields = [
+          ["Carrier", formatValue(policy.policyCarrier)],
+          ["Policy Type", formatValue(policy.policyType)],
+          ["Premium Mode", formatValue(policy.premiumMode)],
+          ["Effective Date", formatDate(policy.effectiveDate)],
+          ["Underwriting Class", formatValue(policy.underwritingClass)],
+          ["Primary Beneficiary", formatValue(policy.beneficiaryName)],
+          ["Term Length", getPolicyTermLengthDisplay(policy)],
+          ...premiumFields
+        ].map(function (field) {
+          return `
+            <div class="client-policy-modal-field">
+              <span class="client-policy-modal-label">${escapeHtml(field[0])}</span>
+              <span class="client-policy-modal-value">${escapeHtml(field[1])}</span>
+            </div>
+          `;
+        }).join("");
 
         return `
-          <div class="client-policy-modal-grid">
-            ${[
-              ["Carrier", formatValue(policy.policyCarrier)],
-              ["Policy Type", formatValue(policy.policyType)],
-              ["Insured Name", formatValue(policy.insuredName)],
-              ["Policy Owner", formatValue(policy.ownerName)],
-              ["Face Amount", formatCurrency(policy.faceAmount)],
-              ...premiumFields,
-              ["Premium Mode", formatValue(policy.premiumMode)],
-              ["Term Length", formatValue(
-                isCoveragePermanentPolicyType(policy.policyType)
-                  ? (policy.termLength || "Permanent Coverage")
-                  : (String(policy.policyType || "").trim() === "Term" && String(policy.termLength || "").trim()
-                    ? `${String(policy.termLength || "").trim()} Years`
-                    : policy.termLength)
-              )],
-              ["Policy Number", formatValue(policy.policyNumber)],
-              ["Effective Date", formatDate(policy.effectiveDate)],
-              ["Underwriting Class", formatValue(policy.underwritingClass)],
-              ["Primary Beneficiary", formatValue(policy.beneficiaryName)]
-            ].map(function (field) {
-              return `
-                <div class="client-policy-modal-field">
-                  <span class="client-policy-modal-label">${escapeHtml(field[0])}</span>
-                  <span class="client-policy-modal-value">${escapeHtml(field[1])}</span>
-                </div>
-              `;
-            }).join("")}
-          </div>
-          ${policyDocuments.length ? `
-            <div class="client-policy-modal-field client-policy-document-field">
-              <span class="client-policy-modal-label">${policyDocuments.length > 1 ? "Policy Files" : "Policy File"}</span>
-              <div class="client-policy-document-list">
-                ${policyDocuments.map(function (document, documentIndex) {
-                  return `
-                    <div class="client-policy-document-row">
-                      <div class="client-policy-document-meta">
-                        <strong>${escapeHtml(document.name)}</strong>
-                        <span>${escapeHtml(formatFileSize(document.size))}</span>
-                      </div>
-                      <button class="client-policy-document-button" type="button" data-policy-document-open data-policy-document-index="${documentIndex}">Open File</button>
-                    </div>
-                  `;
-                }).join("")}
-              </div>
+          <section class="client-policy-modal-section">
+            <div class="client-policy-modal-section-heading">
+              <span class="client-policy-modal-section-label">Coverage Details</span>
             </div>
+            <div class="client-policy-modal-grid">
+              ${detailFields}
+            </div>
+          </section>
+          <section class="client-policy-modal-section">
+            <div class="client-policy-modal-section-heading">
+              <span class="client-policy-modal-section-label">${policyDocuments.length > 1 ? `Policy Files (${policyDocuments.length})` : "Policy Files"}</span>
+            </div>
+            <div class="client-policy-document-list">
+              ${policyDocuments.length ? policyDocuments.map(function (document, documentIndex) {
+                return `
+                  <div class="client-policy-document-row" data-policy-document-entry data-policy-document-index="${documentIndex}">
+                    <div class="client-policy-document-meta">
+                      <span class="client-policy-document-icon" aria-hidden="true"></span>
+                      <div class="client-policy-document-copy">
+                        <strong>${escapeHtml(document.name)}</strong>
+                        <span>${escapeHtml(`${formatFileSize(document.size)}${document.type ? ` · ${document.type.split("/").pop().toUpperCase()}` : ""}`)}</span>
+                      </div>
+                    </div>
+                    <button class="client-policy-document-button" type="button" data-policy-document-open data-policy-document-index="${documentIndex}">Open file</button>
+                  </div>
+                `;
+              }).join("") : `
+                <div class="client-policy-document-row is-empty">
+                  <div class="client-policy-document-meta">
+                    <span class="client-policy-document-icon" aria-hidden="true"></span>
+                    <div class="client-policy-document-copy">
+                      <strong>No policy files uploaded yet.</strong>
+                      <span>Add supporting files from Edit to keep them with this coverage record.</span>
+                    </div>
+                  </div>
+                </div>
+              `}
+            </div>
+          </section>
+          ${String(policy.policyNotes || "").trim() ? `
+            <section class="client-policy-modal-note-card">
+              <span class="client-policy-modal-section-label">Policy Notes</span>
+              <p class="client-policy-modal-note-copy">${escapeHtml(formatValue(policy.policyNotes))}</p>
+            </section>
           ` : ""}
-          <div class="client-policy-modal-field">
-            <span class="client-policy-modal-label">Policy Notes</span>
-            <span class="client-policy-modal-value">${escapeHtml(formatValue(policy.policyNotes))}</span>
-          </div>
+          <section class="client-policy-modal-summary-card">
+            <div class="client-policy-modal-summary-icon" aria-hidden="true"></div>
+            <div class="client-policy-modal-summary-copy">
+              <strong>${escapeHtml(readinessTitle)}</strong>
+              <span>${escapeHtml(readinessCopy)}</span>
+            </div>
+          </section>
         `;
       }
 
@@ -5010,6 +5314,9 @@
         if (!policyModal) {
           return;
         }
+        closePolicyDocumentMenu();
+        closePolicyDocumentRenameModal();
+        closePolicyDocumentDeleteModal();
         policyModal.hidden = true;
         activePolicyIndex = -1;
         syncModalLock();
@@ -5023,12 +5330,248 @@
         }
 
         activePolicyIndex = index;
-        policyModalTitle.textContent = formatValue(policy.policyCarrier) === "Not provided"
-          ? "Policy Details"
-          : `${policy.policyCarrier} Policy`;
+        closePolicyDocumentMenu();
+        policyModalTitle.textContent = getPolicyModalTitleText(policy);
+        if (policyModalBadge) {
+          policyModalBadge.textContent = getPolicyModalBadgeText(policy);
+        }
+        if (policyModalSubtitle) {
+          policyModalSubtitle.textContent = getPolicyModalSubtitleText(policy);
+        }
+        if (policyModalMetrics) {
+          policyModalMetrics.innerHTML = renderPolicyModalMetrics(policy);
+        }
+        if (policyModalStatus) {
+          policyModalStatus.innerHTML = renderPolicyModalStatus(policy);
+        }
         policyModalBody.innerHTML = renderPolicyModalBody(policy);
         policyModal.hidden = false;
         syncModalLock();
+      }
+
+      function closePolicyDocumentMenu() {
+        if (!policyDocumentMenu) {
+          return;
+        }
+        policyDocumentMenu.hidden = true;
+        policyDocumentMenu.style.left = "";
+        policyDocumentMenu.style.top = "";
+        activePolicyDocumentIndex = -1;
+      }
+
+      function openPolicyDocumentMenu(documentIndex, x, y) {
+        if (!policyDocumentMenu || !policyModalPanel || activePolicyIndex < 0 || documentIndex < 0) {
+          return;
+        }
+
+        activePolicyDocumentIndex = documentIndex;
+        policyDocumentMenu.hidden = false;
+        const panelRect = policyModalPanel.getBoundingClientRect();
+        const menuRect = policyDocumentMenu.getBoundingClientRect();
+        const horizontalInset = 12;
+        const verticalInset = 12;
+        const safeLeft = Math.max(
+          horizontalInset,
+          Math.min(x - panelRect.left, panelRect.width - menuRect.width - horizontalInset)
+        );
+        const safeTop = Math.max(
+          verticalInset,
+          Math.min(y - panelRect.top, panelRect.height - menuRect.height - verticalInset)
+        );
+        policyDocumentMenu.style.left = `${safeLeft}px`;
+        policyDocumentMenu.style.top = `${safeTop}px`;
+      }
+
+      async function openPolicyDocumentRenameModal(policyIndex, documentIndex) {
+        const selection = await getStoredPolicyDocumentSelection(policyIndex, documentIndex);
+        if (!selection || !policyDocumentRenameModal || !policyDocumentRenameInput) {
+          if (!selection) {
+            window.alert("No saved policy file was found for this policy.");
+          }
+          return false;
+        }
+
+        activePolicyDocumentIndex = selection.documentIndex;
+        policyDocumentRenameInput.value = selection.documentName;
+        policyDocumentRenameInput.dataset.currentPolicyDocumentName = selection.documentName;
+        if (policyDocumentRenameCopy) {
+          policyDocumentRenameCopy.textContent = `Rename "${selection.documentName}"?`;
+        }
+        policyDocumentRenameModal.hidden = false;
+        syncModalLock();
+        window.requestAnimationFrame(function () {
+          policyDocumentRenameInput.focus();
+          policyDocumentRenameInput.select();
+        });
+        return true;
+      }
+
+      function closePolicyDocumentRenameModal() {
+        if (!policyDocumentRenameModal) {
+          return;
+        }
+        policyDocumentRenameModal.hidden = true;
+        if (policyDocumentRenameInput) {
+          policyDocumentRenameInput.value = "";
+          policyDocumentRenameInput.dataset.currentPolicyDocumentName = "";
+        }
+        syncModalLock();
+      }
+
+      async function openPolicyDocumentDeleteModal(policyIndex, documentIndex) {
+        const selection = await getStoredPolicyDocumentSelection(policyIndex, documentIndex);
+        if (!selection || !policyDocumentDeleteModal) {
+          if (!selection) {
+            window.alert("No saved policy file was found for this policy.");
+          }
+          return false;
+        }
+
+        activePolicyDocumentIndex = selection.documentIndex;
+        if (policyDocumentDeleteCopy) {
+          policyDocumentDeleteCopy.textContent = `Delete "${selection.documentName}" from this policy? This will remove it from the saved policy files.`;
+        }
+        policyDocumentDeleteModal.hidden = false;
+        syncModalLock();
+        return true;
+      }
+
+      function closePolicyDocumentDeleteModal() {
+        if (!policyDocumentDeleteModal) {
+          return;
+        }
+        policyDocumentDeleteModal.hidden = true;
+        syncModalLock();
+      }
+
+      async function getStoredPolicyDocumentSelection(policyIndex, documentIndex) {
+        const policies = getCoveragePolicies();
+        const policy = policies[policyIndex];
+        const policyDocuments = getPolicyDocumentEntries(policy);
+        if (!policy?.id || !policyDocuments.length) {
+          return null;
+        }
+
+        const savedDocuments = await getPolicyDocumentFiles(String(record.id || "").trim(), policy.id);
+        const storedFiles = Array.isArray(savedDocuments?.files) ? savedDocuments.files : [];
+        const safeDocumentIndex = Math.max(0, Math.min(storedFiles.length - 1, Number(documentIndex) || 0));
+        const selectedDocument = storedFiles[safeDocumentIndex];
+        if (!selectedDocument?.file) {
+          return null;
+        }
+
+        return {
+          policy,
+          policyIndex,
+          documentIndex: safeDocumentIndex,
+          documentName: selectedDocument.name || policyDocuments[safeDocumentIndex]?.name || "policy-file",
+          fileEntry: selectedDocument
+        };
+      }
+
+      async function renamePolicyDocument(policyIndex, documentIndex, nextNameInput) {
+        const selection = await getStoredPolicyDocumentSelection(policyIndex, documentIndex);
+        if (!selection) {
+          window.alert("No saved policy file was found for this policy.");
+          return false;
+        }
+
+        const normalizedName = normalizePolicyDocumentName(nextNameInput, selection.documentName);
+        if (!normalizedName || normalizedName === selection.documentName) {
+          return false;
+        }
+
+        const updatedFiles = await updateStoredPolicyDocumentFiles(String(record.id || "").trim(), selection.policy.id, function (existingFiles) {
+          return existingFiles.map(function (item, index) {
+            if (index !== selection.documentIndex) {
+              return item;
+            }
+            return {
+              ...item,
+              name: normalizedName
+            };
+          });
+        });
+
+        syncPolicyDocumentMetadata(String(record.id || "").trim(), selection.policy.id, updatedFiles);
+        openPolicyModal(policyIndex);
+        return true;
+      }
+
+      async function deletePolicyDocumentEntry(policyIndex, documentIndex) {
+        const selection = await getStoredPolicyDocumentSelection(policyIndex, documentIndex);
+        if (!selection) {
+          window.alert("No saved policy file was found for this policy.");
+          return false;
+        }
+
+        const updatedFiles = await updateStoredPolicyDocumentFiles(String(record.id || "").trim(), selection.policy.id, function (existingFiles) {
+          return existingFiles.filter(function (_item, index) {
+            return index !== selection.documentIndex;
+          });
+        });
+
+        syncPolicyDocumentMetadata(String(record.id || "").trim(), selection.policy.id, updatedFiles);
+        openPolicyModal(policyIndex);
+        return true;
+      }
+
+      async function sharePolicyDocument(policyIndex, documentIndex) {
+        const selection = await getStoredPolicyDocumentSelection(policyIndex, documentIndex);
+        if (!selection) {
+          window.alert("No saved policy file was found for this policy.");
+          return false;
+        }
+
+        const fileBlob = selection.fileEntry.file;
+        const fileName = selection.documentName;
+        const fileType = String(selection.fileEntry.type || fileBlob?.type || "").trim();
+        const shareFile = fileBlob instanceof File
+          ? fileBlob
+          : new File([fileBlob], fileName, { type: fileType || "application/octet-stream" });
+
+        if (navigator.share) {
+          try {
+            if (typeof navigator.canShare !== "function" || navigator.canShare({ files: [shareFile] })) {
+              await navigator.share({
+                files: [shareFile],
+                title: fileName,
+                text: fileName
+              });
+              return true;
+            }
+          } catch (error) {
+            if (error?.name === "AbortError") {
+              return false;
+            }
+          }
+        }
+
+        window.alert("Sharing isn't supported in this browser for saved policy files yet.");
+        return false;
+      }
+
+      async function addPolicyDocuments(policyIndex, files) {
+        const policies = getCoveragePolicies();
+        const policy = policies[policyIndex];
+        const nextFiles = Array.from(files || []).filter(Boolean);
+        if (!policy?.id || !nextFiles.length) {
+          return false;
+        }
+
+        try {
+          await savePolicyDocumentFiles(String(record.id || "").trim(), policy.id, nextFiles, {
+            append: true
+          });
+          const savedDocuments = await getPolicyDocumentFiles(String(record.id || "").trim(), policy.id);
+          const updatedFiles = Array.isArray(savedDocuments?.files) ? savedDocuments.files : [];
+          syncPolicyDocumentMetadata(String(record.id || "").trim(), policy.id, updatedFiles);
+          openPolicyModal(policyIndex);
+          return true;
+        } catch (error) {
+          window.alert("Unable to add files to this policy right now.");
+          return false;
+        }
       }
 
       function closePolicyListModal() {
@@ -5404,27 +5947,17 @@
       }
 
       async function openPolicyDocument(index, documentIndex) {
-        const policies = getCoveragePolicies();
-        const policy = policies[index];
-        const policyDocuments = getPolicyDocumentEntries(policy);
-        if (!policy?.id || !policyDocuments.length) {
-          return;
-        }
-
         try {
-          const savedDocuments = await getPolicyDocumentFiles(String(record.id || "").trim(), policy.id);
-          const storedFiles = Array.isArray(savedDocuments?.files) ? savedDocuments.files : [];
-          const safeDocumentIndex = Math.max(0, Math.min(storedFiles.length - 1, Number(documentIndex) || 0));
-          const selectedDocument = storedFiles[safeDocumentIndex];
-          const fileBlob = selectedDocument?.file;
-          if (!fileBlob) {
+          const selection = await getStoredPolicyDocumentSelection(index, documentIndex);
+          if (!selection?.fileEntry?.file) {
             window.alert("No saved policy file was found for this policy.");
             return;
           }
 
+          const fileBlob = selection.fileEntry.file;
           const url = URL.createObjectURL(fileBlob);
-          const fileName = selectedDocument?.name || policyDocuments[safeDocumentIndex]?.name || "policy-file";
-          const isZipFile = /\.zip$/i.test(fileName) || String(selectedDocument?.type || "").toLowerCase().includes("zip");
+          const fileName = selection.documentName || "policy-file";
+          const isZipFile = /\.zip$/i.test(fileName) || String(selection.fileEntry?.type || "").toLowerCase().includes("zip");
           const openedWindow = isZipFile ? null : window.open(url, "_blank", "noopener,noreferrer");
 
           if (!openedWindow) {
@@ -5550,6 +6083,18 @@
       policyModalCloseButtons.forEach(function (button) {
         button.addEventListener("click", function () {
           closePolicyModal();
+        });
+      });
+
+      policyDocumentRenameCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          closePolicyDocumentRenameModal();
+        });
+      });
+
+      policyDocumentDeleteCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          closePolicyDocumentDeleteModal();
         });
       });
 
@@ -5832,6 +6377,66 @@
         });
       }
 
+      if (policyDocumentRenameForm) {
+        policyDocumentRenameForm.addEventListener("submit", async function (event) {
+          event.preventDefault();
+          if (!policyDocumentRenameInput || activePolicyIndex < 0 || activePolicyDocumentIndex < 0) {
+            closePolicyDocumentRenameModal();
+            return;
+          }
+
+          const currentName = String(policyDocumentRenameInput.dataset.currentPolicyDocumentName || "").trim();
+          const normalizedName = normalizePolicyDocumentName(policyDocumentRenameInput.value, currentName);
+          if (!normalizedName) {
+            policyDocumentRenameInput.focus();
+            policyDocumentRenameInput.select();
+            return;
+          }
+
+          if (normalizedName === currentName) {
+            closePolicyDocumentRenameModal();
+            return;
+          }
+
+          const wasRenamed = await renamePolicyDocument(activePolicyIndex, activePolicyDocumentIndex, normalizedName);
+          if (!wasRenamed) {
+            policyDocumentRenameInput.focus();
+            policyDocumentRenameInput.select();
+            return;
+          }
+
+          closePolicyDocumentRenameModal();
+        });
+      }
+
+      if (policyDocumentDeleteConfirm) {
+        policyDocumentDeleteConfirm.addEventListener("click", async function () {
+          if (activePolicyIndex < 0 || activePolicyDocumentIndex < 0) {
+            closePolicyDocumentDeleteModal();
+            return;
+          }
+
+          const wasDeleted = await deletePolicyDocumentEntry(activePolicyIndex, activePolicyDocumentIndex);
+          closePolicyDocumentDeleteModal();
+          if (!wasDeleted) {
+            return;
+          }
+        });
+      }
+
+      if (policyDocumentAddInput) {
+        policyDocumentAddInput.addEventListener("change", async function () {
+          const selectedFiles = Array.from(policyDocumentAddInput.files || []).filter(Boolean);
+          if (!selectedFiles.length || activePolicyIndex < 0) {
+            policyDocumentAddInput.value = "";
+            return;
+          }
+
+          await addPolicyDocuments(activePolicyIndex, selectedFiles);
+          policyDocumentAddInput.value = "";
+        });
+      }
+
       if (policyEditToggle) {
         policyEditToggle.addEventListener("click", function () {
           if (activePolicyIndex < 0) {
@@ -5984,7 +6589,38 @@
         });
       }
 
-      host.addEventListener("click", function (event) {
+      host.addEventListener("click", async function (event) {
+        const clickedInsidePolicyDocumentMenu = policyDocumentMenu?.contains(event.target) || false;
+        if (policyDocumentMenu && !policyDocumentMenu.hidden && !clickedInsidePolicyDocumentMenu) {
+          closePolicyDocumentMenu();
+        }
+
+        const policyDocumentAction = event.target.closest("[data-policy-document-action]");
+        if (policyDocumentAction && host.contains(policyDocumentAction)) {
+          const requestedAction = String(policyDocumentAction.getAttribute("data-policy-document-action") || "").trim();
+          const documentIndex = activePolicyDocumentIndex;
+          closePolicyDocumentMenu();
+          if (activePolicyIndex < 0 || documentIndex < 0) {
+            return;
+          }
+
+          if (requestedAction === "open") {
+            await openPolicyDocument(activePolicyIndex, documentIndex);
+          } else if (requestedAction === "add-file") {
+            if (policyDocumentAddInput) {
+              policyDocumentAddInput.value = "";
+              policyDocumentAddInput.click();
+            }
+          } else if (requestedAction === "rename") {
+            await openPolicyDocumentRenameModal(activePolicyIndex, documentIndex);
+          } else if (requestedAction === "share") {
+            await sharePolicyDocument(activePolicyIndex, documentIndex);
+          } else if (requestedAction === "delete") {
+            await openPolicyDocumentDeleteModal(activePolicyIndex, documentIndex);
+          }
+          return;
+        }
+
         const coverageAddOpen = event.target.closest("[data-coverage-add-open]");
         if (coverageAddOpen && host.contains(coverageAddOpen)) {
           if (coverageAddOpen.disabled) {
@@ -6060,7 +6696,27 @@
         }
       });
 
+      host.addEventListener("contextmenu", function (event) {
+        const policyDocumentEntry = event.target.closest("[data-policy-document-entry]");
+        if (policyDocumentEntry && host.contains(policyDocumentEntry)) {
+          event.preventDefault();
+          const documentIndex = Number(policyDocumentEntry.getAttribute("data-policy-document-index") || "-1");
+          if (activePolicyIndex >= 0 && documentIndex >= 0) {
+            openPolicyDocumentMenu(documentIndex, event.clientX, event.clientY);
+          }
+          return;
+        }
+
+        if (!event.target.closest("[data-policy-document-menu]")) {
+          closePolicyDocumentMenu();
+        }
+      });
+
       host.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && policyDocumentMenu && !policyDocumentMenu.hidden) {
+          closePolicyDocumentMenu();
+        }
+
         const coveragePolicyCard = event.target.closest("[data-coverage-policy-card]");
         if (coveragePolicyCard && host.contains(coveragePolicyCard)) {
           if (event.key === "Enter" || event.key === " ") {
@@ -6087,6 +6743,10 @@
       });
 
       document.addEventListener("click", function (event) {
+        if (policyDocumentMenu && !policyDocumentMenu.hidden && !policyDocumentMenu.contains(event.target) && !event.target.closest("[data-policy-document-entry]")) {
+          closePolicyDocumentMenu();
+        }
+
         if (!activeActivityModal || activeActivityModal.hidden || !activeActivityTrigger) {
           return;
         }
@@ -6102,6 +6762,8 @@
       document.addEventListener("keydown", function (event) {
         if (event.key === "Escape") {
           closePolicyModal();
+          closePolicyDocumentRenameModal();
+          closePolicyDocumentDeleteModal();
           closePolicyListModal();
           closePolicyDeleteModal();
           closeProfileDeleteModal();

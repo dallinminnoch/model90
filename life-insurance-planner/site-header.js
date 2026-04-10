@@ -102,6 +102,61 @@
     return String(name || "").trim().split(/\s+/)[0] || "Advisor";
   }
 
+  function isFullscreenSupported() {
+    return Boolean(document.documentElement?.requestFullscreen && document.exitFullscreen);
+  }
+
+  function updateFullscreenToggle(button, iconPaths) {
+    if (!button) {
+      return;
+    }
+
+    const icon = button.querySelector("[data-fullscreen-icon]");
+    const isFullscreen = Boolean(document.fullscreenElement);
+    button.setAttribute("aria-label", isFullscreen ? "Exit full screen" : "Enter full screen");
+    button.setAttribute("title", isFullscreen ? "Exit full screen" : "Enter full screen");
+    button.setAttribute("aria-pressed", String(isFullscreen));
+    if (icon) {
+      icon.src = isFullscreen ? iconPaths.close : iconPaths.open;
+    }
+  }
+
+  function bindFullscreenToggle(iconPaths) {
+    const buttons = Array.from(document.querySelectorAll("[data-fullscreen-toggle]"));
+    if (!buttons.length) {
+      return;
+    }
+
+    if (!isFullscreenSupported()) {
+      buttons.forEach((button) => {
+        button.hidden = true;
+      });
+      return;
+    }
+
+    const refreshButtons = () => {
+      buttons.forEach((button) => updateFullscreenToggle(button, iconPaths));
+    };
+
+    refreshButtons();
+    document.addEventListener("fullscreenchange", refreshButtons);
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", async (event) => {
+        event.preventDefault();
+        try {
+          if (document.fullscreenElement) {
+            await document.exitFullscreen();
+          } else {
+            await document.documentElement.requestFullscreen();
+          }
+        } catch (_error) {
+          refreshButtons();
+        }
+      });
+    });
+  }
+
   function renderAccountSlot(signInHref, adminHref) {
     const session = loadSession();
     if (session?.name) {
@@ -161,7 +216,7 @@
     `;
   }
 
-  function bindSharedHeaderActions() {
+  function bindSharedHeaderActions(iconPaths) {
     document.querySelectorAll("[data-site-header-sign-out]").forEach((button) => {
       button.addEventListener("click", (event) => {
         event.preventDefault();
@@ -207,6 +262,8 @@
         });
       }, true);
     });
+
+    bindFullscreenToggle(iconPaths);
   }
 
   function getHeaderMarkup() {
@@ -220,8 +277,15 @@
     const policyHref = isNestedPage ? "policy-web.html" : "pages/policy-web.html";
     const signInHref = isNestedPage ? "sign-in.html" : "pages/sign-in.html";
     const adminHref = isNestedPage ? "admin-accounts.html" : "pages/admin-accounts.html";
+    const fullscreenOpenSrc = isNestedPage ? "../Images/openfullscreen.svg" : "Images/openfullscreen.svg";
+    const fullscreenCloseSrc = isNestedPage ? "../Images/closefullscreen.svg" : "Images/closefullscreen.svg";
 
-    return `
+    return {
+      iconPaths: {
+        open: fullscreenOpenSrc,
+        close: fullscreenCloseSrc
+      },
+      markup: `
       <header class="site-header">
         <div class="site-header-inner">
           <a class="site-brand" href="${homeHref}">
@@ -254,10 +318,15 @@
             <div class="account-slot" data-account-slot>
               ${renderAccountSlot(signInHref, adminHref)}
             </div>
+            <button class="fullscreen-toggle" type="button" data-fullscreen-toggle aria-label="Enter full screen" title="Enter full screen" aria-pressed="false">
+              <img class="fullscreen-toggle-icon" data-fullscreen-icon src="${fullscreenOpenSrc}" alt="" aria-hidden="true">
+              <span class="sr-only">Toggle full screen</span>
+            </button>
           </div>
         </div>
       </header>
-    `;
+    `
+    };
   }
 
   function injectSiteHeader() {
@@ -267,9 +336,11 @@
       return;
     }
 
+    const { markup, iconPaths } = getHeaderMarkup();
+
     const main = document.querySelector("main");
     if (main) {
-      main.insertAdjacentHTML("beforebegin", getHeaderMarkup());
+      main.insertAdjacentHTML("beforebegin", markup);
       const languageSlot = document.querySelector("[data-language-slot]");
       if (languageSlot) {
         languageSlot.innerHTML = `
@@ -280,11 +351,11 @@
           </div>
         `;
       }
-      bindSharedHeaderActions();
+      bindSharedHeaderActions(iconPaths);
       return;
     }
 
-    document.body.insertAdjacentHTML("afterbegin", getHeaderMarkup());
+    document.body.insertAdjacentHTML("afterbegin", markup);
     const languageSlot = document.querySelector("[data-language-slot]");
     if (languageSlot) {
       languageSlot.innerHTML = `
@@ -295,7 +366,7 @@
         </div>
       `;
     }
-    bindSharedHeaderActions();
+    bindSharedHeaderActions(iconPaths);
   }
 
   if (document.readyState === "loading") {
