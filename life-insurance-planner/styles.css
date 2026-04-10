@@ -3670,6 +3670,11 @@ body.client-detail-page .client-detail-header {
   border-right: 1px solid rgba(229, 235, 242, 0.95);
 }
 
+.client-profile-shell:not(.client-profile-shell-household) .client-profile-sidebar {
+  grid-template-rows: auto auto minmax(0, 1fr);
+  align-content: stretch;
+}
+
 .client-profile-sidebar-household {
   background: linear-gradient(180deg, #eef5ff 0%, #f8fbff 100%);
 }
@@ -3682,7 +3687,7 @@ body.client-detail-page .client-detail-header {
   min-height: 2rem;
   padding: 0 0.8rem;
   border: 1px solid rgba(213, 221, 232, 0.95);
-  border-radius: 999px;
+  border-radius: 0.35rem;
   background: #ffffff;
   color: #526074;
   font-weight: 700;
@@ -4211,6 +4216,21 @@ body.client-detail-page .client-detail-header {
   padding: 1.05rem 1.15rem;
 }
 
+.client-detail-stat-card-coverageAmount {
+  position: relative;
+}
+
+.client-detail-stat-card-coverageAmount::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: #4f46e5;
+  pointer-events: none;
+}
+
 .client-detail-stat-header {
   display: flex;
   align-items: center;
@@ -4383,6 +4403,7 @@ body.client-detail-page .client-detail-header {
 .client-profile-dashboard {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.9fr);
+  align-items: start;
   gap: 1rem;
   padding: 0 1.3rem 1.3rem;
 }
@@ -4390,6 +4411,7 @@ body.client-detail-page .client-detail-header {
 .client-profile-dashboard-main,
 .client-profile-dashboard-side {
   display: grid;
+  align-content: start;
   gap: 1rem;
 }
 
@@ -4471,6 +4493,8 @@ body.client-detail-page .client-detail-header {
 }
 
 .client-detail-card.client-detail-card-split {
+  display: flex;
+  flex-direction: column;
   background: transparent;
   border: 0;
   border-top: 1px solid rgba(213, 221, 232, 0.7);
@@ -4524,6 +4548,101 @@ body.client-detail-page .client-detail-header {
   padding: 0.85rem 1rem;
 }
 
+.client-reminders-strip {
+  height: 9.48rem;
+  min-height: 9.48rem;
+  max-height: 9.48rem;
+  padding: 0.95rem 1rem 1rem;
+  overflow: hidden;
+}
+
+.client-reminders-strip-header {
+  margin-bottom: 0.8rem;
+}
+
+.client-reminders-strip-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  align-items: stretch;
+  min-height: 5.47rem;
+}
+
+.client-reminders-strip-item {
+  display: grid;
+  gap: 0.42rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(223, 229, 238, 0.95);
+  border-radius: 0.35rem;
+  background: #fbfcfe;
+}
+
+.client-reminders-strip-item.is-overdue {
+  background: #fff9f8;
+  border-color: rgba(206, 126, 126, 0.22);
+}
+
+.client-reminders-strip-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.client-reminders-strip-item-top strong {
+  color: #1f2937;
+  font-size: 0.86rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.client-reminders-strip-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.45rem;
+  padding: 0 0.55rem;
+  border-radius: 0.35rem;
+  background: rgba(79, 70, 229, 0.08);
+  color: #4f46e5;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.client-reminders-strip-item-copy {
+  display: grid;
+  gap: 0.16rem;
+}
+
+.client-reminders-strip-item-copy span {
+  color: #1f2937;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.client-reminders-strip-item-copy small {
+  color: #667084;
+  font-size: 0.75rem;
+  line-height: 1.28;
+}
+
+.client-reminders-strip-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 5.47rem;
+  height: 5.47rem;
+  border: 1px dashed rgba(213, 221, 232, 0.95);
+  border-radius: 0.35rem;
+  color: #667084;
+  font-size: 0.92rem;
+  text-align: center;
+  background: rgba(251, 252, 254, 0.92);
+}
+
 .client-footer-strip-inner {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4569,8 +4688,9 @@ body.client-detail-page .client-detail-header {
 
 .client-notes-widget-topline h2 {
   margin: 0;
-  font-size: 0.96rem;
+  font-size: 1.05rem;
   font-weight: 700;
+  font-family: inherit;
 }
 
 .client-notes-widget-last-contact {
@@ -4593,7 +4713,7 @@ body.client-detail-page .client-detail-header {
 .client-activity-next-best,
 .client-notes-widget-paper {
   border: 1px solid rgba(223, 229, 238, 0.95);
-  border-radius: 1rem;
+  border-radius: 0.35rem;
   background: #ffffff;
   box-shadow: 0 12px 28px rgba(17, 24, 39, 0.04);
 }
@@ -4622,7 +4742,7 @@ body.client-detail-page .client-detail-header {
   flex: 0 0 auto;
   min-height: 2.2rem;
   padding: 0.28rem 0.82rem;
-  border-radius: 0.8rem;
+  border-radius: 0.35rem;
   font-size: clamp(0.76rem, 0.72rem + 0.2vw, 0.86rem);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -4677,6 +4797,7 @@ body.client-detail-page .client-detail-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
+  align-content: center;
   gap: 0.7rem;
   padding: 0.65rem 0.9rem;
   min-height: 4.15rem;
@@ -4685,9 +4806,12 @@ body.client-detail-page .client-detail-header {
 }
 
 .client-activity-next-best-copy {
-  display: grid;
-  gap: 0.1rem;
-  align-self: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-self: stretch;
+  min-height: 100%;
+  gap: 0.08rem;
 }
 
 .client-activity-next-best-label {
@@ -4708,7 +4832,7 @@ body.client-detail-page .client-detail-header {
 .client-activity-next-best-button {
   appearance: none;
   border: 1px solid rgba(213, 221, 232, 0.95);
-  border-radius: 0.75rem;
+  border-radius: 0.35rem;
   background: #ffffff;
   color: #17212e;
   display: inline-flex;
@@ -4736,9 +4860,9 @@ body.client-detail-page .client-detail-header {
 .client-notes-widget-list {
   display: grid;
   gap: 0;
-  height: calc(3.35rem * 3);
-  min-height: calc(3.35rem * 3);
-  max-height: calc(3.35rem * 3);
+  height: calc((3.35rem * 3) + 0.14rem);
+  min-height: calc((3.35rem * 3) + 0.14rem);
+  max-height: calc((3.35rem * 3) + 0.14rem);
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0.1rem 0.12rem 0 0;
@@ -4967,7 +5091,7 @@ body.client-detail-page .client-detail-header {
 .client-notes-widget-action {
   appearance: none;
   border: 1px solid rgba(213, 221, 232, 0.95);
-  border-radius: 0.55rem;
+  border-radius: 0.35rem;
   background: #ffffff;
   color: #17212e;
   font-family: "Manrope", sans-serif;
@@ -5008,8 +5132,8 @@ body.client-detail-page .client-detail-header {
 
 .client-activity-drawer {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: -0.4rem;
+  right: -0.4rem;
   bottom: calc(100% - 0.08rem);
   z-index: 6;
   transform-origin: bottom center;
@@ -5105,7 +5229,7 @@ body.client-detail-page .client-detail-header {
   appearance: none;
   min-height: 3.64rem;
   border: 0;
-  border-radius: 0.32rem;
+  border-radius: 0.35rem;
   background: #f1f4f8;
   color: #17212e;
   font-family: "Manrope", sans-serif;
@@ -5313,23 +5437,42 @@ body.client-detail-page .client-detail-header {
 
 .client-detail-card-header-coverage {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
+  min-height: 2.2rem;
+  margin-bottom: 0;
 }
 
 .client-coverage-card {
+  --coverage-policy-card-height: 5rem;
+  --coverage-policy-list-gap: 0.7rem;
+  --coverage-footer-gap: 0.9rem;
+  --coverage-header-height: 2.2rem;
+  --coverage-card-body-height: calc((var(--coverage-policy-card-height) * 2) + var(--coverage-policy-list-gap));
+  --coverage-view-all-height: 2.3rem;
+  box-sizing: border-box;
   display: grid;
-  grid-template-rows: auto minmax(13rem, 1fr) auto;
-  height: 24.4rem;
-  min-height: 24.4rem;
+  align-content: start;
+  grid-template-rows:
+    var(--coverage-header-height)
+    var(--coverage-card-body-height)
+    var(--coverage-footer-gap)
+    var(--coverage-view-all-height);
+  height: calc(1.15rem + var(--coverage-header-height) + var(--coverage-card-body-height) + var(--coverage-footer-gap) + var(--coverage-view-all-height) + 1.15rem);
+  min-height: calc(1.15rem + var(--coverage-header-height) + var(--coverage-card-body-height) + var(--coverage-footer-gap) + var(--coverage-view-all-height) + 1.15rem);
+  max-height: calc(1.15rem + var(--coverage-header-height) + var(--coverage-card-body-height) + var(--coverage-footer-gap) + var(--coverage-view-all-height) + 1.15rem);
+  padding: 1.15rem 1.2rem !important;
 }
 
 .client-coverage-card-body {
   display: grid;
   align-content: start;
   min-height: 0;
-  min-height: 12.9rem;
+  height: var(--coverage-card-body-height);
+  min-height: var(--coverage-card-body-height);
+  max-height: var(--coverage-card-body-height);
+  overflow: hidden;
 }
 
 .client-coverage-add-button {
@@ -5365,9 +5508,12 @@ body.client-detail-page .client-detail-header {
 
 .client-coverage-policy-list {
   display: grid;
-  gap: 0.7rem;
-  min-height: 100%;
+  gap: var(--coverage-policy-list-gap);
+  height: calc((var(--coverage-policy-card-height) * 2) + var(--coverage-policy-list-gap));
+  min-height: calc((var(--coverage-policy-card-height) * 2) + var(--coverage-policy-list-gap));
+  max-height: calc((var(--coverage-policy-card-height) * 2) + var(--coverage-policy-list-gap));
   align-content: start;
+  overflow: hidden;
 }
 
 .client-coverage-policy-list.is-empty {
@@ -5377,13 +5523,18 @@ body.client-detail-page .client-detail-header {
 
 .client-coverage-policy-item {
   display: grid;
-  gap: 0.35rem;
+  align-content: center;
+  gap: 0.2rem;
   padding: 0.8rem 0.9rem;
+  height: var(--coverage-policy-card-height);
+  min-height: var(--coverage-policy-card-height);
+  max-height: var(--coverage-policy-card-height);
   border: 1px solid rgba(226, 232, 240, 0.95);
   border-radius: 0.9rem;
   background: #fbfcfe;
   cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  overflow: hidden;
 }
 
 .client-coverage-policy-item:hover,
@@ -5423,9 +5574,12 @@ body.client-detail-page .client-detail-header {
 }
 
 .client-coverage-view-all-button {
+  grid-row: 4;
   width: 100%;
-  min-height: 2.3rem;
-  margin-top: 0.8rem;
+  height: var(--coverage-view-all-height);
+  min-height: var(--coverage-view-all-height);
+  margin-top: 0;
+  align-self: start;
   border: 1px solid rgba(213, 221, 232, 0.95);
   border-radius: 0.8rem;
   background: #edf1f7;
@@ -5537,6 +5691,33 @@ body.client-detail-page .client-detail-header {
   justify-content: flex-start;
 }
 
+.client-summary-footer {
+  margin-top: auto;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(213, 221, 232, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.client-profile-snapshot-card {
+  display: grid !important;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  min-height: 100%;
+  padding-bottom: 0 !important;
+}
+
+.client-profile-snapshot-card .client-summary-footer {
+  align-self: end;
+  position: static;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  margin-top: 0;
+  padding-top: 0.75rem;
+}
+
 .client-policy-delete-button {
   display: inline-flex;
   align-items: center;
@@ -5545,10 +5726,30 @@ body.client-detail-page .client-detail-header {
   padding: 0;
   border: 0;
   background: transparent;
-  color: #8b3a3a;
+  color: #8b2727;
   font-size: 0.96rem;
   font-weight: 800;
   cursor: pointer;
+}
+
+.client-profile-delete-button {
+  margin-top: 0;
+}
+
+.client-profile-delete-icon-image {
+  width: 0.98rem;
+  height: 0.98rem;
+  display: block;
+  flex: 0 0 auto;
+  background: currentColor;
+  -webkit-mask-image: url("Images/trashcan.png");
+  mask-image: url("Images/trashcan.png");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
 }
 
 .client-policy-delete-icon {
@@ -5872,6 +6073,7 @@ body.client-detail-page .client-detail-header {
   grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
   gap: 1rem;
   align-items: start;
+  flex: 1 1 auto;
 }
 
 .client-summary-list-secondary {
@@ -5904,7 +6106,7 @@ body.client-detail-page .client-detail-header {
   gap: 0.22rem;
   padding: 0.66rem 0.88rem;
   border: 0 !important;
-  border-radius: 0.9rem;
+  border-radius: 0.35rem;
   background: #edf7ef !important;
   box-shadow: none;
 }
@@ -5993,7 +6195,7 @@ body.client-detail-page .client-detail-header {
   gap: 0.7rem;
   padding: 0.62rem 0.7rem;
   border: 1px solid rgba(213, 221, 232, 0.95);
-  border-radius: 0.85rem;
+  border-radius: 0.35rem;
   background: #ffffff;
 }
 

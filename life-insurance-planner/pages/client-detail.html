@@ -608,9 +608,11 @@
         `;
       }
 
-      function renderSplitSummaryCard(title, leftItems, rightItems) {
+      function renderSplitSummaryCard(title, leftItems, rightItems, options) {
+        const cardClassName = String(options?.cardClassName || "").trim();
+        const footerAction = String(options?.footerAction || "").trim();
         return `
-          <section class="client-detail-card client-detail-card-compact client-detail-card-split">
+          <section class="client-detail-card client-detail-card-compact client-detail-card-split${cardClassName ? ` ${escapeHtml(cardClassName)}` : ""}">
             <div class="client-detail-card-header">
               <h2>${escapeHtml(title)}</h2>
             </div>
@@ -636,6 +638,7 @@
                 }).join("")}
               </div>
             </div>
+            ${footerAction ? `<div class="client-summary-footer">${footerAction}</div>` : ""}
           </section>
         `;
       }
@@ -1015,27 +1018,75 @@
         ]);
       }
 
+      function getUpcomingReminderItems(record) {
+        const entries = Array.isArray(record.activityLog) ? record.activityLog : [];
+        const today = new Date();
+        const todayValue = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+
+        const upcoming = entries
+          .filter(function (entry) {
+            return entry && (entry.type === "reminder" || entry.type === "schedule");
+          })
+          .map(function (entry) {
+            const rawDate = String(entry.date || "").trim();
+            const date = rawDate ? new Date(`${rawDate}T00:00:00`) : null;
+            const dateValue = date && !Number.isNaN(date.getTime())
+              ? new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
+              : null;
+            const type = entry.type === "schedule" ? "Meeting" : "Reminder";
+            const title = String(entry.subject || "").trim() || (entry.type === "schedule" ? "Scheduled Meeting" : "Follow-Up Reminder");
+            const detail = String(entry.detailRemainder || "").trim();
+            return {
+              type,
+              title,
+              detail,
+              rawDate,
+              sortDate: dateValue,
+              isOverdue: dateValue !== null && dateValue < todayValue
+            };
+          })
+          .filter(function (entry) {
+            return entry.sortDate !== null;
+          })
+          .sort(function (a, b) {
+            if (a.isOverdue !== b.isOverdue) {
+              return a.isOverdue ? 1 : -1;
+            }
+            return a.sortDate - b.sortDate;
+          });
+
+        return upcoming.slice(0, 3);
+      }
+
       function renderFooterBar(record) {
-        const policies = Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
-        const policyCount = policies.length;
-        const nextFollowUp = record.lastReview || record.lastUpdatedDate || record.dateProfileCreated;
-        const coveragePlaced = policyCount > 0 || record.statusGroup === "coverage-placed" || record.statusGroup === "closed";
+        const upcomingItems = getUpcomingReminderItems(record);
         return `
-          <section class="client-detail-card client-detail-card-compact client-footer-strip">
-            <div class="client-footer-strip-inner">
-              <div class="client-footer-strip-item">
-                <span class="client-footer-strip-label">Policies Placed</span>
-                <strong>${escapeHtml(String(policyCount))}</strong>
-              </div>
-              <div class="client-footer-strip-item">
-                <span class="client-footer-strip-label">Next Follow-Up</span>
-                <strong>${escapeHtml(formatDate(nextFollowUp))}</strong>
-              </div>
-              <div class="client-footer-strip-item">
-                <span class="client-footer-strip-label">Coverage Status</span>
-                <strong>${escapeHtml(coveragePlaced ? "Placed" : "In Progress")}</strong>
-              </div>
+          <section class="client-detail-card client-detail-card-compact client-footer-strip client-reminders-strip" data-reminders-strip>
+            <div class="client-detail-card-header client-reminders-strip-header">
+              <h2>Upcoming Reminders</h2>
             </div>
+            ${upcomingItems.length ? `
+              <div class="client-reminders-strip-list">
+                ${upcomingItems.map(function (item) {
+                  return `
+                    <article class="client-reminders-strip-item${item.isOverdue ? " is-overdue" : ""}">
+                      <div class="client-reminders-strip-item-top">
+                        <span class="client-reminders-strip-badge">${escapeHtml(item.type)}</span>
+                        <strong>${escapeHtml(formatDate(item.rawDate))}</strong>
+                      </div>
+                      <div class="client-reminders-strip-item-copy">
+                        <span>${escapeHtml(item.title)}</span>
+                        <small>${escapeHtml(item.detail || (item.isOverdue ? "Needs attention" : "Scheduled"))}</small>
+                      </div>
+                    </article>
+                  `;
+                }).join("")}
+              </div>
+            ` : `
+              <div class="client-reminders-strip-empty">
+                No upcoming reminders or scheduled meetings yet.
+              </div>
+            `}
           </section>
         `;
       }
@@ -1061,7 +1112,7 @@
         if (diffDays === 1) {
           return "1 day ago";
         }
-        if (diffDays < 30) {
+        if (diffDays < 15) {
           return `${diffDays} days ago`;
         }
         return formatDate(value);
@@ -1138,6 +1189,12 @@
         return { label: "Awaiting Response", ratio: 0 };
       }
 
+      function getLatestActivityIndexByType(activityEntries, type) {
+        return activityEntries.findIndex(function (entry) {
+          return String(entry?.type || "").trim().toLowerCase() === String(type || "").trim().toLowerCase();
+        });
+      }
+
       function getActivityTrackerSummary(record) {
         const activityEntries = Array.isArray(record.activityLog) ? record.activityLog : [];
         const latestActivityDate = activityEntries.length
@@ -1146,6 +1203,22 @@
         const relativeContact = getActivityRelativeTime(latestActivityDate);
         const latestActivityAge = getActivityAgeInDays(latestActivityDate);
         const responseRate = getResponseRateSummary(activityEntries);
+        const isHousehold = String(record.viewType || "").trim() === "households";
+        const linkedMembers = isHousehold ? getLinkedIndividualsForHousehold(record) : [];
+        const policies = Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
+        const hasPolicies = policies.length > 0
+          || record.statusGroup === "coverage-placed"
+          || record.statusGroup === "closed";
+        const hasPmi = Boolean(record.pmiCompleted);
+        const hasAnalysis = Boolean(record.analysisCompleted)
+          || record.statusGroup === "coverage-placed"
+          || record.statusGroup === "closed";
+        const illustrationIndex = getLatestActivityIndexByType(activityEntries, "illustration-requested");
+        const applicationIndex = getLatestActivityIndexByType(activityEntries, "application-submitted");
+        const documentIndex = getLatestActivityIndexByType(activityEntries, "document-received");
+        const deliveredIndex = getLatestActivityIndexByType(activityEntries, "policy-delivered");
+        const hasProjectedDependents = Number(record.projectedDependentsCount || 0) > 0;
+        const hasDependents = Number(record.dependentsCount || 0) > 0;
 
         let status = "On Track";
         let statusTone = "good";
@@ -1177,6 +1250,45 @@
           alertCopy = "A recent activity was logged within the last week.";
           nextAction = "Keep the next meeting or follow-up moving forward.";
           quickActionLabel = "Log Meeting";
+        }
+
+        if (!activityEntries.length) {
+          // Keep the initial-touchpoint guidance as the highest-priority action.
+        } else if (latestActivityAge !== null && latestActivityAge >= 28) {
+          // Keep the reconnect action above all case-state prompts when the account is inactive.
+        } else if (isHousehold && linkedMembers.length === 0) {
+          nextAction = "Add the primary household member.";
+          quickActionLabel = "Add Household Member";
+        } else if (isHousehold && !hasDependents && hasProjectedDependents) {
+          nextAction = "Review projected dependents.";
+          quickActionLabel = "Open PMI";
+        } else if (!hasPmi) {
+          nextAction = "Complete protection modeling inputs.";
+          quickActionLabel = "Open PMI";
+        } else if (!hasAnalysis) {
+          nextAction = "Finalize the protection analysis.";
+          quickActionLabel = "Open Analysis";
+        } else if (illustrationIndex !== -1 && (applicationIndex === -1 || applicationIndex > illustrationIndex)) {
+          nextAction = "Move from illustration to application.";
+          quickActionLabel = "Log Application Submitted";
+        } else if (applicationIndex !== -1 && (documentIndex === -1 || documentIndex > applicationIndex)) {
+          nextAction = "Follow up on underwriting documents.";
+          quickActionLabel = "Log Document Received";
+        } else if (documentIndex !== -1 && (deliveredIndex === -1 || deliveredIndex > documentIndex)) {
+          nextAction = "Keep underwriting moving forward.";
+          quickActionLabel = "Log Follow-Up";
+        } else if (!hasPolicies) {
+          nextAction = "Add the first placed policy.";
+          quickActionLabel = "Add Policy";
+        } else if (deliveredIndex !== -1) {
+          nextAction = "Schedule a policy review.";
+          quickActionLabel = "Log Meeting";
+        } else if (responseRate.label === "Needs Response") {
+          nextAction = "Respond to the latest client activity.";
+          quickActionLabel = "Log Follow-Up";
+        } else if (responseRate.label === "Awaiting Response") {
+          nextAction = "Follow up on recent outreach.";
+          quickActionLabel = "Log Follow-Up Call";
         }
 
         return {
@@ -1393,7 +1505,6 @@
 
       function renderNotesWidget(record, title) {
         const widgetTitle = String(title || "Activity Tracker");
-        const summary = getActivityTrackerSummary(record);
 
         return `
           <section class="client-detail-card client-detail-card-compact client-notes-widget-card">
@@ -1401,22 +1512,11 @@
               <h2>${escapeHtml(widgetTitle)}</h2>
             </div>
             <div class="client-notes-widget-body">
-              <div class="client-activity-summary-card">
-                <div class="client-activity-summary-top">
-                  <span class="client-activity-status-badge is-${escapeHtml(summary.statusTone)}">${escapeHtml(summary.status)}</span>
-                  <span class="client-activity-summary-metric">Last Contact: ${escapeHtml(summary.relativeContact)}</span>
-                  <span class="client-activity-summary-metric">Response Rate: <strong>${escapeHtml(summary.responseRate)}</strong></span>
-                </div>
+              <div data-activity-summary>
+                ${renderActivitySummaryCard(record)}
               </div>
-              <div class="client-activity-next-best">
-                <div class="client-activity-next-best-copy">
-                  <span class="client-activity-next-best-label">Next Best Action</span>
-                  <strong>${escapeHtml(summary.nextAction)}</strong>
-                </div>
-                <button type="button" class="client-activity-next-best-button" data-activity-log-open>
-                  <span>${escapeHtml(summary.quickActionLabel)}</span>
-                  <span aria-hidden="true">›</span>
-                </button>
+              <div data-activity-next-best>
+                ${renderActivityNextBestCard(record)}
               </div>
               <div class="client-notes-widget-paper">
                 <div class="client-activity-section-title">
@@ -1494,6 +1594,35 @@
               </div>
             </div>
           </section>
+        `;
+      }
+
+      function renderActivitySummaryCard(record) {
+        const summary = getActivityTrackerSummary(record);
+        return `
+          <div class="client-activity-summary-card">
+            <div class="client-activity-summary-top">
+              <span class="client-activity-status-badge is-${escapeHtml(summary.statusTone)}">${escapeHtml(summary.status)}</span>
+              <span class="client-activity-summary-metric">Last Contact: ${escapeHtml(summary.relativeContact)}</span>
+              <span class="client-activity-summary-metric">Response Rate: <strong>${escapeHtml(summary.responseRate)}</strong></span>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderActivityNextBestCard(record) {
+        const summary = getActivityTrackerSummary(record);
+        return `
+          <div class="client-activity-next-best">
+            <div class="client-activity-next-best-copy">
+              <span class="client-activity-next-best-label">Next Best Action</span>
+              <strong>${escapeHtml(summary.nextAction)}</strong>
+            </div>
+            <button type="button" class="client-activity-next-best-button" data-activity-log-open>
+              <span>${escapeHtml(summary.quickActionLabel)}</span>
+              <span aria-hidden="true">›</span>
+            </button>
+          </div>
         `;
       }
 
@@ -1686,8 +1815,9 @@
           ? (Number.isFinite(numericRawValue) && numericRawValue === 0 ? " is-zero" : " has-gap")
           : "";
 
+        const fieldClass = fieldName ? ` client-detail-stat-card-${escapeHtml(fieldName)}` : "";
         return `
-          <section class="client-detail-card client-detail-stat-card${isEditable ? " is-editable" : ""}">
+          <section class="client-detail-card client-detail-stat-card${isEditable ? " is-editable" : ""}${fieldClass}">
             <div class="client-detail-stat-header">
               <span>${escapeHtml(title)}</span>
               ${isEditable ? `
@@ -2143,7 +2273,15 @@
                 { label: "State", value: formatValue(record.state) },
                 { label: "ZIP Code", value: formatValue(record.zipCode) },
                 { label: "Country", value: formatValue(record.country) }
-              ])}
+              ], {
+                cardClassName: "client-profile-snapshot-card",
+                footerAction: `
+                  <button class="client-policy-delete-button client-profile-delete-button" type="button" data-profile-delete-toggle aria-label="Delete profile">
+                    <span class="client-profile-delete-icon-image" aria-hidden="true"></span>
+                    <span>Delete Profile</span>
+                  </button>
+                `
+              })}
             </aside>
 
             <section class="client-profile-main">
@@ -2301,6 +2439,17 @@
               <div class="client-policy-delete-actions">
                 <button class="client-policy-delete-cancel" type="button" data-policy-delete-modal-close>No</button>
                 <button class="client-policy-delete-confirm" type="button" data-policy-delete-confirm>Yes, Delete</button>
+              </div>
+            </div>
+          </div>
+          <div class="client-policy-modal client-policy-delete-modal" data-profile-delete-modal hidden>
+            <div class="client-policy-modal-backdrop" data-profile-delete-modal-close></div>
+            <div class="client-policy-modal-panel client-policy-delete-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-profile-delete-modal-title">
+              <h2 id="client-profile-delete-modal-title">Delete Profile?</h2>
+              <p class="client-policy-delete-copy">Are you sure you want to delete this profile? This action cannot be undone.</p>
+              <div class="client-policy-delete-actions">
+                <button class="client-policy-delete-cancel" type="button" data-profile-delete-modal-close>No</button>
+                <button class="client-policy-delete-confirm" type="button" data-profile-delete-confirm>Yes, Delete</button>
               </div>
             </div>
           </div>
@@ -2463,6 +2612,10 @@
       const policyDeleteModal = host.querySelector("[data-policy-delete-modal]");
       const policyDeleteModalCloseButtons = host.querySelectorAll("[data-policy-delete-modal-close]");
       const policyDeleteConfirm = host.querySelector("[data-policy-delete-confirm]");
+      const profileDeleteToggle = host.querySelector("[data-profile-delete-toggle]");
+      const profileDeleteModal = host.querySelector("[data-profile-delete-modal]");
+      const profileDeleteModalCloseButtons = host.querySelectorAll("[data-profile-delete-modal-close]");
+      const profileDeleteConfirm = host.querySelector("[data-profile-delete-confirm]");
       const activityDetailModal = host.querySelector("[data-activity-detail-modal]");
       const activityDetailBody = host.querySelector("[data-activity-detail-body]");
       const activityDetailTitle = host.querySelector("[data-activity-detail-title]");
@@ -2492,6 +2645,8 @@
       const activityWidgetCancel = host.querySelector("[data-activity-widget-cancel]");
       const activityWidgetCloseButtons = host.querySelectorAll("[data-activity-widget-close]");
       const activityOptionButtons = host.querySelectorAll("[data-activity-option]");
+      const activitySummaryContainers = host.querySelectorAll("[data-activity-summary]");
+      const activityNextBestContainers = host.querySelectorAll("[data-activity-next-best]");
       const activityPreviewContainers = host.querySelectorAll("[data-activity-preview]");
       const activityLastContactLabels = host.querySelectorAll("[data-activity-last-contact]");
       const caseRefCopyButton = host.querySelector("[data-case-ref-copy]");
@@ -2509,7 +2664,7 @@
       let activityWidgetSourceTrigger = null;
 
       function syncModalLock() {
-        const anyModalOpen = policyModal?.hidden === false || policyListModal?.hidden === false || policyDeleteModal?.hidden === false || activityDetailModal?.hidden === false || activityDeleteModal?.hidden === false || pmiDetailModal?.hidden === false || statModal?.hidden === false || activityWidgetModal?.hidden === false;
+        const anyModalOpen = policyModal?.hidden === false || policyListModal?.hidden === false || policyDeleteModal?.hidden === false || profileDeleteModal?.hidden === false || activityDetailModal?.hidden === false || activityDeleteModal?.hidden === false || pmiDetailModal?.hidden === false || statModal?.hidden === false || activityWidgetModal?.hidden === false;
         document.body.classList.toggle("is-modal-open", anyModalOpen);
       }
 
@@ -2541,6 +2696,7 @@
         window.setTimeout(function () {
           if (!modal.classList.contains("is-open")) {
             modal.hidden = true;
+            syncModalLock();
           }
         }, 180);
         activeActivityModal = null;
@@ -3184,6 +3340,19 @@
           container.innerHTML = renderActivityPreview(record);
         });
 
+        activitySummaryContainers.forEach(function (container) {
+          container.innerHTML = renderActivitySummaryCard(record);
+        });
+
+        activityNextBestContainers.forEach(function (container) {
+          container.innerHTML = renderActivityNextBestCard(record);
+        });
+
+        const currentRemindersStrip = host.querySelector("[data-reminders-strip]");
+        if (currentRemindersStrip) {
+          currentRemindersStrip.outerHTML = renderFooterBar(record);
+        }
+
         const latestActivityDate = Array.isArray(record.activityLog) && record.activityLog.length
           ? String(record.activityLog[0]?.date || "").trim()
           : String(record.lastContactDate || record.lastUpdatedDate || record.dateProfileCreated || "").trim();
@@ -3433,6 +3602,22 @@
         syncModalLock();
       }
 
+      function openProfileDeleteModal() {
+        if (!profileDeleteModal) {
+          return;
+        }
+        profileDeleteModal.hidden = false;
+        syncModalLock();
+      }
+
+      function closeProfileDeleteModal() {
+        if (!profileDeleteModal) {
+          return;
+        }
+        profileDeleteModal.hidden = true;
+        syncModalLock();
+      }
+
       function openActivityDetailModal(index) {
         const entries = Array.isArray(record.activityLog) ? record.activityLog : [];
         const entry = entries[index];
@@ -3460,6 +3645,7 @@
         window.setTimeout(function () {
           if (!activityDetailModal.classList.contains("is-open")) {
             activityDetailModal.hidden = true;
+            syncModalLock();
           }
         }, 180);
         if (!activityDeleteModal || activityDeleteModal.hidden) {
@@ -3677,6 +3863,25 @@
         return true;
       }
 
+      function deleteCurrentProfile() {
+        const records = loadJson(localStorage, getRecordsStorageKey());
+        if (!Array.isArray(records)) {
+          return false;
+        }
+
+        const currentId = String(record?.id || "").trim();
+        const nextRecords = records.filter(function (item) {
+          return String(item?.id || "").trim() !== currentId;
+        });
+
+        if (nextRecords.length === records.length) {
+          return false;
+        }
+
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(nextRecords));
+        return true;
+      }
+
       function openPolicyListModal() {
         const policies = getCoveragePolicies();
         if (!policyListModal || !policyListModalBody || !policies.length) {
@@ -3847,6 +4052,12 @@
         });
       });
 
+      profileDeleteModalCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          closeProfileDeleteModal();
+        });
+      });
+
       activityDeleteCloseButtons.forEach(function (button) {
         button.addEventListener("click", function () {
           closeActivityDeleteModal();
@@ -3919,6 +4130,23 @@
           closePolicyDeleteModal();
           closePolicyModal();
           window.location.reload();
+        });
+      }
+
+      if (profileDeleteToggle) {
+        profileDeleteToggle.addEventListener("click", function () {
+          openProfileDeleteModal();
+        });
+      }
+
+      if (profileDeleteConfirm) {
+        profileDeleteConfirm.addEventListener("click", function () {
+          const wasDeleted = deleteCurrentProfile();
+          closeProfileDeleteModal();
+          if (!wasDeleted) {
+            return;
+          }
+          window.location.href = "clients.html";
         });
       }
 
@@ -4089,6 +4317,7 @@
           closePolicyModal();
           closePolicyListModal();
           closePolicyDeleteModal();
+          closeProfileDeleteModal();
           closeActivityDetailModal();
           closeActivityDeleteModal();
           closePmiDetailModal();
