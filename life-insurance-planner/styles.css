@@ -5617,6 +5617,11 @@ body.client-detail-page .client-detail-header {
   transform: translateY(0) scale(1);
 }
 
+.client-coverage-widget-modal .client-activity-widget-modal-panel {
+  width: min(63rem, calc(100vw - 2.5rem));
+  max-height: min(88vh, 55rem);
+}
+
 .client-activity-widget-header {
   display: flex;
   align-items: center;
@@ -5720,6 +5725,25 @@ body.client-detail-page .client-detail-header {
   color: #ffffff;
 }
 
+.client-coverage-widget {
+  gap: 1rem;
+}
+
+.client-coverage-widget-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem 0.9rem;
+}
+
+.client-coverage-widget-field-full {
+  grid-column: 1 / -1;
+}
+
+.client-coverage-widget-feedback {
+  min-height: 1.25rem;
+  margin: -0.1rem 0 0;
+}
+
 .client-detail-card {
   padding: 1.15rem 1.2rem;
   border: 1px solid rgba(213, 221, 232, 0.95);
@@ -5790,10 +5814,12 @@ body.client-detail-page .client-detail-header {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  align-self: flex-start;
   min-height: 2.2rem;
+  margin-top: -0.48rem;
   padding: 0 0.85rem;
   border: 1px solid rgba(213, 221, 232, 0.95);
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   background: #ffffff;
   color: #17212e;
   font-family: "Plus Jakarta Sans", sans-serif;
@@ -6340,6 +6366,16 @@ body.client-detail-page .client-detail-header {
 
 [data-premium-amount-group].is-disabled label {
   color: #98a1af;
+}
+
+.client-coverage-widget [data-premium-amount-group].is-disabled span {
+  color: #98a1af;
+}
+
+@media (max-width: 760px) {
+  .client-coverage-widget-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .client-detail-grid {

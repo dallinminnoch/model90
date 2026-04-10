@@ -690,7 +690,7 @@
           .join(" | ") || "Not provided";
 
         return `
-          <section class="client-detail-card client-detail-card-compact client-coverage-breakdown-card">
+          <section class="client-detail-card client-detail-card-compact client-coverage-breakdown-card" data-coverage-breakdown-card>
             <div class="client-detail-card-header">
               <h2>Coverage Breakdown Summary</h2>
             </div>
@@ -1754,7 +1754,7 @@
         const nextAction = nextItem ? getChecklistAction(record, nextItem) : null;
 
         return `
-          <section class="client-detail-card client-detail-card-compact client-detail-card-checklist">
+          <section class="client-detail-card client-detail-card-compact client-detail-card-checklist" data-checklist-card>
             <div class="client-detail-card-header">
               <h2>${escapeHtml(title)}</h2>
             </div>
@@ -1811,18 +1811,18 @@
         const previewPolicies = policies.slice(0, 2);
         const title = policies.length ? "Coverage Placed" : "Add Coverage";
         const actionLabel = policies.length ? "Add Another Policy" : "Add Policy";
-        const recordId = encodeURIComponent(String(record.id || "").trim());
         const canAddPolicy = policies.length < 30;
 
         return `
-          <section class="client-detail-card client-detail-card-compact client-coverage-card">
+          <section class="client-detail-card client-detail-card-compact client-coverage-card" data-coverage-card>
             <div class="client-detail-card-header client-detail-card-header-coverage">
               <h2>${escapeHtml(title)}</h2>
-              <a
+              <button
                 class="client-coverage-add-button${canAddPolicy ? "" : " is-disabled"}"
-                ${canAddPolicy ? `href="add-coverage.html?id=${recordId}&newPolicy=1"` : ""}
-                ${canAddPolicy ? "" : `aria-disabled="true" tabindex="-1"`}
-              >${escapeHtml(canAddPolicy ? actionLabel : "Policy Limit Reached")}</a>
+                type="button"
+                data-coverage-add-open
+                ${canAddPolicy ? "" : "disabled"}
+              >${escapeHtml(canAddPolicy ? actionLabel : "Policy Limit Reached")}</button>
             </div>
             <div class="client-coverage-card-body">
               ${policies.length ? `
@@ -2507,6 +2507,25 @@
               </div>
             </div>
           </div>
+          <div class="client-activity-widget-modal client-coverage-widget-modal" data-coverage-widget-modal hidden>
+            <div class="client-activity-widget-modal-backdrop" data-coverage-widget-close></div>
+            <form class="client-activity-widget-modal-panel client-activity-widget client-coverage-widget" data-coverage-widget role="dialog" aria-modal="true" aria-labelledby="client-coverage-widget-title">
+              <div class="client-activity-widget-header">
+                <button type="button" class="client-activity-widget-back" data-coverage-widget-back>Back</button>
+                <button class="client-activity-modal-close" type="button" data-coverage-widget-close aria-label="Close coverage widget">×</button>
+              </div>
+              <div class="client-activity-widget-heading">
+                <h2 id="client-coverage-widget-title" data-coverage-widget-title>Add Coverage</h2>
+                <p data-coverage-widget-copy>Save policy details to this profile.</p>
+              </div>
+              <div class="client-activity-widget-body" data-coverage-widget-body></div>
+              <p class="coverage-form-feedback client-coverage-widget-feedback" data-coverage-widget-feedback aria-live="polite"></p>
+              <div class="client-activity-widget-actions">
+                <button type="button" class="client-activity-widget-cancel" data-coverage-widget-cancel>Cancel</button>
+                <button type="submit" class="client-activity-widget-save">Save Policy</button>
+              </div>
+            </form>
+          </div>
           <div class="client-policy-modal client-policy-delete-modal" data-profile-delete-modal hidden>
             <div class="client-policy-modal-backdrop" data-profile-delete-modal-close></div>
             <div class="client-policy-modal-panel client-policy-delete-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-profile-delete-modal-title">
@@ -2663,8 +2682,6 @@
       const donutSegments = host.querySelectorAll(".client-detail-donut-segment-group");
       const profileTabs = host.querySelectorAll("[data-client-tab]");
       const profilePanels = host.querySelectorAll("[data-client-panel]");
-      const policyCards = host.querySelectorAll("[data-coverage-policy-card]");
-      const viewAllPoliciesButton = host.querySelector("[data-view-all-policies]");
       const policyModal = host.querySelector("[data-policy-modal]");
       const policyModalBody = host.querySelector("[data-policy-modal-body]");
       const policyModalTitle = host.querySelector("[data-policy-modal-title]");
@@ -2677,6 +2694,15 @@
       const policyDeleteModal = host.querySelector("[data-policy-delete-modal]");
       const policyDeleteModalCloseButtons = host.querySelectorAll("[data-policy-delete-modal-close]");
       const policyDeleteConfirm = host.querySelector("[data-policy-delete-confirm]");
+      const coverageWidgetModal = host.querySelector("[data-coverage-widget-modal]");
+      const coverageWidget = host.querySelector("[data-coverage-widget]");
+      const coverageWidgetBody = host.querySelector("[data-coverage-widget-body]");
+      const coverageWidgetTitle = host.querySelector("[data-coverage-widget-title]");
+      const coverageWidgetCopy = host.querySelector("[data-coverage-widget-copy]");
+      const coverageWidgetBack = host.querySelector("[data-coverage-widget-back]");
+      const coverageWidgetCancel = host.querySelector("[data-coverage-widget-cancel]");
+      const coverageWidgetCloseButtons = host.querySelectorAll("[data-coverage-widget-close]");
+      const coverageWidgetFeedback = host.querySelector("[data-coverage-widget-feedback]");
       const profileDeleteToggle = host.querySelector("[data-profile-delete-toggle]");
       const profileDeleteModal = host.querySelector("[data-profile-delete-modal]");
       const profileDeleteModalCloseButtons = host.querySelectorAll("[data-profile-delete-modal-close]");
@@ -2720,6 +2746,7 @@
       let activeStatField = "";
       let activeStatTitle = "";
       let activePolicyIndex = -1;
+      let activeCoveragePolicyIndex = -1;
       let coverageAdequacyAnimationFrame = 0;
       let activeActivityType = "";
       let activeActivityIndex = -1;
@@ -2727,9 +2754,10 @@
       let activeActivityModal = null;
       let activeActivityTrigger = null;
       let activityWidgetSourceTrigger = null;
+      let coverageWidgetReturnIndex = -1;
 
       function syncModalLock() {
-        const anyModalOpen = policyModal?.hidden === false || policyListModal?.hidden === false || policyDeleteModal?.hidden === false || profileDeleteModal?.hidden === false || activityDetailModal?.hidden === false || activityDeleteModal?.hidden === false || pmiDetailModal?.hidden === false || statModal?.hidden === false || activityWidgetModal?.hidden === false;
+        const anyModalOpen = policyModal?.hidden === false || policyListModal?.hidden === false || policyDeleteModal?.hidden === false || coverageWidgetModal?.hidden === false || profileDeleteModal?.hidden === false || activityDetailModal?.hidden === false || activityDeleteModal?.hidden === false || pmiDetailModal?.hidden === false || statModal?.hidden === false || activityWidgetModal?.hidden === false;
         document.body.classList.toggle("is-modal-open", anyModalOpen);
       }
 
@@ -3120,6 +3148,306 @@
             syncModalLock();
           }
         }, 180);
+      }
+
+      function renderCoverageTypeOptions(selectedValue) {
+        const selected = String(selectedValue || "").trim();
+        return [
+          "",
+          "Term",
+          "Whole Life",
+          "Universal Life",
+          "Indexed Universal Life",
+          "Variable Universal Life",
+          "Final Expense",
+          "Group Life",
+          "Other"
+        ].map(function (option) {
+          const label = option || "Select policy type";
+          return `<option value="${escapeHtml(option)}"${option === selected ? " selected" : ""}>${escapeHtml(label)}</option>`;
+        }).join("");
+      }
+
+      function renderCoverageModeButtons(selectedValue) {
+        const selected = String(selectedValue || "").trim();
+        return [
+          "Monthly",
+          "Quarterly",
+          "Semi-Annual",
+          "Annual",
+          "Single Premium"
+        ].map(function (mode) {
+          return `
+            <button
+              type="button"
+              class="coverage-mode-button${mode === selected ? " is-active" : ""}"
+              data-coverage-mode="${escapeHtml(mode)}"
+            >${escapeHtml(mode)}</button>
+          `;
+        }).join("");
+      }
+
+      function renderCoverageWidgetFields(policy) {
+        const currentPolicy = policy || {};
+        const selectedPremiumMode = String(currentPolicy.premiumMode || "").trim();
+        const premiumAmountDisabled = !selectedPremiumMode;
+
+        return `
+          <div class="client-coverage-widget-grid">
+            <label class="client-activity-field">
+              <span>Policy Carrier</span>
+              <input class="client-activity-input" type="text" name="policyCarrier" value="${escapeHtml(String(currentPolicy.policyCarrier || ""))}" maxlength="140" required>
+            </label>
+            <label class="client-activity-field">
+              <span>Policy Type</span>
+              <select class="client-activity-select" name="policyType" required>
+                ${renderCoverageTypeOptions(currentPolicy.policyType)}
+              </select>
+            </label>
+            <label class="client-activity-field">
+              <span>Insured Name</span>
+              <input class="client-activity-input" type="text" name="insuredName" value="${escapeHtml(String(currentPolicy.insuredName || record.displayName || ""))}" maxlength="160" required>
+            </label>
+            <label class="client-activity-field">
+              <span>Policy Owner</span>
+              <input class="client-activity-input" type="text" name="ownerName" value="${escapeHtml(String(currentPolicy.ownerName || ""))}" maxlength="160">
+            </label>
+            <label class="client-activity-field">
+              <span>Face Amount</span>
+              <input class="client-activity-input" type="text" name="faceAmount" value="${escapeHtml(String(currentPolicy.faceAmount || ""))}" inputmode="decimal" required>
+            </label>
+            <label class="client-activity-field client-coverage-widget-field-full">
+              <span>Premium Mode</span>
+              <input type="hidden" name="premiumMode" value="${escapeHtml(selectedPremiumMode)}">
+              <div class="coverage-mode-shell" data-coverage-mode-shell>
+                <div class="coverage-mode-current${selectedPremiumMode ? "" : " is-empty"}" data-coverage-mode-current>${escapeHtml(selectedPremiumMode || "None Selected")}</div>
+                <div class="coverage-mode-buttons" role="group" aria-label="Premium Mode">
+                  ${renderCoverageModeButtons(selectedPremiumMode)}
+                </div>
+              </div>
+            </label>
+            <label class="client-activity-field${premiumAmountDisabled ? " is-disabled" : ""}" data-premium-amount-group>
+              <span>Premium Amount</span>
+              <input class="client-activity-input" type="text" name="premiumAmount" value="${escapeHtml(String(currentPolicy.premiumAmount || ""))}" inputmode="decimal"${premiumAmountDisabled ? " disabled" : ""}>
+            </label>
+            <label class="client-activity-field">
+              <span>Term Length</span>
+              <input class="client-activity-input" type="text" name="termLength" value="${escapeHtml(String(currentPolicy.termLength || ""))}" inputmode="numeric">
+            </label>
+            <label class="client-activity-field">
+              <span>Policy Number</span>
+              <input class="client-activity-input" type="text" name="policyNumber" value="${escapeHtml(String(currentPolicy.policyNumber || ""))}" maxlength="120">
+            </label>
+            <label class="client-activity-field">
+              <span>Effective Date</span>
+              <input class="client-activity-input" type="date" name="effectiveDate" value="${escapeHtml(String(currentPolicy.effectiveDate || ""))}">
+            </label>
+            <label class="client-activity-field">
+              <span>Underwriting Class</span>
+              <input class="client-activity-input" type="text" name="underwritingClass" value="${escapeHtml(String(currentPolicy.underwritingClass || ""))}" maxlength="120">
+            </label>
+            <label class="client-activity-field">
+              <span>Primary Beneficiary</span>
+              <input class="client-activity-input" type="text" name="beneficiaryName" value="${escapeHtml(String(currentPolicy.beneficiaryName || ""))}" maxlength="160">
+            </label>
+            <label class="client-activity-field client-coverage-widget-field-full">
+              <span>Policy Notes</span>
+              <textarea class="client-activity-textarea" name="policyNotes" rows="4" placeholder="Add any policy notes.">${escapeHtml(String(currentPolicy.policyNotes || ""))}</textarea>
+            </label>
+          </div>
+        `;
+      }
+
+      function resetCoverageWidget() {
+        activeCoveragePolicyIndex = -1;
+        coverageWidgetReturnIndex = -1;
+        if (coverageWidget) {
+          coverageWidget.reset();
+        }
+        if (coverageWidgetBody) {
+          coverageWidgetBody.innerHTML = "";
+        }
+        if (coverageWidgetFeedback) {
+          coverageWidgetFeedback.textContent = "";
+        }
+      }
+
+      function setCoverageWidgetPremiumMode(nextValue) {
+        if (!coverageWidget) {
+          return;
+        }
+
+        const normalized = String(nextValue || "").trim();
+        const premiumModeField = coverageWidget.querySelector('input[name="premiumMode"]');
+        const premiumModeCurrent = coverageWidget.querySelector("[data-coverage-mode-current]");
+        const premiumModeButtons = coverageWidget.querySelectorAll("[data-coverage-mode]");
+        const premiumAmountField = coverageWidget.querySelector('input[name="premiumAmount"]');
+        const premiumAmountGroup = coverageWidget.querySelector("[data-premium-amount-group]");
+
+        if (premiumModeField) {
+          premiumModeField.value = normalized;
+        }
+
+        if (premiumModeCurrent) {
+          premiumModeCurrent.textContent = normalized || "None Selected";
+          premiumModeCurrent.classList.toggle("is-empty", !normalized);
+        }
+
+        if (premiumAmountField) {
+          premiumAmountField.disabled = !normalized;
+          premiumAmountGroup?.classList.toggle("is-disabled", !normalized);
+          if (!normalized) {
+            premiumAmountField.value = "";
+          }
+        }
+
+        premiumModeButtons.forEach(function (button) {
+          button.classList.toggle("is-active", String(button.getAttribute("data-coverage-mode") || "").trim() === normalized);
+        });
+      }
+
+      function openCoverageWidget(policyIndex, returnToPolicyModal) {
+        const policies = getCoveragePolicies();
+        const safePolicyIndex = Number.isInteger(policyIndex) ? policyIndex : -1;
+        const currentPolicy = safePolicyIndex >= 0 ? policies[safePolicyIndex] : null;
+
+        if (!coverageWidgetModal || !coverageWidget || !coverageWidgetBody || !coverageWidgetTitle || !coverageWidgetCopy) {
+          return;
+        }
+
+        activeCoveragePolicyIndex = currentPolicy ? safePolicyIndex : -1;
+        coverageWidgetReturnIndex = returnToPolicyModal && currentPolicy ? safePolicyIndex : -1;
+
+        if (coverageWidgetFeedback) {
+          coverageWidgetFeedback.textContent = "";
+        }
+        if (coverageWidgetBack) {
+          coverageWidgetBack.textContent = coverageWidgetReturnIndex >= 0 ? "Back" : "Close";
+        }
+
+        if (returnToPolicyModal && currentPolicy) {
+          closePolicyModal();
+        }
+
+        coverageWidgetTitle.textContent = currentPolicy ? "Edit Coverage" : "Add Coverage";
+        coverageWidgetCopy.textContent = currentPolicy
+          ? "Update the policy details and save them back to this profile."
+          : "Save a new policy directly to this profile.";
+        coverageWidgetBody.innerHTML = renderCoverageWidgetFields(currentPolicy);
+        setCoverageWidgetPremiumMode(String(currentPolicy?.premiumMode || "").trim());
+        coverageWidgetModal.hidden = false;
+        syncModalLock();
+        window.requestAnimationFrame(function () {
+          coverageWidgetModal.classList.add("is-open");
+          const firstField = coverageWidget.querySelector("input:not([type='hidden']), select, textarea");
+          firstField?.focus();
+        });
+      }
+
+      function closeCoverageWidget(options) {
+        if (!coverageWidgetModal || coverageWidgetModal.hidden) {
+          return;
+        }
+
+        const shouldReopenPolicy = Boolean(options?.reopenPolicy) && coverageWidgetReturnIndex >= 0;
+        const reopenIndex = shouldReopenPolicy ? coverageWidgetReturnIndex : -1;
+
+        coverageWidgetModal.classList.remove("is-open");
+        window.setTimeout(function () {
+          if (!coverageWidgetModal.classList.contains("is-open")) {
+            coverageWidgetModal.hidden = true;
+            resetCoverageWidget();
+            syncModalLock();
+            if (reopenIndex >= 0) {
+              openPolicyModal(reopenIndex);
+            }
+          }
+        }, 180);
+      }
+
+      function saveCoveragePolicy(recordId, policy, policyIndex) {
+        const records = loadJson(localStorage, getRecordsStorageKey());
+        if (!Array.isArray(records)) {
+          return null;
+        }
+
+        const index = records.findIndex(function (item) {
+          return String(item?.id || "").trim() === String(recordId || "").trim();
+        });
+
+        if (index === -1) {
+          return null;
+        }
+
+        const currentRecord = records[index];
+        const existingPolicies = Array.isArray(currentRecord.coveragePolicies) ? currentRecord.coveragePolicies : [];
+        if (policyIndex < 0 && existingPolicies.length >= 30) {
+          return { error: "A maximum of 30 policies can be saved to one profile." };
+        }
+
+        const today = new Date().toISOString().slice(0, 10);
+        const nextPolicies = existingPolicies.slice();
+        const existingPolicy = policyIndex >= 0 ? nextPolicies[policyIndex] : null;
+        const currentCoverageAmount = Number(String(currentRecord.coverageAmount || "").replace(/,/g, ""));
+        const existingPolicyFaceAmount = Number(String(existingPolicy?.faceAmount || "").replace(/,/g, ""));
+        const nextPolicyFaceAmount = Number(String(policy.faceAmount || "").replace(/,/g, ""));
+        const nextPolicy = {
+          id: existingPolicy?.id || `policy-${Date.now()}`,
+          savedAt: existingPolicy?.savedAt || today,
+          ...policy
+        };
+
+        if (policyIndex >= 0 && policyIndex < nextPolicies.length) {
+          nextPolicies[policyIndex] = nextPolicy;
+        } else {
+          nextPolicies.push(nextPolicy);
+        }
+
+        const safeCurrentCoverageAmount = Number.isFinite(currentCoverageAmount) ? currentCoverageAmount : 0;
+        const safeExistingPolicyFaceAmount = Number.isFinite(existingPolicyFaceAmount) ? existingPolicyFaceAmount : 0;
+        const safeNextPolicyFaceAmount = Number.isFinite(nextPolicyFaceAmount) ? nextPolicyFaceAmount : 0;
+        const nextCoverageAmount = safeCurrentCoverageAmount + (safeNextPolicyFaceAmount - safeExistingPolicyFaceAmount);
+
+        const nextRecord = {
+          ...currentRecord,
+          coveragePolicies: nextPolicies,
+          coverageAmount: Math.max(0, Math.min(nextCoverageAmount, 99999999)),
+          lastUpdatedDate: today,
+          lastReview: today
+        };
+
+        records[index] = nextRecord;
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+        Object.assign(record, nextRecord);
+        return {
+          record: nextRecord,
+          policyIndex: policyIndex >= 0 && policyIndex < nextPolicies.length ? policyIndex : nextPolicies.length - 1
+        };
+      }
+
+      function refreshCoverageUi() {
+        const latestRecord = getLatestRecordSnapshot();
+        if (latestRecord && latestRecord !== record) {
+          Object.assign(record, latestRecord);
+        }
+
+        const currentCoverageCard = host.querySelector("[data-coverage-card]");
+        if (currentCoverageCard) {
+          currentCoverageCard.outerHTML = renderCoverageCard(record);
+        }
+
+        const currentCoverageBreakdownCard = host.querySelector("[data-coverage-breakdown-card]");
+        if (currentCoverageBreakdownCard) {
+          currentCoverageBreakdownCard.outerHTML = renderCoverageBreakdownCard(record);
+        }
+
+        const coverageDisplay = host.querySelector('[data-stat-display="coverageAmount"]');
+        if (coverageDisplay) {
+          coverageDisplay.textContent = formatCoverageCardCurrency(record.coverageAmount);
+        }
+
+        refreshCoverageAdequacy();
+        refreshActivityTracker();
       }
 
       function buildActivityEntry(type, formData) {
@@ -3928,8 +4256,7 @@
 
         records[recordIndex] = nextRecord;
         localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
-        record.coveragePolicies = nextRecord.coveragePolicies;
-        record.coverageAmount = nextRecord.coverageAmount;
+        Object.assign(record, nextRecord);
         return true;
       }
 
@@ -4086,24 +4413,6 @@
         });
       }
 
-      policyCards.forEach(function (card) {
-        const index = Number(card.dataset.policyIndex || "-1");
-        if (index < 0) {
-          return;
-        }
-
-        card.addEventListener("click", function () {
-          openPolicyModal(index);
-        });
-
-        card.addEventListener("keydown", function (event) {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            openPolicyModal(index);
-          }
-        });
-      });
-
       policyModalCloseButtons.forEach(function (button) {
         button.addEventListener("click", function () {
           closePolicyModal();
@@ -4134,15 +4443,6 @@
         });
       });
 
-      if (viewAllPoliciesButton) {
-        viewAllPoliciesButton.addEventListener("click", function () {
-          if (viewAllPoliciesButton.disabled) {
-            return;
-          }
-          openPolicyListModal();
-        });
-      }
-
       if (pmiDetailOpen) {
         pmiDetailOpen.addEventListener("click", function () {
           openPmiDetailModal();
@@ -4168,13 +4468,114 @@
         });
       });
 
+      if (coverageWidgetBack) {
+        coverageWidgetBack.addEventListener("click", function () {
+          closeCoverageWidget({
+            reopenPolicy: coverageWidgetReturnIndex >= 0
+          });
+        });
+      }
+
+      if (coverageWidgetCancel) {
+        coverageWidgetCancel.addEventListener("click", function () {
+          closeCoverageWidget({
+            reopenPolicy: coverageWidgetReturnIndex >= 0
+          });
+        });
+      }
+
+      coverageWidgetCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          closeCoverageWidget({
+            reopenPolicy: coverageWidgetReturnIndex >= 0
+          });
+        });
+      });
+
+      if (coverageWidget) {
+        coverageWidget.addEventListener("click", function (event) {
+          const modeButton = event.target.closest("[data-coverage-mode]");
+          if (!modeButton || !coverageWidget.contains(modeButton)) {
+            return;
+          }
+          const nextMode = String(modeButton.getAttribute("data-coverage-mode") || "").trim();
+          setCoverageWidgetPremiumMode(nextMode);
+        });
+
+        coverageWidget.addEventListener("beforeinput", function (event) {
+          const input = event.target;
+          if (!(input instanceof HTMLInputElement) || !event.data) {
+            return;
+          }
+
+          if (input.inputMode === "numeric" && !/^[0-9]$/.test(event.data)) {
+            event.preventDefault();
+            return;
+          }
+
+          if (input.inputMode === "decimal" && !/^[0-9.]$/.test(event.data)) {
+            event.preventDefault();
+          }
+        });
+
+        coverageWidget.addEventListener("input", function (event) {
+          const input = event.target;
+          if (!(input instanceof HTMLInputElement)) {
+            return;
+          }
+
+          if (input.inputMode === "decimal") {
+            input.value = normalizeCurrencyInput(input.value);
+            return;
+          }
+
+          if (input.inputMode === "numeric") {
+            input.value = String(input.value || "").replace(/\D/g, "");
+          }
+        });
+
+        coverageWidget.addEventListener("submit", function (event) {
+          event.preventDefault();
+          if (!coverageWidget.reportValidity()) {
+            return;
+          }
+
+          const formData = new FormData(coverageWidget);
+          const policy = {
+            policyCarrier: String(formData.get("policyCarrier") || "").trim(),
+            policyType: String(formData.get("policyType") || "").trim(),
+            insuredName: String(formData.get("insuredName") || "").trim(),
+            ownerName: String(formData.get("ownerName") || "").trim(),
+            faceAmount: normalizeCurrencyInput(formData.get("faceAmount")),
+            premiumAmount: normalizeCurrencyInput(formData.get("premiumAmount")),
+            premiumMode: String(formData.get("premiumMode") || "").trim(),
+            termLength: String(formData.get("termLength") || "").trim(),
+            policyNumber: String(formData.get("policyNumber") || "").trim(),
+            effectiveDate: String(formData.get("effectiveDate") || "").trim(),
+            underwritingClass: String(formData.get("underwritingClass") || "").trim(),
+            beneficiaryName: String(formData.get("beneficiaryName") || "").trim(),
+            policyNotes: String(formData.get("policyNotes") || "").trim()
+          };
+
+          const saveResult = saveCoveragePolicy(String(record.id || "").trim(), policy, activeCoveragePolicyIndex);
+          if (!saveResult || saveResult.error) {
+            if (coverageWidgetFeedback) {
+              coverageWidgetFeedback.textContent = saveResult?.error || "Unable to save this policy.";
+            }
+            return;
+          }
+
+          closeCoverageWidget();
+          refreshCoverageUi();
+        });
+      }
+
       if (policyEditToggle) {
         policyEditToggle.addEventListener("click", function () {
           if (activePolicyIndex < 0) {
             return;
           }
-          const detailHref = `add-coverage.html?id=${encodeURIComponent(String(record.id || "").trim())}&policyIndex=${activePolicyIndex}`;
-          window.location.href = detailHref;
+          openCoverageWidget(activePolicyIndex, true);
         });
       }
 
@@ -4199,7 +4600,7 @@
           }
           closePolicyDeleteModal();
           closePolicyModal();
-          window.location.reload();
+          refreshCoverageUi();
         });
       }
 
@@ -4322,6 +4723,33 @@
       }
 
       host.addEventListener("click", function (event) {
+        const coverageAddOpen = event.target.closest("[data-coverage-add-open]");
+        if (coverageAddOpen && host.contains(coverageAddOpen)) {
+          if (coverageAddOpen.disabled) {
+            return;
+          }
+          openCoverageWidget(-1, false);
+          return;
+        }
+
+        const coveragePolicyCard = event.target.closest("[data-coverage-policy-card]");
+        if (coveragePolicyCard && host.contains(coveragePolicyCard)) {
+          const index = Number(coveragePolicyCard.getAttribute("data-policy-index") || "-1");
+          if (index >= 0) {
+            openPolicyModal(index);
+          }
+          return;
+        }
+
+        const viewAllPolicies = event.target.closest("[data-view-all-policies]");
+        if (viewAllPolicies && host.contains(viewAllPolicies)) {
+          if (viewAllPolicies.disabled) {
+            return;
+          }
+          openPolicyListModal();
+          return;
+        }
+
         const illustrationQuickAdd = event.target.closest("[data-illustration-quick-add]");
         if (illustrationQuickAdd && host.contains(illustrationQuickAdd)) {
           openActivityWidget("illustration-requested");
@@ -4362,6 +4790,18 @@
       });
 
       host.addEventListener("keydown", function (event) {
+        const coveragePolicyCard = event.target.closest("[data-coverage-policy-card]");
+        if (coveragePolicyCard && host.contains(coveragePolicyCard)) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            const index = Number(coveragePolicyCard.getAttribute("data-policy-index") || "-1");
+            if (index >= 0) {
+              openPolicyModal(index);
+            }
+          }
+          return;
+        }
+
         const activityEntry = event.target.closest("[data-activity-entry-open]");
         if (activityEntry && host.contains(activityEntry)) {
           if (event.key === "Enter" || event.key === " ") {
@@ -4399,6 +4839,7 @@
           closePmiDetailModal();
           closeActivityModal();
           closeActivityWidget();
+          closeCoverageWidget();
         }
       });
 
