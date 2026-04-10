@@ -1091,6 +1091,87 @@
         `;
       }
 
+      function getIllustrationEntries(record) {
+        return (Array.isArray(record?.activityLog) ? record.activityLog : [])
+          .map(function (entry, entryIndex) {
+            const type = String(entry?.type || "").trim().toLowerCase();
+            if (type !== "illustration-requested") {
+              return null;
+            }
+            const rawDate = String(entry?.date || "").trim();
+            const sortValue = rawDate ? new Date(`${rawDate}T00:00:00`).getTime() : 0;
+            return {
+              entryIndex,
+              rawDate,
+              sortValue: Number.isFinite(sortValue) ? sortValue : 0,
+              subject: String(entry?.subject || "").trim() || "Illustration Request",
+              detail: String(entry?.detailRemainder || entry?.summary || "").trim()
+            };
+          })
+          .filter(Boolean)
+          .sort(function (a, b) {
+            return b.sortValue - a.sortValue;
+          });
+      }
+
+      function renderIllustrationsCard(record) {
+        const illustrations = getIllustrationEntries(record);
+        const previewIllustrations = illustrations.slice(0, 2);
+        const remainingIllustrations = Math.max(0, illustrations.length - previewIllustrations.length);
+        const queuedCopy = illustrations.length
+          ? `${illustrations.length} saved for client review`
+          : "Start a review queue for the next client meeting";
+        const latestIllustration = illustrations[0];
+
+        return `
+          <section class="client-detail-card client-detail-card-compact client-illustrations-card" data-illustrations-card>
+            <div class="client-detail-card-header client-illustrations-header">
+              <div class="client-illustrations-heading">
+                <h2>Illustrations</h2>
+                <span class="client-illustrations-count">${illustrations.length} queued</span>
+              </div>
+            </div>
+            <div class="client-illustrations-hero">
+              <span class="client-illustrations-icon-shell" aria-hidden="true">
+                ${renderActivityIcon("illustration-requested", "client-illustrations-icon-image")}
+              </span>
+              <div class="client-illustrations-hero-copy">
+                <strong>${illustrations.length ? "Ready for review" : "Build the review queue"}</strong>
+                <span>${escapeHtml(queuedCopy)}${latestIllustration?.rawDate ? ` • Latest ${escapeHtml(formatDate(latestIllustration.rawDate))}` : ""}</span>
+              </div>
+              <button type="button" class="client-illustrations-add" data-illustration-quick-add>Add Illustration</button>
+            </div>
+            <div class="client-illustrations-queue">
+              <div class="client-illustrations-list-label">Client Review Queue</div>
+              ${previewIllustrations.length ? `
+                <div class="client-illustrations-list">
+                  ${previewIllustrations.map(function (item) {
+                    return `
+                      <button type="button" class="client-illustrations-item" data-activity-entry-open="${item.entryIndex}">
+                        <div class="client-illustrations-item-copy">
+                          <strong>${escapeHtml(item.subject)}</strong>
+                          <small>${escapeHtml(item.detail || "Saved for client review.")}</small>
+                        </div>
+                        <div class="client-illustrations-item-meta">
+                          <span class="client-illustrations-item-date">${escapeHtml(item.rawDate ? formatDate(item.rawDate) : "No date")}</span>
+                        </div>
+                      </button>
+                    `;
+                  }).join("")}
+                </div>
+                ${remainingIllustrations ? `
+                  <div class="client-illustrations-more">+${remainingIllustrations} more saved in activity</div>
+                ` : ``}
+              ` : `
+                <div class="client-illustrations-empty">
+                  No illustrations saved for review yet.
+                </div>
+              `}
+            </div>
+          </section>
+        `;
+      }
+
       function getActivityRelativeTime(value) {
         if (!value) {
           return "";
@@ -1303,38 +1384,41 @@
         };
       }
 
-      function getActivityIcon(type) {
+      function getActivityIconSrc(type) {
         if (type === "phone") {
-          return "☎";
+          return "../Images/logcall.svg";
         }
         if (type === "text") {
-          return "✆";
+          return "../Images/textmessage.svg";
         }
-        if (type === "meeting" || type === "schedule") {
-          return "◫";
+        if (type === "meeting") {
+          return "../Images/addmeeting.svg";
+        }
+        if (type === "schedule") {
+          return "../Images/schedulemeeting.svg";
         }
         if (type === "face") {
-          return "◉";
+          return "../Images/facetoface.svg";
         }
         if (type === "document-received") {
-          return "▣";
+          return "../Images/documentrecieve.svg";
         }
         if (type === "illustration-requested") {
-          return "◧";
+          return "../Images/illistration.svg";
         }
         if (type === "application-submitted") {
-          return "◨";
+          return "../Images/applicationsubmitted.svg";
         }
         if (type === "policy-delivered") {
-          return "◆";
+          return "../Images/policydelivered.svg";
         }
         if (type === "email") {
-          return "✉";
+          return "../Images/email.svg";
         }
         if (type === "reminder") {
-          return "◌";
+          return "../Images/reminder.svg";
         }
-        return "▤";
+        return "../Images/notes.svg";
       }
 
       function getActivityIconClass(type) {
@@ -1371,6 +1455,23 @@
         return "is-slate";
       }
 
+      function renderActivityIcon(type, imageClass) {
+        return `<span class="${imageClass}" style="--activity-icon: url('${escapeHtml(getActivityIconSrc(type))}');" aria-hidden="true"></span>`;
+      }
+
+      function renderActivityOptionButton(type, title, copy) {
+        const normalizedType = String(type || "").trim().toLowerCase();
+        return `
+          <button type="button" class="client-activity-option" data-activity-option="${escapeHtml(normalizedType)}">
+            <span class="client-activity-option-icon ${getActivityIconClass(normalizedType)}" aria-hidden="true">${renderActivityIcon(normalizedType, "client-activity-option-icon-image")}</span>
+            <span class="client-activity-option-text">
+              <span class="client-activity-option-title">${escapeHtml(title)}</span>
+              <span class="client-activity-option-copy">${escapeHtml(copy)}</span>
+            </span>
+          </button>
+        `;
+      }
+
       function renderActivityPreview(record) {
         const activityEntries = Array.isArray(record.activityLog) ? record.activityLog : [];
         const fallbackNotes = String(record.clientNotes || "").trim()
@@ -1385,13 +1486,12 @@
               const stamp = entry?.date ? getActivityRelativeTime(entry.date) : "";
               return `
                 <button type="button" class="client-activity-entry-card is-clickable" data-activity-entry-open="${index}">
-                  <span class="client-activity-entry-icon ${getActivityIconClass(String(entry?.type || "").trim().toLowerCase())}" aria-hidden="true">${escapeHtml(getActivityIcon(String(entry?.type || "").trim().toLowerCase()))}</span>
+                  <span class="client-activity-entry-icon ${getActivityIconClass(String(entry?.type || "").trim().toLowerCase())}" aria-hidden="true">${renderActivityIcon(String(entry?.type || "").trim().toLowerCase(), "client-activity-entry-icon-image")}</span>
                   <div class="client-activity-entry-copy">
                     <div class="client-activity-entry-title-row">
                       <div class="client-activity-entry-title"><span class="client-notes-widget-kind">${escapeHtml(preview.label || "Activity")}:</span>${preview.subject ? ` <strong class="client-notes-widget-subject">${escapeHtml(preview.subject)}</strong>` : ""}</div>
                       <span class="client-activity-entry-date">${escapeHtml(stamp)}</span>
                     </div>
-                    ${preview.detail ? `<p class="client-activity-entry-detail">${escapeHtml(preview.detail)}</p>` : ""}
                   </div>
                 </button>
               `;
@@ -1399,7 +1499,7 @@
           : fallbackNotes.map(function (line) {
               return `
                 <article class="client-activity-entry-card">
-                  <span class="client-activity-entry-icon is-slate" aria-hidden="true">▤</span>
+                  <span class="client-activity-entry-icon is-slate" aria-hidden="true">${renderActivityIcon("note", "client-activity-entry-icon-image")}</span>
                   <div class="client-activity-entry-copy">
                     <div class="client-activity-entry-title-row">
                       <div class="client-activity-entry-title"><span class="client-notes-widget-kind">Note:</span> <strong class="client-notes-widget-subject">${escapeHtml(line)}</strong></div>
@@ -1539,54 +1639,18 @@
                         <button class="client-activity-modal-close" type="button" data-activity-modal-close aria-label="Close activity options">×</button>
                       </div>
                       <div class="client-activity-modal-grid">
-                        <button type="button" class="client-activity-option" data-activity-option="note">
-                          <span class="client-activity-option-title">Add Note</span>
-                          <span class="client-activity-option-copy">Capture a quick written update.</span>
-                        </button>
-                        <button type="button" class="client-activity-option" data-activity-option="reminder">
-                          <span class="client-activity-option-title">Set Reminder</span>
-                          <span class="client-activity-option-copy">Create a follow-up reminder.</span>
-                        </button>
-                        <button type="button" class="client-activity-option" data-activity-option="phone">
-                          <span class="client-activity-option-title">Log Phone Call</span>
-                          <span class="client-activity-option-copy">Track a call outcome or callback.</span>
-                        </button>
-                        <button type="button" class="client-activity-option" data-activity-option="schedule">
-                          <span class="client-activity-option-title">Schedule Meeting</span>
-                          <span class="client-activity-option-copy">Add an upcoming meeting touchpoint.</span>
-                        </button>
-                        <button type="button" class="client-activity-option" data-activity-option="text">
-                          <span class="client-activity-option-title">Log Text Message</span>
-                          <span class="client-activity-option-copy">Record a text message touchpoint.</span>
-                        </button>
-                        <button type="button" class="client-activity-option" data-activity-option="meeting">
-                          <span class="client-activity-option-title">Add Meeting</span>
-                          <span class="client-activity-option-copy">Log a meeting that already happened.</span>
-                        </button>
-                        <button type="button" class="client-activity-option" data-activity-option="email">
-                          <span class="client-activity-option-title">Log Email</span>
-                          <span class="client-activity-option-copy">Record a sent or received email.</span>
-                        </button>
-                        <button type="button" class="client-activity-option" data-activity-option="face">
-                          <span class="client-activity-option-title">Log Face-to-Face Interaction</span>
-                          <span class="client-activity-option-copy">Capture an in-person client interaction.</span>
-                        </button>
-                        <button type="button" class="client-activity-option" data-activity-option="document-received">
-                          <span class="client-activity-option-title">Log Document Received</span>
-                          <span class="client-activity-option-copy">Record receipt of required client documents.</span>
-                        </button>
-                        <button type="button" class="client-activity-option" data-activity-option="illustration-requested">
-                          <span class="client-activity-option-title">Log Illustration Requested</span>
-                          <span class="client-activity-option-copy">Track an illustration request milestone.</span>
-                        </button>
-                        <button type="button" class="client-activity-option" data-activity-option="application-submitted">
-                          <span class="client-activity-option-title">Log Application Submitted</span>
-                          <span class="client-activity-option-copy">Capture application submission progress.</span>
-                        </button>
-                        <button type="button" class="client-activity-option" data-activity-option="policy-delivered">
-                          <span class="client-activity-option-title">Log Policy Delivered</span>
-                          <span class="client-activity-option-copy">Record when the policy has been delivered.</span>
-                        </button>
+                        ${renderActivityOptionButton("note", "Add Note", "Capture a quick written update.")}
+                        ${renderActivityOptionButton("reminder", "Set Reminder", "Create a follow-up reminder.")}
+                        ${renderActivityOptionButton("phone", "Log Phone Call", "Track a call outcome or callback.")}
+                        ${renderActivityOptionButton("schedule", "Schedule Meeting", "Add an upcoming meeting touchpoint.")}
+                        ${renderActivityOptionButton("text", "Log Text Message", "Record a text message touchpoint.")}
+                        ${renderActivityOptionButton("meeting", "Add Meeting", "Log a meeting that already happened.")}
+                        ${renderActivityOptionButton("email", "Log Email", "Record a sent or received email.")}
+                        ${renderActivityOptionButton("face", "Log Face-to-Face Interaction", "Capture an in-person client interaction.")}
+                        ${renderActivityOptionButton("document-received", "Log Document Received", "Record receipt of required client documents.")}
+                        ${renderActivityOptionButton("illustration-requested", "Log Illustration Requested", "Track an illustration request milestone.")}
+                        ${renderActivityOptionButton("application-submitted", "Log Application Submitted", "Capture application submission progress.")}
+                        ${renderActivityOptionButton("policy-delivered", "Log Policy Delivered", "Record when the policy has been delivered.")}
                       </div>
                     </div>
                   </div>
@@ -1615,7 +1679,7 @@
         return `
           <div class="client-activity-next-best">
             <div class="client-activity-next-best-copy">
-              <span class="client-activity-next-best-label">Next Best Action</span>
+              <span class="client-activity-next-best-label">Suggested Activity</span>
               <strong>${escapeHtml(summary.nextAction)}</strong>
             </div>
             <button type="button" class="client-activity-next-best-button" data-activity-log-open>
@@ -2318,9 +2382,10 @@
                       ], record)}
                       ${renderNotesWidget(record)}
                     </div>
-                    <div class="client-profile-dashboard-side">
+                    <div class="client-profile-dashboard-side client-profile-dashboard-side--dashboard">
                       ${renderCoverageCard(record)}
                       ${renderCoverageBreakdownCard(record)}
+                      ${renderIllustrationsCard(record)}
                     </div>
                     ${renderFooterBar(record)}
                   </div>
@@ -3353,6 +3418,11 @@
           currentRemindersStrip.outerHTML = renderFooterBar(record);
         }
 
+        const currentIllustrationsCard = host.querySelector("[data-illustrations-card]");
+        if (currentIllustrationsCard) {
+          currentIllustrationsCard.outerHTML = renderIllustrationsCard(record);
+        }
+
         const latestActivityDate = Array.isArray(record.activityLog) && record.activityLog.length
           ? String(record.activityLog[0]?.date || "").trim()
           : String(record.lastContactDate || record.lastUpdatedDate || record.dateProfileCreated || "").trim();
@@ -4252,6 +4322,12 @@
       }
 
       host.addEventListener("click", function (event) {
+        const illustrationQuickAdd = event.target.closest("[data-illustration-quick-add]");
+        if (illustrationQuickAdd && host.contains(illustrationQuickAdd)) {
+          openActivityWidget("illustration-requested");
+          return;
+        }
+
         const activityEntry = event.target.closest("[data-activity-entry-open]");
         if (activityEntry && host.contains(activityEntry)) {
           const index = Number(activityEntry.getAttribute("data-activity-entry-open") || "-1");
