@@ -156,6 +156,131 @@
           .join(" ");
       }
 
+      function isCoverageSteppedPremiumMode(mode) {
+        const normalized = String(mode || "").trim().toLowerCase();
+        return normalized === "graded premium" || normalized === "modified premium";
+      }
+
+      function getCoveragePremiumAmountLabel(mode) {
+        return isCoverageSteppedPremiumMode(mode) ? "Final Premium" : "Premium Amount";
+      }
+
+      function formatCoveragePremiumSchedule(years, months) {
+        const safeYears = String(years || "").replace(/\D/g, "");
+        const safeMonths = String(months || "").replace(/\D/g, "");
+        if (!safeYears && !safeMonths) {
+          return "Not provided";
+        }
+
+        const parts = [];
+        if (safeYears) {
+          const yearCount = Number(safeYears);
+          parts.push(`${yearCount} year${yearCount === 1 ? "" : "s"}`);
+        }
+        if (safeMonths) {
+          const monthCount = Number(safeMonths);
+          parts.push(`${monthCount} month${monthCount === 1 ? "" : "s"}`);
+        }
+
+        return parts.join(" ");
+      }
+
+      function getCoveragePremiumScheduleParts(policyLike) {
+        const currentPolicy = policyLike || {};
+        const explicitYears = String(currentPolicy.premiumScheduleYears || "").replace(/\D/g, "");
+        const explicitMonths = String(currentPolicy.premiumScheduleMonths || "").replace(/\D/g, "");
+
+        if (explicitYears || explicitMonths) {
+          const safeYears = explicitYears ? String(Math.max(0, Math.round(Number(explicitYears)))) : "";
+          const safeMonths = explicitMonths ? String(Math.min(11, Math.max(0, Math.round(Number(explicitMonths))))) : "";
+          const combined = !safeYears && !safeMonths
+            ? ""
+            : (Number(safeYears || 0) + (Number(safeMonths || 0) / 12)).toFixed(2).replace(/\.00$/, "");
+          return {
+            years: safeYears,
+            months: safeMonths,
+            combined
+          };
+        }
+
+        const combinedValue = Number(String(currentPolicy.premiumScheduleDuration || "").replace(/[^0-9.]/g, ""));
+        if (!Number.isFinite(combinedValue) || combinedValue <= 0) {
+          return {
+            years: "",
+            months: "",
+            combined: ""
+          };
+        }
+
+        let wholeYears = Math.floor(combinedValue);
+        let remainingMonths = Math.round((combinedValue - wholeYears) * 12);
+        if (remainingMonths >= 12) {
+          wholeYears += 1;
+          remainingMonths = 0;
+        }
+
+        return {
+          years: wholeYears ? String(wholeYears) : "",
+          months: remainingMonths ? String(remainingMonths) : "",
+          combined: combinedValue.toFixed(2).replace(/\.00$/, "")
+        };
+      }
+
+      function normalizeCoverageCurrencyValue(value) {
+        const normalized = String(value || "").replace(/[^0-9.]/g, "");
+        const firstDot = normalized.indexOf(".");
+        const cleaned = firstDot === -1
+          ? normalized
+          : `${normalized.slice(0, firstDot + 1)}${normalized.slice(firstDot + 1).replace(/\./g, "")}`;
+
+        if (!cleaned) {
+          return "";
+        }
+
+        const numericValue = Number(cleaned);
+        if (!Number.isFinite(numericValue)) {
+          return "";
+        }
+
+        return numericValue.toFixed(2);
+      }
+
+      function formatCoverageCurrencyInput(value) {
+        const normalized = normalizeCoverageCurrencyValue(value);
+        if (!normalized) {
+          return "";
+        }
+
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }).format(Number(normalized));
+      }
+
+      function formatCoverageCurrencyEditingInput(value) {
+        const normalized = String(value || "").replace(/[^0-9.]/g, "");
+        const firstDot = normalized.indexOf(".");
+        const cleaned = firstDot === -1
+          ? normalized
+          : `${normalized.slice(0, firstDot + 1)}${normalized.slice(firstDot + 1).replace(/\./g, "")}`;
+
+        if (!cleaned) {
+          return "";
+        }
+
+        const hasDecimal = cleaned.includes(".");
+        const parts = cleaned.split(".");
+        const integerDigits = (parts[0] || "").replace(/^0+(?=\d)/, "") || "0";
+        const decimalDigits = hasDecimal ? String(parts[1] || "").slice(0, 2) : "";
+        const formattedInteger = new Intl.NumberFormat("en-US", {
+          maximumFractionDigits: 0
+        }).format(Number(integerDigits));
+
+        return `$${formattedInteger}${hasDecimal ? `.${decimalDigits}` : ""}`;
+      }
+
       function getInitials(value) {
         const words = String(value || "").trim().split(/\s+/).filter(Boolean);
         if (!words.length) {
@@ -515,6 +640,227 @@
         });
 
         return matched || record;
+      }
+
+      const POLICY_DOCUMENT_DB_NAME = "lipPlannerPolicyDocuments";
+      const POLICY_DOCUMENT_STORE_NAME = "policyDocuments";
+      let policyDocumentDbPromise = null;
+
+      function openPolicyDocumentDb() {
+        if (!("indexedDB" in window)) {
+          return Promise.resolve(null);
+        }
+
+        if (policyDocumentDbPromise) {
+          return policyDocumentDbPromise;
+        }
+
+        policyDocumentDbPromise = new Promise(function (resolve, reject) {
+          const request = window.indexedDB.open(POLICY_DOCUMENT_DB_NAME, 1);
+
+          request.onupgradeneeded = function () {
+            const db = request.result;
+            if (!db.objectStoreNames.contains(POLICY_DOCUMENT_STORE_NAME)) {
+              db.createObjectStore(POLICY_DOCUMENT_STORE_NAME, { keyPath: "id" });
+            }
+          };
+
+          request.onsuccess = function () {
+            resolve(request.result);
+          };
+
+          request.onerror = function () {
+            reject(request.error || new Error("Unable to open policy document storage."));
+          };
+        });
+
+        return policyDocumentDbPromise;
+      }
+
+      function buildPolicyDocumentKey(recordId, policyId) {
+        return `${String(recordId || "").trim()}::${String(policyId || "").trim()}`;
+      }
+
+      function formatFileSize(bytes) {
+        const size = Number(bytes);
+        if (!Number.isFinite(size) || size <= 0) {
+          return "0 KB";
+        }
+
+        if (size < 1024 * 1024) {
+          return `${Math.max(1, Math.round(size / 1024))} KB`;
+        }
+
+        return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+      }
+
+      function getPolicyDocumentEntries(policyLike) {
+        const documents = Array.isArray(policyLike?.documents)
+          ? policyLike.documents.map(function (entry) {
+              return {
+                name: String(entry?.name || "").trim(),
+                type: String(entry?.type || "").trim(),
+                size: Number(entry?.size || 0),
+                savedAt: String(entry?.savedAt || "").trim()
+              };
+            }).filter(function (entry) {
+              return Boolean(entry.name);
+            })
+          : [];
+
+        if (documents.length) {
+          return documents;
+        }
+
+        const legacyName = String(policyLike?.documentName || "").trim();
+        if (!legacyName) {
+          return [];
+        }
+
+        return [{
+          name: legacyName,
+          type: String(policyLike?.documentType || "").trim(),
+          size: Number(policyLike?.documentSize || 0),
+          savedAt: String(policyLike?.documentSavedAt || "").trim()
+        }];
+      }
+
+      function getStoredPolicyDocumentFiles(entry) {
+        if (Array.isArray(entry?.files)) {
+          return entry.files.map(function (item) {
+            return {
+              file: item?.file || null,
+              name: String(item?.name || item?.file?.name || "").trim(),
+              type: String(item?.type || item?.file?.type || "").trim(),
+              size: Number(item?.size || item?.file?.size || 0),
+              savedAt: String(item?.savedAt || "").trim()
+            };
+          }).filter(function (item) {
+            return item.file && item.name;
+          });
+        }
+
+        if (entry?.file) {
+          return [{
+            file: entry.file,
+            name: String(entry?.name || entry.file?.name || "").trim(),
+            type: String(entry?.type || entry.file?.type || "").trim(),
+            size: Number(entry?.size || entry.file?.size || 0),
+            savedAt: String(entry?.savedAt || "").trim()
+          }];
+        }
+
+        return [];
+      }
+
+      function savePolicyDocumentFiles(recordId, policyId, files, options) {
+        return openPolicyDocumentDb().then(function (db) {
+          const nextFiles = Array.from(files || []).filter(Boolean);
+          if (!nextFiles.length) {
+            return false;
+          }
+
+          if (!db) {
+            throw new Error("Policy document storage is not available in this browser.");
+          }
+
+          return new Promise(function (resolve, reject) {
+            const transaction = db.transaction(POLICY_DOCUMENT_STORE_NAME, "readwrite");
+            const store = transaction.objectStore(POLICY_DOCUMENT_STORE_NAME);
+            const documentKey = buildPolicyDocumentKey(recordId, policyId);
+            const getRequest = store.get(documentKey);
+
+            getRequest.onsuccess = function () {
+              const existingFiles = options?.append === false ? [] : getStoredPolicyDocumentFiles(getRequest.result);
+              const timestamp = new Date().toISOString();
+              const mergedFiles = existingFiles.concat(nextFiles.map(function (file) {
+                return {
+                  file,
+                  name: String(file.name || "").trim(),
+                  type: String(file.type || "").trim(),
+                  size: Number(file.size || 0),
+                  savedAt: timestamp
+                };
+              }));
+
+              const putRequest = store.put({
+                id: documentKey,
+                recordId: String(recordId || "").trim(),
+                policyId: String(policyId || "").trim(),
+                files: mergedFiles,
+                savedAt: timestamp
+              });
+
+              putRequest.onsuccess = function () {
+                resolve(true);
+              };
+
+              putRequest.onerror = function () {
+                reject(putRequest.error || new Error("Unable to save the policy documents."));
+              };
+            };
+
+            getRequest.onerror = function () {
+              reject(getRequest.error || new Error("Unable to read existing policy documents."));
+            };
+          });
+        });
+      }
+
+      function getPolicyDocumentFiles(recordId, policyId) {
+        return openPolicyDocumentDb().then(function (db) {
+          if (!db) {
+            return null;
+          }
+
+          return new Promise(function (resolve, reject) {
+            const transaction = db.transaction(POLICY_DOCUMENT_STORE_NAME, "readonly");
+            const store = transaction.objectStore(POLICY_DOCUMENT_STORE_NAME);
+            const request = store.get(buildPolicyDocumentKey(recordId, policyId));
+
+            request.onsuccess = function () {
+              const files = getStoredPolicyDocumentFiles(request.result);
+              if (!files.length) {
+                resolve(null);
+                return;
+              }
+
+              resolve({
+                id: buildPolicyDocumentKey(recordId, policyId),
+                recordId: String(recordId || "").trim(),
+                policyId: String(policyId || "").trim(),
+                files,
+                savedAt: String(request.result?.savedAt || "").trim()
+              });
+            };
+
+            request.onerror = function () {
+              reject(request.error || new Error("Unable to read the policy documents."));
+            };
+          });
+        });
+      }
+
+      function deletePolicyDocumentFile(recordId, policyId) {
+        return openPolicyDocumentDb().then(function (db) {
+          if (!db) {
+            return false;
+          }
+
+          return new Promise(function (resolve, reject) {
+            const transaction = db.transaction(POLICY_DOCUMENT_STORE_NAME, "readwrite");
+            const store = transaction.objectStore(POLICY_DOCUMENT_STORE_NAME);
+            const request = store.delete(buildPolicyDocumentKey(recordId, policyId));
+
+            request.onsuccess = function () {
+              resolve(true);
+            };
+
+            request.onerror = function () {
+              reject(request.error || new Error("Unable to delete the policy document."));
+            };
+          });
+        });
       }
 
       function getPrimaryLinkedClientForHousehold(householdRecord) {
@@ -2509,20 +2855,20 @@
           </div>
           <div class="client-activity-widget-modal client-coverage-widget-modal" data-coverage-widget-modal hidden>
             <div class="client-activity-widget-modal-backdrop" data-coverage-widget-close></div>
-            <form class="client-activity-widget-modal-panel client-activity-widget client-coverage-widget" data-coverage-widget role="dialog" aria-modal="true" aria-labelledby="client-coverage-widget-title">
+            <form class="client-activity-widget-modal-panel client-activity-widget client-coverage-widget" data-coverage-widget role="dialog" aria-modal="true" aria-labelledby="client-coverage-widget-title" novalidate>
               <div class="client-activity-widget-header">
-                <button type="button" class="client-activity-widget-back" data-coverage-widget-back>Back</button>
                 <button class="client-activity-modal-close" type="button" data-coverage-widget-close aria-label="Close coverage widget">×</button>
               </div>
               <div class="client-activity-widget-heading">
                 <h2 id="client-coverage-widget-title" data-coverage-widget-title>Add Coverage</h2>
                 <p data-coverage-widget-copy>Save policy details to this profile.</p>
               </div>
-              <div class="client-activity-widget-body" data-coverage-widget-body></div>
+              <div class="client-coverage-widget-progress" data-coverage-widget-progress></div>
+              <div class="client-activity-widget-body client-coverage-widget-body" data-coverage-widget-body></div>
               <p class="coverage-form-feedback client-coverage-widget-feedback" data-coverage-widget-feedback aria-live="polite"></p>
-              <div class="client-activity-widget-actions">
-                <button type="button" class="client-activity-widget-cancel" data-coverage-widget-cancel>Cancel</button>
-                <button type="submit" class="client-activity-widget-save">Save Policy</button>
+              <div class="client-activity-widget-actions client-coverage-widget-actions">
+                <button type="button" class="client-activity-widget-back" data-coverage-widget-back hidden>Back</button>
+                <button type="submit" class="client-activity-widget-save" data-coverage-widget-save>Save Policy</button>
               </div>
             </form>
           </div>
@@ -2699,8 +3045,10 @@
       const coverageWidgetBody = host.querySelector("[data-coverage-widget-body]");
       const coverageWidgetTitle = host.querySelector("[data-coverage-widget-title]");
       const coverageWidgetCopy = host.querySelector("[data-coverage-widget-copy]");
+      const coverageWidgetProgress = host.querySelector("[data-coverage-widget-progress]");
       const coverageWidgetBack = host.querySelector("[data-coverage-widget-back]");
       const coverageWidgetCancel = host.querySelector("[data-coverage-widget-cancel]");
+      const coverageWidgetSave = host.querySelector("[data-coverage-widget-save]");
       const coverageWidgetCloseButtons = host.querySelectorAll("[data-coverage-widget-close]");
       const coverageWidgetFeedback = host.querySelector("[data-coverage-widget-feedback]");
       const profileDeleteToggle = host.querySelector("[data-profile-delete-toggle]");
@@ -2755,6 +3103,11 @@
       let activeActivityTrigger = null;
       let activityWidgetSourceTrigger = null;
       let coverageWidgetReturnIndex = -1;
+      let activeCoverageStep = 0;
+      let activeCoverageDraft = null;
+      let activeCoverageDocumentFiles = [];
+      let coverageWidgetFeedbackTimeout = null;
+      let coverageWidgetFeedbackFadeTimeout = null;
 
       function syncModalLock() {
         const anyModalOpen = policyModal?.hidden === false || policyListModal?.hidden === false || policyDeleteModal?.hidden === false || coverageWidgetModal?.hidden === false || profileDeleteModal?.hidden === false || activityDetailModal?.hidden === false || activityDeleteModal?.hidden === false || pmiDetailModal?.hidden === false || statModal?.hidden === false || activityWidgetModal?.hidden === false;
@@ -3175,7 +3528,10 @@
           "Quarterly",
           "Semi-Annual",
           "Annual",
-          "Single Premium"
+          "Single Premium",
+          "Flexible Premium",
+          "Graded Premium",
+          "Modified Premium"
         ].map(function (mode) {
           return `
             <button
@@ -3187,13 +3543,299 @@
         }).join("");
       }
 
+      function renderUnderwritingClassOptions(selectedValue) {
+        const selected = String(selectedValue || "").trim();
+        return [
+          "",
+          "Preferred Plus",
+          "Preferred",
+          "Standard Plus",
+          "Standard",
+          "Table Rated",
+          "Substandard",
+          "Simplified Issue",
+          "Guaranteed Issue",
+          "Other"
+        ].map(function (option) {
+          const label = option || "Select underwriting class";
+          return `<option value="${escapeHtml(option)}"${option === selected ? " selected" : ""}>${escapeHtml(label)}</option>`;
+        }).join("");
+      }
+
+      function isCoveragePermanentPolicyType(value) {
+        const normalized = String(value || "").trim();
+        return [
+          "Whole Life",
+          "Universal Life",
+          "Indexed Universal Life",
+          "Variable Universal Life",
+          "Final Expense"
+        ].includes(normalized);
+      }
+
+      const COVERAGE_WIDGET_STEPS = [
+        { label: "Basics", title: "Policy Basics" },
+        { label: "Terms", title: "Terms & Parties" },
+        { label: "Documents", title: "Notes & File" }
+      ];
+
+      const COVERAGE_WIDGET_STEP_FIELDS = [
+        [
+          { name: "premiumMode", message: "Select a premium mode before continuing.", focusSelector: "[data-coverage-mode]" },
+          { name: "policyCarrier", message: "Enter the policy carrier before continuing." },
+          { name: "policyType", message: "Select a policy type before continuing." },
+          { name: "insuredName", message: "Enter the insured name before continuing." },
+          { name: "ownerName", message: "Enter the policy owner before continuing." },
+          { name: "faceAmount", message: "Enter the face amount before continuing." }
+        ],
+        [
+          { name: "premiumAmount" },
+          { name: "termLength" },
+          { name: "effectiveDate" },
+          { name: "underwritingClass" },
+          { name: "beneficiaryName" }
+        ],
+        [
+          { name: "policyNumber" },
+          { name: "policyNotes" },
+          { name: "policyDocument" }
+        ]
+      ];
+
+      function buildCoverageWidgetDraft(policy) {
+        const currentPolicy = policy || {};
+        const premiumSchedule = getCoveragePremiumScheduleParts(currentPolicy);
+        const policyType = String(currentPolicy.policyType || "").trim();
+        const savedTermLength = String(currentPolicy.termLength || "").trim();
+        const documents = getPolicyDocumentEntries(currentPolicy);
+        return {
+          policyCarrier: String(currentPolicy.policyCarrier || "").trim(),
+          policyType,
+          insuredName: String(currentPolicy.insuredName || "").trim(),
+          ownerName: String(currentPolicy.ownerName || "").trim(),
+          faceAmount: normalizeCoverageCurrencyValue(currentPolicy.faceAmount),
+          startingPremium: normalizeCoverageCurrencyValue(currentPolicy.startingPremium),
+          premiumAmount: normalizeCoverageCurrencyValue(currentPolicy.premiumAmount),
+          premiumMode: String(currentPolicy.premiumMode || "").trim(),
+          premiumScheduleYears: premiumSchedule.years,
+          premiumScheduleMonths: premiumSchedule.months,
+          premiumScheduleDuration: premiumSchedule.combined,
+          termLength: isCoveragePermanentPolicyType(policyType) ? "Permanent Coverage" : savedTermLength,
+          policyNumber: String(currentPolicy.policyNumber || "").trim(),
+          effectiveDate: String(currentPolicy.effectiveDate || "").trim(),
+          underwritingClass: String(currentPolicy.underwritingClass || "").trim(),
+          beneficiaryName: String(currentPolicy.beneficiaryName || "").trim(),
+          policyNotes: String(currentPolicy.policyNotes || "").trim(),
+          documents,
+          documentName: String(documents[0]?.name || currentPolicy.documentName || "").trim(),
+          documentType: String(documents[0]?.type || currentPolicy.documentType || "").trim(),
+          documentSize: Number(documents[0]?.size || currentPolicy.documentSize || 0),
+          documentSavedAt: String(documents[0]?.savedAt || currentPolicy.documentSavedAt || "").trim()
+        };
+      }
+
+      function getCoverageInsuredNameSuggestion() {
+        const householdPrimary = getPrimaryLinkedClientForHousehold(record);
+        const fallbackName = [
+          String(record.preferredName || record.firstName || "").trim(),
+          String(record.lastName || "").trim()
+        ].filter(Boolean).join(" ");
+        const rawSuggestion = String(
+          householdPrimary?.displayName
+          || record.displayName
+          || fallbackName
+          || ""
+        ).replace(/\s+Household$/i, "").trim();
+        return rawSuggestion ? formatTitleCaseValue(rawSuggestion) : "";
+      }
+
+      function renderCoverageInsuredGhostMarkup(currentValue) {
+        const suggestion = getCoverageInsuredNameSuggestion();
+        const typedValue = String(currentValue || "");
+        if (!suggestion) {
+          return "";
+        }
+
+        const normalizedSuggestion = suggestion.toLowerCase();
+        const normalizedTyped = typedValue.toLowerCase();
+        if (typedValue && !normalizedSuggestion.startsWith(normalizedTyped)) {
+          return "";
+        }
+
+        if (typedValue.length >= suggestion.length) {
+          return "";
+        }
+
+        return `${typedValue ? `<span class="client-coverage-suggest-match">${escapeHtml(suggestion.slice(0, typedValue.length))}</span>` : ""}<span>${escapeHtml(suggestion.slice(typedValue.length))}</span>`;
+      }
+
+      function refreshCoverageInsuredSuggestion() {
+        if (!coverageWidget) {
+          return;
+        }
+
+        const insuredInput = coverageWidget.querySelector("[data-coverage-insured-input]");
+        const insuredGhost = coverageWidget.querySelector("[data-coverage-insured-ghost]");
+        if (!(insuredInput instanceof HTMLInputElement) || !insuredGhost) {
+          return;
+        }
+
+        const ghostMarkup = renderCoverageInsuredGhostMarkup(insuredInput.value);
+        insuredGhost.innerHTML = ghostMarkup;
+        insuredGhost.classList.toggle("is-hidden", !ghostMarkup);
+      }
+
+      function syncCoveragePremiumScheduleDraft() {
+        if (!activeCoverageDraft) {
+          return;
+        }
+
+        const yearsInput = coverageWidget?.querySelector('input[name="premiumScheduleYears"]');
+        const monthsInput = coverageWidget?.querySelector('input[name="premiumScheduleMonths"]');
+        const durationInput = coverageWidget?.querySelector('input[name="premiumScheduleDuration"]');
+
+        const rawYears = String(
+          yearsInput instanceof HTMLInputElement ? yearsInput.value : activeCoverageDraft.premiumScheduleYears || ""
+        ).replace(/\D/g, "");
+        const rawMonths = String(
+          monthsInput instanceof HTMLInputElement ? monthsInput.value : activeCoverageDraft.premiumScheduleMonths || ""
+        ).replace(/\D/g, "");
+
+        const years = Math.max(0, Math.round(Number(rawYears || 0)));
+        const months = Math.min(11, Math.max(0, Math.round(Number(rawMonths || 0))));
+        const nextYears = rawYears === "" && !years ? "" : String(years);
+        const nextMonths = rawMonths === "" && !months ? "" : String(months);
+        const combined = !years && !months
+          ? ""
+          : (years + (months / 12)).toFixed(2).replace(/\.00$/, "");
+
+        activeCoverageDraft.premiumScheduleYears = nextYears;
+        activeCoverageDraft.premiumScheduleMonths = nextMonths;
+        activeCoverageDraft.premiumScheduleDuration = combined;
+
+        if (yearsInput instanceof HTMLInputElement) {
+          yearsInput.value = nextYears;
+        }
+        if (monthsInput instanceof HTMLInputElement) {
+          monthsInput.value = nextMonths;
+        }
+        if (durationInput instanceof HTMLInputElement) {
+          durationInput.value = combined;
+        }
+      }
+
+      function syncCoverageTermLengthForPolicyType(nextPolicyType) {
+        if (!activeCoverageDraft) {
+          return;
+        }
+
+        const normalizedPolicyType = String(nextPolicyType || "").trim();
+        const nextTermLength = isCoveragePermanentPolicyType(normalizedPolicyType)
+          ? "Permanent Coverage"
+          : (String(activeCoverageDraft.termLength || "").trim() === "Permanent Coverage"
+            ? ""
+            : String(activeCoverageDraft.termLength || "").trim());
+
+        activeCoverageDraft.termLength = nextTermLength;
+
+        const termLengthField = coverageWidget?.querySelector('input[name="termLength"]');
+        if (termLengthField instanceof HTMLInputElement) {
+          termLengthField.value = nextTermLength;
+        }
+      }
+
+      function acceptCoverageInsuredSuggestion() {
+        if (!coverageWidget) {
+          return false;
+        }
+
+        const insuredInput = coverageWidget.querySelector("[data-coverage-insured-input]");
+        if (!(insuredInput instanceof HTMLInputElement)) {
+          return false;
+        }
+
+        const suggestion = getCoverageInsuredNameSuggestion();
+        const ghostMarkup = renderCoverageInsuredGhostMarkup(insuredInput.value);
+        if (!suggestion || !ghostMarkup) {
+          return false;
+        }
+
+        insuredInput.value = suggestion;
+        syncCoverageDraftFromField(insuredInput);
+        refreshCoverageInsuredSuggestion();
+        refreshCoverageWidgetProgress();
+        return true;
+      }
+
+      function renderCoverageWidgetStepTrack() {
+        const stepCount = COVERAGE_WIDGET_STEPS.length;
+        const ratio = stepCount > 1 ? activeCoverageStep / (stepCount - 1) : 0;
+
+        return `
+          <div class="step-track client-coverage-step-track" style="--step-count:${stepCount};--progress-ratio:${ratio.toFixed(4)};">
+            ${COVERAGE_WIDGET_STEPS.map(function (step, index) {
+              let stateClass = "";
+              if (index < activeCoverageStep) {
+                stateClass = "is-complete";
+              } else if (index === activeCoverageStep) {
+                stateClass = "is-current";
+              }
+
+              return `
+                <button
+                  type="button"
+                  class="step-item client-coverage-step-item ${stateClass}"
+                  data-coverage-step-target="${index}"
+                  aria-current="${index === activeCoverageStep ? "step" : "false"}"
+                >
+                  <span class="step-number">${index + 1}</span>
+                  <span class="step-title">${escapeHtml(step.label)}</span>
+                </button>
+              `;
+            }).join("")}
+          </div>
+        `;
+      }
+
       function renderCoverageWidgetFields(policy) {
         const currentPolicy = policy || {};
         const selectedPremiumMode = String(currentPolicy.premiumMode || "").trim();
+        const selectedPolicyType = String(currentPolicy.policyType || "").trim();
+        const termPolicyType = selectedPolicyType === "Term";
+        const permanentPolicyType = isCoveragePermanentPolicyType(selectedPolicyType);
+        const steppedPremiumMode = isCoverageSteppedPremiumMode(selectedPremiumMode);
+        const premiumSchedule = getCoveragePremiumScheduleParts(currentPolicy);
         const premiumAmountDisabled = !selectedPremiumMode;
+        const savedDocuments = getPolicyDocumentEntries(currentPolicy);
+        const latestSavedDocument = savedDocuments[0] || null;
+        const documentName = String(latestSavedDocument?.name || "").trim();
+        const documentSize = formatFileSize(latestSavedDocument?.size || 0);
+        const currentStep = COVERAGE_WIDGET_STEPS[activeCoverageStep] || COVERAGE_WIDGET_STEPS[0];
+        const renderedTermLength = permanentPolicyType
+          ? "Permanent Coverage"
+          : String(currentPolicy.termLength || "");
+        const existingDocumentMeta = documentName
+          ? (savedDocuments.length > 1
+            ? `${savedDocuments.length} files attached`
+            : (documentSize ? `${escapeHtml(documentSize)} saved` : "Saved policy document"))
+          : "";
+        const sharedPremiumModeField = `
+          <label class="client-activity-field client-coverage-widget-field-full">
+            <span>Premium Mode</span>
+            <input type="hidden" name="premiumMode" value="${escapeHtml(selectedPremiumMode)}">
+            <div class="coverage-mode-shell" data-coverage-mode-shell>
+              <div class="coverage-mode-buttons" role="group" aria-label="Premium Mode">
+                ${renderCoverageModeButtons(selectedPremiumMode)}
+              </div>
+            </div>
+          </label>
+        `;
 
-        return `
-          <div class="client-coverage-widget-grid">
+        let stepFields = "";
+
+        if (activeCoverageStep === 0) {
+          stepFields = `
+            ${sharedPremiumModeField}
             <label class="client-activity-field">
               <span>Policy Carrier</span>
               <input class="client-activity-input" type="text" name="policyCarrier" value="${escapeHtml(String(currentPolicy.policyCarrier || ""))}" maxlength="140" required>
@@ -3206,69 +3848,162 @@
             </label>
             <label class="client-activity-field">
               <span>Insured Name</span>
-              <input class="client-activity-input" type="text" name="insuredName" value="${escapeHtml(String(currentPolicy.insuredName || record.displayName || ""))}" maxlength="160" required>
+              <div class="client-coverage-suggest-shell">
+                <div class="client-coverage-suggest-ghost${renderCoverageInsuredGhostMarkup(currentPolicy.insuredName) ? "" : " is-hidden"}" data-coverage-insured-ghost aria-hidden="true">${renderCoverageInsuredGhostMarkup(currentPolicy.insuredName)}</div>
+                <input class="client-activity-input client-coverage-suggest-input" type="text" name="insuredName" value="${escapeHtml(String(currentPolicy.insuredName || ""))}" maxlength="160" required data-coverage-insured-input>
+              </div>
             </label>
             <label class="client-activity-field">
               <span>Policy Owner</span>
-              <input class="client-activity-input" type="text" name="ownerName" value="${escapeHtml(String(currentPolicy.ownerName || ""))}" maxlength="160">
-            </label>
-            <label class="client-activity-field">
-              <span>Face Amount</span>
-              <input class="client-activity-input" type="text" name="faceAmount" value="${escapeHtml(String(currentPolicy.faceAmount || ""))}" inputmode="decimal" required>
+              <input class="client-activity-input" type="text" name="ownerName" value="${escapeHtml(String(currentPolicy.ownerName || ""))}" maxlength="160" required>
             </label>
             <label class="client-activity-field client-coverage-widget-field-full">
+              <span>Face Amount</span>
+              <input class="client-activity-input" type="text" name="faceAmount" value="${escapeHtml(formatCoverageCurrencyInput(currentPolicy.faceAmount))}" inputmode="decimal" required>
+            </label>
+          `;
+        } else if (activeCoverageStep === 1) {
+          stepFields = `
+            <label class="client-activity-field">
               <span>Premium Mode</span>
-              <input type="hidden" name="premiumMode" value="${escapeHtml(selectedPremiumMode)}">
-              <div class="coverage-mode-shell" data-coverage-mode-shell>
-                <div class="coverage-mode-current${selectedPremiumMode ? "" : " is-empty"}" data-coverage-mode-current>${escapeHtml(selectedPremiumMode || "None Selected")}</div>
-                <div class="coverage-mode-buttons" role="group" aria-label="Premium Mode">
-                  ${renderCoverageModeButtons(selectedPremiumMode)}
-                </div>
-              </div>
+              <input class="client-activity-input client-coverage-readonly-input" type="text" value="${escapeHtml(selectedPremiumMode || "Not selected")}" readonly tabindex="-1" aria-readonly="true">
             </label>
             <label class="client-activity-field${premiumAmountDisabled ? " is-disabled" : ""}" data-premium-amount-group>
-              <span>Premium Amount</span>
-              <input class="client-activity-input" type="text" name="premiumAmount" value="${escapeHtml(String(currentPolicy.premiumAmount || ""))}" inputmode="decimal"${premiumAmountDisabled ? " disabled" : ""}>
+              <span>${escapeHtml(getCoveragePremiumAmountLabel(selectedPremiumMode))}</span>
+              <input class="client-activity-input" type="text" name="premiumAmount" value="${escapeHtml(formatCoverageCurrencyInput(currentPolicy.premiumAmount))}" inputmode="decimal"${premiumAmountDisabled ? " disabled" : ""}>
             </label>
-            <label class="client-activity-field">
-              <span>Term Length</span>
-              <input class="client-activity-input" type="text" name="termLength" value="${escapeHtml(String(currentPolicy.termLength || ""))}" inputmode="numeric">
-            </label>
-            <label class="client-activity-field">
-              <span>Policy Number</span>
-              <input class="client-activity-input" type="text" name="policyNumber" value="${escapeHtml(String(currentPolicy.policyNumber || ""))}" maxlength="120">
-            </label>
+            ${steppedPremiumMode ? `
+              <label class="client-activity-field">
+                <span>Starting Premium (Optional)</span>
+                <input class="client-activity-input" type="text" name="startingPremium" value="${escapeHtml(formatCoverageCurrencyInput(currentPolicy.startingPremium))}" inputmode="decimal" placeholder="Optional">
+              </label>
+            ` : ""}
+            ${steppedPremiumMode ? `
+              <div class="client-activity-field client-coverage-duration-group">
+                <span>Time to Final Premium (Optional)</span>
+                <div class="client-coverage-duration-row">
+                  <div class="client-coverage-inline-duration">
+                    <div class="client-coverage-inline-unit-field">
+                      <input class="client-activity-input client-coverage-inline-unit-input" type="text" name="premiumScheduleYears" value="${escapeHtml(premiumSchedule.years)}" inputmode="numeric" maxlength="3" placeholder="0">
+                      <span class="client-coverage-inline-unit">Years</span>
+                    </div>
+                    <div class="client-coverage-inline-unit-field">
+                      <input class="client-activity-input client-coverage-inline-unit-input" type="text" name="premiumScheduleMonths" value="${escapeHtml(premiumSchedule.months)}" inputmode="numeric" maxlength="2" placeholder="0">
+                      <span class="client-coverage-inline-unit">Months</span>
+                    </div>
+                    <input type="hidden" name="premiumScheduleDuration" value="${escapeHtml(premiumSchedule.combined)}">
+                  </div>
+                </div>
+              </div>
+            ` : ""}
+            ${termPolicyType ? `
+              <label class="client-activity-field">
+                <span>Term Length</span>
+                <div class="client-coverage-duration-row">
+                  <div class="client-coverage-inline-unit-field">
+                    <input class="client-activity-input client-coverage-inline-unit-input" type="text" name="termLength" value="${escapeHtml(renderedTermLength)}" inputmode="numeric" maxlength="3" placeholder="0">
+                    <span class="client-coverage-inline-unit">Years</span>
+                  </div>
+                </div>
+              </label>
+            ` : `
+              <label class="client-activity-field">
+                <span>Term Length</span>
+                <input
+                  class="client-activity-input${permanentPolicyType ? " client-coverage-readonly-input" : ""}"
+                  type="text"
+                  name="termLength"
+                  value="${escapeHtml(renderedTermLength)}"
+                  ${permanentPolicyType ? 'readonly tabindex="-1" aria-readonly="true"' : 'inputmode="numeric"'}
+                >
+              </label>
+            `}
             <label class="client-activity-field">
               <span>Effective Date</span>
               <input class="client-activity-input" type="date" name="effectiveDate" value="${escapeHtml(String(currentPolicy.effectiveDate || ""))}">
             </label>
             <label class="client-activity-field">
               <span>Underwriting Class</span>
-              <input class="client-activity-input" type="text" name="underwritingClass" value="${escapeHtml(String(currentPolicy.underwritingClass || ""))}" maxlength="120">
+              <select class="client-activity-select" name="underwritingClass">
+                ${renderUnderwritingClassOptions(currentPolicy.underwritingClass)}
+              </select>
             </label>
             <label class="client-activity-field">
               <span>Primary Beneficiary</span>
               <input class="client-activity-input" type="text" name="beneficiaryName" value="${escapeHtml(String(currentPolicy.beneficiaryName || ""))}" maxlength="160">
             </label>
+          `;
+        } else {
+          stepFields = `
+            <label class="client-activity-field">
+              <span>Policy Number</span>
+              <input class="client-activity-input" type="text" name="policyNumber" value="${escapeHtml(String(currentPolicy.policyNumber || ""))}" maxlength="120">
+            </label>
             <label class="client-activity-field client-coverage-widget-field-full">
               <span>Policy Notes</span>
               <textarea class="client-activity-textarea" name="policyNotes" rows="4" placeholder="Add any policy notes.">${escapeHtml(String(currentPolicy.policyNotes || ""))}</textarea>
             </label>
+            <label class="client-activity-field client-coverage-widget-field-full">
+              <span>Policy File</span>
+              <div class="client-coverage-document-shell">
+                ${documentName ? `
+                  <div class="client-coverage-document-current" data-coverage-document-current>
+                    <strong data-coverage-document-title>${escapeHtml(savedDocuments.length > 1 ? `${savedDocuments.length} files attached` : documentName)}</strong>
+                    <span data-coverage-document-meta>${existingDocumentMeta}</span>
+                  </div>
+                ` : `
+                  <div class="client-coverage-document-current is-empty" data-coverage-document-current>
+                    <strong data-coverage-document-title>No policy files uploaded yet.</strong>
+                    <span data-coverage-document-meta>Add one or more policy files to keep them with this coverage record.</span>
+                  </div>
+                `}
+                <input
+                  class="client-activity-input client-coverage-document-input"
+                  type="file"
+                  name="policyDocument"
+                  accept=".pdf,.zip,.png,.jpg,.jpeg,.doc,.docx,.heic,.webp"
+                  multiple
+                >
+                <p class="client-coverage-document-help">${documentName ? "Choose one or more files to add to this policy record." : "PDF, ZIP, image, or Word document supported. You can upload multiple files."}</p>
+              </div>
+            </label>
+          `;
+        }
+
+        return `
+          <div class="client-coverage-widget-step-shell" data-coverage-step-shell>
+            <div class="client-coverage-widget-step-copy">
+              <span>Step ${activeCoverageStep + 1} of ${COVERAGE_WIDGET_STEPS.length}</span>
+              <h3>${escapeHtml(currentStep.title)}</h3>
+            </div>
+            <div class="client-coverage-widget-grid">
+              ${stepFields}
+            </div>
           </div>
         `;
       }
 
       function resetCoverageWidget() {
+        activeCoverageStep = 0;
+        activeCoverageDraft = null;
+        activeCoverageDocumentFiles = [];
         activeCoveragePolicyIndex = -1;
         coverageWidgetReturnIndex = -1;
         if (coverageWidget) {
           coverageWidget.reset();
         }
+        if (coverageWidgetProgress) {
+          coverageWidgetProgress.innerHTML = "";
+        }
         if (coverageWidgetBody) {
           coverageWidgetBody.innerHTML = "";
         }
-        if (coverageWidgetFeedback) {
-          coverageWidgetFeedback.textContent = "";
+        clearCoverageWidgetFeedback({ instant: true });
+        if (coverageWidgetBack) {
+          coverageWidgetBack.hidden = true;
+        }
+        if (coverageWidgetSave) {
+          coverageWidgetSave.textContent = "Save Policy";
         }
       }
 
@@ -3278,8 +4013,8 @@
         }
 
         const normalized = String(nextValue || "").trim();
+        const steppedPremiumMode = isCoverageSteppedPremiumMode(normalized);
         const premiumModeField = coverageWidget.querySelector('input[name="premiumMode"]');
-        const premiumModeCurrent = coverageWidget.querySelector("[data-coverage-mode-current]");
         const premiumModeButtons = coverageWidget.querySelectorAll("[data-coverage-mode]");
         const premiumAmountField = coverageWidget.querySelector('input[name="premiumAmount"]');
         const premiumAmountGroup = coverageWidget.querySelector("[data-premium-amount-group]");
@@ -3288,9 +4023,14 @@
           premiumModeField.value = normalized;
         }
 
-        if (premiumModeCurrent) {
-          premiumModeCurrent.textContent = normalized || "None Selected";
-          premiumModeCurrent.classList.toggle("is-empty", !normalized);
+        if (activeCoverageDraft) {
+          activeCoverageDraft.premiumMode = normalized;
+          if (!steppedPremiumMode) {
+            activeCoverageDraft.startingPremium = "";
+            activeCoverageDraft.premiumScheduleYears = "";
+            activeCoverageDraft.premiumScheduleMonths = "";
+            activeCoverageDraft.premiumScheduleDuration = "";
+          }
         }
 
         if (premiumAmountField) {
@@ -3298,12 +4038,291 @@
           premiumAmountGroup?.classList.toggle("is-disabled", !normalized);
           if (!normalized) {
             premiumAmountField.value = "";
+            if (activeCoverageDraft) {
+              activeCoverageDraft.premiumAmount = "";
+            }
           }
         }
 
         premiumModeButtons.forEach(function (button) {
           button.classList.toggle("is-active", String(button.getAttribute("data-coverage-mode") || "").trim() === normalized);
         });
+      }
+
+      function refreshCoverageWidgetActions() {
+        if (coverageWidgetBack) {
+          coverageWidgetBack.hidden = activeCoverageStep === 0;
+          coverageWidgetBack.textContent = "Back";
+        }
+
+        if (coverageWidgetSave) {
+          const finalStepIndex = COVERAGE_WIDGET_STEPS.length - 1;
+          coverageWidgetSave.textContent = activeCoverageStep >= finalStepIndex ? "Save Policy" : "Next";
+        }
+      }
+
+      function renderCoverageWidgetStep() {
+        if (!coverageWidgetBody || !coverageWidgetProgress || !activeCoverageDraft) {
+          return;
+        }
+
+        syncCoverageTermLengthForPolicyType(activeCoverageDraft.policyType);
+        coverageWidgetProgress.innerHTML = renderCoverageWidgetStepTrack();
+        coverageWidgetBody.innerHTML = renderCoverageWidgetFields(activeCoverageDraft);
+        setCoverageWidgetPremiumMode(String(activeCoverageDraft.premiumMode || "").trim());
+        refreshCoverageWidgetDocumentPreview();
+        refreshCoverageInsuredSuggestion();
+        refreshCoverageWidgetProgress();
+        refreshCoverageWidgetActions();
+      }
+
+      function goToCoverageWidgetStep(nextStep, options) {
+        const safeStep = Math.max(0, Math.min(COVERAGE_WIDGET_STEPS.length - 1, Number(nextStep) || 0));
+        activeCoverageStep = safeStep;
+        renderCoverageWidgetStep();
+
+        if (options?.clearFeedback !== false) {
+          clearCoverageWidgetFeedback({ instant: true });
+        }
+      }
+
+      function syncCoverageDraftFromField(field) {
+        if (!activeCoverageDraft || !field) {
+          return;
+        }
+
+        const fieldName = String(field.name || "").trim();
+        if (!fieldName) {
+          return;
+        }
+
+        if (field instanceof HTMLInputElement && field.type === "file") {
+          const nextFiles = Array.from(field.files || []).filter(Boolean);
+          if (nextFiles.length) {
+            activeCoverageDocumentFiles = nextFiles;
+          }
+          return;
+        }
+
+        let nextValue = String(field.value || "");
+        if (field instanceof HTMLInputElement && field.inputMode === "decimal") {
+          nextValue = normalizeCoverageCurrencyValue(nextValue);
+        }
+
+        if (field instanceof HTMLInputElement && field.inputMode === "numeric") {
+          nextValue = nextValue.replace(/\D/g, "");
+        }
+
+        activeCoverageDraft[fieldName] = nextValue;
+        if (fieldName === "policyType") {
+          syncCoverageTermLengthForPolicyType(nextValue);
+        }
+        if (fieldName === "premiumScheduleYears" || fieldName === "premiumScheduleMonths") {
+          syncCoveragePremiumScheduleDraft();
+        }
+      }
+
+      function syncCoverageDraftFromForm() {
+        if (!coverageWidget) {
+          return;
+        }
+
+        coverageWidget.querySelectorAll("input[name], select[name], textarea[name]").forEach(function (field) {
+          if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) {
+            syncCoverageDraftFromField(field);
+          }
+        });
+      }
+
+      function isCoverageStepFieldComplete(fieldName) {
+        if (!activeCoverageDraft) {
+          return false;
+        }
+
+        if (fieldName === "policyDocument") {
+          return activeCoverageDocumentFiles.length > 0 || getPolicyDocumentEntries(activeCoverageDraft).length > 0;
+        }
+
+        return Boolean(String(activeCoverageDraft[fieldName] || "").trim());
+      }
+
+      function getCoverageStepCompletion(stepIndex) {
+        const stepFields = Array.isArray(COVERAGE_WIDGET_STEP_FIELDS[stepIndex]) ? COVERAGE_WIDGET_STEP_FIELDS[stepIndex] : [];
+        if (!stepFields.length) {
+          return 0;
+        }
+
+        const completedCount = stepFields.filter(function (field) {
+          return isCoverageStepFieldComplete(field.name);
+        }).length;
+
+        return completedCount / stepFields.length;
+      }
+
+      function refreshCoverageWidgetDocumentPreview() {
+        if (!coverageWidget) {
+          return;
+        }
+
+        const currentShell = coverageWidget.querySelector("[data-coverage-document-current]");
+        const title = currentShell?.querySelector("[data-coverage-document-title]");
+        const meta = currentShell?.querySelector("[data-coverage-document-meta]");
+        const fileInput = coverageWidget.querySelector('input[name="policyDocument"]');
+        const selectedFiles = activeCoverageDocumentFiles.length
+          ? activeCoverageDocumentFiles
+          : Array.from(fileInput?.files || []).filter(Boolean);
+        const savedDocuments = getPolicyDocumentEntries(activeCoverageDraft);
+
+        if (!currentShell || !title || !meta) {
+          return;
+        }
+
+        if (selectedFiles.length) {
+          const totalSize = selectedFiles.reduce(function (sum, file) {
+            return sum + Number(file?.size || 0);
+          }, 0);
+          currentShell.classList.remove("is-empty");
+          title.textContent = selectedFiles.length === 1
+            ? (String(selectedFiles[0]?.name || "").trim() || "Selected policy file")
+            : `${selectedFiles.length} files selected`;
+          meta.textContent = `${formatFileSize(totalSize)} ready to save`;
+          return;
+        }
+
+        if (savedDocuments.length) {
+          const totalSavedSize = savedDocuments.reduce(function (sum, file) {
+            return sum + Number(file?.size || 0);
+          }, 0);
+          currentShell.classList.remove("is-empty");
+          title.textContent = savedDocuments.length === 1
+            ? savedDocuments[0].name
+            : `${savedDocuments.length} files attached`;
+          meta.textContent = totalSavedSize
+            ? `${formatFileSize(totalSavedSize)} saved`
+            : "Saved policy documents";
+          return;
+        }
+
+        currentShell.classList.add("is-empty");
+        title.textContent = "No policy files uploaded yet.";
+        meta.textContent = "Add one or more policy files to keep them with this coverage record.";
+      }
+
+      function getCoverageDraftValidationError(stepIndex) {
+        if (!activeCoverageDraft) {
+          return null;
+        }
+
+        const stepsToCheck = typeof stepIndex === "number"
+          ? [stepIndex]
+          : COVERAGE_WIDGET_STEP_FIELDS.map(function (_, index) { return index; });
+
+        for (const currentStepIndex of stepsToCheck) {
+          const requiredFields = Array.isArray(COVERAGE_WIDGET_STEP_FIELDS[currentStepIndex])
+            ? COVERAGE_WIDGET_STEP_FIELDS[currentStepIndex]
+            : [];
+
+          const missingField = requiredFields.find(function (field) {
+            return field.message && !isCoverageStepFieldComplete(field.name);
+          });
+
+          if (missingField) {
+            return {
+              fieldName: missingField.name,
+              focusSelector: missingField.focusSelector || `[name="${missingField.name}"]`,
+              stepIndex: currentStepIndex,
+              message: missingField.message
+            };
+          }
+        }
+
+        return null;
+      }
+
+      function getCoverageWidgetValidationMessage(validationError) {
+        if (!validationError) {
+          return "";
+        }
+
+        if (validationError.stepIndex === 0) {
+          return "All fields must be filled out before continuing.";
+        }
+
+        return validationError.message || "Complete all required fields before continuing.";
+      }
+
+      function clearCoverageWidgetFeedback(options) {
+        if (coverageWidgetFeedbackTimeout) {
+          window.clearTimeout(coverageWidgetFeedbackTimeout);
+          coverageWidgetFeedbackTimeout = null;
+        }
+
+        if (coverageWidgetFeedbackFadeTimeout) {
+          window.clearTimeout(coverageWidgetFeedbackFadeTimeout);
+          coverageWidgetFeedbackFadeTimeout = null;
+        }
+
+        if (!coverageWidgetFeedback) {
+          return;
+        }
+
+        if (options?.instant) {
+          coverageWidgetFeedback.classList.remove("is-visible");
+          coverageWidgetFeedback.textContent = "";
+          return;
+        }
+
+        coverageWidgetFeedback.classList.remove("is-visible");
+        coverageWidgetFeedbackFadeTimeout = window.setTimeout(function () {
+          if (!coverageWidgetFeedback?.classList.contains("is-visible")) {
+            coverageWidgetFeedback.textContent = "";
+          }
+          coverageWidgetFeedbackFadeTimeout = null;
+        }, 260);
+      }
+
+      function showCoverageWidgetFeedback(message) {
+        const normalizedMessage = String(message || "").trim();
+        if (!normalizedMessage) {
+          clearCoverageWidgetFeedback({ instant: true });
+          return;
+        }
+
+        clearCoverageWidgetFeedback({ instant: true });
+        if (!coverageWidgetFeedback) {
+          return;
+        }
+
+        coverageWidgetFeedback.textContent = normalizedMessage;
+        window.requestAnimationFrame(function () {
+          coverageWidgetFeedback?.classList.add("is-visible");
+        });
+
+        coverageWidgetFeedbackTimeout = window.setTimeout(function () {
+          clearCoverageWidgetFeedback();
+          coverageWidgetFeedbackTimeout = null;
+        }, 10000);
+      }
+
+      function refreshCoverageWidgetProgress() {
+        if (!coverageWidgetProgress) {
+          return;
+        }
+
+        const track = coverageWidgetProgress.querySelector(".step-track");
+        if (!track) {
+          return;
+        }
+
+        const segmentCount = Math.max(COVERAGE_WIDGET_STEPS.length - 1, 1);
+        const completionWithinStep = activeCoverageStep < segmentCount
+          ? getCoverageStepCompletion(activeCoverageStep)
+          : 1;
+        const ratio = Math.min(
+          1,
+          (Math.max(0, activeCoverageStep) + Math.max(0, Math.min(completionWithinStep, 1))) / segmentCount
+        );
+        track.style.setProperty("--progress-ratio", ratio.toFixed(4));
       }
 
       function openCoverageWidget(policyIndex, returnToPolicyModal) {
@@ -3317,13 +4336,11 @@
 
         activeCoveragePolicyIndex = currentPolicy ? safePolicyIndex : -1;
         coverageWidgetReturnIndex = returnToPolicyModal && currentPolicy ? safePolicyIndex : -1;
+        activeCoverageStep = 0;
+        activeCoverageDraft = buildCoverageWidgetDraft(currentPolicy);
+        activeCoverageDocumentFiles = [];
 
-        if (coverageWidgetFeedback) {
-          coverageWidgetFeedback.textContent = "";
-        }
-        if (coverageWidgetBack) {
-          coverageWidgetBack.textContent = coverageWidgetReturnIndex >= 0 ? "Back" : "Close";
-        }
+        clearCoverageWidgetFeedback({ instant: true });
 
         if (returnToPolicyModal && currentPolicy) {
           closePolicyModal();
@@ -3333,14 +4350,11 @@
         coverageWidgetCopy.textContent = currentPolicy
           ? "Update the policy details and save them back to this profile."
           : "Save a new policy directly to this profile.";
-        coverageWidgetBody.innerHTML = renderCoverageWidgetFields(currentPolicy);
-        setCoverageWidgetPremiumMode(String(currentPolicy?.premiumMode || "").trim());
+        renderCoverageWidgetStep();
         coverageWidgetModal.hidden = false;
         syncModalLock();
         window.requestAnimationFrame(function () {
           coverageWidgetModal.classList.add("is-open");
-          const firstField = coverageWidget.querySelector("input:not([type='hidden']), select, textarea");
-          firstField?.focus();
         });
       }
 
@@ -3365,7 +4379,7 @@
         }, 180);
       }
 
-      function saveCoveragePolicy(recordId, policy, policyIndex) {
+      async function saveCoveragePolicy(recordId, policy, policyIndex, policyDocumentFiles) {
         const records = loadJson(localStorage, getRecordsStorageKey());
         if (!Array.isArray(records)) {
           return null;
@@ -3388,6 +4402,8 @@
         const today = new Date().toISOString().slice(0, 10);
         const nextPolicies = existingPolicies.slice();
         const existingPolicy = policyIndex >= 0 ? nextPolicies[policyIndex] : null;
+        const existingDocuments = getPolicyDocumentEntries(existingPolicy);
+        const selectedDocuments = Array.from(policyDocumentFiles || []).filter(Boolean);
         const currentCoverageAmount = Number(String(currentRecord.coverageAmount || "").replace(/,/g, ""));
         const existingPolicyFaceAmount = Number(String(existingPolicy?.faceAmount || "").replace(/,/g, ""));
         const nextPolicyFaceAmount = Number(String(policy.faceAmount || "").replace(/,/g, ""));
@@ -3407,6 +4423,27 @@
         const safeExistingPolicyFaceAmount = Number.isFinite(existingPolicyFaceAmount) ? existingPolicyFaceAmount : 0;
         const safeNextPolicyFaceAmount = Number.isFinite(nextPolicyFaceAmount) ? nextPolicyFaceAmount : 0;
         const nextCoverageAmount = safeCurrentCoverageAmount + (safeNextPolicyFaceAmount - safeExistingPolicyFaceAmount);
+        const normalizedRecordId = String(recordId || "").trim();
+        const mergedDocuments = selectedDocuments.length
+          ? existingDocuments.concat(selectedDocuments.map(function (file) {
+              return {
+                name: String(file.name || "").trim(),
+                type: String(file.type || "").trim(),
+                size: Number(file.size || 0),
+                savedAt: today
+              };
+            }))
+          : existingDocuments;
+
+        nextPolicy.documents = mergedDocuments;
+        nextPolicy.documentName = String(mergedDocuments[0]?.name || "").trim();
+        nextPolicy.documentType = String(mergedDocuments[0]?.type || "").trim();
+        nextPolicy.documentSize = Number(mergedDocuments[0]?.size || 0);
+        nextPolicy.documentSavedAt = String(mergedDocuments[0]?.savedAt || "").trim();
+
+        if (selectedDocuments.length) {
+          await savePolicyDocumentFiles(normalizedRecordId, nextPolicy.id, selectedDocuments);
+        }
 
         const nextRecord = {
           ...currentRecord,
@@ -3419,6 +4456,7 @@
         records[index] = nextRecord;
         localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
         Object.assign(record, nextRecord);
+
         return {
           record: nextRecord,
           policyIndex: policyIndex >= 0 && policyIndex < nextPolicies.length ? policyIndex : nextPolicies.length - 1
@@ -3870,6 +4908,17 @@
       }
 
       function renderPolicyModalBody(policy) {
+        const policyDocuments = getPolicyDocumentEntries(policy);
+        const premiumFields = isCoverageSteppedPremiumMode(policy.premiumMode)
+          ? [
+              ["Starting Premium", formatCurrency(policy.startingPremium)],
+              ["Final Premium", formatCurrency(policy.premiumAmount)],
+              ["Time to Final Premium", formatCoveragePremiumSchedule(policy.premiumScheduleYears, policy.premiumScheduleMonths)]
+            ]
+          : [
+              ["Premium Amount", formatCurrency(policy.premiumAmount)]
+            ];
+
         return `
           <div class="client-policy-modal-grid">
             ${[
@@ -3878,9 +4927,15 @@
               ["Insured Name", formatValue(policy.insuredName)],
               ["Policy Owner", formatValue(policy.ownerName)],
               ["Face Amount", formatCurrency(policy.faceAmount)],
-              ["Premium Amount", formatCurrency(policy.premiumAmount)],
+              ...premiumFields,
               ["Premium Mode", formatValue(policy.premiumMode)],
-              ["Term Length", formatValue(policy.termLength)],
+              ["Term Length", formatValue(
+                isCoveragePermanentPolicyType(policy.policyType)
+                  ? (policy.termLength || "Permanent Coverage")
+                  : (String(policy.policyType || "").trim() === "Term" && String(policy.termLength || "").trim()
+                    ? `${String(policy.termLength || "").trim()} Years`
+                    : policy.termLength)
+              )],
               ["Policy Number", formatValue(policy.policyNumber)],
               ["Effective Date", formatDate(policy.effectiveDate)],
               ["Underwriting Class", formatValue(policy.underwritingClass)],
@@ -3894,6 +4949,24 @@
               `;
             }).join("")}
           </div>
+          ${policyDocuments.length ? `
+            <div class="client-policy-modal-field client-policy-document-field">
+              <span class="client-policy-modal-label">${policyDocuments.length > 1 ? "Policy Files" : "Policy File"}</span>
+              <div class="client-policy-document-list">
+                ${policyDocuments.map(function (document, documentIndex) {
+                  return `
+                    <div class="client-policy-document-row">
+                      <div class="client-policy-document-meta">
+                        <strong>${escapeHtml(document.name)}</strong>
+                        <span>${escapeHtml(formatFileSize(document.size))}</span>
+                      </div>
+                      <button class="client-policy-document-button" type="button" data-policy-document-open data-policy-document-index="${documentIndex}">Open File</button>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          ` : ""}
           <div class="client-policy-modal-field">
             <span class="client-policy-modal-label">Policy Notes</span>
             <span class="client-policy-modal-value">${escapeHtml(formatValue(policy.policyNotes))}</span>
@@ -4218,7 +5291,7 @@
         return true;
       }
 
-      function deletePolicy(index) {
+      async function deletePolicy(index) {
         const records = loadJson(localStorage, getRecordsStorageKey());
         if (!Array.isArray(records) || index < 0) {
           return false;
@@ -4238,7 +5311,7 @@
           return false;
         }
 
-        policies.splice(index, 1);
+        const removedPolicy = policies.splice(index, 1)[0];
 
         const nextCoverageAmount = policies.reduce(function (total, policy) {
           const amount = Number(String(policy?.faceAmount || "").replace(/,/g, ""));
@@ -4257,22 +5330,42 @@
         records[recordIndex] = nextRecord;
         localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
         Object.assign(record, nextRecord);
+
+        if (removedPolicy?.id) {
+          await deletePolicyDocumentFile(String(record.id || "").trim(), removedPolicy.id);
+        }
+
         return true;
       }
 
-      function deleteCurrentProfile() {
+      async function deleteCurrentProfile() {
         const records = loadJson(localStorage, getRecordsStorageKey());
         if (!Array.isArray(records)) {
           return false;
         }
 
         const currentId = String(record?.id || "").trim();
+        const currentRecord = records.find(function (item) {
+          return String(item?.id || "").trim() === currentId;
+        }) || null;
         const nextRecords = records.filter(function (item) {
           return String(item?.id || "").trim() !== currentId;
         });
 
         if (nextRecords.length === records.length) {
           return false;
+        }
+
+        const policyIds = Array.isArray(currentRecord?.coveragePolicies)
+          ? currentRecord.coveragePolicies.map(function (policy) { return String(policy?.id || "").trim(); }).filter(Boolean)
+          : [];
+
+        if (policyIds.length) {
+          await Promise.all(policyIds.map(function (policyId) {
+            return deletePolicyDocumentFile(currentId, policyId).catch(function () {
+              return false;
+            });
+          }));
         }
 
         localStorage.setItem(getRecordsStorageKey(), JSON.stringify(nextRecords));
@@ -4308,6 +5401,47 @@
             }
           });
         });
+      }
+
+      async function openPolicyDocument(index, documentIndex) {
+        const policies = getCoveragePolicies();
+        const policy = policies[index];
+        const policyDocuments = getPolicyDocumentEntries(policy);
+        if (!policy?.id || !policyDocuments.length) {
+          return;
+        }
+
+        try {
+          const savedDocuments = await getPolicyDocumentFiles(String(record.id || "").trim(), policy.id);
+          const storedFiles = Array.isArray(savedDocuments?.files) ? savedDocuments.files : [];
+          const safeDocumentIndex = Math.max(0, Math.min(storedFiles.length - 1, Number(documentIndex) || 0));
+          const selectedDocument = storedFiles[safeDocumentIndex];
+          const fileBlob = selectedDocument?.file;
+          if (!fileBlob) {
+            window.alert("No saved policy file was found for this policy.");
+            return;
+          }
+
+          const url = URL.createObjectURL(fileBlob);
+          const fileName = selectedDocument?.name || policyDocuments[safeDocumentIndex]?.name || "policy-file";
+          const isZipFile = /\.zip$/i.test(fileName) || String(selectedDocument?.type || "").toLowerCase().includes("zip");
+          const openedWindow = isZipFile ? null : window.open(url, "_blank", "noopener,noreferrer");
+
+          if (!openedWindow) {
+            const downloadLink = document.createElement("a");
+            downloadLink.href = url;
+            downloadLink.download = fileName;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+          }
+
+          window.setTimeout(function () {
+            URL.revokeObjectURL(url);
+          }, 60000);
+        } catch (error) {
+          window.alert("Unable to open the saved policy file right now.");
+        }
       }
 
       function closeStatEditor() {
@@ -4470,6 +5604,12 @@
 
       if (coverageWidgetBack) {
         coverageWidgetBack.addEventListener("click", function () {
+          if (activeCoverageStep > 0) {
+            syncCoverageDraftFromForm();
+            goToCoverageWidgetStep(activeCoverageStep - 1);
+            return;
+          }
+
           closeCoverageWidget({
             reopenPolicy: coverageWidgetReturnIndex >= 0
           });
@@ -4494,12 +5634,31 @@
 
       if (coverageWidget) {
         coverageWidget.addEventListener("click", function (event) {
+          const stepButton = event.target.closest("[data-coverage-step-target]");
+          if (stepButton && coverageWidget.contains(stepButton)) {
+            syncCoverageDraftFromForm();
+            const requestedStep = Number(stepButton.getAttribute("data-coverage-step-target") || "0");
+            if (requestedStep > activeCoverageStep) {
+              const currentStepError = getCoverageDraftValidationError(activeCoverageStep);
+              if (currentStepError) {
+                showCoverageWidgetFeedback(getCoverageWidgetValidationMessage(currentStepError));
+                refreshCoverageWidgetProgress();
+                return;
+              }
+            }
+
+            goToCoverageWidgetStep(requestedStep);
+            return;
+          }
+
           const modeButton = event.target.closest("[data-coverage-mode]");
           if (!modeButton || !coverageWidget.contains(modeButton)) {
             return;
           }
           const nextMode = String(modeButton.getAttribute("data-coverage-mode") || "").trim();
           setCoverageWidgetPremiumMode(nextMode);
+          refreshCoverageWidgetActions();
+          refreshCoverageWidgetProgress();
         });
 
         coverageWidget.addEventListener("beforeinput", function (event) {
@@ -4518,50 +5677,153 @@
           }
         });
 
+        coverageWidget.addEventListener("keydown", function (event) {
+          const input = event.target;
+          if (!(input instanceof HTMLInputElement) || input.name !== "insuredName") {
+            return;
+          }
+
+          if (event.key === "Tab" && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey) {
+            if (acceptCoverageInsuredSuggestion()) {
+              event.preventDefault();
+              window.requestAnimationFrame(function () {
+                const ownerField = coverageWidget?.querySelector('[name="ownerName"]');
+                if (ownerField instanceof HTMLInputElement || ownerField instanceof HTMLSelectElement || ownerField instanceof HTMLTextAreaElement) {
+                  ownerField.focus();
+                }
+              });
+            }
+          }
+        });
+
         coverageWidget.addEventListener("input", function (event) {
           const input = event.target;
           if (!(input instanceof HTMLInputElement)) {
+            if (event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement) {
+              syncCoverageDraftFromField(event.target);
+              refreshCoverageWidgetProgress();
+            }
             return;
           }
 
           if (input.inputMode === "decimal") {
-            input.value = normalizeCurrencyInput(input.value);
+            const rawValue = input.value;
+            syncCoverageDraftFromField(input);
+            input.value = formatCoverageCurrencyEditingInput(rawValue);
+            refreshCoverageInsuredSuggestion();
+            refreshCoverageWidgetProgress();
             return;
           }
 
           if (input.inputMode === "numeric") {
             input.value = String(input.value || "").replace(/\D/g, "");
           }
+
+          syncCoverageDraftFromField(input);
+          if (input.name === "premiumScheduleYears" || input.name === "premiumScheduleMonths") {
+            syncCoveragePremiumScheduleDraft();
+          }
+          refreshCoverageInsuredSuggestion();
+          refreshCoverageWidgetProgress();
         });
 
-        coverageWidget.addEventListener("submit", function (event) {
-          event.preventDefault();
-          if (!coverageWidget.reportValidity()) {
+        coverageWidget.addEventListener("focusout", function (event) {
+          const input = event.target;
+          if (!(input instanceof HTMLInputElement) || input.inputMode !== "decimal") {
             return;
           }
 
-          const formData = new FormData(coverageWidget);
+          syncCoverageDraftFromField(input);
+          input.value = formatCoverageCurrencyInput(input.value);
+        });
+
+        coverageWidget.addEventListener("change", function (event) {
+          const target = event.target;
+          if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLSelectElement)) {
+            return;
+          }
+
+          syncCoverageDraftFromField(target);
+
+          if (target.type === "file") {
+            refreshCoverageWidgetDocumentPreview();
+          }
+
+          if (target.name === "premiumScheduleYears" || target.name === "premiumScheduleMonths") {
+            syncCoveragePremiumScheduleDraft();
+          }
+
+          refreshCoverageInsuredSuggestion();
+          refreshCoverageWidgetProgress();
+        });
+
+        coverageWidget.addEventListener("submit", async function (event) {
+          event.preventDefault();
+          syncCoverageDraftFromForm();
+
+          const finalStepIndex = COVERAGE_WIDGET_STEPS.length - 1;
+          if (activeCoverageStep < finalStepIndex) {
+            const currentStepError = getCoverageDraftValidationError(activeCoverageStep);
+            if (currentStepError) {
+              showCoverageWidgetFeedback(getCoverageWidgetValidationMessage(currentStepError));
+              refreshCoverageWidgetProgress();
+              return;
+            }
+
+            goToCoverageWidgetStep(activeCoverageStep + 1);
+            return;
+          }
+
+          const validationError = getCoverageDraftValidationError();
+          if (validationError) {
+            goToCoverageWidgetStep(validationError.stepIndex, {
+              clearFeedback: false,
+              focusSelector: validationError.focusSelector
+            });
+            showCoverageWidgetFeedback(getCoverageWidgetValidationMessage(validationError));
+            return;
+          }
+
+          const selectedPremiumMode = String(activeCoverageDraft?.premiumMode || "").trim();
+          const steppedPremiumMode = isCoverageSteppedPremiumMode(selectedPremiumMode);
           const policy = {
-            policyCarrier: String(formData.get("policyCarrier") || "").trim(),
-            policyType: String(formData.get("policyType") || "").trim(),
-            insuredName: String(formData.get("insuredName") || "").trim(),
-            ownerName: String(formData.get("ownerName") || "").trim(),
-            faceAmount: normalizeCurrencyInput(formData.get("faceAmount")),
-            premiumAmount: normalizeCurrencyInput(formData.get("premiumAmount")),
-            premiumMode: String(formData.get("premiumMode") || "").trim(),
-            termLength: String(formData.get("termLength") || "").trim(),
-            policyNumber: String(formData.get("policyNumber") || "").trim(),
-            effectiveDate: String(formData.get("effectiveDate") || "").trim(),
-            underwritingClass: String(formData.get("underwritingClass") || "").trim(),
-            beneficiaryName: String(formData.get("beneficiaryName") || "").trim(),
-            policyNotes: String(formData.get("policyNotes") || "").trim()
+            policyCarrier: String(activeCoverageDraft?.policyCarrier || "").trim(),
+            policyType: String(activeCoverageDraft?.policyType || "").trim(),
+            insuredName: String(activeCoverageDraft?.insuredName || "").trim(),
+            ownerName: String(activeCoverageDraft?.ownerName || "").trim(),
+            faceAmount: normalizeCoverageCurrencyValue(activeCoverageDraft?.faceAmount),
+            startingPremium: steppedPremiumMode ? normalizeCoverageCurrencyValue(activeCoverageDraft?.startingPremium) : "",
+            premiumAmount: normalizeCoverageCurrencyValue(activeCoverageDraft?.premiumAmount),
+            premiumMode: selectedPremiumMode,
+            premiumScheduleYears: steppedPremiumMode ? String(activeCoverageDraft?.premiumScheduleYears || "").replace(/\D/g, "") : "",
+            premiumScheduleMonths: steppedPremiumMode ? String(activeCoverageDraft?.premiumScheduleMonths || "").replace(/\D/g, "") : "",
+            premiumScheduleDuration: steppedPremiumMode ? String(activeCoverageDraft?.premiumScheduleDuration || "").trim() : "",
+            termLength: isCoveragePermanentPolicyType(activeCoverageDraft?.policyType) ? "Permanent Coverage" : String(activeCoverageDraft?.termLength || "").trim(),
+            policyNumber: String(activeCoverageDraft?.policyNumber || "").trim(),
+            effectiveDate: String(activeCoverageDraft?.effectiveDate || "").trim(),
+            underwritingClass: String(activeCoverageDraft?.underwritingClass || "").trim(),
+            beneficiaryName: String(activeCoverageDraft?.beneficiaryName || "").trim(),
+            policyNotes: String(activeCoverageDraft?.policyNotes || "").trim()
           };
 
-          const saveResult = saveCoveragePolicy(String(record.id || "").trim(), policy, activeCoveragePolicyIndex);
+          const selectedPolicyDocuments = activeCoverageDocumentFiles;
+          let saveResult = null;
+
+          try {
+            saveResult = await saveCoveragePolicy(
+              String(record.id || "").trim(),
+              policy,
+              activeCoveragePolicyIndex,
+              selectedPolicyDocuments
+            );
+          } catch (error) {
+            saveResult = {
+              error: "Unable to save the policy file right now."
+            };
+          }
+
           if (!saveResult || saveResult.error) {
-            if (coverageWidgetFeedback) {
-              coverageWidgetFeedback.textContent = saveResult?.error || "Unable to save this policy.";
-            }
+            showCoverageWidgetFeedback(saveResult?.error || "Unable to save this policy.");
             return;
           }
 
@@ -4589,11 +5851,11 @@
       }
 
       if (policyDeleteConfirm) {
-        policyDeleteConfirm.addEventListener("click", function () {
+        policyDeleteConfirm.addEventListener("click", async function () {
           if (activePolicyIndex < 0) {
             return;
           }
-          const wasDeleted = deletePolicy(activePolicyIndex);
+          const wasDeleted = await deletePolicy(activePolicyIndex);
           if (!wasDeleted) {
             closePolicyDeleteModal();
             return;
@@ -4611,8 +5873,8 @@
       }
 
       if (profileDeleteConfirm) {
-        profileDeleteConfirm.addEventListener("click", function () {
-          const wasDeleted = deleteCurrentProfile();
+        profileDeleteConfirm.addEventListener("click", async function () {
+          const wasDeleted = await deleteCurrentProfile();
           closeProfileDeleteModal();
           if (!wasDeleted) {
             return;
@@ -4786,6 +6048,15 @@
         const activityDeleteToggle = event.target.closest("[data-activity-delete-toggle]");
         if (activityDeleteToggle && host.contains(activityDeleteToggle)) {
           openActivityDeleteModal();
+          return;
+        }
+
+        const policyDocumentOpen = event.target.closest("[data-policy-document-open]");
+        if (policyDocumentOpen && host.contains(policyDocumentOpen)) {
+          if (activePolicyIndex >= 0) {
+            openPolicyDocument(activePolicyIndex, Number(policyDocumentOpen.getAttribute("data-policy-document-index") || "0"));
+          }
+          return;
         }
       });
 
