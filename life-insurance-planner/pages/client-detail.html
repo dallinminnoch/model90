@@ -129,6 +129,22 @@
         }).format(safeNumber);
       }
 
+      function formatCompactCurrencyTotal(value) {
+        const number = Number(value);
+        const safeNumber = Number.isFinite(number) ? number : 0;
+        const absolute = Math.abs(safeNumber);
+
+        if (absolute >= 1000000) {
+          return `$${(safeNumber / 1000000).toFixed(absolute >= 10000000 ? 0 : 1).replace(/\.0$/, "")}M`;
+        }
+
+        if (absolute >= 1000) {
+          return `$${(safeNumber / 1000).toFixed(absolute >= 100000 ? 0 : 1).replace(/\.0$/, "")}k`;
+        }
+
+        return formatCurrencyTotal(safeNumber);
+      }
+
       function parseCurrencyNumber(value) {
         const number = Number(String(value || "").replace(/[^0-9.-]/g, ""));
         return Number.isFinite(number) ? number : 0;
@@ -1168,39 +1184,119 @@
           .map(function (entry) { return `${entry[0]} ${entry[1]}`; })
           .join(" | ") || "Not provided";
 
+        const sortedTypeEntries = Array.from(typeCounts.entries()).sort(function (a, b) {
+          return b[1] - a[1];
+        });
+        const sortedModeEntries = Array.from(modeCounts.entries()).sort(function (a, b) {
+          return b[1] - a[1];
+        });
+        const featuredPolicyIndex = policies.length ? policies.length - 1 : -1;
+        const featuredPolicy = featuredPolicyIndex >= 0 ? policies[featuredPolicyIndex] : null;
+        const featuredCarrier = formatValue(featuredPolicy?.policyCarrier);
+        const featuredType = formatValue(featuredPolicy?.policyType);
+        const featuredPolicyNumber = featuredPolicy ? formatValue(featuredPolicy.policyNumber || `#${featuredPolicyIndex + 1}`) : "Not provided";
+        const featuredTermLength = featuredPolicy ? getPolicyTermLengthDisplay(featuredPolicy) : "Not provided";
+        const featuredMetaParts = [];
+        const latestEffectiveDateDisplay = latestEffectiveDate
+          ? formatDate(new Date(latestEffectiveDate).toISOString().slice(0, 10))
+          : "Not provided";
+        const primaryModeLabel = sortedModeEntries.length ? sortedModeEntries[0][0] : "";
+        const summaryTitle = policies.length ? "Coverage mix on file" : "Coverage summary incomplete";
+        const summaryCopy = policies.length
+          ? `${typeSummary}${latestEffectiveDateDisplay !== "Not provided" ? ` · Latest effective ${latestEffectiveDateDisplay}` : ""}`
+          : "Add the first placed policy to populate this summary.";
+        const canAddPolicy = policies.length < 30;
+        const canViewAll = policies.length > 0;
+
+        if (featuredType !== "Not provided") {
+          featuredMetaParts.push(featuredType);
+        }
+
+        if (featuredTermLength !== "Not provided" && featuredTermLength !== "Permanent Coverage") {
+          featuredMetaParts.push(featuredTermLength);
+        }
+
+        if (featuredPolicyNumber !== "Not provided") {
+          featuredMetaParts.push(`Policy ${featuredPolicyNumber}`);
+        }
+
+        const featuredMeta = featuredMetaParts.join(" · ") || "Saved coverage record";
+        const coverageChips = [
+          policies.length ? `${policies.length} ${policies.length === 1 ? "policy" : "policies"} placed` : "",
+          primaryModeLabel ? `${primaryModeLabel} mode` : "",
+          latestEffectiveDateDisplay !== "Not provided" ? `Eff. ${latestEffectiveDateDisplay}` : ""
+        ].filter(Boolean);
+
         return `
           <section class="client-detail-card client-detail-card-compact client-coverage-breakdown-card" data-coverage-breakdown-card>
-            <div class="client-detail-card-header">
-              <h2>Coverage Breakdown Summary</h2>
+            <div class="client-coverage-breakdown-shell">
+              <div class="client-detail-card-header client-coverage-breakdown-header">
+                <h2>Coverage Breakdown Summary</h2>
+                <button
+                  class="client-coverage-breakdown-add${canAddPolicy ? "" : " is-disabled"}"
+                  type="button"
+                  data-coverage-add-open
+                  ${canAddPolicy ? "" : "disabled"}
+                >${escapeHtml(canAddPolicy ? "+ Add Policy" : "Policy Limit Reached")}</button>
+              </div>
+              <div class="client-coverage-breakdown-metrics">
+                <div class="client-coverage-breakdown-metric">
+                  <span class="client-coverage-breakdown-metric-label">Total Face Amount</span>
+                  <strong class="client-coverage-breakdown-metric-value">${escapeHtml(formatCompactCurrencyTotal(totalFaceAmount))}</strong>
+                  <span class="client-coverage-breakdown-metric-meta">${escapeHtml(policies.length ? `${policies.length} ${policies.length === 1 ? "policy" : "policies"} in force` : "No policies in force")}</span>
+                </div>
+                <div class="client-coverage-breakdown-metric">
+                  <span class="client-coverage-breakdown-metric-label">Total Premium</span>
+                  <strong class="client-coverage-breakdown-metric-value">${escapeHtml(formatCurrencyTotal(totalPremium))}</strong>
+                  <span class="client-coverage-breakdown-metric-meta">${escapeHtml(modeSummary !== "Not provided" ? modeSummary : "Premium mode pending")}</span>
+                </div>
+              </div>
+              <div class="client-coverage-breakdown-content">
+                <div class="client-coverage-breakdown-section-heading">Policies Placed</div>
+                ${featuredPolicy ? `
+                  <button
+                    class="client-coverage-breakdown-feature"
+                    type="button"
+                    data-coverage-policy-card
+                    data-policy-index="${featuredPolicyIndex}"
+                    aria-label="Open ${escapeHtml(featuredCarrier)} policy details"
+                  >
+                    <div class="client-coverage-breakdown-feature-copy">
+                      <div class="client-coverage-breakdown-feature-title">
+                        <span class="client-coverage-breakdown-feature-dot" aria-hidden="true"></span>
+                        <strong>${escapeHtml(featuredCarrier)}</strong>
+                      </div>
+                      <span>${escapeHtml(featuredMeta)}</span>
+                    </div>
+                    <span class="client-coverage-breakdown-feature-value">${escapeHtml(formatCurrency(featuredPolicy.faceAmount))}</span>
+                  </button>
+                ` : `
+                  <div class="client-coverage-breakdown-empty">
+                    No placed policies saved to this profile yet.
+                  </div>
+                `}
+                ${coverageChips.length ? `
+                  <div class="client-coverage-breakdown-chip-row">
+                    ${coverageChips.map(function (chip) {
+                      return `<span class="client-coverage-breakdown-chip">${escapeHtml(chip)}</span>`;
+                    }).join("")}
+                  </div>
+                ` : ""}
+                <div class="client-coverage-breakdown-status${policies.length ? "" : " is-empty"}">
+                  <span class="client-coverage-breakdown-status-icon" aria-hidden="true"></span>
+                  <div class="client-coverage-breakdown-status-copy">
+                    <strong>${escapeHtml(summaryTitle)}</strong>
+                    <span>${escapeHtml(summaryCopy)}</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="client-coverage-breakdown-grid">
-              <div class="client-summary-item">
-                <span class="client-summary-label">Policies Placed</span>
-                <span class="client-summary-value">${escapeHtml(String(policies.length))}</span>
-              </div>
-              <div class="client-summary-item">
-                <span class="client-summary-label">Total Face Amount</span>
-                <span class="client-summary-value">${escapeHtml(formatCurrencyTotal(totalFaceAmount))}</span>
-              </div>
-              <div class="client-summary-item">
-                <span class="client-summary-label">Total Premium</span>
-                <span class="client-summary-value">${escapeHtml(formatCurrencyTotal(totalPremium))}</span>
-              </div>
-              <div class="client-summary-item">
-                <span class="client-summary-label">Latest Effective</span>
-                <span class="client-summary-value">${escapeHtml(latestEffectiveDate ? formatDate(new Date(latestEffectiveDate).toISOString().slice(0, 10)) : "Not provided")}</span>
-              </div>
-            </div>
-            <div class="client-coverage-breakdown-lines">
-              <div class="client-coverage-breakdown-line">
-                <span>Policy Types</span>
-                <strong>${escapeHtml(typeSummary)}</strong>
-              </div>
-              <div class="client-coverage-breakdown-line">
-                <span>Premium Modes</span>
-                <strong>${escapeHtml(modeSummary)}</strong>
-              </div>
-            </div>
+            <button
+              class="client-coverage-breakdown-view-all${canViewAll ? " is-active" : ""}"
+              type="button"
+              data-view-all-policies
+              ${canViewAll ? "" : "disabled"}
+            >View all coverage <span aria-hidden="true">→</span></button>
           </section>
         `;
       }
@@ -1273,6 +1369,64 @@
         }
 
         return "Lower apparent risk";
+      }
+
+      function getLatestProtectionModelingData(record) {
+        const modelingEntries = Array.isArray(record.protectionModelingEntries) && record.protectionModelingEntries.length
+          ? record.protectionModelingEntries
+          : (record.protectionModeling ? [record.protectionModeling] : []);
+        const latestModeling = modelingEntries[modelingEntries.length - 1] || {};
+        return latestModeling.data || {};
+      }
+
+      function getProfileHealthRating(record) {
+        const policies = Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
+        const latestRatedPolicy = policies.slice().reverse().find(function (policy) {
+          return Boolean(String(policy?.underwritingClass || "").trim());
+        });
+        if (latestRatedPolicy) {
+          return formatValue(latestRatedPolicy.underwritingClass);
+        }
+        return getRiskSummary(record);
+      }
+
+      function getProfileSmokerStatus(record) {
+        if (!record.preliminaryUnderwritingCompleted) {
+          return "Awaiting underwriting";
+        }
+
+        const nicotineStatus = String(record.preliminaryUnderwriting?.data?.nicotineUseStatus || "").trim();
+        if (!nicotineStatus) {
+          return "Not modeled";
+        }
+
+        const normalized = nicotineStatus.toLowerCase();
+        if (normalized.includes("former")) {
+          return "Former smoker";
+        }
+        if (normalized.includes("current")) {
+          return "Current smoker";
+        }
+        if (normalized.includes("never") || normalized.includes("non") || normalized === "no") {
+          return "Non-smoker";
+        }
+        return formatValue(nicotineStatus);
+      }
+
+      function getEstimatedAnnualPremiumCapacity(record) {
+        const modelingData = getLatestProtectionModelingData(record);
+        const annualIncome = parseCurrencyNumber(modelingData.annualIncome || modelingData.householdIncome || 0);
+        if (!annualIncome) {
+          return "Not modeled";
+        }
+
+        return formatCurrency(Math.round(annualIncome * 0.05));
+      }
+
+      function filterSnapshotItems(items) {
+        return items.filter(function (item) {
+          return String(item?.value || "").trim() !== "Not provided";
+        });
       }
 
       function renderPlanningCard(title, items, className) {
@@ -2800,23 +2954,15 @@
                   </div>
                 </div>
               </section>
-              ${renderSplitSummaryCard("Profile Snapshot", [
-                { label: "First Name", value: formatValue(record.firstName) },
-                { label: "Middle Name", value: formatValue(record.middleName) },
-                { label: "Last Name", value: formatValue(record.lastName) },
-                { label: "Preferred Name", value: formatValue(record.preferredName) },
+              ${renderSplitSummaryCard("Profile Snapshot", filterSnapshotItems([
                 { label: "Date of Birth", value: formatDate(record.dateOfBirth) },
                 { label: "Age", value: formatValue(record.age) },
-                { label: "Insurance Rating Sex", value: formatValue(record.insuranceRatingSex) },
-                { label: "Spouse/Partner Date of Birth", value: formatDate(record.spouseDateOfBirth) },
-                { label: "Spouse/Partner Age", value: formatValue(record.spouseAge) }
-              ], [
-                { label: "Street Address", value: formatValue(record.streetAddress) },
-                { label: "City", value: formatValue(record.city) },
-                { label: "State", value: formatValue(record.state) },
-                { label: "ZIP Code", value: formatValue(record.zipCode) },
-                { label: "Country", value: formatValue(record.country) }
-              ], {
+                { label: "Insurance Rating Sex", value: formatValue(record.insuranceRatingSex) }
+              ]), filterSnapshotItems([
+                { label: "Health Rating", value: getProfileHealthRating(record) },
+                { label: "Smoker Status", value: getProfileSmokerStatus(record) },
+                { label: "Est. Annual Premium Capacity", value: getEstimatedAnnualPremiumCapacity(record) }
+              ]), {
                 cardClassName: "client-profile-snapshot-card",
                 footerAction: `
                   <button class="client-policy-delete-button client-profile-delete-button" type="button" data-profile-delete-toggle aria-label="Delete profile">
