@@ -150,6 +150,817 @@
         return Number.isFinite(number) ? number : 0;
       }
 
+      function getCoverageAnnualPremiumMultiplier(mode) {
+        const normalized = String(mode || "").trim().toLowerCase();
+
+        if (normalized === "monthly") {
+          return 12;
+        }
+
+        if (normalized === "quarterly") {
+          return 4;
+        }
+
+        if (normalized === "semi-annual") {
+          return 2;
+        }
+
+        if (normalized === "annual") {
+          return 1;
+        }
+
+        if (normalized === "single premium") {
+          return 1;
+        }
+
+        return 0;
+      }
+
+      function getCoveragePremiumScheduleLabel(mode) {
+        const normalized = String(mode || "").trim().toLowerCase();
+
+        if (normalized === "monthly") {
+          return "paid monthly";
+        }
+
+        if (normalized === "quarterly") {
+          return "paid quarterly";
+        }
+
+        if (normalized === "semi-annual") {
+          return "paid semi-annually";
+        }
+
+        if (normalized === "annual") {
+          return "paid annually";
+        }
+
+        if (normalized === "single premium") {
+          return "single premium";
+        }
+
+        if (normalized === "flexible premium") {
+          return "flexible premium";
+        }
+
+        if (normalized === "graded premium") {
+          return "graded premium";
+        }
+
+        if (normalized === "modified premium") {
+          return "modified premium";
+        }
+
+        return "premium type pending";
+      }
+
+      function getCoveragePolicyReferenceLabel(policy, index) {
+        const policyNumber = formatValue(policy && policy.policyNumber);
+        if (policyNumber !== "Not provided") {
+          return `Policy ${policyNumber}`;
+        }
+
+        return `Policy ${index + 1}`;
+      }
+
+      function getCoverageAnnualPremiumSummary(policies) {
+        const summaryPolicies = Array.isArray(policies) ? policies : [];
+        const details = summaryPolicies.map(function (policy, index) {
+          const premiumAmount = parseCurrencyNumber(policy && policy.premiumAmount);
+          const annualMultiplier = getCoverageAnnualPremiumMultiplier(policy && policy.premiumMode);
+          const annualizedAmount = annualMultiplier > 0 ? premiumAmount * annualMultiplier : 0;
+
+          return {
+            annualizedAmount,
+            hasAnnualizedAmount: annualMultiplier > 0 && premiumAmount > 0,
+            scheduleLine: `${getCoveragePolicyReferenceLabel(policy, index)} ${getCoveragePremiumScheduleLabel(policy && policy.premiumMode)}`
+          };
+        });
+
+        return {
+          total: details.reduce(function (sum, detail) {
+            return sum + detail.annualizedAmount;
+          }, 0),
+          hasAnnualizedAmount: details.some(function (detail) {
+            return detail.hasAnnualizedAmount;
+          }),
+          scheduleLines: details.map(function (detail) {
+            return detail.scheduleLine;
+          })
+        };
+      }
+
+      function addCoverageDateOffset(dateString, years, months) {
+        const normalizedDate = String(dateString || "").trim();
+        if (!normalizedDate) {
+          return "";
+        }
+
+        const baseDate = new Date(`${normalizedDate}T00:00:00`);
+        if (Number.isNaN(baseDate.getTime())) {
+          return "";
+        }
+
+        const safeYears = Number(String(years || "").replace(/\D/g, "")) || 0;
+        const safeMonths = Number(String(months || "").replace(/\D/g, "")) || 0;
+        baseDate.setFullYear(baseDate.getFullYear() + safeYears);
+        baseDate.setMonth(baseDate.getMonth() + safeMonths);
+
+        return baseDate.toISOString().slice(0, 10);
+      }
+
+      function getCoveragePremiumTimingLabel(mode) {
+        const normalized = String(mode || "").trim().toLowerCase();
+
+        if (normalized === "monthly") {
+          return "Paid monthly";
+        }
+
+        if (normalized === "quarterly") {
+          return "Paid quarterly";
+        }
+
+        if (normalized === "semi-annual") {
+          return "Paid semi-annually";
+        }
+
+        if (normalized === "annual") {
+          return "Paid annually";
+        }
+
+        if (normalized === "single premium") {
+          return "Paid once";
+        }
+
+        if (normalized === "flexible premium") {
+          return "Flexible schedule";
+        }
+
+        if (normalized === "graded premium") {
+          return "Graded premium";
+        }
+
+        if (normalized === "modified premium") {
+          return "Modified premium";
+        }
+
+        return "Premium timing pending";
+      }
+
+      function getPremiumTimelinePolicyStatus(policy) {
+        return String(policy?.effectiveDate || "").trim() ? "In-force" : "Pending";
+      }
+
+      function getCoverageApproxMonthDifference(startDateString, endDateString) {
+        const startDate = new Date(`${String(startDateString || "").trim()}T00:00:00`);
+        const endDate = new Date(`${String(endDateString || "").trim()}T00:00:00`);
+
+        if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime()) || endDate <= startDate) {
+          return 0;
+        }
+
+        return Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30.4375)));
+      }
+
+      function getCoveragePolicyHorizonContext(policy, profileRecord) {
+        const effectiveDate = String(policy?.effectiveDate || "").trim();
+        const termLength = Number(String(policy?.termLength || "").replace(/\D/g, ""));
+
+        if (isCoveragePermanentPolicyType(policy?.policyType)) {
+          const profileBirthDate = String(profileRecord?.dateOfBirth || "").trim();
+          const likelyEndowmentDate = profileBirthDate ? addCoverageDateOffset(profileBirthDate, "121", "0") : "";
+          let totalMonths = effectiveDate && likelyEndowmentDate
+            ? getCoverageApproxMonthDifference(effectiveDate, likelyEndowmentDate)
+            : 0;
+
+          if (!totalMonths) {
+            const insuredAge = getAvatarAge(profileRecord?.age, profileBirthDate);
+            if (insuredAge !== null && insuredAge < 121) {
+              totalMonths = Math.max(12, Math.round((121 - insuredAge) * 12));
+            }
+          }
+
+          if (!totalMonths) {
+            totalMonths = 65 * 12;
+          }
+
+          return {
+            totalMonths,
+            totalYears: Math.max(1, Math.round(totalMonths / 12)),
+            horizonLabel: likelyEndowmentDate ? `Likely endowment ${formatDate(likelyEndowmentDate)}` : "Likely endowment (Age 121)",
+            footerLabel: effectiveDate
+              ? `Issue ${formatDate(effectiveDate)} · ${likelyEndowmentDate ? `Likely endowment ${formatDate(likelyEndowmentDate)}` : "Projected to age 121"}`
+              : "Effective date pending · projected to likely endowment"
+          };
+        }
+
+        const totalMonths = Number.isFinite(termLength) && termLength > 0 ? termLength * 12 : 120;
+        const endDate = effectiveDate && Number.isFinite(termLength) && termLength > 0
+          ? addCoverageDateOffset(effectiveDate, String(termLength), "0")
+          : "";
+
+        return {
+          totalMonths,
+          totalYears: Math.max(1, Math.round(totalMonths / 12)),
+          horizonLabel: endDate ? `Term ends ${formatDate(endDate)}` : (termLength > 0 ? `${termLength} year term` : "Coverage horizon pending"),
+          footerLabel: effectiveDate
+            ? `Issue ${formatDate(effectiveDate)} · ${endDate ? `Term ends ${formatDate(endDate)}` : (termLength > 0 ? `${termLength} year term` : "Term pending")}`
+            : (termLength > 0 ? `${termLength} year term` : "Effective date and term pending")
+        };
+      }
+
+      function getCoveragePremiumTimelineRecurringLabel(policy) {
+        const premiumAmount = formatCurrency(policy?.premiumAmount);
+        const normalizedMode = String(policy?.premiumMode || "").trim().toLowerCase();
+
+        if (normalizedMode === "monthly") {
+          return premiumAmount !== "Not provided" ? `${premiumAmount}/mo` : "Monthly premium";
+        }
+
+        if (normalizedMode === "quarterly") {
+          return premiumAmount !== "Not provided" ? `${premiumAmount}/qtr` : "Quarterly premium";
+        }
+
+        if (normalizedMode === "semi-annual") {
+          return premiumAmount !== "Not provided" ? `${premiumAmount}/6 mo` : "Semi-annual premium";
+        }
+
+        if (normalizedMode === "annual") {
+          return premiumAmount !== "Not provided" ? `${premiumAmount}/yr` : "Annual premium";
+        }
+
+        if (normalizedMode === "single premium") {
+          return premiumAmount !== "Not provided" ? `${premiumAmount} once` : "Single premium";
+        }
+
+        if (normalizedMode === "flexible premium") {
+          return premiumAmount !== "Not provided" ? `${premiumAmount} flexible` : "Flexible premium";
+        }
+
+        return premiumAmount !== "Not provided" ? premiumAmount : "Premium pending";
+      }
+
+      function getCoveragePremiumTimelineVisual(policy, profileRecord) {
+        const horizon = getCoveragePolicyHorizonContext(policy, profileRecord);
+        const totalMonths = Math.max(12, horizon.totalMonths || 12);
+        const paymentBands = [];
+        const markers = [];
+        const premiumAmount = formatCurrency(policy?.premiumAmount);
+        const startingPremium = formatCurrency(policy?.startingPremium);
+        const premiumScheduleDisplay = formatCoveragePremiumSchedule(policy?.premiumScheduleYears, policy?.premiumScheduleMonths);
+
+        if (isCoverageSteppedPremiumMode(policy?.premiumMode)) {
+          const stepParts = getCoveragePremiumScheduleParts(policy);
+          const scheduledMonths = (Number(stepParts.years || 0) * 12) + Number(stepParts.months || 0);
+          const finalPremiumStartPercent = scheduledMonths > 0
+            ? Math.max(8, Math.min(92, (scheduledMonths / totalMonths) * 100))
+            : 42;
+
+          paymentBands.push({
+            label: startingPremium !== "Not provided" ? `Start ${startingPremium}` : "Starting premium",
+            left: 0,
+            width: finalPremiumStartPercent,
+            tone: "soft"
+          });
+
+          paymentBands.push({
+            label: premiumAmount !== "Not provided" ? `Final ${premiumAmount}` : "Final premium",
+            left: finalPremiumStartPercent,
+            width: Math.max(100 - finalPremiumStartPercent, 8),
+            tone: "strong"
+          });
+
+          markers.push({
+            label: premiumScheduleDisplay !== "Not provided" ? `Final after ${premiumScheduleDisplay}` : "Final premium begins",
+            left: finalPremiumStartPercent
+          });
+        } else if (String(policy?.premiumMode || "").trim().toLowerCase() === "single premium") {
+          markers.push({
+            label: getCoveragePremiumTimelineRecurringLabel(policy),
+            left: 4
+          });
+        } else {
+          paymentBands.push({
+            label: getCoveragePremiumTimelineRecurringLabel(policy),
+            left: 0,
+            width: 100,
+            tone: "strong"
+          });
+        }
+
+        const tickPercents = horizon.totalYears >= 12 ? [0, 25, 50, 75, 100] : [0, 50, 100];
+        const seenTickLabels = new Set();
+        const ticks = tickPercents.map(function (percent) {
+          const labelYears = Math.round((horizon.totalYears * percent) / 100);
+          const normalizedLabel = percent === 100 ? horizon.totalYears : labelYears;
+          return {
+            left: percent,
+            label: `Year ${normalizedLabel}`
+          };
+        }).filter(function (tick) {
+          if (seenTickLabels.has(tick.label)) {
+            return false;
+          }
+          seenTickLabels.add(tick.label);
+          return true;
+        });
+
+        return {
+          horizon,
+          paymentBands,
+          markers,
+          ticks
+        };
+      }
+
+      function getCoverageTimelineCurrentAge(profileRecord) {
+        const derivedAge = getAvatarAge(profileRecord?.age, profileRecord?.dateOfBirth);
+        if (derivedAge !== null) {
+          return Math.max(0, derivedAge);
+        }
+
+        const numericAge = Number(profileRecord?.age);
+        if (Number.isFinite(numericAge) && numericAge >= 0) {
+          return Math.round(numericAge);
+        }
+
+        return 0;
+      }
+
+      function getCoverageTimelineDisplayName(profileRecord) {
+        const fullName = [
+          String(profileRecord?.preferredName || profileRecord?.firstName || "").trim(),
+          String(profileRecord?.lastName || "").trim()
+        ].filter(Boolean).join(" ").trim();
+
+        return fullName || String(profileRecord?.displayName || "Client").trim() || "Client";
+      }
+
+      function getCoverageAgeAtDate(dateOfBirthValue, targetDateValue) {
+        const normalizedBirthDate = String(dateOfBirthValue || "").trim();
+        const normalizedTargetDate = String(targetDateValue || "").trim();
+        if (!normalizedBirthDate || !normalizedTargetDate) {
+          return null;
+        }
+
+        const birthDate = new Date(`${normalizedBirthDate}T00:00:00`);
+        const targetDate = new Date(`${normalizedTargetDate}T00:00:00`);
+        if (Number.isNaN(birthDate.getTime()) || Number.isNaN(targetDate.getTime())) {
+          return null;
+        }
+
+        let age = targetDate.getFullYear() - birthDate.getFullYear();
+        const monthDifference = targetDate.getMonth() - birthDate.getMonth();
+        if (monthDifference < 0 || (monthDifference === 0 && targetDate.getDate() < birthDate.getDate())) {
+          age -= 1;
+        }
+
+        return Number.isFinite(age) ? Math.max(0, age) : null;
+      }
+
+      function getCoverageTimelineYearLabel(profileRecord, age) {
+        const birthDateValue = String(profileRecord?.dateOfBirth || "").trim();
+        const birthYear = birthDateValue ? Number(birthDateValue.slice(0, 4)) : NaN;
+        if (Number.isFinite(birthYear)) {
+          return String(birthYear + age);
+        }
+
+        return String(new Date().getFullYear() + (age - getCoverageTimelineCurrentAge(profileRecord)));
+      }
+
+      function getCoverageTimelinePolicyWindow(policy, profileRecord, currentAge) {
+        const policyType = String(policy?.policyType || "").trim();
+        const effectiveDate = String(policy?.effectiveDate || "").trim();
+        const startAgeFromDate = getCoverageAgeAtDate(profileRecord?.dateOfBirth, effectiveDate);
+        const startAge = startAgeFromDate !== null ? startAgeFromDate : currentAge;
+        const permanent = isCoveragePermanentPolicyType(policyType);
+        const numericTermLength = Number(String(policy?.termLength || "").replace(/\D/g, ""));
+        const endAge = permanent
+          ? 121
+          : (Number.isFinite(numericTermLength) && numericTermLength > 0 ? startAge + numericTermLength : startAge + 10);
+        const premiumScheduleParts = getCoveragePremiumScheduleParts(policy);
+        const finalPremiumAge = isCoverageSteppedPremiumMode(policy?.premiumMode)
+          ? startAge + Number(premiumScheduleParts.years || 0) + (Number(premiumScheduleParts.months || 0) / 12)
+          : null;
+
+        return {
+          policy,
+          startAge,
+          endAge,
+          permanent,
+          numericTermLength: Number.isFinite(numericTermLength) ? numericTermLength : 0,
+          finalPremiumAge
+        };
+      }
+
+      function getCoverageTimelineMonthlyValue(policyWindow, age) {
+        const policy = policyWindow?.policy || {};
+        const normalizedMode = String(policy.premiumMode || "").trim().toLowerCase();
+        const steppedPremiumActive = isCoverageSteppedPremiumMode(policy.premiumMode)
+          && policyWindow.finalPremiumAge !== null
+          && age < policyWindow.finalPremiumAge
+          && parseCurrencyNumber(policy.startingPremium) > 0;
+        const rawAmount = steppedPremiumActive
+          ? parseCurrencyNumber(policy.startingPremium)
+          : parseCurrencyNumber(policy.premiumAmount);
+
+        if (!rawAmount) {
+          return 0;
+        }
+
+        if (normalizedMode === "monthly") {
+          return rawAmount;
+        }
+
+        if (normalizedMode === "quarterly") {
+          return rawAmount / 3;
+        }
+
+        if (normalizedMode === "semi-annual") {
+          return rawAmount / 6;
+        }
+
+        if (normalizedMode === "annual") {
+          return rawAmount / 12;
+        }
+
+        if (normalizedMode === "single premium") {
+          return 0;
+        }
+
+        return rawAmount / 12;
+      }
+
+      function getCoverageTimelinePaymentLabel(policyWindow, age) {
+        const policy = policyWindow?.policy || {};
+        const normalizedMode = String(policy.premiumMode || "").trim().toLowerCase();
+        const steppedPremiumActive = isCoverageSteppedPremiumMode(policy.premiumMode)
+          && policyWindow.finalPremiumAge !== null
+          && age < policyWindow.finalPremiumAge
+          && parseCurrencyNumber(policy.startingPremium) > 0;
+        const displayAmount = steppedPremiumActive
+          ? formatCurrency(policy.startingPremium)
+          : formatCurrency(policy.premiumAmount);
+
+        if (normalizedMode === "monthly") {
+          return displayAmount !== "Not provided" ? `${displayAmount}/mo` : "Monthly";
+        }
+
+        if (normalizedMode === "quarterly") {
+          return displayAmount !== "Not provided" ? `${displayAmount}/qtr` : "Quarterly";
+        }
+
+        if (normalizedMode === "semi-annual") {
+          return displayAmount !== "Not provided" ? `${displayAmount}/6 mo` : "Semi-Annual";
+        }
+
+        if (normalizedMode === "annual") {
+          return displayAmount !== "Not provided" ? `${displayAmount}/yr` : "Annual";
+        }
+
+        if (normalizedMode === "single premium") {
+          return displayAmount !== "Not provided" ? `${displayAmount} once` : "Single premium";
+        }
+
+        if (normalizedMode === "graded premium" || normalizedMode === "modified premium") {
+          return displayAmount !== "Not provided" ? displayAmount : formatValue(policy.premiumMode);
+        }
+
+        if (normalizedMode === "flexible premium") {
+          return displayAmount !== "Not provided" ? `${displayAmount} flexible` : "Flexible premium";
+        }
+
+        return displayAmount !== "Not provided" ? displayAmount : "Premium pending";
+      }
+
+      function isCoverageTimelineWindowActiveAtAge(policyWindow, age) {
+        return age >= policyWindow.startAge && age <= policyWindow.endAge;
+      }
+
+      function getCoverageTimelineGapAge(policyWindows, currentAge) {
+        const candidateEndAges = Array.from(new Set(policyWindows.map(function (policyWindow) {
+          return Math.round(policyWindow.endAge * 100) / 100;
+        }))).sort(function (a, b) {
+          return a - b;
+        });
+
+        for (let index = 0; index < candidateEndAges.length; index += 1) {
+          const candidateAge = candidateEndAges[index];
+          if (candidateAge < currentAge) {
+            continue;
+          }
+
+          const hasCoverageAfterCandidate = policyWindows.some(function (policyWindow) {
+            return isCoverageTimelineWindowActiveAtAge(policyWindow, candidateAge + 0.01);
+          });
+
+          if (!hasCoverageAfterCandidate) {
+            return Math.round(candidateAge);
+          }
+        }
+
+        return null;
+      }
+
+      function roundCoverageTimelineAge(value, step) {
+        const safeStep = Math.max(1, Number(step) || 1);
+        return Math.ceil(Number(value || 0) / safeStep) * safeStep;
+      }
+
+      function addCoverageTimelineAgeCandidate(ageBucket, candidateAge, currentAge, horizonAge) {
+        const roundedAge = Math.round(Number(candidateAge));
+        if (!Number.isFinite(roundedAge)) {
+          return;
+        }
+
+        if (roundedAge <= currentAge || roundedAge >= horizonAge) {
+          return;
+        }
+
+        if (ageBucket.some(function (existingAge) {
+          return Math.abs(existingAge - roundedAge) <= 3;
+        })) {
+          return;
+        }
+
+        ageBucket.push(roundedAge);
+      }
+
+      function getCoverageTimelineContext(policies, profileRecord) {
+        const currentAge = getCoverageTimelineCurrentAge(profileRecord);
+        const policyWindows = policies.map(function (policy) {
+          return getCoverageTimelinePolicyWindow(policy, profileRecord, currentAge);
+        });
+        const hasPermanentCoverage = policyWindows.some(function (policyWindow) {
+          return policyWindow.permanent;
+        });
+        const earliestExpiryWindow = policyWindows
+          .filter(function (policyWindow) {
+            return policyWindow.endAge >= currentAge;
+          })
+          .sort(function (a, b) {
+            return a.endAge - b.endAge;
+          })[0] || null;
+        const gapAge = hasPermanentCoverage ? null : getCoverageTimelineGapAge(policyWindows, currentAge);
+        const horizonAge = hasPermanentCoverage
+          ? 121
+          : roundCoverageTimelineAge(Math.max(80, (gapAge || (earliestExpiryWindow ? earliestExpiryWindow.endAge : currentAge + 15)) + 16), 5);
+        const currentMonthlyOutlay = policyWindows.reduce(function (sum, policyWindow) {
+          return sum + (isCoverageTimelineWindowActiveAtAge(policyWindow, currentAge)
+            ? getCoverageTimelineMonthlyValue(policyWindow, currentAge)
+            : 0);
+        }, 0);
+        const annualizedCurrentOutlay = currentMonthlyOutlay * 12;
+        const maxTimelineColumns = 7;
+        const timelineAges = [currentAge];
+        const importantAges = [
+          earliestExpiryWindow ? Math.round(earliestExpiryWindow.endAge) : null,
+          gapAge
+        ].filter(function (age) {
+          return age !== null && age > currentAge && age < horizonAge;
+        });
+
+        importantAges.forEach(function (age) {
+          addCoverageTimelineAgeCandidate(timelineAges, age, currentAge, horizonAge);
+        });
+
+        const coverageSpan = horizonAge - currentAge;
+        const prioritizedAges = [
+          currentAge + 5,
+          currentAge + 10,
+          currentAge + (coverageSpan * 0.35),
+          currentAge + (coverageSpan * 0.55),
+          horizonAge - 20,
+          horizonAge - 10
+        ];
+
+        prioritizedAges.forEach(function (age) {
+          if (timelineAges.length >= maxTimelineColumns - 1) {
+            return;
+          }
+
+          addCoverageTimelineAgeCandidate(timelineAges, age, currentAge, horizonAge);
+        });
+
+        if (timelineAges.length < maxTimelineColumns - 1) {
+          Array.from({ length: maxTimelineColumns - 2 }, function (_value, index) {
+            return currentAge + (((horizonAge - currentAge) * (index + 1)) / (maxTimelineColumns - 1));
+          }).forEach(function (age) {
+            if (timelineAges.length >= maxTimelineColumns - 1) {
+              return;
+            }
+
+            addCoverageTimelineAgeCandidate(timelineAges, age, currentAge, horizonAge);
+          });
+        }
+
+        timelineAges.push(horizonAge);
+        timelineAges.sort(function (a, b) {
+          return a - b;
+        });
+
+        return {
+          displayName: getCoverageTimelineDisplayName(profileRecord),
+          currentAge,
+          horizonAge,
+          timelineAges,
+          policyWindows,
+          hasPermanentCoverage,
+          earliestExpiryWindow,
+          gapAge,
+          currentMonthlyOutlay,
+          annualizedCurrentOutlay
+        };
+      }
+
+      function getCoverageTimelineSnapshot(age, context, profileRecord) {
+        const activeWindows = context.policyWindows.filter(function (policyWindow) {
+          return isCoverageTimelineWindowActiveAtAge(policyWindow, age);
+        });
+        const totalFaceAmount = activeWindows.reduce(function (sum, policyWindow) {
+          return sum + parseCurrencyNumber(policyWindow.policy.faceAmount);
+        }, 0);
+        const totalMonthlyOutlay = activeWindows.reduce(function (sum, policyWindow) {
+          return sum + getCoverageTimelineMonthlyValue(policyWindow, age);
+        }, 0);
+        const expiringWindows = activeWindows.filter(function (policyWindow) {
+          return Math.round(policyWindow.endAge) === age;
+        });
+        const status = activeWindows.length === 0
+          ? "projected"
+          : (age === context.currentAge
+            ? "inforce"
+            : (expiringWindows.length ? "expiring" : "active"));
+        const primaryWindow = activeWindows[0] || null;
+        const displayYear = getCoverageTimelineYearLabel(profileRecord, age);
+        const title = activeWindows.length === 0
+          ? "No coverage"
+          : (activeWindows.length === 1
+            ? `${formatValue(primaryWindow.policy.policyCarrier)} ${formatValue(primaryWindow.policy.policyType)}`
+            : `${activeWindows.length} policies active`);
+        const amountLabel = activeWindows.length === 0
+          ? "—"
+          : (activeWindows.length === 1
+            ? getCoverageTimelinePaymentLabel(primaryWindow, age)
+            : (totalMonthlyOutlay > 0 ? `${formatCurrencyTotal(totalMonthlyOutlay)}/mo` : "Mixed schedules"));
+        const secondaryLine = activeWindows.length === 0
+          ? (context.gapAge !== null && age >= context.gapAge ? "Gap period" : "Planning horizon")
+          : `${formatCompactCurrencyTotal(totalFaceAmount)} face`;
+
+        let tertiaryLine = "";
+        if (activeWindows.length === 0) {
+          tertiaryLine = age === context.horizonAge ? "Projected horizon" : "No active policy at this age";
+        } else if (activeWindows.length === 1 && primaryWindow) {
+          if (status === "expiring") {
+            tertiaryLine = "Policy expires";
+          } else if (primaryWindow.permanent) {
+            tertiaryLine = "Permanent coverage";
+          } else if (primaryWindow.numericTermLength > 0) {
+            const policyYear = Math.max(1, Math.min(primaryWindow.numericTermLength, Math.round(age - primaryWindow.startAge) + 1));
+            tertiaryLine = `Yr ${policyYear} of ${primaryWindow.numericTermLength}`;
+          } else {
+            tertiaryLine = getCoveragePremiumTimingLabel(primaryWindow.policy.premiumMode);
+          }
+        } else {
+          tertiaryLine = `${activeWindows.length} policies active`;
+        }
+
+        const badgeText = status === "inforce"
+          ? "In Force"
+          : status === "expiring"
+            ? "Term End"
+            : status === "active"
+              ? "Continuing"
+              : "Projected";
+
+        return {
+          age,
+          displayYear,
+          isCurrent: age === context.currentAge,
+          status,
+          title,
+          amountLabel,
+          secondaryLine,
+          tertiaryLine,
+          badgeText
+        };
+      }
+
+      function renderPremiumTimelineModalSummary(policies, profileRecord) {
+        const context = getCoverageTimelineContext(policies, profileRecord);
+        const coverageExpiresValue = context.hasPermanentCoverage
+          ? "Age 121"
+          : (context.earliestExpiryWindow ? `Age ${Math.round(context.earliestExpiryWindow.endAge)}` : "Pending");
+        const coverageExpiresMeta = context.hasPermanentCoverage
+          ? "Likely endowment"
+          : (context.earliestExpiryWindow
+            ? `${formatValue(context.earliestExpiryWindow.policy.policyCarrier)} ${formatValue(context.earliestExpiryWindow.policy.policyType)} end`
+            : "No expiry date saved");
+        const coverageGapValue = context.gapAge !== null ? `Age ${context.gapAge}+` : "None projected";
+        const coverageGapMeta = context.gapAge !== null
+          ? "No permanent coverage"
+          : (context.hasPermanentCoverage ? "Protected to likely endowment" : "No immediate gap detected");
+
+        const summaryCards = [
+          {
+            label: "Current Age",
+            value: String(context.currentAge),
+            meta: String(profileRecord?.dateOfBirth || "").trim() ? `Born ${formatDate(profileRecord.dateOfBirth)}` : "Date of birth not provided"
+          },
+          {
+            label: "Monthly Outlay",
+            value: context.currentMonthlyOutlay > 0 ? formatCurrencyTotal(context.currentMonthlyOutlay) : "Varies",
+            meta: context.currentMonthlyOutlay > 0 ? `${formatCurrencyTotal(context.annualizedCurrentOutlay)} / year` : "Based on saved premium modes"
+          },
+          {
+            label: "Coverage Expires",
+            value: coverageExpiresValue,
+            meta: coverageExpiresMeta
+          },
+          {
+            label: "Coverage Gap",
+            value: coverageGapValue,
+            meta: coverageGapMeta
+          }
+        ];
+
+        return `
+          <div class="client-premium-timeline-topbar">
+            <div class="client-premium-timeline-context">${escapeHtml(`${context.displayName} · Age ${context.currentAge} - ${context.horizonAge} · ${policies.length === 1 ? "1 policy" : "All policies"}`)}</div>
+            <div class="client-premium-timeline-legend">
+              <span class="client-premium-timeline-legend-item"><span class="client-premium-timeline-legend-dot is-inforce"></span>In force</span>
+              <span class="client-premium-timeline-legend-item"><span class="client-premium-timeline-legend-dot is-active"></span>Active</span>
+              <span class="client-premium-timeline-legend-item"><span class="client-premium-timeline-legend-dot is-expiring"></span>Expiring</span>
+              <span class="client-premium-timeline-legend-item"><span class="client-premium-timeline-legend-dot is-projected"></span>Projected</span>
+            </div>
+          </div>
+          <div class="client-premium-timeline-summary-grid">
+            ${summaryCards.map(function (card) {
+              return `
+                <div class="client-premium-timeline-summary-card">
+                  <span class="client-premium-timeline-summary-label">${escapeHtml(card.label)}</span>
+                  <strong class="client-premium-timeline-summary-value">${escapeHtml(card.value)}</strong>
+                  <span class="client-premium-timeline-summary-meta">${escapeHtml(card.meta)}</span>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      }
+
+      function renderPremiumTimelineModalBody(policies, profileRecord) {
+        const context = getCoverageTimelineContext(policies, profileRecord);
+        const snapshots = context.timelineAges.map(function (age) {
+          return getCoverageTimelineSnapshot(age, context, profileRecord);
+        });
+        const alertTitle = context.gapAge !== null
+          ? `Coverage gap detected at age ${context.gapAge}`
+          : "Coverage continues through the timeline";
+        const alertCopy = context.gapAge !== null
+          ? "Placed coverage ends without permanent protection in force. Consider adding permanent coverage before the renewal window closes."
+          : (context.hasPermanentCoverage
+            ? "Permanent coverage is in place, so the protection timeline runs through likely endowment."
+            : "No immediate coverage gap is projected from the policies saved on this profile.");
+
+        return `
+          <div class="client-premium-timeline-board-shell">
+            <div class="client-premium-timeline-board" style="--timeline-columns:${snapshots.length};">
+              <div class="client-premium-timeline-age-row">
+                ${snapshots.map(function (snapshot) {
+                  return `<span class="client-premium-timeline-age-label">${escapeHtml(`Age ${snapshot.age}${snapshot.isCurrent ? " · Today" : ""}`)}</span>`;
+                }).join("")}
+              </div>
+              <div class="client-premium-timeline-node-row">
+                ${snapshots.map(function (snapshot) {
+                  return `<span class="client-premium-timeline-node is-${snapshot.status}" aria-hidden="true"></span>`;
+                }).join("")}
+              </div>
+              <div class="client-premium-timeline-card-row">
+                ${snapshots.map(function (snapshot) {
+                  return `
+                    <article class="client-premium-timeline-snapshot-card is-${snapshot.status}">
+                      <span class="client-premium-timeline-snapshot-age">${escapeHtml(`${snapshot.displayYear} · Age ${snapshot.age}`)}</span>
+                      <strong class="client-premium-timeline-snapshot-title">${escapeHtml(snapshot.title)}</strong>
+                      <strong class="client-premium-timeline-snapshot-amount">${escapeHtml(snapshot.amountLabel)}</strong>
+                      <span class="client-premium-timeline-snapshot-meta">${escapeHtml(snapshot.secondaryLine)}</span>
+                      <span class="client-premium-timeline-snapshot-detail">${escapeHtml(snapshot.tertiaryLine)}</span>
+                      <span class="client-premium-timeline-snapshot-status">${escapeHtml(snapshot.badgeText)}</span>
+                    </article>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          </div>
+          <section class="client-premium-timeline-alert${context.gapAge !== null ? " is-gap" : ""}">
+            <span class="client-premium-timeline-alert-icon" aria-hidden="true"></span>
+            <div class="client-premium-timeline-alert-copy">
+              <strong>${escapeHtml(alertTitle)}</strong>
+              <span>${escapeHtml(alertCopy)}</span>
+            </div>
+          </section>
+        `;
+      }
+
       function formatValue(value) {
         if (value === null || value === undefined) {
           return "Not provided";
@@ -1184,9 +1995,6 @@
           .map(function (entry) { return `${entry[0]} ${entry[1]}`; })
           .join(" | ") || "Not provided";
 
-        const sortedTypeEntries = Array.from(typeCounts.entries()).sort(function (a, b) {
-          return b[1] - a[1];
-        });
         const sortedModeEntries = Array.from(modeCounts.entries()).sort(function (a, b) {
           return b[1] - a[1];
         });
@@ -1195,7 +2003,6 @@
         const featuredCarrier = formatValue(featuredPolicy?.policyCarrier);
         const featuredType = formatValue(featuredPolicy?.policyType);
         const featuredPolicyNumber = featuredPolicy ? formatValue(featuredPolicy.policyNumber || `#${featuredPolicyIndex + 1}`) : "Not provided";
-        const featuredTermLength = featuredPolicy ? getPolicyTermLengthDisplay(featuredPolicy) : "Not provided";
         const featuredMetaParts = [];
         const latestEffectiveDateDisplay = latestEffectiveDate
           ? formatDate(new Date(latestEffectiveDate).toISOString().slice(0, 10))
@@ -1203,17 +2010,15 @@
         const primaryModeLabel = sortedModeEntries.length ? sortedModeEntries[0][0] : "";
         const summaryTitle = policies.length ? "Coverage mix on file" : "Coverage summary incomplete";
         const summaryCopy = policies.length
-          ? `${typeSummary}${latestEffectiveDateDisplay !== "Not provided" ? ` · Latest effective ${latestEffectiveDateDisplay}` : ""}`
+          ? (latestEffectiveDateDisplay !== "Not provided"
+              ? `Latest effective ${latestEffectiveDateDisplay}`
+              : (primaryModeLabel ? `${primaryModeLabel} mode on file` : "Coverage details saved to this record."))
           : "Add the first placed policy to populate this summary.";
         const canAddPolicy = policies.length < 30;
         const canViewAll = policies.length > 0;
 
         if (featuredType !== "Not provided") {
           featuredMetaParts.push(featuredType);
-        }
-
-        if (featuredTermLength !== "Not provided" && featuredTermLength !== "Permanent Coverage") {
-          featuredMetaParts.push(featuredTermLength);
         }
 
         if (featuredPolicyNumber !== "Not provided") {
@@ -1248,7 +2053,7 @@
                 <div class="client-coverage-breakdown-metric">
                   <span class="client-coverage-breakdown-metric-label">Total Premium</span>
                   <strong class="client-coverage-breakdown-metric-value">${escapeHtml(formatCurrencyTotal(totalPremium))}</strong>
-                  <span class="client-coverage-breakdown-metric-meta">${escapeHtml(modeSummary !== "Not provided" ? modeSummary : "Premium mode pending")}</span>
+                  <span class="client-coverage-breakdown-metric-meta">${escapeHtml(primaryModeLabel ? `${primaryModeLabel} mode` : "Premium mode pending")}</span>
                 </div>
               </div>
               <div class="client-coverage-breakdown-content">
@@ -2441,63 +3246,167 @@
 
       function renderCoverageCard(record) {
         const policies = Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
-        const previewPolicies = policies.slice(0, 2);
-        const title = policies.length ? "Coverage Placed" : "Add Coverage";
+        const previewPolicies = policies
+          .map(function (policy, index) {
+            return { policy, index };
+          })
+          .slice(-2)
+          .reverse();
+        const totalFaceAmount = policies.reduce(function (sum, policy) {
+          return sum + parseCurrencyNumber(policy.faceAmount);
+        }, 0);
+        const annualPremiumSummary = getCoverageAnnualPremiumSummary(policies);
+        const illustrations = getIllustrationEntries(record);
+        const previewIllustrations = illustrations.slice(0, 2);
+        const remainingIllustrations = Math.max(0, illustrations.length - previewIllustrations.length);
         const actionLabel = policies.length ? "Add Another Policy" : "Add Policy";
         const canAddPolicy = policies.length < 30;
+        const canViewAll = policies.length > 0;
+        const premiumSchedulePreviewLines = annualPremiumSummary.scheduleLines.slice(0, 2);
+        const activePolicyCount = policies.reduce(function (count, policy) {
+          return count + (String(policy.effectiveDate || "").trim() ? 1 : 0);
+        }, 0);
+        const hasDocumentsForEveryPolicy = policies.every(function (policy) {
+          return getPolicyDocumentEntries(policy).length > 0;
+        });
+
+        if (annualPremiumSummary.scheduleLines.length > 2 && premiumSchedulePreviewLines.length) {
+          premiumSchedulePreviewLines[premiumSchedulePreviewLines.length - 1] = `${premiumSchedulePreviewLines[premiumSchedulePreviewLines.length - 1]} +${annualPremiumSummary.scheduleLines.length - 2} more`;
+        }
+        const coverageChips = [
+          policies.length ? `${policies.length} ${policies.length === 1 ? "Policy" : "Policies"} Placed` : "",
+          policies.length ? (activePolicyCount === policies.length ? "All Active" : "Mixed Status") : "",
+          policies.length ? (hasDocumentsForEveryPolicy ? "Docs Complete" : "Docs Missing") : ""
+        ].filter(Boolean);
 
         return `
           <section class="client-detail-card client-detail-card-compact client-coverage-card" data-coverage-card>
-            <div class="client-detail-card-header client-detail-card-header-coverage">
-              <h2>${escapeHtml(title)}</h2>
-              <button
-                class="client-coverage-add-button${canAddPolicy ? "" : " is-disabled"}"
-                type="button"
-                data-coverage-add-open
-                ${canAddPolicy ? "" : "disabled"}
-              >${escapeHtml(canAddPolicy ? actionLabel : "Policy Limit Reached")}</button>
+            <div class="client-coverage-card-header">
+              <div class="client-coverage-card-heading">
+                <h2>Coverage and Policies</h2>
+                <span>Placed coverage, totals, and policy review.</span>
+              </div>
+              <div class="client-coverage-card-actions">
+                <button type="button" class="client-coverage-inline-action" data-illustration-quick-add>Add Illustration</button>
+                <button
+                  class="client-coverage-add-button${canAddPolicy ? "" : " is-disabled"}"
+                  type="button"
+                  data-coverage-add-open
+                  ${canAddPolicy ? "" : "disabled"}
+                >${escapeHtml(canAddPolicy ? actionLabel : "Policy Limit Reached")}</button>
+              </div>
             </div>
-            <div class="client-coverage-card-body">
-              ${policies.length ? `
-                <div class="client-coverage-policy-list">
-                ${previewPolicies.map(function (policy, index) {
-                  return `
-                    <article
-                      class="client-coverage-policy-item"
-                      data-coverage-policy-card
-                      data-policy-index="${index}"
-                      tabindex="0"
-                      role="button"
-                      aria-label="Open ${escapeHtml(formatValue(policy.policyCarrier))} policy details"
-                    >
-                      <div class="client-coverage-policy-topline">
-                        <strong>${escapeHtml(formatValue(policy.policyCarrier))}</strong>
-                        <span>${escapeHtml(formatCurrency(policy.faceAmount))}</span>
-                      </div>
-                      <div class="client-coverage-policy-meta">
-                        <span>${escapeHtml(formatValue(policy.policyType))}</span>
-                        <span>${escapeHtml(formatValue(policy.insuredName))}</span>
-                      </div>
-                      <div class="client-coverage-policy-meta">
-                        <span>Policy ${escapeHtml(formatValue(policy.policyNumber || `#${index + 1}`))}</span>
-                        <span>Effective ${escapeHtml(formatDate(policy.effectiveDate))}</span>
-                      </div>
-                    </article>
-                  `;
+            <div class="client-coverage-card-summary">
+              <div class="client-coverage-card-stat">
+                <span class="client-coverage-card-stat-label">Total Face Amount</span>
+                <strong class="client-coverage-card-stat-value">${escapeHtml(formatCompactCurrencyTotal(totalFaceAmount))}</strong>
+                <span class="client-coverage-card-stat-meta">${escapeHtml(policies.length ? `${policies.length} ${policies.length === 1 ? "policy" : "policies"} in force` : "No policies in force")}</span>
+              </div>
+              <div class="client-coverage-card-stat">
+                <span class="client-coverage-card-stat-label">Total Annual Premium</span>
+                <strong class="client-coverage-card-stat-value">${escapeHtml(annualPremiumSummary.hasAnnualizedAmount ? formatCurrencyTotal(annualPremiumSummary.total) : "Not available")}</strong>
+                <span class="client-coverage-card-stat-meta">${escapeHtml(policies.length ? "Across placed policies" : "No policies in force")}</span>
+              </div>
+            </div>
+            ${premiumSchedulePreviewLines.length ? `
+              <div class="client-coverage-card-premium-strip">
+                ${premiumSchedulePreviewLines.map(function (line) {
+                  return `<span class="client-coverage-card-premium-line">${escapeHtml(line)}</span>`;
                 }).join("")}
+              </div>
+            ` : ""}
+            <div class="client-coverage-card-sections">
+              <section class="client-coverage-card-section">
+                <div class="client-coverage-card-section-head">
+                  <span class="client-coverage-card-section-label">Coverage Placed</span>
+                  <span class="client-coverage-card-section-meta">${escapeHtml(policies.length ? `${policies.length} total` : "None saved")}</span>
                 </div>
-              ` : `
-                <div class="client-coverage-policy-list is-empty">
-                  <p class="client-coverage-empty">No policies saved to this profile yet.</p>
+                ${policies.length ? `
+                  <div class="client-coverage-policy-list">
+                  ${previewPolicies.map(function (item) {
+                    const policy = item.policy;
+                    return `
+                      <article
+                        class="client-coverage-policy-item"
+                        data-coverage-policy-card
+                        data-policy-index="${item.index}"
+                        tabindex="0"
+                        role="button"
+                        aria-label="Open ${escapeHtml(formatValue(policy.policyCarrier))} policy details"
+                      >
+                        <div class="client-coverage-policy-topline">
+                          <strong>${escapeHtml(formatValue(policy.policyCarrier))}</strong>
+                          <span>${escapeHtml(formatCurrency(policy.faceAmount))}</span>
+                        </div>
+                        <div class="client-coverage-policy-meta">
+                          <span>${escapeHtml(formatValue(policy.policyType))}</span>
+                          <span>${escapeHtml(formatValue(policy.insuredName))}</span>
+                        </div>
+                        <div class="client-coverage-policy-meta">
+                          <span>Policy ${escapeHtml(formatValue(policy.policyNumber || `#${item.index + 1}`))}</span>
+                          <span>Effective ${escapeHtml(formatDate(policy.effectiveDate))}</span>
+                        </div>
+                      </article>
+                    `;
+                  }).join("")}
+                  </div>
+                  ${coverageChips.length ? `
+                    <div class="client-coverage-card-chip-row">
+                      ${coverageChips.map(function (chip) {
+                        return `<span class="client-coverage-card-chip">${escapeHtml(chip)}</span>`;
+                      }).join("")}
+                    </div>
+                  ` : ""}
+                ` : `
+                  <div class="client-coverage-card-empty">
+                    <p class="client-coverage-empty">No policies saved to this profile yet.</p>
+                  </div>
+                `}
+              </section>
+              <button
+                class="client-coverage-view-all-button${canViewAll ? " is-active" : ""}"
+                type="button"
+                data-view-all-policies
+                ${canViewAll ? "" : "disabled"}
+              >View All Coverage</button>
+              <button
+                class="client-coverage-view-all-button client-coverage-horizon-button${policies.length ? " is-active" : ""}"
+                type="button"
+                data-coverage-premium-timeline-open
+                ${policies.length ? "" : "disabled"}
+                aria-label="Open coverage horizon"
+              >View Coverage Horizon</button>
+              <section class="client-coverage-card-section client-coverage-card-section-illustrations">
+                <div class="client-coverage-card-section-heading-block">
+                  <div class="client-coverage-card-section-head">
+                    <h3 class="client-coverage-card-section-title">Illustrations</h3>
+                    <span class="client-coverage-card-section-meta">${escapeHtml(illustrations.length ? `${illustrations.length} queued` : "None queued")}</span>
+                  </div>
                 </div>
-              `}
+                ${previewIllustrations.length ? `
+                  <div class="client-coverage-card-illustrations">
+                    ${previewIllustrations.map(function (item) {
+                      return `
+                        <button type="button" class="client-coverage-card-illustration-item" data-activity-entry-open="${item.entryIndex}">
+                          <div class="client-coverage-card-illustration-copy">
+                            <strong>${escapeHtml(item.subject)}</strong>
+                            <small>${escapeHtml(item.rawDate ? formatDate(item.rawDate) : "No date")}</small>
+                          </div>
+                          <span class="client-coverage-card-illustration-arrow" aria-hidden="true">→</span>
+                        </button>
+                      `;
+                    }).join("")}
+                  </div>
+                  ${remainingIllustrations ? `
+                    <div class="client-coverage-card-more">+${remainingIllustrations} more saved in activity</div>
+                  ` : ""}
+                ` : `
+                  <div class="client-coverage-card-empty client-coverage-card-empty-illustrations">
+                    <p class="client-coverage-empty">No illustrations saved for review yet.</p>
+                  </div>
+                `}
+              </section>
             </div>
-            <button
-              class="client-coverage-view-all-button${policies.length > 2 ? " is-active" : ""}"
-              type="button"
-              data-view-all-policies
-              ${policies.length > 2 ? "" : "disabled"}
-            >View All</button>
           </section>
         `;
       }
@@ -3007,10 +3916,8 @@
                       ], record)}
                       ${renderNotesWidget(record)}
                     </div>
-                    <div class="client-profile-dashboard-side client-profile-dashboard-side--dashboard">
+                    <div class="client-profile-dashboard-side client-profile-dashboard-side--dashboard client-profile-dashboard-side--coverage-merged">
                       ${renderCoverageCard(record)}
-                      ${renderCoverageBreakdownCard(record)}
-                      ${renderIllustrationsCard(record)}
                     </div>
                     ${renderFooterBar(record)}
                   </div>
@@ -3171,6 +4078,21 @@
               </div>
               <h2 id="client-policy-list-modal-title">All Policies</h2>
               <div class="client-policy-list-modal-body" data-policy-list-modal-body></div>
+            </div>
+          </div>
+          <div class="client-policy-modal client-premium-timeline-modal" data-premium-timeline-modal hidden>
+            <div class="client-policy-modal-backdrop" data-premium-timeline-modal-close></div>
+            <div class="client-policy-modal-panel client-premium-timeline-modal-panel" role="dialog" aria-modal="true" aria-labelledby="client-premium-timeline-modal-title">
+              <div class="client-policy-modal-header client-premium-timeline-modal-header">
+                <div class="client-premium-timeline-heading">
+                  <span class="client-premium-timeline-badge">Coverage Horizon</span>
+                  <h2 id="client-premium-timeline-modal-title">Coverage Horizon</h2>
+                  <p>See when each policy begins, how premiums are structured, and where coverage runs over its life.</p>
+                </div>
+                <button class="client-policy-modal-close" type="button" data-premium-timeline-modal-close aria-label="Close coverage horizon">×</button>
+              </div>
+              <div class="client-premium-timeline-summary" data-premium-timeline-modal-summary></div>
+              <div class="client-premium-timeline-body" data-premium-timeline-modal-body></div>
             </div>
           </div>
           <div class="client-policy-modal client-policy-delete-modal" data-policy-delete-modal hidden>
@@ -3384,6 +4306,10 @@
       const policyListModal = host.querySelector("[data-policy-list-modal]");
       const policyListModalBody = host.querySelector("[data-policy-list-modal-body]");
       const policyListModalCloseButtons = host.querySelectorAll("[data-policy-list-modal-close]");
+      const premiumTimelineModal = host.querySelector("[data-premium-timeline-modal]");
+      const premiumTimelineModalSummary = host.querySelector("[data-premium-timeline-modal-summary]");
+      const premiumTimelineModalBody = host.querySelector("[data-premium-timeline-modal-body]");
+      const premiumTimelineModalCloseButtons = host.querySelectorAll("[data-premium-timeline-modal-close]");
       const policyDeleteModal = host.querySelector("[data-policy-delete-modal]");
       const policyDeleteModalCloseButtons = host.querySelectorAll("[data-policy-delete-modal-close]");
       const policyDeleteConfirm = host.querySelector("[data-policy-delete-confirm]");
@@ -3458,7 +4384,7 @@
       let coverageWidgetFeedbackFadeTimeout = null;
 
       function syncModalLock() {
-        const anyModalOpen = policyModal?.hidden === false || policyDocumentRenameModal?.hidden === false || policyDocumentDeleteModal?.hidden === false || policyListModal?.hidden === false || policyDeleteModal?.hidden === false || coverageWidgetModal?.hidden === false || profileDeleteModal?.hidden === false || activityDetailModal?.hidden === false || activityDeleteModal?.hidden === false || pmiDetailModal?.hidden === false || statModal?.hidden === false || activityWidgetModal?.hidden === false;
+        const anyModalOpen = policyModal?.hidden === false || policyDocumentRenameModal?.hidden === false || policyDocumentDeleteModal?.hidden === false || policyListModal?.hidden === false || premiumTimelineModal?.hidden === false || policyDeleteModal?.hidden === false || coverageWidgetModal?.hidden === false || profileDeleteModal?.hidden === false || activityDetailModal?.hidden === false || activityDeleteModal?.hidden === false || pmiDetailModal?.hidden === false || statModal?.hidden === false || activityWidgetModal?.hidden === false;
         document.body.classList.toggle("is-modal-open", anyModalOpen);
       }
 
@@ -4822,11 +5748,6 @@
           currentCoverageCard.outerHTML = renderCoverageCard(record);
         }
 
-        const currentCoverageBreakdownCard = host.querySelector("[data-coverage-breakdown-card]");
-        if (currentCoverageBreakdownCard) {
-          currentCoverageBreakdownCard.outerHTML = renderCoverageBreakdownCard(record);
-        }
-
         const coverageDisplay = host.querySelector('[data-stat-display="coverageAmount"]');
         if (coverageDisplay) {
           coverageDisplay.textContent = formatCoverageCardCurrency(record.coverageAmount);
@@ -5132,9 +6053,9 @@
           currentRemindersStrip.outerHTML = renderFooterBar(record);
         }
 
-        const currentIllustrationsCard = host.querySelector("[data-illustrations-card]");
-        if (currentIllustrationsCard) {
-          currentIllustrationsCard.outerHTML = renderIllustrationsCard(record);
+        const currentCoverageCard = host.querySelector("[data-coverage-card]");
+        if (currentCoverageCard) {
+          currentCoverageCard.outerHTML = renderCoverageCard(record);
         }
 
         const latestActivityDate = Array.isArray(record.activityLog) && record.activityLog.length
@@ -5728,6 +6649,27 @@
         syncModalLock();
       }
 
+      function openPremiumTimelineModal() {
+        const policies = getCoveragePolicies();
+        if (!premiumTimelineModal || !premiumTimelineModalBody || !premiumTimelineModalSummary || !policies.length) {
+          return;
+        }
+
+        premiumTimelineModalSummary.innerHTML = renderPremiumTimelineModalSummary(policies);
+        premiumTimelineModalBody.innerHTML = renderPremiumTimelineModalBody(policies, record);
+        premiumTimelineModal.hidden = false;
+        syncModalLock();
+      }
+
+      function closePremiumTimelineModal() {
+        if (!premiumTimelineModal) {
+          return;
+        }
+
+        premiumTimelineModal.hidden = true;
+        syncModalLock();
+      }
+
       function openPmiDetailModal() {
         if (!pmiDetailModal || !pmiDetailModalBody) {
           return;
@@ -6247,6 +7189,12 @@
       policyListModalCloseButtons.forEach(function (button) {
         button.addEventListener("click", function () {
           closePolicyListModal();
+        });
+      });
+
+      premiumTimelineModalCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          closePremiumTimelineModal();
         });
       });
 
@@ -6776,6 +7724,15 @@
           return;
         }
 
+        const premiumTimelineOpen = event.target.closest("[data-coverage-premium-timeline-open]");
+        if (premiumTimelineOpen && host.contains(premiumTimelineOpen)) {
+          if (premiumTimelineOpen.disabled) {
+            return;
+          }
+          openPremiumTimelineModal();
+          return;
+        }
+
         const coveragePolicyCard = event.target.closest("[data-coverage-policy-card]");
         if (coveragePolicyCard && host.contains(coveragePolicyCard)) {
           const index = Number(coveragePolicyCard.getAttribute("data-policy-index") || "-1");
@@ -6911,6 +7868,7 @@
           closePolicyDocumentRenameModal();
           closePolicyDocumentDeleteModal();
           closePolicyListModal();
+          closePremiumTimelineModal();
           closePolicyDeleteModal();
           closeProfileDeleteModal();
           closeActivityDetailModal();
