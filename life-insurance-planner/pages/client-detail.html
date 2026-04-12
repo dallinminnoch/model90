@@ -10,6 +10,95 @@
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body class="home-page prospect-page profile-creation-page client-detail-page">
+  <script>
+    (function () {
+      try {
+        const session = JSON.parse(localStorage.getItem("lipPlannerAuthSession") || "null");
+        const identity = session && session.email ? String(session.email).trim().toLowerCase() : "guest";
+        if (localStorage.getItem(`workspaceSideNavCollapsed:${identity}`) === "1") {
+          document.body.classList.add("workspace-side-nav-collapsed");
+        }
+      } catch (error) {
+        // Ignore storage issues and fall back to the default expanded state.
+      }
+    })();
+  </script>
+  <div class="workspace-page-topbar">
+    <div class="workspace-page-topbar-inner">
+      <details class="workspace-page-menu">
+        <summary class="workspace-page-menu-trigger" aria-label="Open pages menu" title="Pages">
+          <img class="workspace-page-menu-icon" src="../Images/menu.svg" alt="" aria-hidden="true">
+        </summary>
+        <div class="workspace-page-menu-panel">
+          <a class="workspace-page-menu-link" href="../index.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M3.6 8.45 10 3.55l6.4 4.9v7.2a1.35 1.35 0 0 1-1.35 1.35H4.95A1.35 1.35 0 0 1 3.6 15.65V8.45Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+                <path d="M7.75 16.95v-4.3h4.5v4.3" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Home</span>
+          </a>
+          <a class="workspace-page-menu-link is-active" href="clients.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <circle cx="7" cy="7.2" r="2.35" stroke="currentColor" stroke-width="1.55"/>
+                <circle cx="13.3" cy="8.15" r="2.05" stroke="currentColor" stroke-width="1.55"/>
+                <path d="M3.9 15.35c.55-2.15 2.2-3.45 4.15-3.45 1.95 0 3.55 1.3 4.1 3.45" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                <path d="M11.2 15.35c.4-1.65 1.7-2.65 3.25-2.65 1.1 0 2.15.5 2.85 1.45" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Client Directory</span>
+          </a>
+          <a class="workspace-page-menu-link" href="resources.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M5.1 3.15h7.65l2.15 2.2v10.1a1.55 1.55 0 0 1-1.55 1.55H5.1a1.55 1.55 0 0 1-1.55-1.55V4.7A1.55 1.55 0 0 1 5.1 3.15Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+                <path d="M12.75 3.3v2.55h2.4" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6.4 9.2h6.85M6.4 12.15h6.85" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Resources</span>
+          </a>
+          <a class="workspace-page-menu-link" href="lens.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <circle cx="10" cy="10" r="6.05" stroke="currentColor" stroke-width="1.55"/>
+                <circle cx="10" cy="10" r="2.1" stroke="currentColor" stroke-width="1.55"/>
+                <path d="M10 2.95v1.85M10 15.2v1.85M17.05 10H15.2M4.8 10H2.95" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">LENS Analysis</span>
+          </a>
+          <a class="workspace-page-menu-link" href="strategy-builder.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M3 15.75h14" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                <path d="M4.25 13.1 7.45 9.9l2.75 2.75 5.55-6.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12.95 6.55h2.8v2.8" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Strategy Builder</span>
+          </a>
+          <a class="workspace-page-menu-link" href="policy-web.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M4.25 5.25h11.5a1.1 1.1 0 0 1 1.1 1.1v7.3a1.1 1.1 0 0 1-1.1 1.1H4.25a1.1 1.1 0 0 1-1.1-1.1v-7.3a1.1 1.1 0 0 1 1.1-1.1Z" stroke="currentColor" stroke-width="1.55"/>
+                <path d="M6.2 8.15h7.6M6.2 10.85h5.2" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Policy Web</span>
+          </a>
+        </div>
+      </details>
+    </div>
+  </div>
+  <div class="workspace-side-nav-host" data-workspace-side-nav-host data-workspace-side-nav="client-detail"></div>
+  <script>
+    if (document.body.classList.contains("workspace-side-nav-collapsed")) {
+      document.currentScript.previousElementSibling.classList.add("is-collapsed");
+    }
+  </script>
   <main class="home-shell app-home-shell prospect-shell">
     <section class="prospect-stage">
       <section class="prospect-empty-panel client-detail-panel">
@@ -18,6 +107,7 @@
     </section>
   </main>
 
+  <script src="../workspace-side-nav.js"></script>
   <script src="../data.js"></script>
   <script src="../calculations.js"></script>
   <script src="../charts.js"></script>
@@ -1871,6 +1961,91 @@
         return ["overview", "planning", "household", "notes"].includes(requestedTab)
           ? requestedTab
           : "overview";
+      }
+
+      function renderClientProfileSideTabs() {
+        return "";
+      }
+
+      function renderClientProfileSidebar(record, completion, hasCoveragePlaced, subtitleParts) {
+        return `
+          <aside class="client-profile-sidebar">
+            <a class="client-profile-backlink" href="clients.html">
+              <span>Return to Client Directory</span>
+            </a>
+            <section class="client-profile-sidebar-card">
+              <div class="client-profile-avatar-wrap">
+                <div class="client-profile-donut-map">
+                  <div class="client-detail-avatar client-detail-avatar-progress">
+                    ${buildDonutSvg(record)}
+                    <div class="client-detail-avatar-core">
+                      <div class="client-detail-avatar-core-inner">
+                        <div class="client-detail-avatar-core-face client-detail-avatar-core-front">${escapeHtml(getInitials(record.displayName))}</div>
+                        <div class="client-detail-avatar-core-face client-detail-avatar-core-back">
+                          <span class="client-detail-avatar-core-back-label">Created</span>
+                          <span class="client-detail-avatar-core-back-date">${escapeHtml(formatDate(record.dateProfileCreated || record.lastUpdatedDate))}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="client-profile-sidebar-copy">
+                <p class="client-profile-completion-copy">${escapeHtml(`${completion}% Account Complete`)}</p>
+                <h2>
+                  <span>${escapeHtml(formatValue(record.displayName))}</span>
+                  <span class="client-profile-name-badge${hasCoveragePlaced ? " is-complete" : ""}" aria-hidden="true"></span>
+                </h2>
+                <p>${escapeHtml([
+                  formatValue(record.age),
+                  formatValue(record.insuranceRatingSex),
+                  formatValue(record.city),
+                  formatValue(record.state)
+                ].filter(function (value) { return value !== "Not provided"; }).join(" | ") || subtitleParts.join(" | "))}</p>
+              </div>
+              <div class="client-profile-contact-list">
+                <div class="client-profile-contact-item">
+                  <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M5.1 2.9 3.9 4.1a1.25 1.25 0 0 0-.29 1.4c.63 1.42 1.57 2.76 2.82 4.01 1.25 1.25 2.59 2.19 4.01 2.82a1.25 1.25 0 0 0 1.4-.29l1.2-1.2a.88.88 0 0 0-.08-1.31L11.6 8.47a.9.9 0 0 0-1.02-.08l-.7.42a.6.6 0 0 1-.63.03 7.2 7.2 0 0 1-1.38-1.12 7.2 7.2 0 0 1-1.12-1.38.6.6 0 0 1 .03-.63l.42-.7a.9.9 0 0 0-.08-1.02L6.35 2.97a.88.88 0 0 0-1.25-.07Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+                  <strong>${escapeHtml(formatValue(record.phoneNumber))}</strong>
+                </div>
+                <div class="client-profile-contact-item">
+                  <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><rect x="2.4" y="3.4" width="11.2" height="9.2" rx="1.7" stroke="currentColor" stroke-width="1.2"/><path d="M3.4 4.8 8 8.1l4.6-3.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+                  <strong>${escapeHtml(formatValue(record.emailAddress))}</strong>
+                </div>
+                <div class="client-profile-contact-item">
+                  <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.2" r="2.15" stroke="currentColor" stroke-width="1.2"/><path d="M4.15 12.45a3.85 3.85 0 0 1 7.7 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
+                  <strong>${escapeHtml(formatValue(record.advisorName))}</strong>
+                </div>
+                <div class="client-profile-contact-item">
+                  <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M6.15 2.55 5 13.45M10.95 2.55 9.8 13.45M2.95 6.15h10.1M2.2 9.85H12.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
+                  <div class="client-profile-contact-value-shell">
+                    <strong>${escapeHtml(formatValue(record.caseRef))}</strong>
+                    <button class="client-profile-copy-button" type="button" data-case-ref-copy="${escapeHtml(formatValue(record.caseRef))}" aria-label="Copy case ref">
+                      <span class="client-profile-copy-icon" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+            ${renderSplitSummaryCard("Profile Snapshot", filterSnapshotItems([
+              { label: "Date of Birth", value: formatDate(record.dateOfBirth) },
+              { label: "Age", value: formatValue(record.age) },
+              { label: "Insurance Rating Sex", value: formatValue(record.insuranceRatingSex) }
+            ]), filterSnapshotItems([
+              { label: "Health Rating", value: getProfileHealthRating(record) },
+              { label: "Smoker Status", value: getProfileSmokerStatus(record) },
+              { label: "Est. Annual Premium Capacity", value: getEstimatedAnnualPremiumCapacity(record) }
+            ]), {
+              cardClassName: "client-profile-snapshot-card",
+              footerAction: `
+                <button class="client-policy-delete-button client-profile-delete-button" type="button" data-profile-delete-toggle aria-label="Delete profile">
+                  <span class="client-profile-delete-icon-image" aria-hidden="true"></span>
+                  <span>Delete Profile</span>
+                </button>
+              `
+            })}
+          </aside>
+        `;
       }
 
       function renderSection(sectionTitle, fields, options) {
@@ -3794,122 +3969,43 @@
         }
 
         return `
-          <div class="client-profile-shell">
-            <aside class="client-profile-sidebar">
-              <a class="client-profile-backlink" href="clients.html">
-                <span>Return to Client Directory</span>
-              </a>
-              <section class="client-profile-sidebar-card">
-                <div class="client-profile-avatar-wrap">
-                  <div class="client-profile-donut-map">
-                    <div class="client-detail-avatar client-detail-avatar-progress">
-                      ${buildDonutSvg(record)}
-                      <div class="client-detail-avatar-core">
-                        <div class="client-detail-avatar-core-inner">
-                          <div class="client-detail-avatar-core-face client-detail-avatar-core-front">${escapeHtml(getInitials(record.displayName))}</div>
-                          <div class="client-detail-avatar-core-face client-detail-avatar-core-back">
-                            <span class="client-detail-avatar-core-back-label">Created</span>
-                            <span class="client-detail-avatar-core-back-date">${escapeHtml(formatDate(record.dateProfileCreated || record.lastUpdatedDate))}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="client-profile-sidebar-copy">
-                  <p class="client-profile-completion-copy">${escapeHtml(`${completion}% Account Complete`)}</p>
-                  <h2>
-                    <span>${escapeHtml(formatValue(record.displayName))}</span>
-                    <span class="client-profile-name-badge${hasCoveragePlaced ? " is-complete" : ""}" aria-hidden="true"></span>
-                  </h2>
-                  <p>${escapeHtml([
-                    formatValue(record.age),
-                    formatValue(record.insuranceRatingSex),
-                    formatValue(record.city),
-                    formatValue(record.state)
-                  ].filter(function (value) { return value !== "Not provided"; }).join(" | ") || subtitleParts.join(" | "))}</p>
-                </div>
-                <div class="client-profile-contact-list">
-                  <div class="client-profile-contact-item">
-                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M5.1 2.9 3.9 4.1a1.25 1.25 0 0 0-.29 1.4c.63 1.42 1.57 2.76 2.82 4.01 1.25 1.25 2.59 2.19 4.01 2.82a1.25 1.25 0 0 0 1.4-.29l1.2-1.2a.88.88 0 0 0-.08-1.31L11.6 8.47a.9.9 0 0 0-1.02-.08l-.7.42a.6.6 0 0 1-.63.03 7.2 7.2 0 0 1-1.38-1.12 7.2 7.2 0 0 1-1.12-1.38.6.6 0 0 1 .03-.63l.42-.7a.9.9 0 0 0-.08-1.02L6.35 2.97a.88.88 0 0 0-1.25-.07Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Phone</span></span>
-                    <strong>${escapeHtml(formatValue(record.phoneNumber))}</strong>
-                  </div>
-                  <div class="client-profile-contact-item">
-                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><rect x="2.4" y="3.4" width="11.2" height="9.2" rx="1.7" stroke="currentColor" stroke-width="1.2"/><path d="M3.4 4.8 8 8.1l4.6-3.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Email</span></span>
-                    <strong>${escapeHtml(formatValue(record.emailAddress))}</strong>
-                  </div>
-                  <div class="client-profile-contact-item">
-                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.2" r="2.15" stroke="currentColor" stroke-width="1.2"/><path d="M4.15 12.45a3.85 3.85 0 0 1 7.7 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span><span>Advisor</span></span>
-                    <strong>${escapeHtml(formatValue(record.advisorName))}</strong>
-                  </div>
-                  <div class="client-profile-contact-item">
-                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M6.15 2.55 5 13.45M10.95 2.55 9.8 13.45M2.95 6.15h10.1M2.2 9.85H12.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span><span>Case Ref</span></span>
-                    <div class="client-profile-contact-value-shell">
-                      <strong>${escapeHtml(formatValue(record.caseRef))}</strong>
-                      <button class="client-profile-copy-button" type="button" data-case-ref-copy="${escapeHtml(formatValue(record.caseRef))}" aria-label="Copy case ref">
-                        <span class="client-profile-copy-icon" aria-hidden="true"></span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </section>
-              ${renderSplitSummaryCard("Profile Snapshot", filterSnapshotItems([
-                { label: "Date of Birth", value: formatDate(record.dateOfBirth) },
-                { label: "Age", value: formatValue(record.age) },
-                { label: "Insurance Rating Sex", value: formatValue(record.insuranceRatingSex) }
-              ]), filterSnapshotItems([
-                { label: "Health Rating", value: getProfileHealthRating(record) },
-                { label: "Smoker Status", value: getProfileSmokerStatus(record) },
-                { label: "Est. Annual Premium Capacity", value: getEstimatedAnnualPremiumCapacity(record) }
-              ]), {
-                cardClassName: "client-profile-snapshot-card",
-                footerAction: `
-                  <button class="client-policy-delete-button client-profile-delete-button" type="button" data-profile-delete-toggle aria-label="Delete profile">
-                    <span class="client-profile-delete-icon-image" aria-hidden="true"></span>
-                    <span>Delete Profile</span>
-                  </button>
-                `
-              })}
-            </aside>
-
+          <div class="client-profile-shell${document.body.classList.contains("workspace-side-nav-collapsed") ? " is-collapsed" : ""}" data-client-sidebar-layout>
             <section class="client-profile-main">
-              <nav class="client-profile-tabs" aria-label="Client detail tabs">
-                <button class="client-profile-tab is-active" type="button" data-client-tab="overview" aria-selected="true">Dashboard</button>
-                <button class="client-profile-tab" type="button" data-client-tab="planning" aria-selected="false">Planning</button>
-                <button class="client-profile-tab" type="button" data-client-tab="household" aria-selected="false">Household</button>
-                <button class="client-profile-tab" type="button" data-client-tab="notes" aria-selected="false">Notes</button>
-              </nav>
-
               <div class="client-profile-tab-panels">
                 <section class="client-profile-tab-panel is-active" data-client-panel="overview">
-                  <div class="client-profile-stats">
-                    ${renderStatCard("Coverage Amount", formatCoverageCardCurrency(record.coverageAmount), "", {
-                      editable: true,
-                      fieldName: "coverageAmount",
-                      rawValue: formatValue(record.coverageAmount) === "Not provided" ? "0" : String(record.coverageAmount || "0")
-                    })}
-                    ${renderStatCard("Coverage Gap", formatCoverageCardCurrency(record.coverageGap), "", {
-                      editable: true,
-                      fieldName: "coverageGap",
-                      rawValue: formatValue(record.coverageGap) === "Not provided" ? "0" : String(record.coverageGap || "0")
-                    })}
-                  </div>
-                  ${renderCoverageAdequacyBar(record)}
+                  <div class="client-profile-overview-layout">
+                    ${renderClientProfileSidebar(record, completion, hasCoveragePlaced, subtitleParts)}
+                    <div class="client-profile-overview-main">
+                      <div class="client-profile-stats">
+                        ${renderStatCard("Coverage Amount", formatCoverageCardCurrency(record.coverageAmount), "", {
+                          editable: true,
+                          fieldName: "coverageAmount",
+                          rawValue: formatValue(record.coverageAmount) === "Not provided" ? "0" : String(record.coverageAmount || "0")
+                        })}
+                        ${renderStatCard("Coverage Gap", formatCoverageCardCurrency(record.coverageGap), "", {
+                          editable: true,
+                          fieldName: "coverageGap",
+                          rawValue: formatValue(record.coverageGap) === "Not provided" ? "0" : String(record.coverageGap || "0")
+                        })}
+                      </div>
+                      ${renderCoverageAdequacyBar(record)}
 
-                  <div class="client-profile-dashboard">
-                    <div class="client-profile-dashboard-main">
-                      ${renderChecklistCard("Account Completion Checklist", [
-                        { label: "Create Profile", complete: hasProfileCreated, detail: profileStatus },
-                        { label: "Preliminary Underwriting", complete: Boolean(record.preliminaryUnderwritingCompleted), detail: preliminaryStatus },
-                        { label: "Protection Modeling Inputs", complete: Boolean(record.pmiCompleted), detail: pmiStatus },
-                        { label: "Complete Analysis", complete: hasAnalysisCompleted, detail: analysisStatus }
-                      ], record)}
-                      ${renderNotesWidget(record)}
+                      <div class="client-profile-dashboard">
+                        <div class="client-profile-dashboard-main">
+                          ${renderChecklistCard("Account Completion Checklist", [
+                            { label: "Create Profile", complete: hasProfileCreated, detail: profileStatus },
+                            { label: "Preliminary Underwriting", complete: Boolean(record.preliminaryUnderwritingCompleted), detail: preliminaryStatus },
+                            { label: "Protection Modeling Inputs", complete: Boolean(record.pmiCompleted), detail: pmiStatus },
+                            { label: "Complete Analysis", complete: hasAnalysisCompleted, detail: analysisStatus }
+                          ], record)}
+                          ${renderNotesWidget(record)}
+                        </div>
+                        <div class="client-profile-dashboard-side client-profile-dashboard-side--dashboard client-profile-dashboard-side--coverage-merged">
+                          ${renderCoverageCard(record)}
+                        </div>
+                        ${renderFooterBar(record)}
+                      </div>
                     </div>
-                    <div class="client-profile-dashboard-side client-profile-dashboard-side--dashboard client-profile-dashboard-side--coverage-merged">
-                      ${renderCoverageCard(record)}
-                    </div>
-                    ${renderFooterBar(record)}
                   </div>
                 </section>
 
@@ -4269,8 +4365,11 @@
       const donutMap = host.querySelector(".client-profile-donut-map");
       const donutRing = host.querySelector(".client-detail-avatar-progress");
       const donutSegments = host.querySelectorAll(".client-detail-donut-segment-group");
-      const profileTabs = host.querySelectorAll("[data-client-tab]");
+      const profileTabs = document.querySelectorAll("[data-client-tab]");
       const profilePanels = host.querySelectorAll("[data-client-panel]");
+      const profileSidebarHost = document.querySelector('[data-workspace-side-nav="client-detail"]');
+      const profileSidebarLayout = host.querySelector("[data-client-sidebar-layout]");
+      const profileSidebarToggle = document.querySelector("[data-client-side-tabs-toggle]");
       const policyModal = host.querySelector("[data-policy-modal]");
       const policyModalPanel = host.querySelector(".client-policy-detail-modal-panel");
       const policyModalBody = host.querySelector("[data-policy-modal-body]");
@@ -6121,6 +6220,44 @@
 
       refreshCoverageAdequacy(true);
 
+      const clientDetailSidebarStorageKey = `workspaceSideNavCollapsed:${getStorageIdentity()}`;
+
+      function setClientDetailSidebarCollapsed(isCollapsed) {
+        if (!profileSidebarLayout || !profileSidebarToggle || !profileSidebarHost) {
+          return;
+        }
+
+        document.body.classList.toggle("workspace-side-nav-collapsed", isCollapsed);
+        profileSidebarHost.classList.toggle("is-collapsed", isCollapsed);
+        profileSidebarLayout.classList.toggle("is-collapsed", isCollapsed);
+        profileSidebarToggle.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
+        profileSidebarToggle.setAttribute("aria-label", isCollapsed ? "Expand section navigation" : "Collapse section navigation");
+        profileSidebarToggle.setAttribute("title", isCollapsed ? "Expand section navigation" : "Collapse section navigation");
+      }
+
+      if (profileSidebarLayout && profileSidebarToggle) {
+        let isSidebarCollapsed = false;
+
+        try {
+          isSidebarCollapsed = window.localStorage.getItem(clientDetailSidebarStorageKey) === "1";
+        } catch (error) {
+          isSidebarCollapsed = false;
+        }
+
+        setClientDetailSidebarCollapsed(isSidebarCollapsed);
+
+        profileSidebarToggle.addEventListener("click", function () {
+          const nextCollapsed = !profileSidebarLayout.classList.contains("is-collapsed");
+          setClientDetailSidebarCollapsed(nextCollapsed);
+
+          try {
+            window.localStorage.setItem(clientDetailSidebarStorageKey, nextCollapsed ? "1" : "0");
+          } catch (error) {
+            // Ignore persistence issues and keep the in-memory state.
+          }
+        });
+      }
+
       const requestedTab = getRequestedTab();
       if (requestedTab !== "overview") {
         profileTabs.forEach(function (button) {
@@ -7831,6 +7968,12 @@
       });
 
       document.addEventListener("click", function (event) {
+        if (!event.target.closest(".workspace-page-menu")) {
+          document.querySelectorAll(".workspace-page-menu[open]").forEach(function (menu) {
+            menu.removeAttribute("open");
+          });
+        }
+
         if (policyDocumentMenu && !policyDocumentMenu.hidden && !policyDocumentMenu.contains(event.target) && !event.target.closest("[data-policy-document-entry]")) {
           closePolicyDocumentMenu();
         }
@@ -7849,6 +7992,9 @@
 
       document.addEventListener("keydown", function (event) {
         if (event.key === "Escape") {
+          document.querySelectorAll(".workspace-page-menu[open]").forEach(function (menu) {
+            menu.removeAttribute("open");
+          });
           closePolicyModal();
           closePolicyDocumentRenameModal();
           closePolicyDocumentDeleteModal();

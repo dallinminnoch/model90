@@ -10,39 +10,129 @@
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body class="home-page clients-page">
+  <script>
+    (function () {
+      try {
+        const session = JSON.parse(localStorage.getItem("lipPlannerAuthSession") || "null");
+        const identity = session && session.email ? String(session.email).trim().toLowerCase() : "guest";
+        if (localStorage.getItem(`workspaceSideNavCollapsed:${identity}`) === "1") {
+          document.body.classList.add("workspace-side-nav-collapsed");
+        }
+      } catch (error) {
+        // Ignore storage issues and fall back to the default expanded state.
+      }
+    })();
+  </script>
+  <div class="workspace-page-topbar">
+    <div class="workspace-page-topbar-inner">
+      <details class="workspace-page-menu">
+        <summary class="workspace-page-menu-trigger" aria-label="Open pages menu" title="Pages">
+          <img class="workspace-page-menu-icon" src="../Images/menu.svg" alt="" aria-hidden="true">
+        </summary>
+        <div class="workspace-page-menu-panel">
+          <a class="workspace-page-menu-link" href="../index.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M3.6 8.45 10 3.55l6.4 4.9v7.2a1.35 1.35 0 0 1-1.35 1.35H4.95A1.35 1.35 0 0 1 3.6 15.65V8.45Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+                <path d="M7.75 16.95v-4.3h4.5v4.3" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Home</span>
+          </a>
+          <a class="workspace-page-menu-link is-active" href="clients.html" aria-current="page">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <circle cx="7" cy="7.2" r="2.35" stroke="currentColor" stroke-width="1.55"/>
+                <circle cx="13.3" cy="8.15" r="2.05" stroke="currentColor" stroke-width="1.55"/>
+                <path d="M3.9 15.35c.55-2.15 2.2-3.45 4.15-3.45 1.95 0 3.55 1.3 4.1 3.45" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                <path d="M11.2 15.35c.4-1.65 1.7-2.65 3.25-2.65 1.1 0 2.15.5 2.85 1.45" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Client Directory</span>
+          </a>
+          <a class="workspace-page-menu-link" href="resources.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M5.1 3.15h7.65l2.15 2.2v10.1a1.55 1.55 0 0 1-1.55 1.55H5.1a1.55 1.55 0 0 1-1.55-1.55V4.7A1.55 1.55 0 0 1 5.1 3.15Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+                <path d="M12.75 3.3v2.55h2.4" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6.4 9.2h6.85M6.4 12.15h6.85" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Resources</span>
+          </a>
+          <a class="workspace-page-menu-link" href="lens.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <circle cx="10" cy="10" r="6.05" stroke="currentColor" stroke-width="1.55"/>
+                <circle cx="10" cy="10" r="2.1" stroke="currentColor" stroke-width="1.55"/>
+                <path d="M10 2.95v1.85M10 15.2v1.85M17.05 10H15.2M4.8 10H2.95" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">LENS Analysis</span>
+          </a>
+          <a class="workspace-page-menu-link" href="strategy-builder.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M3 15.75h14" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                <path d="M4.25 13.1 7.45 9.9l2.75 2.75 5.55-6.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12.95 6.55h2.8v2.8" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Strategy Builder</span>
+          </a>
+          <a class="workspace-page-menu-link" href="policy-web.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M4.25 5.25h11.5a1.1 1.1 0 0 1 1.1 1.1v7.3a1.1 1.1 0 0 1-1.1 1.1H4.25a1.1 1.1 0 0 1-1.1-1.1v-7.3a1.1 1.1 0 0 1 1.1-1.1Z" stroke="currentColor" stroke-width="1.55"/>
+                <path d="M6.2 8.15h7.6M6.2 10.85h5.2" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Policy Web</span>
+          </a>
+        </div>
+      </details>
+    </div>
+  </div>
+  <div class="workspace-side-nav-host" data-workspace-side-nav-host data-workspace-side-nav="directory"></div>
+  <script>
+    if (document.body.classList.contains("workspace-side-nav-collapsed")) {
+      document.currentScript.previousElementSibling.classList.add("is-collapsed");
+    }
+  </script>
   <main class="home-shell app-home-shell client-directory-shell">
-    <section class="client-directory-workspace">
-      <aside class="client-directory-rail" aria-label="Browse clients by last name letter">
-        <button class="client-rail-button is-active" type="button" data-client-letter="all">All</button>
-        <button class="client-rail-button" type="button" data-client-letter="A">A</button>
-        <button class="client-rail-button" type="button" data-client-letter="B">B</button>
-        <button class="client-rail-button" type="button" data-client-letter="C">C</button>
-        <button class="client-rail-button" type="button" data-client-letter="D">D</button>
-        <button class="client-rail-button" type="button" data-client-letter="E">E</button>
-        <button class="client-rail-button" type="button" data-client-letter="F">F</button>
-        <button class="client-rail-button" type="button" data-client-letter="G">G</button>
-        <button class="client-rail-button" type="button" data-client-letter="H">H</button>
-        <button class="client-rail-button" type="button" data-client-letter="I">I</button>
-        <button class="client-rail-button" type="button" data-client-letter="J">J</button>
-        <button class="client-rail-button" type="button" data-client-letter="K">K</button>
-        <button class="client-rail-button" type="button" data-client-letter="L">L</button>
-        <button class="client-rail-button" type="button" data-client-letter="M">M</button>
-        <button class="client-rail-button" type="button" data-client-letter="N">N</button>
-        <button class="client-rail-button" type="button" data-client-letter="O">O</button>
-        <button class="client-rail-button" type="button" data-client-letter="P">P</button>
-        <button class="client-rail-button" type="button" data-client-letter="Q">Q</button>
-        <button class="client-rail-button" type="button" data-client-letter="R">R</button>
-        <button class="client-rail-button" type="button" data-client-letter="S">S</button>
-        <button class="client-rail-button" type="button" data-client-letter="T">T</button>
-        <button class="client-rail-button" type="button" data-client-letter="U">U</button>
-        <button class="client-rail-button" type="button" data-client-letter="V">V</button>
-        <button class="client-rail-button" type="button" data-client-letter="W">W</button>
-        <button class="client-rail-button" type="button" data-client-letter="X">X</button>
-        <button class="client-rail-button" type="button" data-client-letter="Y">Y</button>
-        <button class="client-rail-button" type="button" data-client-letter="Z">Z</button>
-      </aside>
+    <section class="client-directory-shell-layout" data-directory-sidebar-layout>
+      <section class="client-directory-workspace">
+        <aside class="client-directory-rail" aria-label="Browse clients by last name letter">
+          <button class="client-rail-button is-active" type="button" data-client-letter="all">All</button>
+          <button class="client-rail-button" type="button" data-client-letter="A">A</button>
+          <button class="client-rail-button" type="button" data-client-letter="B">B</button>
+          <button class="client-rail-button" type="button" data-client-letter="C">C</button>
+          <button class="client-rail-button" type="button" data-client-letter="D">D</button>
+          <button class="client-rail-button" type="button" data-client-letter="E">E</button>
+          <button class="client-rail-button" type="button" data-client-letter="F">F</button>
+          <button class="client-rail-button" type="button" data-client-letter="G">G</button>
+          <button class="client-rail-button" type="button" data-client-letter="H">H</button>
+          <button class="client-rail-button" type="button" data-client-letter="I">I</button>
+          <button class="client-rail-button" type="button" data-client-letter="J">J</button>
+          <button class="client-rail-button" type="button" data-client-letter="K">K</button>
+          <button class="client-rail-button" type="button" data-client-letter="L">L</button>
+          <button class="client-rail-button" type="button" data-client-letter="M">M</button>
+          <button class="client-rail-button" type="button" data-client-letter="N">N</button>
+          <button class="client-rail-button" type="button" data-client-letter="O">O</button>
+          <button class="client-rail-button" type="button" data-client-letter="P">P</button>
+          <button class="client-rail-button" type="button" data-client-letter="Q">Q</button>
+          <button class="client-rail-button" type="button" data-client-letter="R">R</button>
+          <button class="client-rail-button" type="button" data-client-letter="S">S</button>
+          <button class="client-rail-button" type="button" data-client-letter="T">T</button>
+          <button class="client-rail-button" type="button" data-client-letter="U">U</button>
+          <button class="client-rail-button" type="button" data-client-letter="V">V</button>
+          <button class="client-rail-button" type="button" data-client-letter="W">W</button>
+          <button class="client-rail-button" type="button" data-client-letter="X">X</button>
+          <button class="client-rail-button" type="button" data-client-letter="Y">Y</button>
+          <button class="client-rail-button" type="button" data-client-letter="Z">Z</button>
+        </aside>
 
-      <section class="client-directory-main">
+        <section class="client-directory-main">
         <header class="client-directory-header">
           <div class="client-directory-title-block">
             <h1>Client Directory</h1>
@@ -118,6 +208,7 @@
             <button class="client-pagination-button" type="button" id="client-next-page">Next</button>
           </footer>
         </section>
+        </section>
       </section>
     </section>
   </main>
@@ -144,6 +235,7 @@
     </div>
   </div>
 
+  <script src="../workspace-side-nav.js"></script>
   <script src="../data.js"></script>
   <script src="../calculations.js"></script>
   <script src="../charts.js"></script>
@@ -208,6 +300,11 @@
       const coverageHeading = document.getElementById("client-table-heading-coverage");
       const sourceHeading = document.getElementById("client-table-heading-source");
       const statusHeading = document.getElementById("client-table-heading-status");
+      const directorySidebarHost = document.querySelector('[data-workspace-side-nav="directory"]');
+      const directorySidebarLayout = document.querySelector("[data-directory-sidebar-layout]");
+      const directorySidebarToggle = document.querySelector("[data-directory-sidebar-toggle]");
+      const directorySidebarButtons = Array.from(document.querySelectorAll("[data-directory-nav-action]"));
+      const directoryAddButton = document.querySelector("[data-add-client-button]");
 
       if (!rowsHost) {
         return;
@@ -242,6 +339,8 @@
       function getRecordsStorageKey() {
         return `${STORAGE_KEYS.clientRecords}:${getStorageIdentity()}`;
       }
+
+      const directorySidebarStorageKey = `workspaceSideNavCollapsed:${getStorageIdentity()}`;
 
       function normalizePriority(value) {
         const normalized = String(value || "").trim().toLowerCase();
@@ -561,6 +660,36 @@
         });
       }
 
+      function syncDirectorySidebarButtons() {
+        directorySidebarButtons.forEach(function (button) {
+          const action = String(button.dataset.directoryNavAction || "").trim();
+          let isActive = false;
+
+          if (action === "all") {
+            isActive = activeLetter === "all" && activeStatus === "all";
+          } else if (action === "households") {
+            isActive = activeView === "households";
+          } else if (action === "individuals") {
+            isActive = activeView === "individuals";
+          }
+
+          button.classList.toggle("is-active", isActive);
+        });
+      }
+
+      function setDirectorySidebarCollapsed(isCollapsed) {
+        if (!directorySidebarLayout || !directorySidebarToggle || !directorySidebarHost) {
+          return;
+        }
+
+        document.body.classList.toggle("workspace-side-nav-collapsed", isCollapsed);
+        directorySidebarHost.classList.toggle("is-collapsed", isCollapsed);
+        directorySidebarLayout.classList.toggle("is-collapsed", isCollapsed);
+        directorySidebarToggle.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
+        directorySidebarToggle.setAttribute("aria-label", isCollapsed ? "Expand directory navigation" : "Collapse directory navigation");
+        directorySidebarToggle.setAttribute("title", isCollapsed ? "Expand directory navigation" : "Collapse directory navigation");
+      }
+
       function renderPagination(totalPages) {
         if (!paginationHost || !prevPageButton || !nextPageButton) {
           return;
@@ -727,6 +856,7 @@
         syncTableHeadings();
         syncLetterButtons();
         syncItemsShown();
+        syncDirectorySidebarButtons();
         renderPagination(totalPages);
       }
 
@@ -780,6 +910,55 @@
         itemsTrigger.setAttribute("aria-expanded", String(Boolean(isOpen)));
       });
 
+      if (directorySidebarLayout && directorySidebarToggle) {
+        let isDirectorySidebarCollapsed = false;
+
+        try {
+          isDirectorySidebarCollapsed = window.localStorage.getItem(directorySidebarStorageKey) === "1";
+        } catch (error) {
+          isDirectorySidebarCollapsed = false;
+        }
+
+        setDirectorySidebarCollapsed(isDirectorySidebarCollapsed);
+
+        directorySidebarToggle.addEventListener("click", function () {
+          const nextCollapsed = !directorySidebarLayout.classList.contains("is-collapsed");
+          setDirectorySidebarCollapsed(nextCollapsed);
+
+          try {
+            window.localStorage.setItem(directorySidebarStorageKey, nextCollapsed ? "1" : "0");
+          } catch (error) {
+            // Ignore persistence issues and keep the in-memory state.
+          }
+        });
+      }
+
+      directorySidebarButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          const action = String(button.dataset.directoryNavAction || "").trim();
+
+          if (action === "all") {
+            activeLetter = "all";
+            activeStatus = "all";
+            currentPage = 1;
+            renderDirectory();
+            return;
+          }
+
+          if (action === "households" || action === "individuals") {
+            const targetViewButton = viewButtons.find(function (viewButton) {
+              return String(viewButton.dataset.clientView || "").trim() === action;
+            });
+            targetViewButton?.click();
+            return;
+          }
+
+          if (action === "add") {
+            directoryAddButton?.click();
+          }
+        });
+      });
+
       prevPageButton?.addEventListener("click", function () {
         if (currentPage > 1) {
           currentPage -= 1;
@@ -796,6 +975,12 @@
       });
 
       document.addEventListener("click", function (event) {
+        if (!event.target.closest(".workspace-page-menu")) {
+          document.querySelectorAll(".workspace-page-menu[open]").forEach(function (menu) {
+            menu.removeAttribute("open");
+          });
+        }
+
         if (!event.target.closest("[data-items-dropdown]")) {
           itemsDropdown?.classList.remove("is-open");
           itemsTrigger?.setAttribute("aria-expanded", "false");
@@ -810,6 +995,17 @@
 
       renderDirectory();
     })();
+  </script>
+  <script>
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      document.querySelectorAll(".workspace-page-menu[open]").forEach(function (menu) {
+        menu.removeAttribute("open");
+      });
+    });
   </script>
 </body>
 </html>
