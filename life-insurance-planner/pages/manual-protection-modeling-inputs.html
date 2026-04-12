@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -6,7 +6,7 @@
   <title>Protection Modeling Inputs | LENS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body class="home-page prospect-page profile-creation-page" data-page="manual-protection-modeling-inputs">
@@ -1063,7 +1063,7 @@
   </main>
 
   <div class="floating-calculator" id="protection-calculator" hidden aria-hidden="true">
-    <div class="floating-calculator-header" data-calculator-drag-handle><button class="floating-calculator-close" type="button" aria-label="Close calculator">×</button>
+    <div class="floating-calculator-header" data-calculator-drag-handle><button class="floating-calculator-close" type="button" aria-label="Close calculator">�</button>
     </div>
     <div class="floating-calculator-body">
       <input
@@ -1401,7 +1401,7 @@
       }
 
       function evaluateDisplay() {
-        const expression = sanitizeExpression(display.value).replace(/[Ã—]/g, "*").replace(/[Ã·]/g, "/");
+        const expression = sanitizeExpression(display.value).replace(/[×]/g, "*").replace(/[÷]/g, "/");
 
         if (!expression.trim()) {
           return;
@@ -3773,6 +3773,7 @@
   </script>
 </body>
 </html>
+
 
 
 

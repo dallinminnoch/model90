@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --bg: #f3f5f8;
   --surface: #ffffff;
   --surface-alt: #eef2f6;
@@ -39,7 +39,7 @@ body {
   margin: 0;
   min-width: 0;
   min-height: 100vh;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   color: var(--text);
   overflow-x: hidden;
   background:
@@ -50,6 +50,11 @@ body {
 body.clients-page,
 body.client-detail-page {
   --app-side-nav-top-offset: calc(var(--workspace-topbar-height) + 0.6rem);
+}
+
+body.client-detail-page {
+  --app-side-nav-gap: 0.03rem;
+  background: #ffffff;
 }
 
 a {
@@ -102,7 +107,7 @@ body.client-detail-page .workspace-page-topbar {
   left: 0;
   right: 0;
   height: var(--workspace-topbar-height);
-  background: #ffffff;
+  background: #E8EDF5;
   z-index: 36;
 }
 
@@ -112,6 +117,14 @@ body.client-detail-page .workspace-page-topbar {
   align-items: center;
   justify-content: flex-start;
   padding: 0 0.7rem;
+}
+
+.workspace-page-topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
 }
 
 .workspace-page-menu {
@@ -223,6 +236,7 @@ body.client-detail-page .workspace-page-topbar {
 
 .workspace-side-nav {
   min-height: 100%;
+  font-family: "Inter", sans-serif;
 }
 
 .workspace-page-menu-link:hover .workspace-page-menu-link-icon,
@@ -1387,7 +1401,7 @@ body.client-detail-page .site-header {
   color: #1a2435;
   font-size: 2.35rem;
   font-weight: 700;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   text-align: right;
   letter-spacing: -0.03em;
   box-shadow: none;
@@ -1419,7 +1433,7 @@ body.client-detail-page .site-header {
   color: #1a2435;
   font-weight: 800;
   font-size: 1.48rem;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   cursor: pointer;
   box-shadow: none;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
@@ -2955,7 +2969,7 @@ select option:disabled {
   min-width: 0;
   min-height: 100%;
   padding: 1rem 0.85rem;
-  background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+  background: #E8EDF5;
   border-right: 1px solid rgba(229, 235, 242, 0.95);
 }
 
@@ -2977,7 +2991,7 @@ select option:disabled {
 .client-directory-app-sidebar-section-label {
   color: #98a3b4;
   font-size: 0.69rem;
-  font-weight: 800;
+  font-weight: 500;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -2986,7 +3000,7 @@ select option:disabled {
   color: #17202c;
   font-size: 1.02rem;
   line-height: 1.15;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .client-directory-app-sidebar-toggle {
@@ -3043,32 +3057,30 @@ select option:disabled {
   display: flex;
   align-items: center;
   gap: 0.72rem;
-  min-height: 2.9rem;
-  padding: 0.72rem 0.78rem;
+  min-height: 2.45rem;
+  padding: 0.42rem 0.72rem;
   border: 1px solid transparent;
-  border-radius: 0.85rem;
+  border-radius: 0.35rem;
   background: transparent;
   color: #475467;
   font-size: 0.95rem;
-  font-weight: 680;
+  font-weight: 375;
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease;
 }
 
 .client-directory-app-nav-button:hover,
 .client-directory-app-nav-button:focus-visible {
-  border-color: rgba(213, 221, 232, 0.95);
-  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(220, 227, 236, 0.92);
+  background: #f1f3f6;
   color: #17202c;
-  box-shadow: 0 10px 20px rgba(16, 33, 52, 0.04);
 }
 
 .client-directory-app-nav-button.is-active {
   color: #2d4fe3;
-  border-color: rgba(79, 70, 229, 0.16);
-  background: #eef1ff;
-  box-shadow: inset 3px 0 0 #4f46e5;
+  border-color: rgba(79, 70, 229, 0.12);
+  background: rgba(79, 70, 229, 0.08);
 }
 
 .client-directory-app-nav-icon {
@@ -3258,7 +3270,7 @@ select option:disabled {
   margin: 0;
   color: #1b2230;
   line-height: 1;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 510;
   letter-spacing: 0;
 }
@@ -4141,6 +4153,7 @@ body.client-detail-page .client-detail-header {
   align-content: start;
   gap: 1rem;
   padding: 1.15rem;
+  font-family: "Inter", sans-serif;
   background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
   border-right: 1px solid rgba(229, 235, 242, 0.95);
 }
@@ -4165,7 +4178,7 @@ body.client-detail-page .client-detail-header {
   border-radius: 0.35rem;
   background: #ffffff;
   color: #526074;
-  font-weight: 700;
+  font-weight: 400;
   font-size: 0.88rem;
   box-shadow: 0 8px 18px rgba(16, 33, 52, 0.05);
   transition: border-color 0.18s ease, color 0.18s ease, background-color 0.18s ease;
@@ -4398,7 +4411,7 @@ body.client-detail-page .client-detail-header {
   align-items: center;
   width: 100%;
   column-gap: 0;
-  font-weight: 700;
+  font-weight: 550;
 }
 
 .client-profile-sidebar-copy h2 span:first-child {
@@ -4410,6 +4423,7 @@ body.client-detail-page .client-detail-header {
   margin: 0.4rem 0 0;
   color: #667084;
   font-size: 0.92rem;
+  font-weight: 400;
 }
 
 .client-profile-name-badge {
@@ -4442,7 +4456,7 @@ body.client-detail-page .client-detail-header {
   margin-bottom: 0.35rem !important;
   color: #24533d !important;
   font-size: 0.82rem !important;
-  font-weight: 800;
+  font-weight: 500;
   letter-spacing: 0.02em;
 }
 
@@ -4512,11 +4526,26 @@ body.client-detail-page .client-detail-header {
   display: block;
   color: #1f2937;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1.2;
   word-break: normal;
   overflow-wrap: normal;
   white-space: nowrap;
+}
+
+.client-profile-sidebar .client-detail-card-header h2 {
+  font-family: inherit;
+  font-weight: 400;
+}
+
+.client-profile-sidebar .client-summary-label {
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.client-profile-sidebar .client-summary-value {
+  font-family: inherit;
+  font-weight: 400;
 }
 
 .client-profile-contact-value-shell {
@@ -4579,7 +4608,7 @@ body.client-detail-page .client-detail-header {
   min-width: 0;
   min-height: 100%;
   padding: 1rem 0.85rem;
-  background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+  background: #E8EDF5;
   border-right: 1px solid rgba(229, 235, 242, 0.95);
 }
 
@@ -4601,7 +4630,7 @@ body.client-detail-page .client-detail-header {
 .client-profile-side-tabs-section-label {
   color: #98a3b4;
   font-size: 0.69rem;
-  font-weight: 800;
+  font-weight: 500;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -4610,7 +4639,7 @@ body.client-detail-page .client-detail-header {
   color: #17202c;
   font-size: 1.02rem;
   line-height: 1.15;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .client-profile-side-tabs-toggle {
@@ -4676,9 +4705,9 @@ body.client-detail-page .client-detail-header {
 
 .client-profile-overview-layout {
   display: grid;
-  grid-template-columns: 23.5rem minmax(0, 1fr);
+  grid-template-columns: 21.25rem minmax(0, 1fr);
   min-width: 0;
-  gap: 1rem;
+  gap: 0.28rem;
   align-items: start;
 }
 
@@ -4702,25 +4731,24 @@ body.client-detail-page .client-detail-header {
   display: flex;
   align-items: center;
   gap: 0.72rem;
-  min-height: 2.9rem;
-  padding: 0.72rem 0.78rem;
+  min-height: 2.45rem;
+  padding: 0.42rem 0.72rem;
   border: 1px solid transparent;
-  border-radius: 0.85rem;
+  border-radius: 0.35rem;
   background: transparent;
   color: #475467;
   font-size: 0.95rem;
-  font-weight: 680;
+  font-weight: 375;
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease;
 }
 
 .client-profile-tab:hover,
 .client-profile-tab:focus-visible {
-  border-color: rgba(213, 221, 232, 0.95);
-  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(220, 227, 236, 0.92);
+  background: #f1f3f6;
   color: #17202c;
-  box-shadow: 0 10px 20px rgba(16, 33, 52, 0.04);
 }
 
 .client-profile-side-tab-icon {
@@ -4748,9 +4776,8 @@ body.client-detail-page .client-detail-header {
 
 .client-profile-tab.is-active {
   color: #2d4fe3;
-  border-color: rgba(79, 70, 229, 0.16);
-  background: #eef1ff;
-  box-shadow: inset 3px 0 0 #4f46e5;
+  border-color: rgba(79, 70, 229, 0.12);
+  background: rgba(79, 70, 229, 0.08);
 }
 
 .workspace-side-nav-host.is-collapsed .client-profile-side-tabs,
@@ -4871,7 +4898,7 @@ body.client-detail-page .client-detail-header {
 .client-profile-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 0.55rem;
   padding: 0 1.3rem;
 }
 
@@ -4916,13 +4943,22 @@ body.client-detail-page .client-detail-header {
 }
 
 .client-detail-stat-card {
-  padding: 1.05rem 1.15rem;
+  padding: 0.96rem 0.9rem;
 }
 
 .client-detail-stat-card-coverageAmount {
   position: relative;
 }
 
+.client-detail-stat-card-coverageAmount .client-detail-stat-header span,
+.client-detail-stat-card-coverageGap .client-detail-stat-header span {
+  font-weight: 500;
+}
+
+.client-detail-stat-card-coverageAmount .client-detail-stat-header strong,
+.client-detail-stat-card-coverageGap .client-detail-stat-header strong {
+  font-weight: 600;
+}
 .client-detail-stat-card-coverageAmount::after {
   content: "";
   position: absolute;
@@ -4938,14 +4974,17 @@ body.client-detail-page .client-detail-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.48rem;
 }
 
 .client-detail-stat-header span {
   color: #1a2435;
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 1.28rem;
   font-weight: 700;
   line-height: 1.1;
+  white-space: nowrap;
 }
 
 .client-detail-stat-header strong {
@@ -4953,6 +4992,7 @@ body.client-detail-page .client-detail-header {
   font-size: 2.2rem;
   font-weight: 800;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .client-detail-stat-display {
@@ -4961,6 +5001,7 @@ body.client-detail-page .client-detail-header {
   justify-content: flex-end;
   gap: 0.4rem;
   min-width: 0;
+  flex: 0 0 auto;
 }
 
 .client-detail-stat-display.is-zero strong {
@@ -5152,7 +5193,7 @@ body.client-detail-page .client-detail-header {
   border: 0;
   background: transparent;
   color: #5b47d6;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.88rem;
   font-weight: 800;
   cursor: pointer;
@@ -5251,7 +5292,7 @@ body.client-detail-page .client-detail-header {
   border-radius: 999px;
   background: rgba(123, 97, 255, 0.08);
   color: #6858e8;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.74rem;
   font-weight: 700;
   line-height: 1;
@@ -5527,7 +5568,7 @@ body.client-detail-page .client-detail-header {
   border-top: 1px solid rgba(223, 229, 238, 0.92);
   background: rgba(255, 255, 255, 0.9);
   color: #6a5be7;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.82rem;
   font-weight: 700;
   transition: background-color 0.18s ease, color 0.18s ease;
@@ -5658,7 +5699,7 @@ body.client-detail-page .client-detail-header {
   border-radius: 0.35rem;
   background: rgba(255, 255, 255, 0.92);
   color: #5b56d6;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.74rem;
   font-weight: 700;
   line-height: 1;
@@ -6072,7 +6113,7 @@ body.client-detail-page .client-detail-header {
   gap: 0.55rem;
   min-height: 2.35rem;
   padding: 0 0.8rem;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.8rem;
   font-weight: 700;
   box-shadow: 0 10px 24px rgba(17, 24, 39, 0.04);
@@ -6138,7 +6179,7 @@ body.client-detail-page .client-detail-header {
   box-shadow: none;
   overflow: hidden;
   text-align: left;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 .client-activity-entry-card::after {
@@ -6375,7 +6416,7 @@ body.client-detail-page .client-detail-header {
   border-radius: 0.35rem;
   background: #ffffff;
   color: #17212e;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.68rem;
   font-weight: 700;
   line-height: 1;
@@ -6526,7 +6567,7 @@ body.client-detail-page .client-detail-header {
   border-radius: 0.35rem;
   background: #f1f4f8;
   color: #17212e;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.55rem;
@@ -6647,7 +6688,7 @@ body.client-detail-page .client-detail-header {
   min-height: 2.2rem;
   padding: 0 0.85rem;
   border-radius: 0.7rem;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.82rem;
   font-weight: 800;
   cursor: pointer;
@@ -6713,7 +6754,7 @@ body.client-detail-page .client-detail-header {
   border-radius: 0.65rem;
   background: #ffffff;
   color: #17212e;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.96rem;
   padding: 0.82rem 0.9rem;
 }
@@ -8476,7 +8517,7 @@ body.client-detail-page .client-detail-header {
   border: 1px solid rgba(213, 221, 232, 0.95);
   background: #ffffff;
   color: #4f5d73;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 1.02rem;
   font-weight: 900;
   line-height: 0.95;
@@ -9288,14 +9329,14 @@ body.client-detail-page .client-detail-header {
   padding: 0.66rem 0.88rem;
   border: 0 !important;
   border-radius: 0.35rem;
-  background: #edf7ef !important;
+  background: #FEF3C7 !important;
   box-shadow: none;
 }
 
 .client-checklist-next-label {
-  color: #7f1212;
+  color: #92400E;
   font-size: 0.98rem;
-  font-weight: 1000 !important;
+  font-weight: 600 !important;
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
@@ -9317,9 +9358,9 @@ body.client-detail-page .client-detail-header {
 }
 
 .client-checklist-next strong {
-  color: #182230;
+  color: #92400E;
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.15;
   white-space: nowrap;
 }
@@ -9347,20 +9388,20 @@ body.client-detail-page .client-detail-header {
 }
 
 .client-checklist-next.is-incomplete {
-  border-color: rgba(79, 70, 229, 0.18);
-  background: linear-gradient(180deg, rgba(246, 246, 255, 0.98) 0%, rgba(240, 243, 255, 0.98) 100%);
+  border-color: rgba(146, 64, 14, 0.18);
+  background: #FEF3C7;
 }
 
 .client-checklist-next.is-complete {
-  border-color: rgba(43, 105, 65, 0.18);
-  background: linear-gradient(180deg, rgba(244, 251, 246, 0.98) 0%, rgba(238, 247, 241, 0.98) 100%);
+  border-color: rgba(146, 64, 14, 0.18);
+  background: #FEF3C7;
 }
 
 .client-checklist-progress {
   margin-top: 0.58rem;
   color: #667084;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .client-checklist-list {
@@ -9389,7 +9430,7 @@ body.client-detail-page .client-detail-header {
 .client-checklist-row-copy strong {
   color: #1f2937;
   font-size: 0.89rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.08;
 }
 
@@ -9407,7 +9448,7 @@ body.client-detail-page .client-detail-header {
   padding: 0 0.62rem;
   border-radius: 999px;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -9432,7 +9473,7 @@ body.client-detail-page .client-detail-header {
   background: rgba(79, 70, 229, 0.08);
   color: #4338ca;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
   transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
 }
@@ -10142,7 +10183,7 @@ h1 {
 .lens-signal-label {
   color: rgba(237, 241, 234, 0.54);
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -11433,7 +11474,7 @@ body.lens-intake-page .workflow-shell {
 }
 
 .client-household-top-card-meta span + span::before {
-  content: "·";
+  content: "�";
   margin-right: 0.95rem;
   color: #b3bfd0;
 }
@@ -12278,7 +12319,7 @@ body.lens-intake-page .workflow-shell {
   border-radius: 0.8rem;
   background: #ffffff;
   color: #20384d;
-  font-family: "Manrope", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.92rem;
   font-weight: 700;
   cursor: default;
@@ -13622,11 +13663,13 @@ body[data-step] .step-item:focus-visible .step-title {
 
   body.client-detail-page .client-profile-shell:not(.client-profile-shell-household) .client-profile-main {
     min-height: calc(100vh - var(--app-side-nav-top-offset) - 1rem);
-    border: 1px solid rgba(213, 221, 232, 0.95);
-    border-radius: 0.35rem;
-    background: #f5f7fb;
-    box-shadow: 0 18px 38px rgba(16, 33, 52, 0.07);
-    overflow: hidden;
+    padding-left: 0.12rem;
+    padding-right: 0.02rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
   }
 
   body.client-detail-page .workspace-side-nav-host[data-workspace-side-nav="client-detail"] .client-profile-side-tabs-header,
@@ -14038,4 +14081,11 @@ body[data-step] .step-item:focus-visible .step-title {
     bottom: clamp(0.75rem, 3vw, 0.875rem);
   }
 }
+
+
+
+
+
+
+
 

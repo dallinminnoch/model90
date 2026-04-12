@@ -6,7 +6,7 @@
   <title>Client Detail | Advisor Planning Suite</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body class="home-page prospect-page profile-creation-page client-detail-page">
@@ -91,6 +91,12 @@
           </a>
         </div>
       </details>
+      <div class="workspace-page-topbar-actions">
+        <button class="fullscreen-toggle" type="button" data-fullscreen-toggle aria-label="Enter full screen" title="Enter full screen" aria-pressed="false">
+          <img class="fullscreen-toggle-icon" data-fullscreen-icon src="../Images/openfullscreen.svg" alt="" aria-hidden="true">
+          <span class="sr-only">Toggle full screen</span>
+        </button>
+      </div>
     </div>
   </div>
   <div class="workspace-side-nav-host" data-workspace-side-nav-host data-workspace-side-nav="client-detail"></div>
@@ -1970,9 +1976,6 @@
       function renderClientProfileSidebar(record, completion, hasCoveragePlaced, subtitleParts) {
         return `
           <aside class="client-profile-sidebar">
-            <a class="client-profile-backlink" href="clients.html">
-              <span>Return to Client Directory</span>
-            </a>
             <section class="client-profile-sidebar-card">
               <div class="client-profile-avatar-wrap">
                 <div class="client-profile-donut-map">
@@ -2276,7 +2279,7 @@
               type="button"
               data-view-all-policies
               ${canViewAll ? "" : "disabled"}
-            >View all coverage <span aria-hidden="true">→</span></button>
+            >View all coverage <span aria-hidden="true">?</span></button>
           </section>
         `;
       }
@@ -3557,7 +3560,7 @@
                             <strong>${escapeHtml(item.subject)}</strong>
                             <small>${escapeHtml(item.rawDate ? formatDate(item.rawDate) : "No date")}</small>
                           </div>
-                          <span class="client-coverage-card-illustration-arrow" aria-hidden="true">→</span>
+                          <span class="client-coverage-card-illustration-arrow" aria-hidden="true">?</span>
                         </button>
                       `;
                     }).join("")}
@@ -3582,6 +3585,8 @@
         const rawValue = String(options?.rawValue || "").trim();
         const showMeta = String(meta || "").trim().length > 0;
         const numericRawValue = Number(String(rawValue || "").replace(/,/g, ""));
+        const fullDisplayValue = String(value || "").trim();
+        const isResponsiveCoverageStat = fieldName === "coverageAmount" || fieldName === "coverageGap";
         const coverageGapStateClass = fieldName === "coverageGap"
           ? (Number.isFinite(numericRawValue) && numericRawValue === 0 ? " is-zero" : " has-gap")
           : "";
@@ -3593,7 +3598,10 @@
               <span>${escapeHtml(title)}</span>
               ${isEditable ? `
                 <div class="client-detail-stat-display${coverageGapStateClass}">
-                  <strong data-stat-display="${escapeHtml(fieldName)}">${escapeHtml(value)}</strong>
+                  <strong
+                    data-stat-display="${escapeHtml(fieldName)}"
+                    ${isResponsiveCoverageStat ? `data-stat-full-value="${escapeHtml(fullDisplayValue)}" data-stat-raw-value="${escapeHtml(rawValue)}"` : ""}
+                  >${escapeHtml(value)}</strong>
                   <button
                     class="client-detail-stat-edit-button"
                     type="button"
@@ -3854,7 +3862,7 @@
                             </div>
                             <div class="client-household-action-list">
                                 <button class="client-household-quick-action" type="button">
-                                  <span class="client-household-quick-icon is-purple">⌂</span>
+                                  <span class="client-household-quick-icon is-purple">¦</span>
                                   <span><strong>Add Dependent</strong></span>
                                   <span aria-hidden="true">›</span>
                                 </button>
@@ -3864,17 +3872,17 @@
                                   <span aria-hidden="true">›</span>
                                 </button>
                                 <button class="client-household-quick-action" type="button">
-                                  <span class="client-household-quick-icon is-gold">↗</span>
+                                  <span class="client-household-quick-icon is-gold">?</span>
                                   <span><strong>Add Policy</strong></span>
                                   <span aria-hidden="true">›</span>
                                 </button>
                                 <button class="client-household-quick-action" type="button">
-                                  <span class="client-household-quick-icon is-gold">▣</span>
+                                  <span class="client-household-quick-icon is-gold">?</span>
                                   <span><strong>Open PMI</strong></span>
                                   <span aria-hidden="true">›</span>
                                 </button>
                                 <button class="client-household-quick-action" type="button">
-                                  <span class="client-household-quick-icon is-green">∿</span>
+                                  <span class="client-household-quick-icon is-green">?</span>
                                   <span><strong>Open Analysis</strong></span>
                                   <span aria-hidden="true">›</span>
                                 </button>
@@ -4362,6 +4370,35 @@
         }).format(Number.isFinite(number) ? number : 0);
       }
 
+      function trimCompactNumber(value) {
+        return String(value).replace(/\.0$/, "");
+      }
+
+      function formatCompactCoverageCardCurrency(value, ultraCompact) {
+        const number = Number(String(value || "").replace(/,/g, ""));
+        const safeNumber = Number.isFinite(number) ? number : 0;
+        const absoluteValue = Math.abs(safeNumber);
+        const sign = safeNumber < 0 ? "-" : "";
+
+        if (absoluteValue >= 1000000) {
+          const millions = absoluteValue / 1000000;
+          const roundedMillions = millions >= 100
+            ? Math.round(millions)
+            : Math.round(millions * 10) / 10;
+          return `${sign}$${trimCompactNumber(roundedMillions)}M`;
+        }
+
+        if (absoluteValue >= 1000) {
+          const thousands = absoluteValue / 1000;
+          const roundedThousands = thousands >= 100
+            ? Math.round(thousands)
+            : Math.round(thousands * 10) / 10;
+          return `${sign}$${trimCompactNumber(roundedThousands)}k`;
+        }
+
+        return formatCoverageCardCurrency(safeNumber);
+      }
+
       const donutMap = host.querySelector(".client-profile-donut-map");
       const donutRing = host.querySelector(".client-detail-avatar-progress");
       const donutSegments = host.querySelectorAll(".client-detail-donut-segment-group");
@@ -4413,6 +4450,77 @@
       const coverageWidgetSave = host.querySelector("[data-coverage-widget-save]");
       const coverageWidgetCloseButtons = host.querySelectorAll("[data-coverage-widget-close]");
       const coverageWidgetFeedback = host.querySelector("[data-coverage-widget-feedback]");
+      let coverageStatSyncFrame = 0;
+
+      function syncResponsiveCoverageStatDisplays() {
+        host.querySelectorAll('[data-stat-display="coverageAmount"], [data-stat-display="coverageGap"]').forEach(function (display) {
+          const rawValue = String(display.dataset.statRawValue || "").trim();
+          const fullValue = String(display.dataset.statFullValue || formatCoverageCardCurrency(rawValue)).trim();
+          const displayShell = display.closest(".client-detail-stat-display");
+          const header = display.closest(".client-detail-stat-header");
+
+          display.textContent = fullValue;
+          display.setAttribute("title", fullValue);
+
+          if (!displayShell || !header) {
+            return;
+          }
+
+          function valueHitsMidpoint() {
+            const headerRect = header.getBoundingClientRect();
+            const valueRect = display.getBoundingClientRect();
+
+            if (headerRect.width <= 0 || valueRect.width <= 0) {
+              return false;
+            }
+
+            const dividerX = headerRect.left + (headerRect.width / 2);
+            return valueRect.left <= dividerX;
+          }
+
+          if (!valueHitsMidpoint()) {
+            return;
+          }
+
+          display.textContent = formatCompactCoverageCardCurrency(rawValue, false);
+
+          if (!valueHitsMidpoint()) {
+            return;
+          }
+
+          display.textContent = formatCompactCoverageCardCurrency(rawValue, true);
+        });
+      }
+
+      function scheduleResponsiveCoverageStatDisplaySync() {
+        if (coverageStatSyncFrame) {
+          window.cancelAnimationFrame(coverageStatSyncFrame);
+        }
+
+        coverageStatSyncFrame = window.requestAnimationFrame(function () {
+          coverageStatSyncFrame = 0;
+          syncResponsiveCoverageStatDisplays();
+        });
+      }
+
+      if (typeof window.ResizeObserver === "function") {
+        const coverageStatResizeObserver = new window.ResizeObserver(function () {
+          scheduleResponsiveCoverageStatDisplaySync();
+        });
+
+        host.querySelectorAll(".client-profile-stats, .client-detail-stat-card-coverageAmount, .client-detail-stat-card-coverageGap").forEach(function (node) {
+          coverageStatResizeObserver.observe(node);
+        });
+      }
+
+      if (profileSidebarHost) {
+        profileSidebarHost.addEventListener("transitionend", scheduleResponsiveCoverageStatDisplaySync);
+      }
+
+      if (profileSidebarLayout) {
+        profileSidebarLayout.addEventListener("transitionend", scheduleResponsiveCoverageStatDisplaySync);
+      }
+
       const profileDeleteToggle = host.querySelector("[data-profile-delete-toggle]");
       const profileDeleteModal = host.querySelector("[data-profile-delete-modal]");
       const profileDeleteModalCloseButtons = host.querySelectorAll("[data-profile-delete-modal-close]");
@@ -5838,9 +5946,13 @@
 
         const coverageDisplay = host.querySelector('[data-stat-display="coverageAmount"]');
         if (coverageDisplay) {
-          coverageDisplay.textContent = formatCoverageCardCurrency(record.coverageAmount);
+          const fullCoverageDisplay = formatCoverageCardCurrency(record.coverageAmount);
+          coverageDisplay.dataset.statRawValue = String(record.coverageAmount || "0");
+          coverageDisplay.dataset.statFullValue = fullCoverageDisplay;
+          coverageDisplay.textContent = fullCoverageDisplay;
         }
 
+        scheduleResponsiveCoverageStatDisplaySync();
         refreshCoverageAdequacy();
         refreshActivityTracker();
       }
@@ -6219,6 +6331,7 @@
       }
 
       refreshCoverageAdequacy(true);
+      scheduleResponsiveCoverageStatDisplaySync();
 
       const clientDetailSidebarStorageKey = `workspaceSideNavCollapsed:${getStorageIdentity()}`;
 
@@ -6233,6 +6346,7 @@
         profileSidebarToggle.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
         profileSidebarToggle.setAttribute("aria-label", isCollapsed ? "Expand section navigation" : "Collapse section navigation");
         profileSidebarToggle.setAttribute("title", isCollapsed ? "Expand section navigation" : "Collapse section navigation");
+        scheduleResponsiveCoverageStatDisplaySync();
       }
 
       if (profileSidebarLayout && profileSidebarToggle) {
@@ -6257,6 +6371,8 @@
           }
         });
       }
+
+      window.addEventListener("resize", scheduleResponsiveCoverageStatDisplaySync);
 
       const requestedTab = getRequestedTab();
       if (requestedTab !== "overview") {
@@ -6291,6 +6407,8 @@
             panel.classList.toggle("is-active", isActive);
             panel.hidden = !isActive;
           });
+
+          scheduleResponsiveCoverageStatDisplaySync();
         });
       });
 
@@ -7262,7 +7380,10 @@
           const clamped = clampStatValue(activeStatField, normalized);
           saveRecordField(activeStatField, clamped);
           if (display) {
-            display.textContent = formatCoverageCardCurrency(clamped);
+            const fullDisplayValue = formatCoverageCardCurrency(clamped);
+            display.dataset.statRawValue = String(clamped || "0");
+            display.dataset.statFullValue = fullDisplayValue;
+            display.textContent = fullDisplayValue;
             const displayShell = display.closest(".client-detail-stat-display");
             if (displayShell && activeStatField === "coverageGap") {
               const numericValue = Number(String(clamped || "").replace(/,/g, ""));
@@ -7270,6 +7391,7 @@
               displayShell.classList.toggle("has-gap", !Number.isFinite(numericValue) || numericValue !== 0);
             }
           }
+          scheduleResponsiveCoverageStatDisplaySync();
           if (activeStatField === "coverageAmount" || activeStatField === "coverageGap") {
             record[activeStatField] = clamped;
             refreshCoverageAdequacy();
@@ -8040,6 +8162,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
