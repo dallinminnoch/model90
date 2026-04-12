@@ -2600,6 +2600,196 @@
         return null;
       }
 
+      function getDashboardChecklistItems(record) {
+        const hasProfileCreated = Boolean(String(record?.id || "").trim());
+        const hasAnalysisCompleted = Boolean(record?.analysisCompleted)
+          || record?.statusGroup === "coverage-placed"
+          || record?.statusGroup === "closed";
+        const profileStatus = hasProfileCreated
+          ? `Saved ${formatDate(record?.dateProfileCreated || record?.lastUpdatedDate)}`
+          : "Incomplete";
+        const preliminaryStatus = record?.preliminaryUnderwritingCompleted
+          ? `Saved ${formatDate(record?.preliminaryUnderwriting?.savedAt)}`
+          : "Incomplete";
+        const pmiStatus = record?.pmiCompleted
+          ? `Saved ${formatDate(record?.protectionModeling?.savedAt)}`
+          : "Incomplete";
+        const analysisStatus = hasAnalysisCompleted
+          ? `Saved ${formatDate(record?.analysisCompletedDate || record?.lastUpdatedDate)}`
+          : "Incomplete";
+
+        return [
+          { label: "Create Profile", complete: hasProfileCreated, detail: profileStatus },
+          { label: "Preliminary Underwriting", complete: Boolean(record?.preliminaryUnderwritingCompleted), detail: preliminaryStatus },
+          { label: "Protection Modeling Inputs", complete: Boolean(record?.pmiCompleted), detail: pmiStatus },
+          { label: "Complete Analysis", complete: hasAnalysisCompleted, detail: analysisStatus }
+        ];
+      }
+
+      function getPrimaryActionButtonLabel(nextItem, action) {
+        if (!nextItem || !action) {
+          return "";
+        }
+
+        if (nextItem.label === "Protection Modeling Inputs" || nextItem.label === "Complete Analysis") {
+          return "Continue Analysis";
+        }
+
+        if (nextItem.label === "Preliminary Underwriting") {
+          return "Open Underwriting";
+        }
+
+        if (nextItem.label === "Create Profile") {
+          return "Complete Profile";
+        }
+
+        return action.label || "Continue";
+      }
+
+      function getPrimaryActionSupportCopy(nextItem, hasCoverageView) {
+        if (!nextItem) {
+          return hasCoverageView
+            ? "Core workflow steps are complete. Review placed coverage and confirm the next client move."
+            : "Core workflow steps are complete. Log the next client touchpoint to keep the case moving.";
+        }
+
+        if (nextItem.label === "Create Profile") {
+          return "Complete the client profile so the rest of the planning workflow can move forward cleanly.";
+        }
+
+        if (nextItem.label === "Preliminary Underwriting") {
+          return "Complete Preliminary Underwriting to confirm health assumptions before the recommendation is finalized.";
+        }
+
+        if (nextItem.label === "Protection Modeling Inputs") {
+          return "Complete Protection Modeling Inputs to refine the recommendation.";
+        }
+
+        if (nextItem.label === "Complete Analysis") {
+          return "Complete Analysis to finalize the recommendation and pressure-test the coverage need.";
+        }
+
+        return "Advance the next workflow step to keep the case moving forward.";
+      }
+
+      function getPrimaryActionPanelStorageKey() {
+        return `clientPrimaryActionCollapsed:${getStorageIdentity()}`;
+      }
+
+      function getPrimaryActionPanelCollapsed() {
+        try {
+          return window.localStorage.getItem(getPrimaryActionPanelStorageKey()) === "1";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function setPrimaryActionPanelCollapsed(isCollapsed) {
+        try {
+          window.localStorage.setItem(getPrimaryActionPanelStorageKey(), isCollapsed ? "1" : "0");
+        } catch (error) {
+          // Ignore storage issues and keep the in-memory render path working.
+        }
+      }
+
+      function renderPrimaryActionPanel(record, checklistItems) {
+        const items = Array.isArray(checklistItems) ? checklistItems : [];
+        const nextItem = items.find(function (item) { return !item.complete; }) || null;
+        const nextAction = nextItem ? getChecklistAction(record, nextItem) : null;
+        const isCollapsed = getPrimaryActionPanelCollapsed();
+        const coverageGap = Math.max(0, parseCurrencyNumber(record?.coverageGap));
+        const coverageAmount = Math.max(0, parseCurrencyNumber(record?.coverageAmount));
+        const adequacy = getCoverageAdequacy(record);
+        const policies = Array.isArray(record?.coveragePolicies) ? record.coveragePolicies : [];
+        const hasCoverageView = policies.length > 0 || coverageAmount > 0 || coverageGap > 0;
+        const gapDisplay = coverageGap > 0 ? formatCompactCoverageCardCurrency(coverageGap) : "No gap";
+        const adequacyDisplay = `${adequacy}%`;
+        const nextStepDisplay = nextItem ? nextItem.label : "Protection Review";
+        let headline = "";
+        let problemText = "";
+
+        if (coverageGap > 0) {
+          headline = `Client has a ${formatCompactCoverageCardCurrency(coverageGap)} coverage shortfall`;
+          problemText = adequacy > 0
+            ? `Coverage adequacy is currently ${adequacy}%, leaving a meaningful protection gap against the modeled need.`
+            : "No effective coverage is currently mapped against the modeled protection need.";
+        } else if (!coverageAmount && nextItem) {
+          headline = "Client protection need is not fully modeled yet";
+          problemText = "The current case does not yet show placed coverage against the client’s modeled protection need.";
+        } else if (!coverageAmount) {
+          headline = "Client has no placed coverage on file";
+          problemText = "No active policies are currently recorded on this profile.";
+        } else if (adequacy < 100) {
+          headline = `Client coverage is ${adequacy}% of the modeled need`;
+          problemText = "Placed coverage is on file, but the current plan still needs refinement to fully close the protection gap.";
+        } else {
+          headline = "Client coverage is aligned with the modeled need";
+          problemText = "Placed coverage currently meets the modeled protection target based on the saved planning inputs.";
+        }
+
+        return `
+          <section class="client-primary-action-panel${isCollapsed ? " is-collapsed" : ""}" data-primary-action-panel>
+            ${isCollapsed ? `
+              <div class="client-primary-action-collapsed-copy">Primary Advisor Action</div>
+            ` : `
+              <div class="client-primary-action-shell">
+                <div class="client-primary-action-copy">
+                  <span class="client-primary-action-eyebrow">Primary Advisor Action</span>
+                  <h2>${escapeHtml(headline)}</h2>
+                  <p class="client-primary-action-problem">${escapeHtml(problemText)}</p>
+                </div>
+                <div class="client-primary-action-recommendation">
+                  <span class="client-primary-action-recommendation-label">Recommended next step</span>
+                  <strong>${escapeHtml(nextStepDisplay)}</strong>
+                  <p>${escapeHtml(getPrimaryActionSupportCopy(nextItem, hasCoverageView))}</p>
+                  <div class="client-primary-action-actions">
+                    ${nextAction ? `
+                      <a
+                        class="client-primary-action-button is-primary"
+                        href="${escapeHtml(nextAction.href)}"
+                        data-linked-case-ref="${escapeHtml(String(record?.caseRef || "").trim())}"
+                        data-linked-record-id="${escapeHtml(String(record?.id || "").trim())}"
+                      >${escapeHtml(getPrimaryActionButtonLabel(nextItem, nextAction))}</a>
+                    ` : hasCoverageView ? `
+                      <button class="client-primary-action-button is-primary" type="button" data-scroll-to-coverage>View Coverage</button>
+                    ` : `
+                      <button class="client-primary-action-button is-primary" type="button" data-coverage-add-open>Add Policy</button>
+                    `}
+                    ${nextAction && hasCoverageView ? `
+                      <button class="client-primary-action-button is-secondary" type="button" data-scroll-to-coverage>View Coverage</button>
+                    ` : ""}
+                  </div>
+                </div>
+              </div>
+              <div class="client-primary-action-facts">
+                <div class="client-primary-action-fact">
+                  <span>Coverage Gap</span>
+                  <strong>${escapeHtml(gapDisplay)}</strong>
+                </div>
+                <div class="client-primary-action-fact">
+                  <span>Coverage Adequacy</span>
+                  <strong>${escapeHtml(adequacyDisplay)}</strong>
+                </div>
+                <div class="client-primary-action-fact">
+                  <span>Current Workflow Step</span>
+                  <strong>${escapeHtml(nextStepDisplay)}</strong>
+                </div>
+              </div>
+            `}
+            <button
+              class="client-primary-action-toggle"
+              type="button"
+              data-primary-action-toggle
+              aria-expanded="${isCollapsed ? "false" : "true"}"
+              aria-label="${isCollapsed ? "Expand primary advisor action" : "Collapse primary advisor action"}"
+              title="${isCollapsed ? "Expand primary advisor action" : "Collapse primary advisor action"}"
+            >
+              <span class="client-primary-action-toggle-glyph" aria-hidden="true">&#8249;</span>
+            </button>
+          </section>
+        `;
+      }
+
       function renderRiskAnalysisCard(record) {
         const data = record.preliminaryUnderwriting?.data || {};
         const conditions = formatListValue(data.majorMedicalConditions);
@@ -3354,39 +3544,14 @@
       }
 
       function renderChecklistCard(title, items, record) {
-        const incompleteItems = items.filter(function (item) { return !item.complete; });
-        const completedCount = items.length - incompleteItems.length;
-        const nextItem = incompleteItems[0] || null;
-        const nextActionTitle = nextItem ? nextItem.label : "All core steps complete";
-        const nextAction = nextItem ? getChecklistAction(record, nextItem) : null;
+        const completedCount = items.filter(function (item) { return item.complete; }).length;
 
         return `
           <section class="client-detail-card client-detail-card-compact client-detail-card-checklist" data-checklist-card>
-            <div class="client-detail-card-header">
+            <div class="client-detail-card-header client-detail-card-header-checklist">
               <h2>${escapeHtml(title)}</h2>
+              <span class="client-checklist-progress-pill">${completedCount} of ${items.length} complete</span>
             </div>
-            <div class="client-checklist-next ${nextItem ? "is-incomplete" : "is-complete"}">
-              ${nextAction ? `
-                <a class="client-checklist-next-button" href="${escapeHtml(nextAction.href)}" data-linked-case-ref="${escapeHtml(String(record?.caseRef || "").trim())}" data-linked-record-id="${escapeHtml(String(record?.id || "").trim())}">
-                  <span class="client-checklist-next-top">
-                    <span class="client-checklist-next-label">Next Action</span>
-                    <span class="client-checklist-next-row">
-                      <strong>${escapeHtml(nextActionTitle)}</strong>
-                      <img class="client-checklist-next-icon" src="../Images/start_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" alt="" aria-hidden="true">
-                    </span>
-                  </span>
-                </a>
-              ` : `
-                <div class="client-checklist-next-top">
-                  <span class="client-checklist-next-label">Next Action</span>
-                  <div class="client-checklist-next-row">
-                    <strong>${escapeHtml(nextActionTitle)}</strong>
-                    <img class="client-checklist-next-icon" src="../Images/start_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" alt="" aria-hidden="true">
-                  </div>
-                </div>
-              `}
-            </div>
-            <div class="client-checklist-progress">${completedCount} of ${items.length} complete</div>
             <div class="client-checklist-list">
               ${items.map(function (item) {
                 const action = getChecklistAction(record, item);
@@ -3675,23 +3840,8 @@
         const hasCoveragePlaced = (Array.isArray(record.coveragePolicies) && record.coveragePolicies.length > 0)
           || record.statusGroup === "coverage-placed"
           || record.statusGroup === "closed";
-        const hasProfileCreated = Boolean(String(record.id || "").trim());
-        const hasAnalysisCompleted = Boolean(record.analysisCompleted)
-          || record.statusGroup === "coverage-placed"
-          || record.statusGroup === "closed";
         const completion = calculateProfileCompletion(record);
-        const profileStatus = hasProfileCreated
-          ? `Saved ${formatDate(record.dateProfileCreated || record.lastUpdatedDate)}`
-          : "Incomplete";
-        const preliminaryStatus = record.preliminaryUnderwritingCompleted
-          ? `Saved ${formatDate(record.preliminaryUnderwriting?.savedAt)}`
-          : "Incomplete";
-        const pmiStatus = record.pmiCompleted
-          ? `Saved ${formatDate(record.protectionModeling?.savedAt)}`
-          : "Incomplete";
-        const analysisStatus = hasAnalysisCompleted
-          ? `Saved ${formatDate(record.analysisCompletedDate || record.lastUpdatedDate)}`
-          : "Incomplete";
+        const checklistItems = getDashboardChecklistItems(record);
 
         if (isHousehold) {
           const membersLabel = `${Number.isFinite(membersCount) && membersCount > 0 ? membersCount : 0} member${Number.isFinite(membersCount) && membersCount === 1 ? "" : "s"}`;
@@ -3981,9 +4131,13 @@
             <section class="client-profile-main">
               <div class="client-profile-tab-panels">
                 <section class="client-profile-tab-panel is-active" data-client-panel="overview">
-                  <div class="client-profile-overview-layout">
-                    ${renderClientProfileSidebar(record, completion, hasCoveragePlaced, subtitleParts)}
-                    <div class="client-profile-overview-main">
+                  <div class="client-profile-overview-stack">
+                    <div data-primary-action-panel-host>
+                      ${renderPrimaryActionPanel(record, checklistItems)}
+                    </div>
+                    <div class="client-profile-overview-layout">
+                      ${renderClientProfileSidebar(record, completion, hasCoveragePlaced, subtitleParts)}
+                      <div class="client-profile-overview-main">
                       <div class="client-profile-stats">
                         ${renderStatCard("Coverage Amount", formatCoverageCardCurrency(record.coverageAmount), "", {
                           editable: true,
@@ -4000,12 +4154,7 @@
 
                       <div class="client-profile-dashboard">
                         <div class="client-profile-dashboard-main">
-                          ${renderChecklistCard("Account Completion Checklist", [
-                            { label: "Create Profile", complete: hasProfileCreated, detail: profileStatus },
-                            { label: "Preliminary Underwriting", complete: Boolean(record.preliminaryUnderwritingCompleted), detail: preliminaryStatus },
-                            { label: "Protection Modeling Inputs", complete: Boolean(record.pmiCompleted), detail: pmiStatus },
-                            { label: "Complete Analysis", complete: hasAnalysisCompleted, detail: analysisStatus }
-                          ], record)}
+                          ${renderChecklistCard("Account Completion Checklist", checklistItems, record)}
                           ${renderNotesWidget(record)}
                         </div>
                         <div class="client-profile-dashboard-side client-profile-dashboard-side--dashboard client-profile-dashboard-side--coverage-merged">
@@ -4013,6 +4162,7 @@
                         </div>
                         ${renderFooterBar(record)}
                       </div>
+                    </div>
                     </div>
                   </div>
                 </section>
@@ -4554,6 +4704,7 @@
       const activityWidgetCancel = host.querySelector("[data-activity-widget-cancel]");
       const activityWidgetCloseButtons = host.querySelectorAll("[data-activity-widget-close]");
       const activityOptionButtons = host.querySelectorAll("[data-activity-option]");
+      const primaryActionPanelHosts = host.querySelectorAll("[data-primary-action-panel-host]");
       const activityOverviewContainers = host.querySelectorAll("[data-activity-overview]");
       const activityPreviewContainers = host.querySelectorAll("[data-activity-preview]");
       const activityLastContactLabels = host.querySelectorAll("[data-activity-last-contact]");
@@ -6230,11 +6381,25 @@
         return true;
       }
 
+      function refreshPrimaryActionPanel() {
+        const latestRecord = getLatestRecordSnapshot();
+        if (latestRecord && latestRecord !== record) {
+          Object.assign(record, latestRecord);
+        }
+
+        const checklistItems = getDashboardChecklistItems(record);
+        primaryActionPanelHosts.forEach(function (container) {
+          container.innerHTML = renderPrimaryActionPanel(record, checklistItems);
+        });
+      }
+
       function refreshActivityTracker() {
         const latestRecord = getLatestRecordSnapshot();
         if (latestRecord && latestRecord !== record) {
           Object.assign(record, latestRecord);
         }
+
+        refreshPrimaryActionPanel();
 
         activityPreviewContainers.forEach(function (container) {
           container.innerHTML = renderActivityPreview(record);
@@ -7395,6 +7560,7 @@
           if (activeStatField === "coverageAmount" || activeStatField === "coverageGap") {
             record[activeStatField] = clamped;
             refreshCoverageAdequacy();
+            refreshPrimaryActionPanel();
           }
           statModalInput.value = formatEditableCurrency(clamped);
           closeStatEditor();
@@ -7965,6 +8131,23 @@
             return;
           }
           openCoverageWidget(-1, false);
+          return;
+        }
+
+        const primaryActionToggle = event.target.closest("[data-primary-action-toggle]");
+        if (primaryActionToggle && host.contains(primaryActionToggle)) {
+          const nextCollapsed = !getPrimaryActionPanelCollapsed();
+          setPrimaryActionPanelCollapsed(nextCollapsed);
+          refreshPrimaryActionPanel();
+          return;
+        }
+
+        const scrollToCoverage = event.target.closest("[data-scroll-to-coverage]");
+        if (scrollToCoverage && host.contains(scrollToCoverage)) {
+          const coverageCard = host.querySelector("[data-coverage-card]");
+          if (coverageCard) {
+            coverageCard.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
           return;
         }
 
