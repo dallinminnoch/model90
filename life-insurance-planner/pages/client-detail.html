@@ -3050,11 +3050,8 @@
               <h2>${escapeHtml(widgetTitle)}</h2>
             </div>
             <div class="client-notes-widget-body">
-              <div data-activity-summary>
-                ${renderActivitySummaryCard(record)}
-              </div>
-              <div data-activity-next-best>
-                ${renderActivityNextBestCard(record)}
+              <div data-activity-overview>
+                ${renderActivityOverviewCard(record)}
               </div>
               <div class="client-notes-widget-paper">
                 <div class="client-activity-section-title">
@@ -3099,31 +3096,25 @@
         `;
       }
 
-      function renderActivitySummaryCard(record) {
+      function renderActivityOverviewCard(record) {
         const summary = getActivityTrackerSummary(record);
         return `
-          <div class="client-activity-summary-card">
+          <div class="client-activity-overview-card">
             <div class="client-activity-summary-top">
               <span class="client-activity-status-badge is-${escapeHtml(summary.statusTone)}">${escapeHtml(summary.status)}</span>
               <span class="client-activity-summary-metric">Last Contact: ${escapeHtml(summary.relativeContact)}</span>
               <span class="client-activity-summary-metric">Response Rate: <strong>${escapeHtml(summary.responseRate)}</strong></span>
             </div>
-          </div>
-        `;
-      }
-
-      function renderActivityNextBestCard(record) {
-        const summary = getActivityTrackerSummary(record);
-        return `
-          <div class="client-activity-next-best">
-            <div class="client-activity-next-best-copy">
+            <div class="client-activity-overview-bottom">
+              <div class="client-activity-next-best-copy">
               <span class="client-activity-next-best-label">Suggested Activity</span>
-              <strong>${escapeHtml(summary.nextAction)}</strong>
+                <strong>${escapeHtml(summary.nextAction)}</strong>
+              </div>
+              <button type="button" class="client-activity-next-best-button" data-activity-log-open>
+                <span>${escapeHtml(summary.quickActionLabel)}</span>
+                <span aria-hidden="true">›</span>
+              </button>
             </div>
-            <button type="button" class="client-activity-next-best-button" data-activity-log-open>
-              <span>${escapeHtml(summary.quickActionLabel)}</span>
-              <span aria-hidden="true">›</span>
-            </button>
           </div>
         `;
       }
@@ -4356,8 +4347,7 @@
       const activityWidgetCancel = host.querySelector("[data-activity-widget-cancel]");
       const activityWidgetCloseButtons = host.querySelectorAll("[data-activity-widget-close]");
       const activityOptionButtons = host.querySelectorAll("[data-activity-option]");
-      const activitySummaryContainers = host.querySelectorAll("[data-activity-summary]");
-      const activityNextBestContainers = host.querySelectorAll("[data-activity-next-best]");
+      const activityOverviewContainers = host.querySelectorAll("[data-activity-overview]");
       const activityPreviewContainers = host.querySelectorAll("[data-activity-preview]");
       const activityLastContactLabels = host.querySelectorAll("[data-activity-last-contact]");
       const caseRefCopyButton = host.querySelector("[data-case-ref-copy]");
@@ -6039,12 +6029,8 @@
           container.innerHTML = renderActivityPreview(record);
         });
 
-        activitySummaryContainers.forEach(function (container) {
-          container.innerHTML = renderActivitySummaryCard(record);
-        });
-
-        activityNextBestContainers.forEach(function (container) {
-          container.innerHTML = renderActivityNextBestCard(record);
+        activityOverviewContainers.forEach(function (container) {
+          container.innerHTML = renderActivityOverviewCard(record);
         });
 
         const currentRemindersStrip = host.querySelector("[data-reminders-strip]");
