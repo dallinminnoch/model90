@@ -10,15 +10,374 @@
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body class="home-page resources-page">
-  <main class="home-shell app-home-shell prospect-shell">
-    <section class="prospect-stage">
-      <section class="prospect-empty-panel">
-        <div class="prospect-panel-header">
-          <h1>Resources</h1>
+  <div class="workspace-page-topbar">
+    <div class="workspace-page-topbar-inner">
+      <details class="workspace-page-menu">
+        <summary class="workspace-page-menu-trigger" aria-label="Open pages menu" title="Pages">
+          <img class="workspace-page-menu-icon" src="../Images/menu.svg" alt="" aria-hidden="true">
+        </summary>
+        <div class="workspace-page-menu-panel">
+          <a class="workspace-page-menu-link" href="../index.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M3.6 8.45 10 3.55l6.4 4.9v7.2a1.35 1.35 0 0 1-1.35 1.35H4.95A1.35 1.35 0 0 1 3.6 15.65V8.45Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+                <path d="M7.75 16.95v-4.3h4.5v4.3" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Home</span>
+          </a>
+          <a class="workspace-page-menu-link" href="clients.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <circle cx="7" cy="7.2" r="2.35" stroke="currentColor" stroke-width="1.55"/>
+                <circle cx="13.3" cy="8.15" r="2.05" stroke="currentColor" stroke-width="1.55"/>
+                <path d="M3.9 15.35c.55-2.15 2.2-3.45 4.15-3.45 1.95 0 3.55 1.3 4.1 3.45" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                <path d="M11.2 15.35c.4-1.65 1.7-2.65 3.25-2.65 1.1 0 2.15.5 2.85 1.45" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Client Directory</span>
+          </a>
+          <a class="workspace-page-menu-link is-active" href="resources.html" aria-current="page">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M5.1 3.15h7.65l2.15 2.2v10.1a1.55 1.55 0 0 1-1.55 1.55H5.1a1.55 1.55 0 0 1-1.55-1.55V4.7A1.55 1.55 0 0 1 5.1 3.15Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+                <path d="M12.75 3.3v2.55h2.4" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6.4 9.2h6.85M6.4 12.15h6.85" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Resources</span>
+          </a>
+          <a class="workspace-page-menu-link" href="lens.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <circle cx="10" cy="10" r="6.05" stroke="currentColor" stroke-width="1.55"/>
+                <circle cx="10" cy="10" r="2.1" stroke="currentColor" stroke-width="1.55"/>
+                <path d="M10 2.95v1.85M10 15.2v1.85M17.05 10H15.2M4.8 10H2.95" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">LENS Analysis</span>
+          </a>
+          <a class="workspace-page-menu-link" href="strategy-builder.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M3 15.75h14" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                <path d="M4.25 13.1 7.45 9.9l2.75 2.75 5.55-6.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12.95 6.55h2.8v2.8" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Strategy Builder</span>
+          </a>
+          <a class="workspace-page-menu-link" href="policy-web.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M4.25 5.25h11.5a1.1 1.1 0 0 1 1.1 1.1v7.3a1.1 1.1 0 0 1-1.1 1.1H4.25a1.1 1.1 0 0 1-1.1-1.1v-7.3a1.1 1.1 0 0 1 1.1-1.1Z" stroke="currentColor" stroke-width="1.55"/>
+                <path d="M6.2 8.15h7.6M6.2 10.85h5.2" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Policy Web</span>
+          </a>
         </div>
+      </details>
+      <div class="workspace-page-topbar-actions">
+        <button class="fullscreen-toggle" type="button" data-fullscreen-toggle aria-label="Enter full screen" title="Enter full screen" aria-pressed="false">
+          <img class="fullscreen-toggle-icon" data-fullscreen-icon src="../Images/openfullscreen.svg" alt="" aria-hidden="true">
+          <span class="sr-only">Toggle full screen</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <main class="home-shell app-home-shell resources-shell">
+    <section class="resources-workspace">
+      <header class="resources-header">
+        <div class="resources-header-copy">
+          <span class="resources-header-kicker">Resources</span>
+          <h1>Calendar</h1>
+          <p>Keep advisor trainings, client review blocks, and planning deadlines organized in one shared planning view.</p>
+        </div>
+        <div class="resources-header-legend" aria-label="Calendar legend">
+          <span class="resources-legend-chip"><span class="resources-legend-dot is-training"></span>Training</span>
+          <span class="resources-legend-chip"><span class="resources-legend-dot is-review"></span>Client Review</span>
+          <span class="resources-legend-chip"><span class="resources-legend-dot is-deadline"></span>Deadline</span>
+          <span class="resources-legend-chip"><span class="resources-legend-dot is-team"></span>Team</span>
+        </div>
+      </header>
+
+      <section class="resources-calendar-layout" data-resources-calendar-root>
+        <section class="resources-calendar-board">
+          <div class="resources-calendar-toolbar">
+            <div class="resources-calendar-toolbar-copy">
+              <span class="resources-calendar-kicker">Planning Month</span>
+              <h2 data-calendar-month-label>April 2026</h2>
+            </div>
+            <div class="resources-calendar-toolbar-actions">
+              <button class="resources-calendar-nav-button" type="button" data-calendar-nav="-1" aria-label="Previous month">&#8249;</button>
+              <button class="resources-calendar-today-button" type="button" data-calendar-today>Today</button>
+              <button class="resources-calendar-nav-button" type="button" data-calendar-nav="1" aria-label="Next month">&#8250;</button>
+            </div>
+          </div>
+
+          <div class="resources-calendar-weekdays" aria-hidden="true">
+            <span>Sun</span>
+            <span>Mon</span>
+            <span>Tue</span>
+            <span>Wed</span>
+            <span>Thu</span>
+            <span>Fri</span>
+            <span>Sat</span>
+          </div>
+
+          <div class="resources-calendar-grid" data-calendar-grid></div>
+        </section>
+
+        <aside class="resources-calendar-sidebar">
+          <section class="resources-calendar-sidebar-card resources-calendar-sidebar-card-focus">
+            <span class="resources-calendar-sidebar-kicker">Selected Day</span>
+            <h3 data-calendar-selected-label>Today</h3>
+            <p data-calendar-selected-subcopy>Select any day on the calendar to review the schedule.</p>
+          </section>
+
+          <section class="resources-calendar-sidebar-card">
+            <div class="resources-calendar-sidebar-card-header">
+              <span class="resources-calendar-sidebar-kicker">Agenda</span>
+              <span class="resources-calendar-sidebar-count" data-calendar-selected-count>0 items</span>
+            </div>
+            <div class="resources-calendar-agenda" data-calendar-agenda></div>
+          </section>
+
+          <section class="resources-calendar-sidebar-card resources-calendar-sidebar-card-summary">
+            <div class="resources-calendar-sidebar-card-header">
+              <span class="resources-calendar-sidebar-kicker">This Month</span>
+            </div>
+            <div class="resources-calendar-summary-grid">
+              <article class="resources-calendar-summary-stat">
+                <strong data-calendar-summary-training>0</strong>
+                <span>Trainings</span>
+              </article>
+              <article class="resources-calendar-summary-stat">
+                <strong data-calendar-summary-review>0</strong>
+                <span>Reviews</span>
+              </article>
+              <article class="resources-calendar-summary-stat">
+                <strong data-calendar-summary-deadline>0</strong>
+                <span>Deadlines</span>
+              </article>
+              <article class="resources-calendar-summary-stat">
+                <strong data-calendar-summary-team>0</strong>
+                <span>Team Blocks</span>
+              </article>
+            </div>
+          </section>
+        </aside>
       </section>
     </section>
   </main>
+
+  <script>
+    (function () {
+      const monthLabel = document.querySelector("[data-calendar-month-label]");
+      const grid = document.querySelector("[data-calendar-grid]");
+      const selectedLabel = document.querySelector("[data-calendar-selected-label]");
+      const selectedSubcopy = document.querySelector("[data-calendar-selected-subcopy]");
+      const selectedCount = document.querySelector("[data-calendar-selected-count]");
+      const agenda = document.querySelector("[data-calendar-agenda]");
+
+      if (!monthLabel || !grid || !selectedLabel || !selectedSubcopy || !selectedCount || !agenda) {
+        return;
+      }
+
+      const summaryTargets = {
+        training: document.querySelector("[data-calendar-summary-training]"),
+        review: document.querySelector("[data-calendar-summary-review]"),
+        deadline: document.querySelector("[data-calendar-summary-deadline]"),
+        team: document.querySelector("[data-calendar-summary-team]")
+      };
+
+      const resourceEvents = [
+        { date: "2026-04-13", time: "9:00 AM", title: "Protection Modeling Office Hours", type: "training", detail: "Walk through new modeling assumptions with the advisor team." },
+        { date: "2026-04-14", time: "1:30 PM", title: "Case Review Block", type: "review", detail: "Review active coverage gap cases before client outreach." },
+        { date: "2026-04-16", time: "10:00 AM", title: "Carrier Product Update", type: "training", detail: "New term conversion updates and underwriting notes." },
+        { date: "2026-04-18", time: "All Day", title: "Quarterly Planning Deadline", type: "deadline", detail: "Finalize open planning workflows before the quarter close." },
+        { date: "2026-04-21", time: "11:00 AM", title: "Client Review Prep", type: "review", detail: "Prepare analysis and placed-policy summary for upcoming reviews." },
+        { date: "2026-04-22", time: "2:00 PM", title: "Advisor Calendar Sync", type: "team", detail: "Weekly internal scheduling and workload alignment." },
+        { date: "2026-04-24", time: "8:30 AM", title: "Underwriting Roundtable", type: "training", detail: "Discuss recent underwriting outcomes and positioning notes." },
+        { date: "2026-04-28", time: "3:00 PM", title: "Placement Follow-Up Window", type: "deadline", detail: "Confirm policy delivery updates and pending docs." },
+        { date: "2026-05-05", time: "9:00 AM", title: "May Kickoff Planning Session", type: "team", detail: "Set review cadence and planning priorities for the new month." },
+        { date: "2026-05-08", time: "12:30 PM", title: "Client Review Day", type: "review", detail: "Reserved day for policy review and adequacy conversations." }
+      ];
+
+      const today = new Date();
+      let activeMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      let selectedDateKey = formatDateKey(today);
+
+      function formatDateKey(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      function formatDisplayDate(date) {
+        return new Intl.DateTimeFormat("en-US", {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+          year: "numeric"
+        }).format(date);
+      }
+
+      function getEventsForDate(dateKey) {
+        return resourceEvents.filter(function (event) {
+          return event.date === dateKey;
+        });
+      }
+
+      function getEventsForMonth(date) {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        return resourceEvents.filter(function (event) {
+          const eventDate = new Date(`${event.date}T12:00:00`);
+          return eventDate.getFullYear() === year && eventDate.getMonth() === month;
+        });
+      }
+
+      function renderAgenda(dateKey) {
+        const selectedDate = new Date(`${dateKey}T12:00:00`);
+        const dayEvents = getEventsForDate(dateKey);
+
+        selectedLabel.textContent = formatDisplayDate(selectedDate);
+        selectedSubcopy.textContent = dayEvents.length
+          ? "Here is what is scheduled for this day."
+          : "No events are scheduled for this day yet.";
+        selectedCount.textContent = `${dayEvents.length} ${dayEvents.length === 1 ? "item" : "items"}`;
+
+        if (!dayEvents.length) {
+          agenda.innerHTML = '<div class="resources-calendar-agenda-empty">No scheduled items.</div>';
+          return;
+        }
+
+        agenda.innerHTML = dayEvents.map(function (event) {
+          return `
+            <article class="resources-calendar-agenda-item">
+              <div class="resources-calendar-agenda-item-top">
+                <span class="resources-calendar-agenda-time">${event.time}</span>
+                <span class="resources-calendar-agenda-tag is-${event.type}">${event.type === "team" ? "Team" : event.type === "review" ? "Review" : event.type === "deadline" ? "Deadline" : "Training"}</span>
+              </div>
+              <strong>${event.title}</strong>
+              <p>${event.detail}</p>
+            </article>
+          `;
+        }).join("");
+      }
+
+      function renderMonthSummary(date) {
+        const monthEvents = getEventsForMonth(date);
+        const counts = monthEvents.reduce(function (accumulator, event) {
+          accumulator[event.type] += 1;
+          return accumulator;
+        }, { training: 0, review: 0, deadline: 0, team: 0 });
+
+        Object.keys(summaryTargets).forEach(function (key) {
+          if (summaryTargets[key]) {
+            summaryTargets[key].textContent = String(counts[key]);
+          }
+        });
+      }
+
+      function buildDayButton(date, inActiveMonth) {
+        const dateKey = formatDateKey(date);
+        const events = getEventsForDate(dateKey);
+        const isToday = dateKey === formatDateKey(today);
+        const isSelected = dateKey === selectedDateKey;
+        const eventPreview = events.slice(0, 2);
+
+        return `
+          <button
+            class="resources-calendar-day${inActiveMonth ? "" : " is-outside-month"}${isToday ? " is-today" : ""}${isSelected ? " is-selected" : ""}${events.length ? " has-events" : ""}"
+            type="button"
+            data-calendar-date="${dateKey}"
+            aria-pressed="${isSelected ? "true" : "false"}"
+          >
+            <span class="resources-calendar-day-number">${date.getDate()}</span>
+            <span class="resources-calendar-day-body">
+              ${eventPreview.map(function (event) {
+                return `<span class="resources-calendar-day-pill is-${event.type}">${event.title}</span>`;
+              }).join("")}
+              ${events.length > 2 ? `<span class="resources-calendar-day-more">+${events.length - 2} more</span>` : ""}
+            </span>
+          </button>
+        `;
+      }
+
+      function renderGrid() {
+        const year = activeMonth.getFullYear();
+        const month = activeMonth.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const gridStart = new Date(firstDay);
+        gridStart.setDate(gridStart.getDate() - firstDay.getDay());
+
+        monthLabel.textContent = new Intl.DateTimeFormat("en-US", {
+          month: "long",
+          year: "numeric"
+        }).format(activeMonth);
+
+        const dayButtons = [];
+        for (let offset = 0; offset < 42; offset += 1) {
+          const current = new Date(gridStart);
+          current.setDate(gridStart.getDate() + offset);
+          dayButtons.push(buildDayButton(current, current.getMonth() === month));
+        }
+
+        grid.innerHTML = dayButtons.join("");
+        renderMonthSummary(activeMonth);
+        renderAgenda(selectedDateKey);
+      }
+
+      document.addEventListener("click", function (event) {
+        const navButton = event.target.closest("[data-calendar-nav]");
+        const todayButton = event.target.closest("[data-calendar-today]");
+        const dayButton = event.target.closest("[data-calendar-date]");
+        const pageMenu = document.querySelector(".workspace-page-menu");
+
+        if (pageMenu && pageMenu.hasAttribute("open")) {
+          const clickedInsideMenu = event.target.closest(".workspace-page-menu");
+          if (!clickedInsideMenu) {
+            pageMenu.removeAttribute("open");
+          }
+        }
+
+        if (navButton instanceof HTMLButtonElement) {
+          activeMonth = new Date(activeMonth.getFullYear(), activeMonth.getMonth() + Number(navButton.dataset.calendarNav || "0"), 1);
+          selectedDateKey = formatDateKey(activeMonth);
+          renderGrid();
+          return;
+        }
+
+        if (todayButton instanceof HTMLButtonElement) {
+          activeMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+          selectedDateKey = formatDateKey(today);
+          renderGrid();
+          return;
+        }
+
+        if (dayButton instanceof HTMLButtonElement) {
+          selectedDateKey = String(dayButton.dataset.calendarDate || selectedDateKey);
+          renderGrid();
+        }
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          const pageMenu = document.querySelector(".workspace-page-menu");
+          if (pageMenu && pageMenu.hasAttribute("open")) {
+            pageMenu.removeAttribute("open");
+          }
+        }
+      });
+
+      renderGrid();
+    })();
+  </script>
 
   <script src="../data.js"></script>
   <script src="../calculations.js"></script>
@@ -27,5 +386,3 @@
   <script src="../app.js"></script>
 </body>
 </html>
-
-

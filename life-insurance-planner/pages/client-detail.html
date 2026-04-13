@@ -1977,6 +1977,23 @@
         return `
           <aside class="client-profile-sidebar">
             <section class="client-profile-sidebar-card">
+              <details class="workspace-page-menu client-profile-sidebar-menu">
+                <summary class="workspace-page-menu-trigger client-profile-sidebar-menu-trigger" aria-label="Open profile actions" title="Profile actions">
+                  <span class="client-profile-sidebar-menu-dots" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </span>
+                </summary>
+                <div class="workspace-page-menu-panel client-profile-sidebar-menu-panel">
+                  <button class="workspace-page-menu-link client-profile-sidebar-menu-action" type="button" data-profile-delete-toggle>
+                    <span class="workspace-page-menu-link-icon client-profile-sidebar-menu-action-icon" aria-hidden="true">
+                      <span class="client-profile-delete-icon-image"></span>
+                    </span>
+                    <span class="workspace-page-menu-link-label">Delete Profile</span>
+                  </button>
+                </div>
+              </details>
               <div class="client-profile-avatar-wrap">
                 <div class="client-profile-donut-map">
                   <div class="client-detail-avatar client-detail-avatar-progress">
@@ -2040,13 +2057,10 @@
               { label: "Est. Annual Premium Capacity", value: getEstimatedAnnualPremiumCapacity(record) }
             ]), {
               cardClassName: "client-profile-snapshot-card",
-              footerAction: `
-                <button class="client-policy-delete-button client-profile-delete-button" type="button" data-profile-delete-toggle aria-label="Delete profile">
-                  <span class="client-profile-delete-icon-image" aria-hidden="true"></span>
-                  <span>Delete Profile</span>
-                </button>
-              `
+              collapsible: true
             })}
+            ${renderResourceCalendarPreviewCard()}
+            ${renderFooterBar(record)}
           </aside>
         `;
       }
@@ -2095,34 +2109,51 @@
       function renderSplitSummaryCard(title, leftItems, rightItems, options) {
         const cardClassName = String(options?.cardClassName || "").trim();
         const footerAction = String(options?.footerAction || "").trim();
+        const isCollapsible = Boolean(options?.collapsible);
+        const defaultOpen = Boolean(options?.defaultOpen);
+        const bodyMarkup = `
+          <div class="client-summary-split">
+            <div class="client-summary-list">
+              ${leftItems.map(function (item) {
+                return `
+                  <div class="client-summary-item">
+                    <span class="client-summary-label">${escapeHtml(item.label)}</span>
+                    <span class="client-summary-value">${escapeHtml(item.value)}</span>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+            <div class="client-summary-list client-summary-list-secondary">
+              ${rightItems.map(function (item) {
+                return `
+                  <div class="client-summary-item">
+                    <span class="client-summary-label">${escapeHtml(item.label)}</span>
+                    <span class="client-summary-value">${escapeHtml(item.value)}</span>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+          ${footerAction ? `<div class="client-summary-footer">${footerAction}</div>` : ""}
+        `;
         return `
           <section class="client-detail-card client-detail-card-compact client-detail-card-split${cardClassName ? ` ${escapeHtml(cardClassName)}` : ""}">
-            <div class="client-detail-card-header">
-              <h2>${escapeHtml(title)}</h2>
-            </div>
-            <div class="client-summary-split">
-              <div class="client-summary-list">
-                ${leftItems.map(function (item) {
-                  return `
-                    <div class="client-summary-item">
-                      <span class="client-summary-label">${escapeHtml(item.label)}</span>
-                      <span class="client-summary-value">${escapeHtml(item.value)}</span>
-                    </div>
-                  `;
-                }).join("")}
+            ${isCollapsible ? `
+              <details class="client-summary-details"${defaultOpen ? " open" : ""}>
+                <summary class="client-detail-card-header client-summary-toggle">
+                  <h2>${escapeHtml(title)}</h2>
+                  <span class="client-summary-toggle-icon" aria-hidden="true"></span>
+                </summary>
+                <div class="client-summary-details-body">
+                  ${bodyMarkup}
+                </div>
+              </details>
+            ` : `
+              <div class="client-detail-card-header">
+                <h2>${escapeHtml(title)}</h2>
               </div>
-              <div class="client-summary-list client-summary-list-secondary">
-                ${rightItems.map(function (item) {
-                  return `
-                    <div class="client-summary-item">
-                      <span class="client-summary-label">${escapeHtml(item.label)}</span>
-                      <span class="client-summary-value">${escapeHtml(item.value)}</span>
-                    </div>
-                  `;
-                }).join("")}
-              </div>
-            </div>
-            ${footerAction ? `<div class="client-summary-footer">${footerAction}</div>` : ""}
+              ${bodyMarkup}
+            `}
           </section>
         `;
       }
@@ -2412,6 +2443,117 @@
         });
       }
 
+      const RESOURCE_CALENDAR_PREVIEW_EVENTS = [
+        { date: "2026-04-13", time: "9:00 AM", title: "Protection Modeling Office Hours", type: "training", detail: "Walk through new modeling assumptions with the advisor team." },
+        { date: "2026-04-14", time: "1:30 PM", title: "Case Review Block", type: "review", detail: "Review active coverage gap cases before client outreach." },
+        { date: "2026-04-16", time: "10:00 AM", title: "Carrier Product Update", type: "training", detail: "New term conversion updates and underwriting notes." },
+        { date: "2026-04-18", time: "All Day", title: "Quarterly Planning Deadline", type: "deadline", detail: "Finalize open planning workflows before the quarter close." },
+        { date: "2026-04-21", time: "11:00 AM", title: "Client Review Prep", type: "review", detail: "Prepare analysis and placed-policy summary for upcoming reviews." },
+        { date: "2026-04-22", time: "2:00 PM", title: "Advisor Calendar Sync", type: "team", detail: "Weekly internal scheduling and workload alignment." },
+        { date: "2026-04-24", time: "8:30 AM", title: "Underwriting Roundtable", type: "training", detail: "Discuss recent underwriting outcomes and positioning notes." },
+        { date: "2026-04-28", time: "3:00 PM", title: "Placement Follow-Up Window", type: "deadline", detail: "Confirm policy delivery updates and pending docs." },
+        { date: "2026-05-05", time: "9:00 AM", title: "May Kickoff Planning Session", type: "team", detail: "Set review cadence and planning priorities for the new month." },
+        { date: "2026-05-08", time: "12:30 PM", title: "Client Review Day", type: "review", detail: "Reserved day for policy review and adequacy conversations." }
+      ];
+
+      function formatResourceCalendarPreviewDateKey(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      function getResourceCalendarPreviewUpcomingEvent(events, todayKey) {
+        return events
+          .slice()
+          .sort(function (a, b) {
+            return new Date(`${a.date}T12:00:00`).getTime() - new Date(`${b.date}T12:00:00`).getTime();
+          })
+          .find(function (event) {
+            return event.date >= todayKey;
+          }) || events[0] || null;
+      }
+
+      function renderResourceCalendarPreviewCard() {
+        const today = new Date();
+        const todayKey = formatResourceCalendarPreviewDateKey(today);
+        const activeMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const monthLabel = new Intl.DateTimeFormat("en-US", {
+          month: "long",
+          year: "numeric"
+        }).format(activeMonth);
+        const calendarStart = new Date(activeMonth);
+        calendarStart.setDate(calendarStart.getDate() - calendarStart.getDay());
+        const upcomingEvent = getResourceCalendarPreviewUpcomingEvent(RESOURCE_CALENDAR_PREVIEW_EVENTS, todayKey);
+
+        return `
+          <section class="client-detail-card client-detail-card-compact client-profile-calendar-card">
+            <details class="client-summary-details client-profile-calendar-details">
+              <summary class="client-detail-card-header client-summary-toggle client-profile-calendar-summary">
+                <h2>Calendar Preview</h2>
+                <span class="client-summary-toggle-icon" aria-hidden="true"></span>
+              </summary>
+              <div class="client-summary-details-body client-profile-calendar-details-body">
+                <div class="client-profile-calendar-month-bar">
+                  <span class="client-profile-calendar-kicker">Resources</span>
+                  <div class="client-profile-calendar-month-actions">
+                    <strong>${escapeHtml(monthLabel)}</strong>
+                    <a class="client-profile-calendar-open-link" href="resources.html">Open</a>
+                  </div>
+                </div>
+                <div class="client-profile-calendar-weekdays" aria-hidden="true">
+                  <span>Su</span>
+                  <span>Mo</span>
+                  <span>Tu</span>
+                  <span>We</span>
+                  <span>Th</span>
+                  <span>Fr</span>
+                  <span>Sa</span>
+                </div>
+                <div class="client-profile-calendar-grid">
+                  ${Array.from({ length: 42 }, function (_, index) {
+                    const date = new Date(calendarStart);
+                    date.setDate(calendarStart.getDate() + index);
+                    const dateKey = formatResourceCalendarPreviewDateKey(date);
+                    const dayEvents = RESOURCE_CALENDAR_PREVIEW_EVENTS.filter(function (event) {
+                      return event.date === dateKey;
+                    });
+                    const isToday = dateKey === todayKey;
+                    const isOutsideMonth = date.getMonth() !== activeMonth.getMonth();
+
+                    return `
+                      <div class="client-profile-calendar-day${isOutsideMonth ? " is-outside-month" : ""}${isToday ? " is-today" : ""}${dayEvents.length ? " has-events" : ""}">
+                        <span class="client-profile-calendar-day-number">${date.getDate()}</span>
+                        <span class="client-profile-calendar-day-dots">
+                          ${dayEvents.slice(0, 3).map(function (event) {
+                            return `<span class="client-profile-calendar-dot is-${escapeHtml(event.type)}"></span>`;
+                          }).join("")}
+                        </span>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+                <div class="client-profile-calendar-preview-footer">
+                  ${upcomingEvent ? `
+                    <div class="client-profile-calendar-preview-event">
+                      <span class="client-profile-calendar-preview-label">Next resource event</span>
+                      <strong>${escapeHtml(upcomingEvent.title)}</strong>
+                      <span>${escapeHtml(`${new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(`${upcomingEvent.date}T12:00:00`))} · ${upcomingEvent.time}`)}</span>
+                    </div>
+                  ` : `
+                    <div class="client-profile-calendar-preview-event is-empty">
+                      <span class="client-profile-calendar-preview-label">Next resource event</span>
+                      <strong>No events scheduled</strong>
+                      <span>Use Resources to manage the shared planning calendar.</span>
+                    </div>
+                  `}
+                </div>
+              </div>
+            </details>
+          </section>
+        `;
+      }
+
       function renderPlanningCard(title, items, className) {
         return `
           <section class="client-detail-card client-detail-card-compact client-planning-card${className ? ` ${className}` : ""}">
@@ -2572,28 +2714,28 @@
         if (item.label === "Preliminary Underwriting" && caseRef) {
           return {
             href: `preliminary-linked.html?caseRef=${encodedCaseRef}&id=${encodedRecordId}`,
-            label: "Open Form"
+            label: "Continue"
           };
         }
 
         if (item.label === "Protection Modeling Inputs" && caseRef) {
           return {
             href: `protection-modeling-inputs.html?caseRef=${encodedCaseRef}`,
-            label: "Open Form"
+            label: "Continue"
           };
         }
 
         if (item.label === "Complete Analysis" && caseRef) {
           return {
             href: `analysis-estimate.html?caseRef=${encodedCaseRef}`,
-            label: "Open Form"
+            label: "Complete Step"
           };
         }
 
         if (item.label === "Create Profile") {
           return {
             href: "profile-only-form.html",
-            label: "Open Form"
+            label: "Start Step"
           };
         }
 
@@ -2879,31 +3021,36 @@
         const upcomingItems = getUpcomingReminderItems(record);
         return `
           <section class="client-detail-card client-detail-card-compact client-footer-strip client-reminders-strip" data-reminders-strip>
-            <div class="client-detail-card-header client-reminders-strip-header">
-              <h2>Upcoming Reminders</h2>
-            </div>
-            ${upcomingItems.length ? `
-              <div class="client-reminders-strip-list">
-                ${upcomingItems.map(function (item) {
-                  return `
-                    <article class="client-reminders-strip-item${item.isOverdue ? " is-overdue" : ""}">
-                      <div class="client-reminders-strip-item-top">
-                        <span class="client-reminders-strip-badge">${escapeHtml(item.type)}</span>
-                        <strong>${escapeHtml(formatDate(item.rawDate))}</strong>
-                      </div>
-                      <div class="client-reminders-strip-item-copy">
-                        <span>${escapeHtml(item.title)}</span>
-                        <small>${escapeHtml(item.detail || (item.isOverdue ? "Needs attention" : "Scheduled"))}</small>
-                      </div>
-                    </article>
-                  `;
-                }).join("")}
+            <details class="client-summary-details client-reminders-details">
+              <summary class="client-detail-card-header client-summary-toggle client-reminders-strip-header">
+                <h2>Upcoming Reminders</h2>
+                <span class="client-summary-toggle-icon" aria-hidden="true"></span>
+              </summary>
+              <div class="client-summary-details-body client-reminders-details-body">
+                ${upcomingItems.length ? `
+                  <div class="client-reminders-strip-list">
+                    ${upcomingItems.map(function (item) {
+                      return `
+                        <article class="client-reminders-strip-item${item.isOverdue ? " is-overdue" : ""}">
+                          <div class="client-reminders-strip-item-top">
+                            <span class="client-reminders-strip-badge">${escapeHtml(item.type)}</span>
+                            <strong>${escapeHtml(formatDate(item.rawDate))}</strong>
+                          </div>
+                          <div class="client-reminders-strip-item-copy">
+                            <span>${escapeHtml(item.title)}</span>
+                            <small>${escapeHtml(item.detail || (item.isOverdue ? "Needs attention" : "Scheduled"))}</small>
+                          </div>
+                        </article>
+                      `;
+                    }).join("")}
+                  </div>
+                ` : `
+                  <div class="client-reminders-strip-empty">
+                    No upcoming reminders or scheduled meetings yet.
+                  </div>
+                `}
               </div>
-            ` : `
-              <div class="client-reminders-strip-empty">
-                No upcoming reminders or scheduled meetings yet.
-              </div>
-            `}
+            </details>
           </section>
         `;
       }
@@ -3556,30 +3703,58 @@
 
       function renderChecklistCard(title, items, record) {
         const completedCount = items.filter(function (item) { return item.complete; }).length;
+        const activeIndex = items.findIndex(function (item) { return !item.complete; });
+        const progressRatio = items.length ? (completedCount / items.length) : 0;
 
         return `
           <section class="client-detail-card client-detail-card-compact client-detail-card-checklist" data-checklist-card>
             <div class="client-detail-card-header client-detail-card-header-checklist">
-              <h2>${escapeHtml(title)}</h2>
+              <div class="client-checklist-heading-copy">
+                <h2>${escapeHtml(title)}</h2>
+              </div>
               <span class="client-checklist-progress-pill">${completedCount} of ${items.length} complete</span>
             </div>
+            <div
+              class="client-checklist-progress"
+              style="--checklist-progress-ratio:${progressRatio}; --checklist-step-count:${Math.max(items.length, 1)};"
+              aria-label="Planning workflow progress"
+            >
+              <div class="client-checklist-progress-track" aria-hidden="true"></div>
+              <div class="client-checklist-progress-fill" aria-hidden="true"></div>
+              <div class="client-checklist-progress-steps">
+                ${items.map(function (item, index) {
+                  const stepState = item.complete ? "is-complete" : index === activeIndex ? "is-active" : "is-upcoming";
+                  return `
+                    <span class="client-checklist-progress-step ${stepState}">
+                      <span>${item.complete ? '<span class="client-checklist-check-icon" aria-hidden="true"></span>' : index + 1}</span>
+                    </span>
+                  `;
+                }).join("")}
+              </div>
+            </div>
             <div class="client-checklist-list">
-              ${items.map(function (item) {
+              ${items.map(function (item, index) {
                 const action = getChecklistAction(record, item);
+                const rowState = item.complete ? "is-complete" : index === activeIndex ? "is-active" : "is-upcoming";
+                const stateLabel = item.complete ? "Completed" : index === activeIndex ? "Current Step" : "Upcoming";
                 return `
-                  <div class="client-checklist-row ${item.complete ? "is-complete" : "is-incomplete"}">
+                  <div class="client-checklist-row ${rowState}">
+                    <div class="client-checklist-step-indicator" aria-hidden="true">
+                      <span>${item.complete ? '<span class="client-checklist-check-icon" aria-hidden="true"></span>' : index + 1}</span>
+                    </div>
                     <div class="client-checklist-row-copy">
+                      <small>${escapeHtml(stateLabel)}</small>
                       <strong>${escapeHtml(item.label)}</strong>
                       <span>${escapeHtml(item.detail)}</span>
                     </div>
                     ${item.complete ? `
-                      <span class="client-checklist-status">Complete</span>
-                    ` : action ? `
+                      <span class="client-checklist-status">Completed</span>
+                    ` : index === activeIndex && action ? `
                       <a class="client-checklist-action" href="${escapeHtml(action.href)}" data-linked-case-ref="${escapeHtml(String(record?.caseRef || "").trim())}" data-linked-record-id="${escapeHtml(String(record?.id || "").trim())}">
                         ${escapeHtml(action.label)}
                       </a>
                     ` : `
-                      <span class="client-checklist-status">Incomplete</span>
+                      <span class="client-checklist-status">${escapeHtml(stateLabel)}</span>
                     `}
                   </div>
                 `;
@@ -4150,12 +4325,12 @@
                       ${renderClientProfileSidebar(record, completion, hasCoveragePlaced, subtitleParts)}
                       <div class="client-profile-overview-main">
                       <div class="client-profile-stats">
-                        ${renderStatCard("Coverage Amount", formatCoverageCardCurrency(record.coverageAmount), "", {
+                        ${renderStatCard("Current Coverage", formatCoverageCardCurrency(record.coverageAmount), "", {
                           editable: true,
                           fieldName: "coverageAmount",
                           rawValue: formatValue(record.coverageAmount) === "Not provided" ? "0" : String(record.coverageAmount || "0")
                         })}
-                        ${renderStatCard("Coverage Gap", formatCoverageCardCurrency(record.coverageGap), "", {
+                        ${renderStatCard("Modeled Need", formatCoverageCardCurrency(record.coverageGap), "", {
                           editable: true,
                           fieldName: "coverageGap",
                           rawValue: formatValue(record.coverageGap) === "Not provided" ? "0" : String(record.coverageGap || "0")
@@ -4165,13 +4340,12 @@
 
                       <div class="client-profile-dashboard">
                         <div class="client-profile-dashboard-main">
-                          ${renderChecklistCard("Account Completion Checklist", checklistItems, record)}
+                          ${renderChecklistCard("Planning Workflow", checklistItems, record)}
                           ${renderNotesWidget(record)}
                         </div>
                         <div class="client-profile-dashboard-side client-profile-dashboard-side--dashboard client-profile-dashboard-side--coverage-merged">
                           ${renderCoverageCard(record)}
                         </div>
-                        ${renderFooterBar(record)}
                       </div>
                     </div>
                     </div>
