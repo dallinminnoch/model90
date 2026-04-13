@@ -189,10 +189,10 @@
               </div>
               <div class="profile-assignment-actions">
                 <button class="profile-assignment-search-button" type="button" data-search-households disabled>Search Existing Households</button>
-                <button class="profile-assignment-search-button" type="button" data-search-companies disabled>Search Company Profiles</button>
+                <button class="profile-assignment-search-button" type="button" data-search-companies disabled>Search Business Profiles</button>
               </div>
               <div class="field-group full-width">
-                <label for="profile-assignment-name">Selected Household / Company Name <span class="profile-required-star" aria-hidden="true">*</span></label>
+                  <label for="profile-assignment-name">Selected Household / Business Name <span class="profile-required-star" aria-hidden="true">*</span></label>
                 <input id="profile-assignment-name" name="profileAssignmentName" type="text" data-profile-assignment-name disabled required>
               </div>
               <div class="profile-inline-divider" aria-hidden="true"></div>
@@ -1150,9 +1150,9 @@
 
           if (!existingProfile) {
             feedback.hidden = false;
-            feedback.textContent = expectedType === "companies"
-              ? "Select a valid company profile before saving."
-              : "Select a valid household before saving.";
+              feedback.textContent = expectedType === "companies"
+                ? "Select a valid business profile before saving."
+                : "Select a valid household before saving.";
             return;
           }
 
@@ -1195,7 +1195,7 @@
             viewType: isCompany ? "companies" : "households",
             displayName: householdName,
             lastName: lastName,
-            summary: isCompany ? "Company profile" : "Household profile",
+              summary: isCompany ? "Business profile" : "Household profile",
             caseRef: buildNextCaseRef(nextRecords),
             lastReview: lastUpdatedDate,
             insured: "1",

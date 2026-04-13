@@ -1851,6 +1851,15 @@
         return "";
       }
 
+      function getClientWorkspaceSidebarTitle(profileRecord) {
+        const preferredFullName = [
+          String(profileRecord?.preferredName || profileRecord?.firstName || "").trim(),
+          String(profileRecord?.lastName || "").trim()
+        ].filter(Boolean).join(" ").trim();
+        const displayName = String(profileRecord?.displayName || "").trim();
+        return displayName || preferredFullName || "Client Workspace";
+      }
+
       function renderClientProfileSidebar(record, completion, hasCoveragePlaced, subtitleParts) {
         return `
           <aside class="client-profile-sidebar">
@@ -4515,6 +4524,23 @@
       }
 
       host.innerHTML = renderProfile(record);
+
+      const clientWorkspaceSidebarTitle = getClientWorkspaceSidebarTitle(record);
+      document.body.setAttribute("data-workspace-current-title", clientWorkspaceSidebarTitle);
+      document.documentElement.setAttribute("data-workspace-current-title", clientWorkspaceSidebarTitle);
+
+      const profileSidebarMountHost = document.querySelector('[data-workspace-side-nav="client-detail"]');
+      if (profileSidebarMountHost) {
+        profileSidebarMountHost.setAttribute("data-workspace-side-nav-title", clientWorkspaceSidebarTitle);
+        const sidebarTitleNode = profileSidebarMountHost.querySelector(".workspace-side-nav-copy strong");
+        if (sidebarTitleNode) {
+          sidebarTitleNode.textContent = clientWorkspaceSidebarTitle;
+        } else if (window.WorkspaceSideNav) {
+          profileSidebarMountHost.innerHTML = window.WorkspaceSideNav.render("client-detail", {
+            title: clientWorkspaceSidebarTitle
+          });
+        }
+      }
 
       function saveRecordField(fieldName, nextValue) {
         const records = loadJson(localStorage, getRecordsStorageKey());

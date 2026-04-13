@@ -40,6 +40,17 @@
       `;
     }
 
+    if (key === "businesses") {
+      return `
+        <svg viewBox="0 0 20 20" fill="none">
+          <path d="M4.25 16.6V5.45a1.2 1.2 0 0 1 1.2-1.2h5.3a1.2 1.2 0 0 1 1.2 1.2V16.6" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+          <path d="M11.95 16.6V8.1a1.2 1.2 0 0 1 1.2-1.2h1.4a1.2 1.2 0 0 1 1.2 1.2v8.5" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+          <path d="M2.9 16.6h14.2" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+          <path d="M7.05 7.25h1.15M7.05 9.8h1.15M7.05 12.35h1.15" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+        </svg>
+      `;
+    }
+
     return `
       <svg viewBox="0 0 20 20" fill="none">
         <path d="M10 4.1v11.8M4.1 10h11.8" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"/>
@@ -140,13 +151,69 @@
         };
 
     return [
-      { key: "studio", label: "Start Page", href: hrefs.studio, active: activePage ? activePage === "studio" : mode === "studio" },
-      { key: "clients", label: "Client Directory", href: hrefs.clients, active: activePage ? activePage === "clients" : mode === "directory" || mode === "client-detail" },
-      { key: "resources", label: "Resources", href: hrefs.resources, active: activePage ? activePage === "resources" : mode === "resources" },
-      { key: "lens", label: "LENS Analysis", href: hrefs.lens, active: activePage ? activePage === "lens" : mode === "lens" },
-      { key: "strategy", label: "Strategy Builder", href: hrefs.strategy, active: activePage === "strategy" },
-      { key: "policy", label: "Policy Web", href: hrefs.policy, active: activePage === "policy" }
+      { key: "studio", label: "Start Page", shortLabel: "Start", href: hrefs.studio, active: activePage ? activePage === "studio" : mode === "studio" },
+      { key: "clients", label: "Client Directory", shortLabel: "Clients", href: hrefs.clients, active: activePage ? activePage === "clients" : mode === "directory" || mode === "client-detail" },
+      { key: "resources", label: "Resources", shortLabel: "Resources", href: hrefs.resources, active: activePage ? activePage === "resources" : mode === "resources" },
+      { key: "lens", label: "LENS Analysis", shortLabel: "LENS", href: hrefs.lens, active: activePage ? activePage === "lens" : mode === "lens" },
+      { key: "strategy", label: "Strategy Builder", shortLabel: "Strategy", href: hrefs.strategy, active: activePage === "strategy" },
+      { key: "policy", label: "Policy Web", shortLabel: "Policy", href: hrefs.policy, active: activePage === "policy" }
     ];
+  }
+
+  function renderPrimaryRail(pages) {
+    return `
+      <div class="workspace-side-nav-primary-rail">
+        <nav class="workspace-side-nav-primary-items" aria-label="Workspace pages">
+          ${pages.map(function (page) {
+            return `
+              <a
+                class="workspace-side-nav-button workspace-side-nav-primary-button${page.active ? " is-active" : ""}"
+                href="${escapeHtml(page.href)}"
+                ${page.active ? ' aria-current="page"' : ""}
+                aria-label="${escapeHtml(page.label)}"
+                title="${escapeHtml(page.label)}"
+              >
+                <span class="workspace-side-nav-icon workspace-side-nav-primary-icon" aria-hidden="true">
+                  ${getWorkspacePageIcon(page.key)}
+                </span>
+                <span class="workspace-side-nav-label workspace-side-nav-primary-label">${escapeHtml(page.shortLabel || page.label)}</span>
+              </a>
+            `;
+          }).join("")}
+        </nav>
+      </div>
+    `;
+  }
+
+  function renderWorkspaceShell(config) {
+    return `
+      <aside class="workspace-side-nav workspace-side-nav-shell" aria-label="${escapeHtml(config.ariaLabel)}">
+        ${renderPrimaryRail(config.pages)}
+        <div class="workspace-side-nav-context">
+          <div class="workspace-side-nav-header workspace-side-nav-context-header">
+            <div class="workspace-side-nav-copy">
+              <span class="workspace-side-nav-kicker">Current Page</span>
+              <strong>${escapeHtml(config.title)}</strong>
+            </div>
+            ${config.headerActionMarkup ? `<div class="workspace-side-nav-context-header-extra">${config.headerActionMarkup}</div>` : ""}
+          </div>
+          <div class="workspace-side-nav-section workspace-side-nav-context-section">
+            <span class="workspace-side-nav-section-label workspace-side-nav-context-section-label">${escapeHtml(config.sectionLabel)}</span>
+            ${config.contextMarkup}
+          </div>
+        </div>
+        <button
+          class="${escapeHtml(config.toggleClass)} workspace-side-nav-toggle workspace-side-nav-edge-toggle"
+          type="button"
+          ${config.toggleDataAttr}
+          aria-expanded="true"
+          aria-label="${escapeHtml(config.toggleLabel)}"
+          title="${escapeHtml(config.toggleLabel)}"
+        >
+          <span class="${escapeHtml(config.toggleGlyphClass)} workspace-side-nav-toggle-glyph" aria-hidden="true">&#8249;</span>
+        </button>
+      </aside>
+    `;
   }
 
   function getLensPageIcon(key) {
@@ -207,67 +274,42 @@
     const pages = getWorkspacePages("directory", options);
     const items = [
       { key: "all", label: "View All" },
-      { key: "households", label: "Households" },
       { key: "individuals", label: "Individuals" },
-      { key: "add", label: "Add New", extraClass: " client-directory-app-nav-button-add" }
+      { key: "households", label: "Households" },
+      { key: "businesses", label: "Businesses" },
+      { key: "add", label: "Add New", extraClass: " workspace-side-nav-context-button-add" }
     ];
 
-    return `
-      <aside class="client-directory-app-sidebar workspace-side-nav" aria-label="Client directory navigation">
-        <div class="client-directory-app-sidebar-header workspace-side-nav-header">
-          <div class="client-directory-app-sidebar-copy workspace-side-nav-copy">
-            <span class="client-directory-app-sidebar-kicker workspace-side-nav-kicker">Navigate</span>
-            <strong>Client Directory</strong>
-          </div>
-          <button
-            class="client-directory-app-sidebar-toggle workspace-side-nav-toggle"
-            type="button"
-            data-directory-sidebar-toggle
-            aria-expanded="true"
-            aria-label="Collapse directory navigation"
-            title="Collapse directory navigation"
-          >
-            <span class="client-directory-app-sidebar-toggle-glyph workspace-side-nav-toggle-glyph" aria-hidden="true">&#8249;</span>
-          </button>
-        </div>
-
-        <div class="client-directory-app-sidebar-section workspace-side-nav-section">
-          <span class="client-directory-app-sidebar-section-label workspace-side-nav-section-label">All Pages</span>
-          <nav class="client-directory-app-nav workspace-side-nav-items" aria-label="Workspace pages">
-            ${pages.map(function (page) {
-              return `
-                <a class="client-directory-app-nav-button workspace-side-nav-button${page.active ? " is-active" : ""}" href="${escapeHtml(page.href)}"${page.active ? ' aria-current="page"' : ""}>
-                  <span class="client-directory-app-nav-icon workspace-side-nav-icon" aria-hidden="true">
-                    ${getWorkspacePageIcon(page.key)}
-                  </span>
-                  <span class="client-directory-app-nav-label workspace-side-nav-label">${escapeHtml(page.label)}</span>
-                </a>
-              `;
-            }).join("")}
-          </nav>
-        </div>
-
-        <div class="client-directory-app-sidebar-section workspace-side-nav-section">
-          <span class="client-directory-app-sidebar-section-label workspace-side-nav-section-label">Current Page</span>
-          <nav class="client-directory-app-nav workspace-side-nav-items" aria-label="Client directory actions">
-            ${items.map(function (item) {
-              return `
-                <button class="client-directory-app-nav-button workspace-side-nav-button${item.extraClass || ""}" type="button" data-directory-nav-action="${escapeHtml(item.key)}">
-                  <span class="client-directory-app-nav-icon workspace-side-nav-icon" aria-hidden="true">
-                    ${getDirectoryIcon(item.key)}
-                  </span>
-                  <span class="client-directory-app-nav-label workspace-side-nav-label">${escapeHtml(item.label)}</span>
-                </button>
-              `;
-            }).join("")}
-          </nav>
-        </div>
-      </aside>
-    `;
+    return renderWorkspaceShell({
+      ariaLabel: "Client directory navigation",
+      pages: pages,
+      title: "Client Directory",
+      sectionLabel: "Views & Actions",
+      toggleClass: "client-directory-app-sidebar-toggle",
+      toggleGlyphClass: "client-directory-app-sidebar-toggle-glyph",
+      toggleDataAttr: "data-directory-sidebar-toggle",
+      toggleLabel: "Collapse directory navigation",
+      contextMarkup: `
+        <nav class="workspace-side-nav-items workspace-side-nav-context-items" aria-label="Client directory actions">
+          ${items.map(function (item) {
+            return `
+              <button class="workspace-side-nav-button workspace-side-nav-context-button${item.extraClass || ""}" type="button" data-directory-nav-action="${escapeHtml(item.key)}">
+                <span class="workspace-side-nav-icon workspace-side-nav-context-icon" aria-hidden="true">
+                  ${getDirectoryIcon(item.key)}
+                </span>
+                <span class="workspace-side-nav-label workspace-side-nav-context-label">${escapeHtml(item.label)}</span>
+              </button>
+            `;
+          }).join("")}
+        </nav>
+      `
+    });
   }
 
   function renderClientDetailSidebar(options) {
     const pages = getWorkspacePages("client-detail", options);
+    const sidebarTitle = String(options?.title || "").trim() || "Client Workspace";
+    const returnHref = options?.shell ? "studio.html?view=clients.html" : "clients.html";
     const tabs = [
       { key: "overview", label: "Dashboard" },
       { key: "planning", label: "Planning" },
@@ -275,67 +317,46 @@
       { key: "notes", label: "Notes" }
     ];
 
-    return `
-      <aside class="client-profile-side-tabs workspace-side-nav" aria-label="Client detail sections">
-        <div class="client-profile-side-tabs-header workspace-side-nav-header">
-          <div class="client-profile-side-tabs-copy workspace-side-nav-copy">
-            <span class="client-profile-side-tabs-kicker workspace-side-nav-kicker">Navigate</span>
-            <strong>Client Workspace</strong>
-          </div>
-          <button
-            class="client-profile-side-tabs-toggle workspace-side-nav-toggle"
-            type="button"
-            data-client-side-tabs-toggle
-            aria-expanded="true"
-            aria-label="Collapse section navigation"
-            title="Collapse section navigation"
-          >
-            <span class="client-profile-side-tabs-toggle-glyph workspace-side-nav-toggle-glyph" aria-hidden="true">&#8249;</span>
-          </button>
-        </div>
-
-        <div class="client-profile-side-tabs-section workspace-side-nav-section">
-          <span class="client-profile-side-tabs-section-label workspace-side-nav-section-label">All Pages</span>
-          <nav class="client-profile-tabs workspace-side-nav-items" aria-label="Workspace pages">
-            ${pages.map(function (page) {
-              return `
-                <a
-                  class="client-profile-tab workspace-side-nav-button${page.active ? " is-active" : ""}"
-                  href="${escapeHtml(page.href)}"
-                  ${page.active ? ' aria-current="page"' : ""}
-                  aria-label="${escapeHtml(page.label)}"
-                  title="${escapeHtml(page.label)}"
-                >
-                  <span class="client-profile-side-tab-icon workspace-side-nav-icon" aria-hidden="true">${getWorkspacePageIcon(page.key)}</span>
-                  <span class="client-profile-side-tab-label workspace-side-nav-label">${escapeHtml(page.label)}</span>
-                </a>
-              `;
-            }).join("")}
-          </nav>
-        </div>
-
-        <div class="client-profile-side-tabs-section workspace-side-nav-section">
-          <span class="client-profile-side-tabs-section-label workspace-side-nav-section-label">Current Page</span>
-          <nav class="client-profile-tabs workspace-side-nav-items" aria-label="Client detail tabs">
-            ${tabs.map(function (tab, index) {
-              return `
-                <button
-                  class="client-profile-tab workspace-side-nav-button${index === 0 ? " is-active" : ""}"
-                  type="button"
-                  data-client-tab="${escapeHtml(tab.key)}"
-                  aria-selected="${index === 0 ? "true" : "false"}"
-                  aria-label="${escapeHtml(tab.label)}"
-                  title="${escapeHtml(tab.label)}"
-                >
-                  <span class="client-profile-side-tab-icon workspace-side-nav-icon" aria-hidden="true">${getClientDetailIcon(tab.key)}</span>
-                  <span class="client-profile-side-tab-label workspace-side-nav-label">${escapeHtml(tab.label)}</span>
-                </button>
-              `;
-            }).join("")}
-          </nav>
-        </div>
-      </aside>
-    `;
+    return renderWorkspaceShell({
+      ariaLabel: "Client detail sections",
+      pages: pages,
+      title: sidebarTitle,
+      sectionLabel: "Sections",
+      headerActionMarkup: `
+        <a
+          class="workspace-side-nav-button workspace-side-nav-context-button workspace-side-nav-context-button-return"
+          href="${escapeHtml(returnHref)}"
+          data-client-directory-return
+          data-client-directory-return-href="${escapeHtml(returnHref)}"
+          title="Return to Client Directory"
+        >
+          Return to Client Directory
+        </a>
+      `,
+      toggleClass: "client-profile-side-tabs-toggle",
+      toggleGlyphClass: "client-profile-side-tabs-toggle-glyph",
+      toggleDataAttr: "data-client-side-tabs-toggle",
+      toggleLabel: "Collapse section navigation",
+      contextMarkup: `
+        <nav class="workspace-side-nav-items workspace-side-nav-context-items" aria-label="Client detail tabs">
+          ${tabs.map(function (tab, index) {
+            return `
+              <button
+                class="workspace-side-nav-button workspace-side-nav-context-button${index === 0 ? " is-active" : ""}"
+                type="button"
+                data-client-tab="${escapeHtml(tab.key)}"
+                aria-selected="${index === 0 ? "true" : "false"}"
+                aria-label="${escapeHtml(tab.label)}"
+                title="${escapeHtml(tab.label)}"
+              >
+                <span class="workspace-side-nav-icon workspace-side-nav-context-icon" aria-hidden="true">${getClientDetailIcon(tab.key)}</span>
+                <span class="workspace-side-nav-label workspace-side-nav-context-label">${escapeHtml(tab.label)}</span>
+              </button>
+            `;
+          }).join("")}
+        </nav>
+      `
+    });
   }
 
   function renderLensSidebar(options) {
@@ -346,67 +367,35 @@
       { key: "summary", label: "Tool Summary", href: "#lens-tool-summary", active: false }
     ];
 
-    return `
-      <aside class="client-profile-side-tabs workspace-side-nav" aria-label="LENS workspace navigation">
-        <div class="client-profile-side-tabs-header workspace-side-nav-header">
-          <div class="client-profile-side-tabs-copy workspace-side-nav-copy">
-            <span class="client-profile-side-tabs-kicker workspace-side-nav-kicker">Navigate</span>
-            <strong>LENS Workspace</strong>
-          </div>
-          <button
-            class="client-profile-side-tabs-toggle workspace-side-nav-toggle"
-            type="button"
-            data-lens-side-tabs-toggle
-            aria-expanded="true"
-            aria-label="Collapse section navigation"
-            title="Collapse section navigation"
-          >
-            <span class="client-profile-side-tabs-toggle-glyph workspace-side-nav-toggle-glyph" aria-hidden="true">&#8249;</span>
-          </button>
-        </div>
-
-        <div class="client-profile-side-tabs-section workspace-side-nav-section">
-          <span class="client-profile-side-tabs-section-label workspace-side-nav-section-label">All Pages</span>
-          <nav class="client-profile-tabs workspace-side-nav-items" aria-label="Workspace pages">
-            ${pages.map(function (page) {
-              return `
-                <a
-                  class="client-profile-tab workspace-side-nav-button${page.active ? " is-active" : ""}"
-                  href="${escapeHtml(page.href)}"
-                  ${page.active ? ' aria-current="page"' : ""}
-                  aria-label="${escapeHtml(page.label)}"
-                  title="${escapeHtml(page.label)}"
-                >
-                  <span class="client-profile-side-tab-icon workspace-side-nav-icon" aria-hidden="true">${getWorkspacePageIcon(page.key)}</span>
-                  <span class="client-profile-side-tab-label workspace-side-nav-label">${escapeHtml(page.label)}</span>
-                </a>
-              `;
-            }).join("")}
-          </nav>
-        </div>
-
-        <div class="client-profile-side-tabs-section workspace-side-nav-section">
-          <span class="client-profile-side-tabs-section-label workspace-side-nav-section-label">Current Page</span>
-          <nav class="client-profile-tabs workspace-side-nav-items" aria-label="LENS page navigation">
-            ${items.map(function (item) {
-              return `
-                <a
-                  class="client-profile-tab workspace-side-nav-button${item.active ? " is-active" : ""}"
-                  href="${escapeHtml(item.href)}"
-                  data-lens-tab="${escapeHtml(item.key)}"
-                  ${item.active ? ' aria-current="location"' : ""}
-                  aria-label="${escapeHtml(item.label)}"
-                  title="${escapeHtml(item.label)}"
-                >
-                  <span class="client-profile-side-tab-icon workspace-side-nav-icon" aria-hidden="true">${getLensPageIcon(item.key)}</span>
-                  <span class="client-profile-side-tab-label workspace-side-nav-label">${escapeHtml(item.label)}</span>
-                </a>
-              `;
-            }).join("")}
-          </nav>
-        </div>
-      </aside>
-    `;
+    return renderWorkspaceShell({
+      ariaLabel: "LENS workspace navigation",
+      pages: pages,
+      title: "LENS Analysis",
+      sectionLabel: "Sections",
+      toggleClass: "client-profile-side-tabs-toggle",
+      toggleGlyphClass: "client-profile-side-tabs-toggle-glyph",
+      toggleDataAttr: "data-lens-side-tabs-toggle",
+      toggleLabel: "Collapse section navigation",
+      contextMarkup: `
+        <nav class="workspace-side-nav-items workspace-side-nav-context-items" aria-label="LENS page navigation">
+          ${items.map(function (item) {
+            return `
+              <a
+                class="workspace-side-nav-button workspace-side-nav-context-button${item.active ? " is-active" : ""}"
+                href="${escapeHtml(item.href)}"
+                data-lens-tab="${escapeHtml(item.key)}"
+                ${item.active ? ' aria-current="location"' : ""}
+                aria-label="${escapeHtml(item.label)}"
+                title="${escapeHtml(item.label)}"
+              >
+                <span class="workspace-side-nav-icon workspace-side-nav-context-icon" aria-hidden="true">${getLensPageIcon(item.key)}</span>
+                <span class="workspace-side-nav-label workspace-side-nav-context-label">${escapeHtml(item.label)}</span>
+              </a>
+            `;
+          }).join("")}
+        </nav>
+      `
+    });
   }
 
   function renderStudioSidebar(options) {
@@ -417,67 +406,35 @@
       { key: "workspace", label: "Workspace Links", href: "#studio-workspace-tools", active: false }
     ];
 
-    return `
-      <aside class="client-profile-side-tabs workspace-side-nav" aria-label="Studio navigation">
-        <div class="client-profile-side-tabs-header workspace-side-nav-header">
-          <div class="client-profile-side-tabs-copy workspace-side-nav-copy">
-            <span class="client-profile-side-tabs-kicker workspace-side-nav-kicker">Navigate</span>
-            <strong>Studio</strong>
-          </div>
-          <button
-            class="client-profile-side-tabs-toggle workspace-side-nav-toggle"
-            type="button"
-            data-studio-side-tabs-toggle
-            aria-expanded="true"
-            aria-label="Collapse studio navigation"
-            title="Collapse studio navigation"
-          >
-            <span class="client-profile-side-tabs-toggle-glyph workspace-side-nav-toggle-glyph" aria-hidden="true">&#8249;</span>
-          </button>
-        </div>
-
-        <div class="client-profile-side-tabs-section workspace-side-nav-section">
-          <span class="client-profile-side-tabs-section-label workspace-side-nav-section-label">All Pages</span>
-          <nav class="client-profile-tabs workspace-side-nav-items" aria-label="Studio pages">
-            ${pages.map(function (page) {
-              return `
-                <a
-                  class="client-profile-tab workspace-side-nav-button${page.active ? " is-active" : ""}"
-                  href="${escapeHtml(page.href)}"
-                  ${page.active ? ' aria-current="page"' : ""}
-                  aria-label="${escapeHtml(page.label)}"
-                  title="${escapeHtml(page.label)}"
-                >
-                  <span class="client-profile-side-tab-icon workspace-side-nav-icon" aria-hidden="true">${getWorkspacePageIcon(page.key)}</span>
-                  <span class="client-profile-side-tab-label workspace-side-nav-label">${escapeHtml(page.label)}</span>
-                </a>
-              `;
-            }).join("")}
-          </nav>
-        </div>
-
-        <div class="client-profile-side-tabs-section workspace-side-nav-section">
-          <span class="client-profile-side-tabs-section-label workspace-side-nav-section-label">Current Page</span>
-          <nav class="client-profile-tabs workspace-side-nav-items" aria-label="Studio start sections">
-            ${items.map(function (item, index) {
-              return `
-                <a
-                  class="client-profile-tab workspace-side-nav-button${index === 0 ? " is-active" : ""}"
-                  href="${escapeHtml(item.href)}"
-                  data-studio-tab="${escapeHtml(item.key)}"
-                  ${item.active ? ' aria-current="location"' : ""}
-                  aria-label="${escapeHtml(item.label)}"
-                  title="${escapeHtml(item.label)}"
-                >
-                  <span class="client-profile-side-tab-icon workspace-side-nav-icon" aria-hidden="true">${getLensPageIcon(item.key === "overview" ? "overview" : item.key === "planning" ? "start" : "summary")}</span>
-                  <span class="client-profile-side-tab-label workspace-side-nav-label">${escapeHtml(item.label)}</span>
-                </a>
-              `;
-            }).join("")}
-          </nav>
-        </div>
-      </aside>
-    `;
+    return renderWorkspaceShell({
+      ariaLabel: "Studio navigation",
+      pages: pages,
+      title: "Studio",
+      sectionLabel: "Start Page",
+      toggleClass: "client-profile-side-tabs-toggle",
+      toggleGlyphClass: "client-profile-side-tabs-toggle-glyph",
+      toggleDataAttr: "data-studio-side-tabs-toggle",
+      toggleLabel: "Collapse studio navigation",
+      contextMarkup: `
+        <nav class="workspace-side-nav-items workspace-side-nav-context-items" aria-label="Studio start sections">
+          ${items.map(function (item, index) {
+            return `
+              <a
+                class="workspace-side-nav-button workspace-side-nav-context-button${index === 0 ? " is-active" : ""}"
+                href="${escapeHtml(item.href)}"
+                data-studio-tab="${escapeHtml(item.key)}"
+                ${item.active ? ' aria-current="location"' : ""}
+                aria-label="${escapeHtml(item.label)}"
+                title="${escapeHtml(item.label)}"
+              >
+                <span class="workspace-side-nav-icon workspace-side-nav-context-icon" aria-hidden="true">${getLensPageIcon(item.key === "overview" ? "overview" : item.key === "planning" ? "start" : "summary")}</span>
+                <span class="workspace-side-nav-label workspace-side-nav-context-label">${escapeHtml(item.label)}</span>
+              </a>
+            `;
+          }).join("")}
+        </nav>
+      `
+    });
   }
 
   function renderResourcesSidebar(options) {
@@ -488,67 +445,35 @@
       { key: "summary", label: "Month Summary", href: "#resources-month-summary", active: false }
     ];
 
-    return `
-      <aside class="client-profile-side-tabs workspace-side-nav" aria-label="Resources navigation">
-        <div class="client-profile-side-tabs-header workspace-side-nav-header">
-          <div class="client-profile-side-tabs-copy workspace-side-nav-copy">
-            <span class="client-profile-side-tabs-kicker workspace-side-nav-kicker">Navigate</span>
-            <strong>Resources</strong>
-          </div>
-          <button
-            class="client-profile-side-tabs-toggle workspace-side-nav-toggle"
-            type="button"
-            data-resources-side-tabs-toggle
-            aria-expanded="true"
-            aria-label="Collapse resources navigation"
-            title="Collapse resources navigation"
-          >
-            <span class="client-profile-side-tabs-toggle-glyph workspace-side-nav-toggle-glyph" aria-hidden="true">&#8249;</span>
-          </button>
-        </div>
-
-        <div class="client-profile-side-tabs-section workspace-side-nav-section">
-          <span class="client-profile-side-tabs-section-label workspace-side-nav-section-label">All Pages</span>
-          <nav class="client-profile-tabs workspace-side-nav-items" aria-label="Workspace pages">
-            ${pages.map(function (page) {
-              return `
-                <a
-                  class="client-profile-tab workspace-side-nav-button${page.active ? " is-active" : ""}"
-                  href="${escapeHtml(page.href)}"
-                  ${page.active ? ' aria-current="page"' : ""}
-                  aria-label="${escapeHtml(page.label)}"
-                  title="${escapeHtml(page.label)}"
-                >
-                  <span class="client-profile-side-tab-icon workspace-side-nav-icon" aria-hidden="true">${getWorkspacePageIcon(page.key)}</span>
-                  <span class="client-profile-side-tab-label workspace-side-nav-label">${escapeHtml(page.label)}</span>
-                </a>
-              `;
-            }).join("")}
-          </nav>
-        </div>
-
-        <div class="client-profile-side-tabs-section workspace-side-nav-section">
-          <span class="client-profile-side-tabs-section-label workspace-side-nav-section-label">Current Page</span>
-          <nav class="client-profile-tabs workspace-side-nav-items" aria-label="Resources sections">
-            ${items.map(function (item, index) {
-              return `
-                <a
-                  class="client-profile-tab workspace-side-nav-button${index === 0 ? " is-active" : ""}"
-                  href="${escapeHtml(item.href)}"
-                  data-resources-tab="${escapeHtml(item.key)}"
-                  ${item.active ? ' aria-current="location"' : ""}
-                  aria-label="${escapeHtml(item.label)}"
-                  title="${escapeHtml(item.label)}"
-                >
-                  <span class="client-profile-side-tab-icon workspace-side-nav-icon" aria-hidden="true">${getLensPageIcon(index === 0 ? "overview" : index === 1 ? "start" : "summary")}</span>
-                  <span class="client-profile-side-tab-label workspace-side-nav-label">${escapeHtml(item.label)}</span>
-                </a>
-              `;
-            }).join("")}
-          </nav>
-        </div>
-      </aside>
-    `;
+    return renderWorkspaceShell({
+      ariaLabel: "Resources navigation",
+      pages: pages,
+      title: "Resources",
+      sectionLabel: "Sections",
+      toggleClass: "client-profile-side-tabs-toggle",
+      toggleGlyphClass: "client-profile-side-tabs-toggle-glyph",
+      toggleDataAttr: "data-resources-side-tabs-toggle",
+      toggleLabel: "Collapse resources navigation",
+      contextMarkup: `
+        <nav class="workspace-side-nav-items workspace-side-nav-context-items" aria-label="Resources sections">
+          ${items.map(function (item, index) {
+            return `
+              <a
+                class="workspace-side-nav-button workspace-side-nav-context-button${index === 0 ? " is-active" : ""}"
+                href="${escapeHtml(item.href)}"
+                data-resources-tab="${escapeHtml(item.key)}"
+                ${item.active ? ' aria-current="location"' : ""}
+                aria-label="${escapeHtml(item.label)}"
+                title="${escapeHtml(item.label)}"
+              >
+                <span class="workspace-side-nav-icon workspace-side-nav-context-icon" aria-hidden="true">${getLensPageIcon(index === 0 ? "overview" : index === 1 ? "start" : "summary")}</span>
+                <span class="workspace-side-nav-label workspace-side-nav-context-label">${escapeHtml(item.label)}</span>
+              </a>
+            `;
+          }).join("")}
+        </nav>
+      `
+    });
   }
 
   function render(mode, options) {
@@ -579,7 +504,12 @@
     const scope = root && typeof root.querySelectorAll === "function" ? root : document;
     scope.querySelectorAll("[data-workspace-side-nav]").forEach(function (node) {
       const mode = String(node.getAttribute("data-workspace-side-nav") || "").trim();
-      const markup = render(mode);
+      const renderOptions = {};
+      const hostTitle = String(node.getAttribute("data-workspace-side-nav-title") || "").trim();
+      if (hostTitle) {
+        renderOptions.title = hostTitle;
+      }
+      const markup = render(mode, renderOptions);
       if (!markup) {
         return;
       }

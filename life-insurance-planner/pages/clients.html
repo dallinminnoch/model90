@@ -150,7 +150,23 @@
         </aside>
 
         <section class="client-directory-main">
-        <header class="client-directory-header client-directory-header-actions-only">
+        <header class="client-directory-header">
+          <div class="client-directory-title-block client-directory-title-block-compact">
+            <span class="client-directory-title-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <circle cx="7" cy="7.2" r="2.3" stroke="currentColor" stroke-width="1.55"/>
+                <circle cx="13.2" cy="8.1" r="2" stroke="currentColor" stroke-width="1.55"/>
+                <path d="M3.95 15.2c.55-2.05 2.15-3.3 4.05-3.3s3.45 1.25 4 3.3" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                <path d="M11.15 15.2c.38-1.55 1.58-2.5 3.05-2.5 1.05 0 2.02.47 2.68 1.38" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <h1>Client Directory</h1>
+            <span class="client-directory-title-chevron" aria-hidden="true">
+              <svg viewBox="0 0 16 16" fill="none">
+                <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </div>
           <div class="client-directory-header-actions">
             <div class="client-export-dropdown" data-export-dropdown>
               <button class="client-header-action client-header-action-secondary" type="button" data-export-button aria-expanded="false">Export</button>
@@ -167,6 +183,100 @@
           </div>
         </header>
 
+        <section class="client-directory-summary" aria-label="Client directory summary">
+          <article class="client-directory-summary-card client-directory-summary-card-placed">
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M4 13.4 7.2 9.7l2.4 2.35L15.7 4.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M12.95 4.9h2.75v2.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-placed-chip data-tone="positive">No monthly change</span>
+            </div>
+            <span class="client-directory-summary-kicker">Coverage Placed</span>
+            <strong class="client-directory-summary-value" data-summary-placed-total>$0</strong>
+            <p class="client-directory-summary-note" data-summary-placed-note>No placed coverage yet</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-progress">
+              <div class="client-directory-summary-progress-head">
+                <span>Monthly goal</span>
+                <strong data-summary-placed-progress-percent>0%</strong>
+              </div>
+              <div class="client-directory-summary-progress-track" aria-hidden="true">
+                <span class="client-directory-summary-progress-fill" data-summary-placed-progress-fill style="width:0%;"></span>
+              </div>
+              <div class="client-directory-summary-progress-foot">
+                <span data-summary-placed-month-detail>$0 added this month</span>
+                <strong data-summary-placed-goal>$0 target</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-pipeline">
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <circle cx="7" cy="7" r="2.45" stroke="currentColor" stroke-width="1.7"/>
+                  <circle cx="13.1" cy="8.2" r="2.1" stroke="currentColor" stroke-width="1.7"/>
+                  <path d="M4.05 15.2c.5-2.15 2.1-3.45 4.05-3.45 1.95 0 3.55 1.3 4.05 3.45" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  <path d="M11.4 15.2c.34-1.42 1.45-2.32 2.86-2.32 1.02 0 1.95.46 2.61 1.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-pipeline-chip data-tone="accent">0 active</span>
+            </div>
+            <span class="client-directory-summary-kicker">Prospects In Pipeline</span>
+            <strong class="client-directory-summary-value" data-summary-pipeline-total>0</strong>
+            <p class="client-directory-summary-note" data-summary-pipeline-note>No active prospects in pipeline</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-prospect" aria-hidden="true"></span>Not contacted</span>
+                <strong data-summary-pipeline-prospects>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-conversation" aria-hidden="true"></span>In conversation</span>
+                <strong data-summary-pipeline-review>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-stalled" aria-hidden="true"></span>Stalled 14+ days</span>
+                <strong data-summary-pipeline-stalled>0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-gap">
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M10 3.9 16.2 15H3.8L10 3.9Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                  <path d="M10 8.2v3.65" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  <circle cx="10" cy="13.95" r="0.82" fill="currentColor"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-gap-chip data-tone="warning">No urgent gaps</span>
+            </div>
+            <span class="client-directory-summary-kicker">Clients With Gaps</span>
+            <strong class="client-directory-summary-value" data-summary-gap-total>0</strong>
+            <p class="client-directory-summary-note" data-summary-gap-note>No uncovered modeled need</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-high" aria-hidden="true"></span>Gap &gt; $1M</span>
+                <strong data-summary-gap-high>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-mid" aria-hidden="true"></span>Gap $500k-$1M</span>
+                <strong data-summary-gap-mid>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-low" aria-hidden="true"></span>Gap &lt; $500k</span>
+                <strong data-summary-gap-low>0</strong>
+              </div>
+            </div>
+          </article>
+        </section>
+
         <section class="client-directory-toolbar">
           <form class="client-table-search" role="search">
             <input type="search" placeholder="Search for Clients">
@@ -180,10 +290,6 @@
           </nav>
           <div class="client-directory-filter-bar">
             <div class="client-directory-toolbar-actions">
-              <div class="client-view-toggle" role="group" aria-label="Client view type">
-                <button class="client-toolbar-button" type="button" data-client-view="households">Households</button>
-                <button class="client-toolbar-button is-active" type="button" data-client-view="individuals">Individuals</button>
-              </div>
               <div class="client-items-dropdown" data-items-dropdown>
                 <button class="client-toolbar-button client-items-trigger" type="button" data-items-trigger aria-expanded="false">
                   Items Shown (15)
@@ -313,6 +419,25 @@
       const coverageHeading = document.getElementById("client-table-heading-coverage");
       const sourceHeading = document.getElementById("client-table-heading-source");
       const statusHeading = document.getElementById("client-table-heading-status");
+      const summaryPlacedChip = document.querySelector("[data-summary-placed-chip]");
+      const summaryPlacedTotal = document.querySelector("[data-summary-placed-total]");
+      const summaryPlacedNote = document.querySelector("[data-summary-placed-note]");
+      const summaryPlacedProgressPercent = document.querySelector("[data-summary-placed-progress-percent]");
+      const summaryPlacedProgressFill = document.querySelector("[data-summary-placed-progress-fill]");
+      const summaryPlacedMonthDetail = document.querySelector("[data-summary-placed-month-detail]");
+      const summaryPlacedGoal = document.querySelector("[data-summary-placed-goal]");
+      const summaryPipelineChip = document.querySelector("[data-summary-pipeline-chip]");
+      const summaryPipelineTotal = document.querySelector("[data-summary-pipeline-total]");
+      const summaryPipelineNote = document.querySelector("[data-summary-pipeline-note]");
+      const summaryPipelineProspects = document.querySelector("[data-summary-pipeline-prospects]");
+      const summaryPipelineReview = document.querySelector("[data-summary-pipeline-review]");
+      const summaryPipelineStalled = document.querySelector("[data-summary-pipeline-stalled]");
+      const summaryGapChip = document.querySelector("[data-summary-gap-chip]");
+      const summaryGapTotal = document.querySelector("[data-summary-gap-total]");
+      const summaryGapNote = document.querySelector("[data-summary-gap-note]");
+      const summaryGapHigh = document.querySelector("[data-summary-gap-high]");
+      const summaryGapMid = document.querySelector("[data-summary-gap-mid]");
+      const summaryGapLow = document.querySelector("[data-summary-gap-low]");
       const directorySidebarHost = document.querySelector('[data-workspace-side-nav="directory"]');
       const directorySidebarLayout = document.querySelector("[data-directory-sidebar-layout]");
       const directorySidebarToggle = document.querySelector("[data-directory-sidebar-toggle]");
@@ -471,7 +596,7 @@
           return assignmentName;
         }
 
-        if (record.viewType === "households" || record.viewType === "companies") {
+        if (record.viewType === "households" || record.viewType === "businesses") {
           return String(record.summary || "").trim() || "Profile";
         }
 
@@ -552,11 +677,23 @@
         return {
           ...record,
           id: String(record.id || `cl-local-${index}`),
-          viewType: ["individuals", "households", "companies"].includes(String(record.viewType || "")) ? String(record.viewType) : "individuals",
+          viewType: (function () {
+            const normalizedViewType = String(record.viewType || "").trim();
+            if (normalizedViewType === "companies") {
+              return "businesses";
+            }
+            return ["individuals", "households", "businesses"].includes(normalizedViewType) ? normalizedViewType : "individuals";
+          })(),
           displayName: displayName,
           lastName: lastName,
           summary: String(record.summary || record.clientNotes || "New client profile"),
-          caseRef: normalizeRecordCaseRef(["individuals", "households", "companies"].includes(String(record.viewType || "")) ? String(record.viewType) : "individuals", record.caseRef, index),
+          caseRef: normalizeRecordCaseRef((function () {
+            const normalizedViewType = String(record.viewType || "").trim();
+            if (normalizedViewType === "companies") {
+              return "businesses";
+            }
+            return ["individuals", "households", "businesses"].includes(normalizedViewType) ? normalizedViewType : "individuals";
+          })(), record.caseRef, index),
           lastReview: String(record.lastReview || record.lastUpdatedDate || record.dateProfileCreated || ""),
           dateProfileCreated: String(record.dateProfileCreated || record.lastReview || record.lastUpdatedDate || ""),
           insured: String(record.insured || "Yes"),
@@ -604,19 +741,258 @@
         return String(lastName || "").trim().charAt(0).toUpperCase();
       }
 
-      function getFilteredRecords() {
+      function matchesDirectorySearch(record, query) {
+        return !query
+          || String(record.displayName || "").toLowerCase().includes(query)
+          || String(record.summary || "").toLowerCase().includes(query)
+          || String(record.caseRef || "").toLowerCase().includes(query);
+      }
+
+      function getDirectoryScopeRecords(options) {
+        const config = options && typeof options === "object" ? options : {};
+        const includeStatus = Boolean(config.includeStatus);
         const query = String(searchField?.value || "").trim().toLowerCase();
         return records.filter(function (record) {
           const matchesView = record.viewType === activeView;
           const matchesLetter = activeLetter === "all" || getLastInitial(record.lastName) === activeLetter;
-          const matchesStatus = activeStatus === "all" || record.statusGroup === activeStatus;
-          const matchesSearch = !query
-            || String(record.displayName || "").toLowerCase().includes(query)
-            || String(record.summary || "").toLowerCase().includes(query)
-            || String(record.caseRef || "").toLowerCase().includes(query);
+          const matchesStatus = !includeStatus || activeStatus === "all" || record.statusGroup === activeStatus;
+          const matchesSearch = matchesDirectorySearch(record, query);
 
           return matchesView && matchesLetter && matchesStatus && matchesSearch;
         });
+      }
+
+      function getFilteredRecords() {
+        return getDirectoryScopeRecords({ includeStatus: true });
+      }
+
+      function getRecordTimelineDate(record) {
+        const rawValue = String(getDirectoryCreatedDate(record) || record.lastReview || "").trim();
+        if (!rawValue) {
+          return null;
+        }
+
+        const parsed = new Date(`${rawValue}T00:00:00`);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+
+      function formatSummaryCount(value) {
+        return String(Math.max(0, Number(value || 0)));
+      }
+
+      function getDaysBetween(startDate, endDate) {
+        if (!(startDate instanceof Date) || Number.isNaN(startDate.getTime())) {
+          return null;
+        }
+
+        const end = endDate instanceof Date ? endDate : new Date();
+        return Math.max(0, Math.round((end.getTime() - startDate.getTime()) / 86400000));
+      }
+
+      function getRecordPolicies(record) {
+        return Array.isArray(record?.coveragePolicies) ? record.coveragePolicies : [];
+      }
+
+      function parsePolicyFaceAmount(policy) {
+        const numericValue = Number(String(policy?.faceAmount || "").replace(/[^0-9.]/g, ""));
+        return Number.isFinite(numericValue) ? numericValue : 0;
+      }
+
+      function getPolicyTimelineDate(policy, record) {
+        const policyDate = String(policy?.effectiveDate || "").trim();
+        if (policyDate) {
+          const parsedPolicyDate = new Date(`${policyDate}T00:00:00`);
+          if (!Number.isNaN(parsedPolicyDate.getTime())) {
+            return parsedPolicyDate;
+          }
+        }
+
+        return getRecordTimelineDate(record);
+      }
+
+      function setSummaryBadge(target, text, tone) {
+        if (!target) {
+          return;
+        }
+
+        target.textContent = text;
+        target.setAttribute("data-tone", tone || "neutral");
+      }
+
+      function syncDirectorySummaryCards() {
+        const scopedRecords = getDirectoryScopeRecords({ includeStatus: false });
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const previousMonthDate = new Date(currentYear, currentMonth - 1, 1);
+        const previousYear = previousMonthDate.getFullYear();
+        const previousMonth = previousMonthDate.getMonth();
+
+        const placedPolicyEntries = scopedRecords.flatMap(function (record) {
+          return getRecordPolicies(record).map(function (policy) {
+            return {
+              record,
+              policy,
+              faceAmount: parsePolicyFaceAmount(policy),
+              timelineDate: getPolicyTimelineDate(policy, record)
+            };
+          });
+        }).filter(function (entry) {
+          return entry.faceAmount > 0;
+        });
+
+        const legacyPlacedRecords = scopedRecords.filter(function (record) {
+          return !getRecordPolicies(record).length
+            && (record.statusGroup === "coverage-placed" || record.statusGroup === "closed")
+            && Number(record.coverageAmount || 0) > 0;
+        });
+
+        const totalPlaced = placedPolicyEntries.reduce(function (sum, entry) {
+          return sum + entry.faceAmount;
+        }, 0) + legacyPlacedRecords.reduce(function (sum, record) {
+          return sum + Number(record.coverageAmount || 0);
+        }, 0);
+        const currentMonthPlaced = placedPolicyEntries.reduce(function (sum, entry) {
+          const date = entry.timelineDate;
+          if (!date || date.getFullYear() !== currentYear || date.getMonth() !== currentMonth) {
+            return sum;
+          }
+          return sum + entry.faceAmount;
+        }, 0) + legacyPlacedRecords.reduce(function (sum, record) {
+          const date = getRecordTimelineDate(record);
+          if (!date || date.getFullYear() !== currentYear || date.getMonth() !== currentMonth) {
+            return sum;
+          }
+          return sum + Number(record.coverageAmount || 0);
+        }, 0);
+        const previousMonthPlaced = placedPolicyEntries.reduce(function (sum, entry) {
+          const date = entry.timelineDate;
+          if (!date || date.getFullYear() !== previousYear || date.getMonth() !== previousMonth) {
+            return sum;
+          }
+          return sum + entry.faceAmount;
+        }, 0) + legacyPlacedRecords.reduce(function (sum, record) {
+          const date = getRecordTimelineDate(record);
+          if (!date || date.getFullYear() !== previousYear || date.getMonth() !== previousMonth) {
+            return sum;
+          }
+          return sum + Number(record.coverageAmount || 0);
+        }, 0);
+        const placedRecordCount = scopedRecords.filter(function (record) {
+          return getRecordPolicies(record).length > 0
+            || ((record.statusGroup === "coverage-placed" || record.statusGroup === "closed") && Number(record.coverageAmount || 0) > 0);
+        }).length;
+        const monthlyGoal = previousMonthPlaced > 0
+          ? previousMonthPlaced
+          : (currentMonthPlaced > 0 ? currentMonthPlaced : totalPlaced);
+        const monthlyProgressPercent = monthlyGoal > 0
+          ? Math.max(0, Math.round((currentMonthPlaced / monthlyGoal) * 100))
+          : 0;
+        const monthlyProgressWidth = `${Math.max(0, Math.min(100, monthlyProgressPercent))}%`;
+
+        if (summaryPlacedTotal) {
+          summaryPlacedTotal.textContent = formatCurrencyCompact(totalPlaced);
+        }
+        if (summaryPlacedNote) {
+          if (previousMonthPlaced > 0) {
+            summaryPlacedNote.textContent = `${formatCurrencyCompact(previousMonthPlaced)} same time last month`;
+          } else if (currentMonthPlaced > 0) {
+            summaryPlacedNote.textContent = `${formatCurrencyCompact(currentMonthPlaced)} added this month`;
+          } else {
+            summaryPlacedNote.textContent = "No placed coverage yet";
+          }
+        }
+        if (summaryPlacedProgressPercent) {
+          summaryPlacedProgressPercent.textContent = `${monthlyProgressPercent}%`;
+        }
+        if (summaryPlacedProgressFill) {
+          summaryPlacedProgressFill.style.width = monthlyProgressWidth;
+        }
+        if (summaryPlacedMonthDetail) {
+          summaryPlacedMonthDetail.textContent = currentMonthPlaced > 0
+            ? `${formatCurrencyCompact(currentMonthPlaced)} added this month`
+            : `${formatSummaryCount(placedRecordCount)} placed record${placedRecordCount === 1 ? "" : "s"} on file`;
+        }
+        if (summaryPlacedGoal) {
+          summaryPlacedGoal.textContent = monthlyGoal > 0
+            ? `${formatCurrencyCompact(monthlyGoal)} target`
+            : "$0 target";
+        }
+        if (previousMonthPlaced > 0) {
+          const deltaPercent = Math.round(((currentMonthPlaced - previousMonthPlaced) / previousMonthPlaced) * 100);
+          setSummaryBadge(summaryPlacedChip, `${deltaPercent > 0 ? "+" : ""}${deltaPercent}% MoM`, deltaPercent >= 0 ? "positive" : "warning");
+        } else if (currentMonthPlaced > 0) {
+          setSummaryBadge(summaryPlacedChip, "New this month", "positive");
+        } else {
+          setSummaryBadge(summaryPlacedChip, "No monthly change", "neutral");
+        }
+
+        const pipelineRecords = scopedRecords.filter(function (record) {
+          return record.statusGroup === "prospects" || record.statusGroup === "in-review";
+        });
+        const pipelineProspects = pipelineRecords.filter(function (record) { return record.statusGroup === "prospects"; }).length;
+        const pipelineInReview = pipelineRecords.filter(function (record) { return record.statusGroup === "in-review"; }).length;
+        const pipelineDays = pipelineRecords
+          .map(function (record) { return getDaysBetween(getRecordTimelineDate(record), now); })
+          .filter(function (value) { return Number.isFinite(value); });
+        const averagePipelineDays = pipelineDays.length
+          ? Math.round(pipelineDays.reduce(function (sum, value) { return sum + value; }, 0) / pipelineDays.length)
+          : 0;
+        const stalledPipeline = pipelineDays.filter(function (value) { return value >= 14; }).length;
+
+        if (summaryPipelineTotal) {
+          summaryPipelineTotal.textContent = formatSummaryCount(pipelineRecords.length);
+        }
+        if (summaryPipelineNote) {
+          summaryPipelineNote.textContent = pipelineRecords.length
+            ? `Avg. ${averagePipelineDays} day${averagePipelineDays === 1 ? "" : "s"} in pipeline`
+            : "No active prospects in pipeline";
+        }
+        if (summaryPipelineProspects) {
+          summaryPipelineProspects.textContent = formatSummaryCount(pipelineProspects);
+        }
+        if (summaryPipelineReview) {
+          summaryPipelineReview.textContent = formatSummaryCount(pipelineInReview);
+        }
+        if (summaryPipelineStalled) {
+          summaryPipelineStalled.textContent = formatSummaryCount(stalledPipeline);
+        }
+        setSummaryBadge(summaryPipelineChip, `${pipelineRecords.length} active`, pipelineRecords.length > 0 ? "accent" : "neutral");
+
+        const gapRecords = scopedRecords.filter(function (record) {
+          return Number(record.coverageGap || 0) > 0;
+        });
+        const totalGap = gapRecords.reduce(function (sum, record) {
+          return sum + Number(record.coverageGap || 0);
+        }, 0);
+        const highGapCount = gapRecords.filter(function (record) { return Number(record.coverageGap || 0) > 1000000; }).length;
+        const midGapCount = gapRecords.filter(function (record) {
+          const gap = Number(record.coverageGap || 0);
+          return gap >= 500000 && gap <= 1000000;
+        }).length;
+        const lowGapCount = gapRecords.filter(function (record) {
+          const gap = Number(record.coverageGap || 0);
+          return gap > 0 && gap < 500000;
+        }).length;
+
+        if (summaryGapTotal) {
+          summaryGapTotal.textContent = formatSummaryCount(gapRecords.length);
+        }
+        if (summaryGapNote) {
+          summaryGapNote.textContent = gapRecords.length
+            ? `${formatCurrencyCompact(totalGap)} total unmet need`
+            : "No uncovered modeled need";
+        }
+        if (summaryGapHigh) {
+          summaryGapHigh.textContent = formatSummaryCount(highGapCount);
+        }
+        if (summaryGapMid) {
+          summaryGapMid.textContent = formatSummaryCount(midGapCount);
+        }
+        if (summaryGapLow) {
+          summaryGapLow.textContent = formatSummaryCount(lowGapCount);
+        }
+        setSummaryBadge(summaryGapChip, gapRecords.length ? "Needs attention" : "No urgent gaps", gapRecords.length ? "warning" : "positive");
       }
 
       function syncStatusButtons() {
@@ -638,7 +1014,7 @@
 
       function syncTableHeadings() {
         if (nameHeading) {
-          nameHeading.textContent = activeView === "households" ? "Household" : "Client";
+          nameHeading.textContent = activeView === "households" ? "Household" : activeView === "businesses" ? "Business" : "Client";
         }
         if (insuredHeading) {
           insuredHeading.textContent = activeView === "households" ? "Members" : "Insured";
@@ -684,10 +1060,62 @@
             isActive = activeView === "households";
           } else if (action === "individuals") {
             isActive = activeView === "individuals";
+          } else if (action === "businesses") {
+            isActive = activeView === "businesses";
           }
 
           button.classList.toggle("is-active", isActive);
         });
+      }
+
+      function setDirectoryView(nextView) {
+        const normalizedView = String(nextView || "").trim();
+        if (normalizedView !== "households" && normalizedView !== "individuals" && normalizedView !== "businesses") {
+          return false;
+        }
+
+        activeView = normalizedView;
+        currentPage = 1;
+        renderDirectory();
+        return true;
+      }
+
+      function resetDirectoryToAll() {
+        activeLetter = "all";
+        activeStatus = "all";
+        currentPage = 1;
+        renderDirectory();
+        return true;
+      }
+
+      function openDirectoryAddModal() {
+        if (!(directoryAddButton instanceof HTMLElement)) {
+          return false;
+        }
+
+        directoryAddButton.click();
+        return true;
+      }
+
+      function handleDirectoryNavAction(action) {
+        const normalizedAction = String(action || "").trim();
+        if (!normalizedAction) {
+          return false;
+        }
+
+        if (normalizedAction === "all") {
+          return resetDirectoryToAll();
+        }
+
+        if (normalizedAction === "households" || normalizedAction === "individuals" || normalizedAction === "businesses") {
+          return setDirectoryView(normalizedAction);
+        }
+
+        if (normalizedAction === "add") {
+          return openDirectoryAddModal();
+        }
+
+        return false;
       }
 
       function setDirectorySidebarCollapsed(isCollapsed) {
@@ -869,6 +1297,7 @@
         syncTableHeadings();
         syncLetterButtons();
         syncItemsShown();
+        syncDirectorySummaryCards();
         syncDirectorySidebarButtons();
         renderPagination(totalPages);
       }
@@ -949,28 +1378,14 @@
       directorySidebarButtons.forEach(function (button) {
         button.addEventListener("click", function () {
           const action = String(button.dataset.directoryNavAction || "").trim();
-
-          if (action === "all") {
-            activeLetter = "all";
-            activeStatus = "all";
-            currentPage = 1;
-            renderDirectory();
-            return;
-          }
-
-          if (action === "households" || action === "individuals") {
-            const targetViewButton = viewButtons.find(function (viewButton) {
-              return String(viewButton.dataset.clientView || "").trim() === action;
-            });
-            targetViewButton?.click();
-            return;
-          }
-
-          if (action === "add") {
-            directoryAddButton?.click();
-          }
+          handleDirectoryNavAction(action);
         });
       });
+
+      window.ClientDirectoryShellApi = {
+        triggerAction: handleDirectoryNavAction,
+        setView: setDirectoryView
+      };
 
       prevPageButton?.addEventListener("click", function () {
         if (currentPage > 1) {

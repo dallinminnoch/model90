@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   const STUDIO_VIEW_PARAM = "view";
   const STUDIO_EMBED_PARAM = "studioEmbed";
   const ANALYSIS_PAGES = new Set([
@@ -43,6 +43,11 @@
 
   let currentView = "";
   let currentScrollKey = "overview";
+  let embedHeightFrame = 0;
+  let embedResizeObserver = null;
+  let embedMutationObserver = null;
+  let observedEmbedWindow = null;
+  let observedEmbedWindowResizeHandler = null;
 
   function getStorageIdentity() {
     try {
@@ -197,6 +202,9 @@
     document.body.classList.toggle("is-embedded-tool", isEmbedded);
     startView.hidden = isEmbedded;
     embedShell.hidden = !isEmbedded;
+    if (!isEmbedded) {
+      resetEmbedAutoHeight();
+    }
   }
 
   function getIframeDocument() {
@@ -213,6 +221,133 @@
     } catch (_error) {
       return null;
     }
+  }
+
+  function clearEmbedAutoHeightWatchers() {
+    if (embedHeightFrame) {
+      window.cancelAnimationFrame(embedHeightFrame);
+      embedHeightFrame = 0;
+    }
+
+    if (embedResizeObserver) {
+      embedResizeObserver.disconnect();
+      embedResizeObserver = null;
+    }
+
+    if (embedMutationObserver) {
+      embedMutationObserver.disconnect();
+      embedMutationObserver = null;
+    }
+
+    if (observedEmbedWindow && observedEmbedWindowResizeHandler) {
+      observedEmbedWindow.removeEventListener("resize", observedEmbedWindowResizeHandler);
+    }
+
+    observedEmbedWindow = null;
+    observedEmbedWindowResizeHandler = null;
+  }
+
+  function resetEmbedAutoHeight() {
+    clearEmbedAutoHeightWatchers();
+    embedShell.style.height = "";
+    embedShell.style.minHeight = "";
+    embedFrame.style.height = "";
+    embedFrame.style.minHeight = "";
+  }
+
+  function getStudioEmbedViewportHeight() {
+    const embedTop = embedShell.getBoundingClientRect().top;
+    return Math.max(0, Math.ceil(window.innerHeight - embedTop));
+  }
+
+  function getEmbeddedDocumentHeight(doc) {
+    if (!doc) {
+      return 0;
+    }
+
+    const html = doc.documentElement;
+    const body = doc.body;
+
+    return Math.max(
+      html ? html.scrollHeight : 0,
+      html ? html.offsetHeight : 0,
+      html ? Math.ceil(html.getBoundingClientRect().height) : 0,
+      body ? body.scrollHeight : 0,
+      body ? body.offsetHeight : 0,
+      body ? Math.ceil(body.getBoundingClientRect().height) : 0
+    );
+  }
+
+  function syncEmbedAutoHeight() {
+    if (!currentView || embedShell.hidden) {
+      return;
+    }
+
+    const doc = getIframeDocument();
+    const viewportHeight = getStudioEmbedViewportHeight();
+    const contentHeight = getEmbeddedDocumentHeight(doc);
+    const nextHeight = Math.max(viewportHeight, contentHeight);
+
+    embedShell.style.minHeight = `${viewportHeight}px`;
+    embedShell.style.height = `${nextHeight}px`;
+    embedFrame.style.minHeight = `${viewportHeight}px`;
+    embedFrame.style.height = `${nextHeight}px`;
+  }
+
+  function scheduleEmbedAutoHeightSync() {
+    if (embedHeightFrame) {
+      window.cancelAnimationFrame(embedHeightFrame);
+    }
+
+    embedHeightFrame = window.requestAnimationFrame(function () {
+      embedHeightFrame = 0;
+      syncEmbedAutoHeight();
+    });
+  }
+
+  function watchEmbedAutoHeight() {
+    clearEmbedAutoHeightWatchers();
+
+    const doc = getIframeDocument();
+    const frameWindow = getIframeWindow();
+    if (!doc) {
+      return;
+    }
+
+    const resizeTarget = doc.documentElement || doc.body;
+    const mutationTarget = doc.body || doc.documentElement;
+
+    if (typeof ResizeObserver !== "undefined" && resizeTarget) {
+      embedResizeObserver = new ResizeObserver(scheduleEmbedAutoHeightSync);
+      embedResizeObserver.observe(resizeTarget);
+      if (doc.body && doc.body !== resizeTarget) {
+        embedResizeObserver.observe(doc.body);
+      }
+    }
+
+    if (typeof MutationObserver !== "undefined" && mutationTarget) {
+      embedMutationObserver = new MutationObserver(scheduleEmbedAutoHeightSync);
+      embedMutationObserver.observe(mutationTarget, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        characterData: true
+      });
+    }
+
+    if (frameWindow) {
+      observedEmbedWindow = frameWindow;
+      observedEmbedWindowResizeHandler = scheduleEmbedAutoHeightSync;
+      observedEmbedWindow.addEventListener("resize", observedEmbedWindowResizeHandler);
+    }
+
+    if (doc.fonts && typeof doc.fonts.ready?.then === "function") {
+      doc.fonts.ready.then(scheduleEmbedAutoHeightSync).catch(function () {});
+    }
+
+    scheduleEmbedAutoHeightSync();
+    window.setTimeout(scheduleEmbedAutoHeightSync, 60);
+    window.setTimeout(scheduleEmbedAutoHeightSync, 220);
   }
 
   function injectEmbedStyles(doc) {
@@ -241,13 +376,16 @@
         margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
+        height: auto !important;
         min-width: 0 !important;
+        min-height: 100% !important;
         overflow-x: hidden !important;
         background: transparent !important;
       }
 
       body.studio-embed-mode {
         overflow-x: hidden !important;
+        overflow-y: visible !important;
       }
 
       body.studio-embed-mode .workspace-page-topbar,
@@ -377,15 +515,55 @@
     }
   }
 
+  function getEmbeddedCurrentPageTitle(meta) {
+    const doc = getIframeDocument();
+    const frameWindow = getIframeWindow();
+    if (!doc || !frameWindow || !frameWindow.location) {
+      return "";
+    }
+
+    const actualView = normalizeViewValue(`${getBaseName(frameWindow.location.pathname)}${frameWindow.location.search}${frameWindow.location.hash}`);
+    if (!actualView || actualView !== meta.normalized) {
+      return "";
+    }
+
+    return String(
+      doc.body?.getAttribute("data-workspace-current-title")
+      || doc.documentElement?.getAttribute("data-workspace-current-title")
+      || ""
+    ).trim();
+  }
+
+  function syncSidebarCurrentTitle(nextTitle) {
+    const titleNode = sidebarHost.querySelector(".workspace-side-nav-copy strong");
+    if (!titleNode) {
+      return;
+    }
+
+    const fallbackTitle = String(titleNode.dataset.defaultTitle || titleNode.textContent || "").trim();
+    if (!titleNode.dataset.defaultTitle) {
+      titleNode.dataset.defaultTitle = fallbackTitle;
+    }
+
+    const resolvedTitle = String(nextTitle || "").trim() || titleNode.dataset.defaultTitle || fallbackTitle;
+    titleNode.textContent = resolvedTitle;
+  }
+
   function renderSidebarForCurrentView() {
     const meta = getViewMeta(currentView);
-    sidebarHost.setAttribute("data-workspace-side-nav", meta.shellMode);
-    sidebarHost.innerHTML = window.WorkspaceSideNav.render(meta.shellMode, {
+    const renderOptions = {
       shell: true,
       activePage: meta.pageKey
-    });
+    };
+    const embeddedTitle = getEmbeddedCurrentPageTitle(meta);
+    if (embeddedTitle) {
+      renderOptions.title = embeddedTitle;
+    }
+    sidebarHost.setAttribute("data-workspace-side-nav", meta.shellMode);
+    sidebarHost.innerHTML = window.WorkspaceSideNav.render(meta.shellMode, renderOptions);
     setSidebarCollapsed(document.body.classList.contains("workspace-side-nav-collapsed"));
     bindSidebarInteractions(meta);
+    syncSidebarCurrentTitle(renderOptions.title || "");
     syncCurrentPageControls(meta.shellMode, meta);
     syncTopbarState(meta.pageKey);
   }
@@ -432,6 +610,105 @@
     return true;
   }
 
+  function setEmbeddedClientDetailTab(tabKey) {
+    const doc = getIframeDocument();
+    if (!doc) {
+      return false;
+    }
+
+    const buttons = Array.from(doc.querySelectorAll("[data-client-tab]"));
+    const panels = Array.from(doc.querySelectorAll("[data-client-panel]"));
+    if (!buttons.length || !panels.length) {
+      return false;
+    }
+
+    const normalizedTabKey = String(tabKey || "").trim();
+    if (!normalizedTabKey) {
+      return false;
+    }
+
+    let foundMatch = false;
+
+    buttons.forEach(function (button) {
+      const isActive = String(button.getAttribute("data-client-tab") || "").trim() === normalizedTabKey;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-selected", isActive ? "true" : "false");
+      if (isActive) {
+        foundMatch = true;
+      }
+    });
+
+    if (!foundMatch) {
+      return false;
+    }
+
+    panels.forEach(function (panel) {
+      const isActive = String(panel.getAttribute("data-client-panel") || "").trim() === normalizedTabKey;
+      panel.classList.toggle("is-active", isActive);
+      panel.hidden = !isActive;
+    });
+
+    try {
+      getIframeWindow()?.dispatchEvent(new Event("resize"));
+    } catch (_error) {
+      // Ignore resize dispatch failures.
+    }
+
+    return true;
+  }
+
+  function setEmbeddedDirectoryAction(actionKey) {
+    const doc = getIframeDocument();
+    const frameWindow = getIframeWindow();
+    if (!doc) {
+      return false;
+    }
+
+    const normalizedAction = String(actionKey || "").trim();
+    if (!normalizedAction) {
+      return false;
+    }
+
+    const embeddedDirectoryApi = frameWindow && frameWindow.ClientDirectoryShellApi;
+    if (embeddedDirectoryApi && typeof embeddedDirectoryApi.triggerAction === "function") {
+      try {
+        if (embeddedDirectoryApi.triggerAction(normalizedAction)) {
+          return true;
+        }
+      } catch (_error) {
+        // Fall through to DOM-based control if the embedded API is unavailable.
+      }
+    }
+
+    if (normalizedAction === "all") {
+      const statusAllButton = doc.querySelector('[data-client-status="all"]');
+      const letterAllButton = doc.querySelector('[data-client-letter="all"]');
+      statusAllButton?.click();
+      letterAllButton?.click();
+      return Boolean(statusAllButton || letterAllButton);
+    }
+
+    if (normalizedAction === "households" || normalizedAction === "individuals" || normalizedAction === "businesses") {
+      const viewButton = doc.querySelector(`[data-client-view="${normalizedAction}"]`);
+      if (!(viewButton instanceof HTMLElement)) {
+        return false;
+      }
+      viewButton.click();
+      return true;
+    }
+
+    if (normalizedAction === "add") {
+      const addButton = doc.querySelector("[data-add-client-button]");
+      if (!(addButton instanceof HTMLElement)) {
+        return false;
+      }
+      addButton.click();
+      return true;
+    }
+
+    return false;
+  }
+
   function navigateToView(viewValue, historyMode) {
     const nextView = normalizeViewValue(viewValue);
     const currentMode = historyMode || "push";
@@ -439,6 +716,7 @@
     if (nextView === currentView && currentMode !== "none") {
       syncShellVisibility();
       renderSidebarForCurrentView();
+      scheduleEmbedAutoHeightSync();
       return;
     }
 
@@ -454,14 +732,28 @@
     }
 
     if (!nextView) {
+      resetEmbedAutoHeight();
       scrollStartSection(currentScrollKey);
       return;
     }
 
     const nextSrc = buildEmbedUrl(nextView);
-    if (embedFrame.getAttribute("src") !== nextSrc) {
+    const frameWindow = getIframeWindow();
+    const currentFrameHref = frameWindow && frameWindow.location
+      ? String(frameWindow.location.href || "")
+      : String(embedFrame.getAttribute("src") || "");
+
+    if (currentFrameHref !== nextSrc) {
       embedFrame.classList.add("is-pending");
-      embedFrame.setAttribute("src", nextSrc);
+      if (frameWindow && frameWindow.location) {
+        try {
+          frameWindow.location.replace(nextSrc);
+        } catch (_error) {
+          embedFrame.setAttribute("src", nextSrc);
+        }
+      } else {
+        embedFrame.setAttribute("src", nextSrc);
+      }
     }
   }
 
@@ -478,7 +770,9 @@
 
     if (actualView === currentView) {
       const meta = getViewMeta(currentView);
+      syncSidebarCurrentTitle(getEmbeddedCurrentPageTitle(meta));
       syncCurrentPageControls(meta.shellMode, meta);
+      scheduleEmbedAutoHeightSync();
       return;
     }
 
@@ -499,6 +793,8 @@
         const nextCollapsed = !sidebarHost.classList.contains("is-collapsed");
         setSidebarCollapsed(nextCollapsed);
         persistSidebarCollapsed(nextCollapsed);
+        scheduleEmbedAutoHeightSync();
+        window.setTimeout(scheduleEmbedAutoHeightSync, 240);
       });
     }
 
@@ -532,7 +828,7 @@
             return;
           }
 
-          if (clickEmbeddedControl(`[data-directory-nav-action="${action}"]`)) {
+          if (setEmbeddedDirectoryAction(action) || clickEmbeddedControl(`[data-directory-nav-action="${action}"]`)) {
             window.setTimeout(function () {
               syncCurrentPageControls("directory", meta);
             }, 60);
@@ -550,7 +846,7 @@
             return;
           }
 
-          if (clickEmbeddedControl(`[data-client-tab="${tabKey}"]`)) {
+          if (setEmbeddedClientDetailTab(tabKey) || clickEmbeddedControl(`[data-client-tab="${tabKey}"]`)) {
             window.setTimeout(function () {
               syncCurrentPageControls("client-detail", meta);
             }, 60);
@@ -627,6 +923,18 @@
       closeMenus();
     }
 
+    const returnToDirectoryLink = event.target.closest("[data-client-directory-return]");
+    if (returnToDirectoryLink && sidebarHost.contains(returnToDirectoryLink) && String(sidebarHost.getAttribute("data-workspace-side-nav") || "").trim() === "client-detail") {
+      const hrefSource = returnToDirectoryLink.getAttribute("data-client-directory-return-href")
+        || returnToDirectoryLink.getAttribute("href")
+        || "";
+      const view = parseViewFromShellHref(hrefSource) || "clients.html";
+      event.preventDefault();
+      navigateToView(view, "push");
+      closeMenus();
+      return;
+    }
+
     const studioLink = event.target.closest("[data-studio-page]");
     if (studioLink instanceof HTMLAnchorElement) {
       const view = parseViewFromShellHref(studioLink.getAttribute("href"));
@@ -650,12 +958,18 @@
     const doc = getIframeDocument();
     injectEmbedStyles(doc);
     embedFrame.classList.remove("is-pending");
+    watchEmbedAutoHeight();
     syncFromEmbeddedLocation("push");
+    scheduleEmbedAutoHeightSync();
   });
 
   window.addEventListener("popstate", function () {
     navigateToView(getViewFromWindowLocation(window.location), "none");
   });
+
+  window.addEventListener("resize", scheduleEmbedAutoHeightSync);
+
+
 
   setSidebarCollapsed(readSidebarCollapsed());
   currentView = getViewFromWindowLocation(window.location);
@@ -669,3 +983,4 @@
     scrollStartSection(currentScrollKey);
   }
 })();
+

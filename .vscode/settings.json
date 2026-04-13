@@ -1,0 +1,31 @@
+{
+  "liveServer.settings.ignoreFiles": [
+    "**/.vscode/**",
+    "**/.git/**",
+    "**/edge-cdp-profile/**",
+    "**/edge-cdp-profile2/**",
+    "**/edge-debug-profile/**",
+    "**/edge-headless-profile/**",
+    "**/edge-data/**",
+    "**/edge-crash/**",
+    "**/cdp-log.txt",
+    "**/nav-debug.png",
+    "**/nav-debug-after.png"
+  ],
+  "files.watcherExclude": {
+    "**/edge-cdp-profile/**": true,
+    "**/edge-cdp-profile2/**": true,
+    "**/edge-debug-profile/**": true,
+    "**/edge-headless-profile/**": true,
+    "**/edge-data/**": true,
+    "**/edge-crash/**": true
+  },
+  "search.exclude": {
+    "**/edge-cdp-profile/**": true,
+    "**/edge-cdp-profile2/**": true,
+    "**/edge-debug-profile/**": true,
+    "**/edge-headless-profile/**": true,
+    "**/edge-data/**": true,
+    "**/edge-crash/**": true
+  }
+}

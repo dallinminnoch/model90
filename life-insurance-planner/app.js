@@ -1323,9 +1323,9 @@
       if (!filteredRecords.length) {
         const emptyState = document.createElement("div");
         emptyState.className = "profile-search-results-empty";
-        emptyState.textContent = activeSearchType === "company"
-          ? "No company profiles found."
-          : "No households found.";
+          emptyState.textContent = activeSearchType === "company"
+            ? "No business profiles found."
+            : "No households found.";
         searchModalResults.appendChild(emptyState);
         return;
       }
@@ -1356,7 +1356,7 @@
     function openSearchModal(kind) {
       activeSearchType = kind;
       if (searchModalTitle) {
-        searchModalTitle.textContent = kind === "company" ? "Search Company Profiles" : "Search Existing Households";
+          searchModalTitle.textContent = kind === "company" ? "Search Business Profiles" : "Search Existing Households";
       }
       if (searchModalInput) {
         searchModalInput.value = "";
@@ -3383,7 +3383,7 @@
       const expectedType = assignmentMode === "existing-company" ? "companies" : "households";
       const existingProfile = nextRecords.find((record) => record.id === assignmentTargetId && record.viewType === expectedType);
       if (!existingProfile) {
-        setFormFeedback(feedback, expectedType === "companies" ? "Select a valid company profile before saving." : "Select a valid household before saving.");
+          setFormFeedback(feedback, expectedType === "companies" ? "Select a valid business profile before saving." : "Select a valid household before saving.");
         return false;
       }
 
@@ -3424,7 +3424,7 @@
         viewType: isCompany ? "companies" : "households",
         displayName: householdName,
         lastName,
-        summary: isCompany ? "Company profile" : "Household profile",
+        summary: isCompany ? "Business profile" : "Household profile",
         caseRef: buildNextCaseRef(nextRecords, isCompany ? "CL" : "HH"),
         lastReview: lastUpdatedDate,
         insured: "1",
