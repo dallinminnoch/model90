@@ -39,7 +39,7 @@
             </span>
             <span class="workspace-page-menu-link-label">Home</span>
           </a>
-          <a class="workspace-page-menu-link is-active" href="studio.html" aria-current="page">
+          <a class="workspace-page-menu-link is-active" href="studio.html" aria-current="page" data-studio-page="studio">
             <span class="workspace-page-menu-link-icon" aria-hidden="true">
               <svg viewBox="0 0 20 20" fill="none">
                 <rect x="2.75" y="2.75" width="5.1" height="5.1" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
@@ -50,7 +50,7 @@
             </span>
             <span class="workspace-page-menu-link-label">Start Page</span>
           </a>
-          <a class="workspace-page-menu-link" href="clients.html">
+          <a class="workspace-page-menu-link" href="studio.html?view=clients.html" data-studio-page="clients">
             <span class="workspace-page-menu-link-icon" aria-hidden="true">
               <svg viewBox="0 0 20 20" fill="none">
                 <circle cx="7" cy="7.2" r="2.35" stroke="currentColor" stroke-width="1.55"/>
@@ -61,7 +61,7 @@
             </span>
             <span class="workspace-page-menu-link-label">Client Directory</span>
           </a>
-          <a class="workspace-page-menu-link" href="resources.html">
+          <a class="workspace-page-menu-link" href="studio.html?view=resources.html" data-studio-page="resources">
             <span class="workspace-page-menu-link-icon" aria-hidden="true">
               <svg viewBox="0 0 20 20" fill="none">
                 <path d="M5.1 3.15h7.65l2.15 2.2v10.1a1.55 1.55 0 0 1-1.55 1.55H5.1a1.55 1.55 0 0 1-1.55-1.55V4.7A1.55 1.55 0 0 1 5.1 3.15Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
@@ -71,7 +71,7 @@
             </span>
             <span class="workspace-page-menu-link-label">Resources</span>
           </a>
-          <a class="workspace-page-menu-link" href="lens.html">
+          <a class="workspace-page-menu-link" href="studio.html?view=lens.html" data-studio-page="lens">
             <span class="workspace-page-menu-link-icon" aria-hidden="true">
               <svg viewBox="0 0 20 20" fill="none">
                 <circle cx="10" cy="10" r="6.05" stroke="currentColor" stroke-width="1.55"/>
@@ -81,7 +81,7 @@
             </span>
             <span class="workspace-page-menu-link-label">LENS Analysis</span>
           </a>
-          <a class="workspace-page-menu-link" href="strategy-builder.html">
+          <a class="workspace-page-menu-link" href="studio.html?view=strategy-builder.html" data-studio-page="strategy">
             <span class="workspace-page-menu-link-icon" aria-hidden="true">
               <svg viewBox="0 0 20 20" fill="none">
                 <path d="M3 15.75h14" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
@@ -91,7 +91,7 @@
             </span>
             <span class="workspace-page-menu-link-label">Strategy Builder</span>
           </a>
-          <a class="workspace-page-menu-link" href="policy-web.html">
+          <a class="workspace-page-menu-link" href="studio.html?view=policy-web.html" data-studio-page="policy">
             <span class="workspace-page-menu-link-icon" aria-hidden="true">
               <svg viewBox="0 0 20 20" fill="none">
                 <path d="M4.25 5.25h11.5a1.1 1.1 0 0 1 1.1 1.1v7.3a1.1 1.1 0 0 1-1.1 1.1H4.25a1.1 1.1 0 0 1-1.1-1.1v-7.3a1.1 1.1 0 0 1 1.1-1.1Z" stroke="currentColor" stroke-width="1.55"/>
@@ -118,15 +118,15 @@
   </script>
 
   <main class="home-shell app-home-shell studio-shell">
-    <section class="studio-workspace">
+    <section class="studio-workspace" data-studio-start-view>
       <section class="studio-hero" id="studio-overview">
         <div class="studio-hero-copy">
           <span class="studio-hero-kicker">MODEL90 Studio</span>
           <h1>Start inside the advisor workspace.</h1>
           <p>Launch planning tools, move between records, and work from one consistent studio shell without dropping back into the public home page.</p>
           <div class="studio-hero-actions">
-            <a class="studio-hero-primary" href="lens.html">Open LENS Analysis</a>
-            <a class="studio-hero-secondary" href="clients.html">Open Client Directory</a>
+            <a class="studio-hero-primary" href="studio.html?view=lens.html" data-studio-page="lens">Open LENS Analysis</a>
+            <a class="studio-hero-secondary" href="studio.html?view=clients.html" data-studio-page="clients">Open Client Directory</a>
           </div>
         </div>
         <aside class="studio-hero-panel">
@@ -150,7 +150,7 @@
           <p>Open the tools that shape coverage recommendations and policy strategy.</p>
         </header>
         <div class="studio-card-grid">
-          <a class="studio-link-card" href="lens.html">
+          <a class="studio-link-card" href="studio.html?view=lens.html" data-studio-page="lens">
             <span class="studio-link-card-kicker">Core workflow</span>
             <div class="studio-link-card-title-row">
               <strong class="studio-link-card-title">LENS Analysis</strong>
@@ -162,7 +162,7 @@
               <span class="studio-link-card-meta">Guided intake</span>
             </div>
           </a>
-          <a class="studio-link-card" href="strategy-builder.html">
+          <a class="studio-link-card" href="studio.html?view=strategy-builder.html" data-studio-page="strategy">
             <span class="studio-link-card-kicker">Planning</span>
             <div class="studio-link-card-title-row">
               <strong class="studio-link-card-title">Strategy Builder</strong>
@@ -174,7 +174,7 @@
               <span class="studio-link-card-meta">Recommendation framing</span>
             </div>
           </a>
-          <a class="studio-link-card" href="policy-web.html">
+          <a class="studio-link-card" href="studio.html?view=policy-web.html" data-studio-page="policy">
             <span class="studio-link-card-kicker">Policy review</span>
             <div class="studio-link-card-title-row">
               <strong class="studio-link-card-title">Policy Web</strong>
@@ -198,7 +198,7 @@
           <p>Jump into the supporting pages that keep the planning workflow moving.</p>
         </header>
         <div class="studio-card-grid">
-          <a class="studio-link-card" href="clients.html">
+          <a class="studio-link-card" href="studio.html?view=clients.html" data-studio-page="clients">
             <span class="studio-link-card-kicker">Records</span>
             <div class="studio-link-card-title-row">
               <strong class="studio-link-card-title">Client Directory</strong>
@@ -210,7 +210,7 @@
               <span class="studio-link-card-meta">Records hub</span>
             </div>
           </a>
-          <a class="studio-link-card" href="resources.html">
+          <a class="studio-link-card" href="studio.html?view=resources.html" data-studio-page="resources">
             <span class="studio-link-card-kicker">Support</span>
             <div class="studio-link-card-title-row">
               <strong class="studio-link-card-title">Resources</strong>
@@ -225,86 +225,13 @@
         </div>
       </section>
     </section>
+    <section class="studio-embed-shell" data-studio-embed-shell hidden>
+      <iframe class="studio-embed-frame" data-studio-embed-frame title="Studio tool view" loading="eager"></iframe>
+    </section>
   </main>
 
   <script src="../workspace-side-nav.js"></script>
   <script src="../site-header.js"></script>
-  <script>
-    (function () {
-      const pageMenu = document.querySelector(".workspace-page-menu");
-      const studioSidebarHost = document.querySelector('[data-workspace-side-nav="studio"]');
-      const studioSidebarToggle = document.querySelector("[data-studio-side-tabs-toggle]");
-      const studioNavLinks = Array.from(document.querySelectorAll("[data-studio-tab]"));
-
-      function getStorageIdentity() {
-        try {
-          const session = JSON.parse(localStorage.getItem("lipPlannerAuthSession") || "null");
-          return session && session.email ? String(session.email).trim().toLowerCase() : "guest";
-        } catch (error) {
-          return "guest";
-        }
-      }
-
-      const studioSidebarStorageKey = `workspaceSideNavCollapsed:${getStorageIdentity()}`;
-
-      function setStudioSidebarCollapsed(isCollapsed) {
-        if (!studioSidebarHost || !studioSidebarToggle) {
-          return;
-        }
-
-        document.body.classList.toggle("workspace-side-nav-collapsed", isCollapsed);
-        studioSidebarHost.classList.toggle("is-collapsed", isCollapsed);
-        studioSidebarToggle.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
-        studioSidebarToggle.setAttribute("aria-label", isCollapsed ? "Expand studio navigation" : "Collapse studio navigation");
-        studioSidebarToggle.setAttribute("title", isCollapsed ? "Expand studio navigation" : "Collapse studio navigation");
-      }
-
-      if (studioSidebarHost && studioSidebarToggle) {
-        let isSidebarCollapsed = false;
-
-        try {
-          isSidebarCollapsed = window.localStorage.getItem(studioSidebarStorageKey) === "1";
-        } catch (error) {
-          isSidebarCollapsed = false;
-        }
-
-        setStudioSidebarCollapsed(isSidebarCollapsed);
-
-        studioSidebarToggle.addEventListener("click", function () {
-          const nextCollapsed = !studioSidebarHost.classList.contains("is-collapsed");
-          setStudioSidebarCollapsed(nextCollapsed);
-
-          try {
-            window.localStorage.setItem(studioSidebarStorageKey, nextCollapsed ? "1" : "0");
-          } catch (error) {
-            // Ignore persistence issues and keep the in-memory state.
-          }
-        });
-      }
-
-      studioNavLinks.forEach(function (link) {
-        link.addEventListener("click", function () {
-          studioNavLinks.forEach(function (item) {
-            item.classList.remove("is-active");
-            item.removeAttribute("aria-current");
-          });
-          link.classList.add("is-active");
-          link.setAttribute("aria-current", "location");
-        });
-      });
-
-      document.addEventListener("click", function (event) {
-        if (!event.target.closest(".workspace-page-menu") && pageMenu) {
-          pageMenu.removeAttribute("open");
-        }
-      });
-
-      document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape" && pageMenu) {
-          pageMenu.removeAttribute("open");
-        }
-      });
-    })();
-  </script>
+  <script src="../studio-shell.js"></script>
 </body>
 </html>

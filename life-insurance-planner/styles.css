@@ -111,7 +111,7 @@ body.lens-page .workspace-page-topbar,
 body.studio-page .workspace-page-topbar,
 body.resources-page .workspace-page-topbar {
   display: block;
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
@@ -3300,6 +3300,11 @@ select option:disabled {
   align-items: start;
   gap: 0.75rem 1rem;
   margin-bottom: 0.2rem;
+}
+
+.client-directory-header-actions-only {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .client-directory-title-block {
@@ -13567,7 +13572,7 @@ body[data-step] .step-item:focus-visible .step-title {
   }
 
   body.client-detail-page .prospect-shell {
-    padding: calc(var(--workspace-topbar-height) + 0.4rem) clamp(0.75rem, 2vw, 1.25rem) clamp(1.25rem, 2.5vw, 1.75rem);
+    padding: 0.4rem clamp(0.75rem, 2vw, 1.25rem) clamp(1.25rem, 2.5vw, 1.75rem);
   }
 
   body.client-detail-page .prospect-stage,
@@ -13740,7 +13745,7 @@ body[data-step] .step-item:focus-visible .step-title {
   }
 
   body.clients-page .client-directory-shell {
-    padding: calc(var(--workspace-topbar-height) + 0.82rem) clamp(0.4rem, 0.9vw, 0.7rem) clamp(0.55rem, 1.2vw, 0.9rem);
+    padding: 0.82rem clamp(0.4rem, 0.9vw, 0.7rem) clamp(0.55rem, 1.2vw, 0.9rem);
   }
 
   body.clients-page .client-directory-shell-layout {
@@ -14136,7 +14141,7 @@ body.studio-page {
 
 .studio-shell {
   width: min(calc(100% - clamp(1rem, 2vw, 1.75rem)), 1540px);
-  padding: calc(var(--workspace-topbar-height) + 0.85rem) clamp(0.35rem, 1vw, 0.75rem) clamp(0.8rem, 1.8vw, 1.2rem);
+  padding: 0.85rem clamp(0.35rem, 1vw, 0.75rem) clamp(0.8rem, 1.8vw, 1.2rem);
 }
 
 .studio-workspace {
@@ -14405,7 +14410,7 @@ body.studio-page {
 @media (max-width: 760px) {
   .studio-shell {
     width: min(calc(100% - 0.75rem), 100%);
-    padding: calc(var(--workspace-topbar-height) + 0.7rem) 0.12rem 0.7rem;
+    padding: 0.7rem 0.12rem 0.7rem;
   }
 
   .studio-card-grid {
@@ -14444,7 +14449,7 @@ body.resources-page .workspace-page-topbar {
 
 .resources-shell {
   width: min(calc(100% - clamp(1rem, 2vw, 1.75rem)), 1540px);
-  padding: calc(var(--workspace-topbar-height) + 0.85rem) clamp(0.35rem, 1vw, 0.75rem) clamp(0.8rem, 1.8vw, 1.2rem);
+  padding: 0.85rem clamp(0.35rem, 1vw, 0.75rem) clamp(0.8rem, 1.8vw, 1.2rem);
 }
 
 .resources-workspace {
@@ -14868,7 +14873,7 @@ body.resources-page .workspace-page-topbar {
 
   .resources-shell {
     width: min(calc(100% - 0.75rem), 100%);
-    padding: calc(var(--workspace-topbar-height) + 0.7rem) 0.12rem 0.7rem;
+    padding: 0.7rem 0.12rem 0.7rem;
   }
 
   .resources-header {
@@ -15102,4 +15107,89 @@ body.resources-page .workspace-page-topbar {
   border-color: #5b42db;
   background: #5b42db;
   color: #ffffff;
+}
+
+.studio-embed-shell {
+  width: 100%;
+  min-height: calc(100vh - (var(--workspace-topbar-height) + 1.25rem));
+  border-radius: 0.95rem;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.studio-embed-frame {
+  display: block;
+  width: 100%;
+  min-height: calc(100vh - (var(--workspace-topbar-height) + 1.25rem));
+  border: 0;
+  background: transparent;
+}
+
+.studio-embed-frame.is-pending {
+  visibility: hidden;
+}
+
+body.studio-page.is-embedded-tool .studio-workspace {
+  display: none;
+}
+
+body.studio-page:not(.is-embedded-tool) .studio-embed-shell {
+  display: none;
+}
+
+@media (min-width: 721px) {
+  body.studio-page .workspace-side-nav-host[data-workspace-side-nav] {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--app-side-nav-width);
+    z-index: 35;
+  }
+
+  body.studio-page.workspace-side-nav-collapsed .workspace-side-nav-host[data-workspace-side-nav],
+  body.studio-page .workspace-side-nav-host.is-collapsed[data-workspace-side-nav] {
+    width: var(--app-side-nav-collapsed-width);
+  }
+
+  body.studio-page .workspace-side-nav-host[data-workspace-side-nav] > .workspace-side-nav {
+    min-height: 100%;
+  }
+
+  body.studio-page .workspace-side-nav-host[data-workspace-side-nav] .client-profile-side-tabs-toggle,
+  body.studio-page .workspace-side-nav-host[data-workspace-side-nav] .client-directory-app-sidebar-toggle {
+    position: fixed;
+    top: var(--app-side-nav-toggle-top-offset);
+    left: calc(var(--app-side-nav-width) - 0.08rem);
+    width: 0.88rem;
+    height: 3.35rem;
+    margin: 0;
+    z-index: 50;
+  }
+
+  body.studio-page.workspace-side-nav-collapsed .workspace-side-nav-host[data-workspace-side-nav] .client-profile-side-tabs-toggle,
+  body.studio-page .workspace-side-nav-host.is-collapsed[data-workspace-side-nav] .client-profile-side-tabs-toggle,
+  body.studio-page.workspace-side-nav-collapsed .workspace-side-nav-host[data-workspace-side-nav] .client-directory-app-sidebar-toggle,
+  body.studio-page .workspace-side-nav-host.is-collapsed[data-workspace-side-nav] .client-directory-app-sidebar-toggle {
+    left: calc(var(--app-side-nav-collapsed-width) - 0.08rem);
+  }
+
+  body.studio-page .workspace-side-nav-host[data-workspace-side-nav] .client-profile-side-tabs-toggle-glyph,
+  body.studio-page .workspace-side-nav-host[data-workspace-side-nav] .client-directory-app-sidebar-toggle-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.55rem;
+    height: 2.35rem;
+    font-size: 1.22rem;
+    line-height: 1;
+  }
+}
+
+@media (max-width: 760px) {
+  .studio-embed-shell,
+  .studio-embed-frame {
+    min-height: calc(100vh - (var(--workspace-topbar-height) + 0.85rem));
+  }
 }

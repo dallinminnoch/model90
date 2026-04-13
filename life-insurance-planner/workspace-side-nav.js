@@ -117,14 +117,35 @@
     `;
   }
 
-  function getWorkspacePages(mode) {
+  function getWorkspacePages(mode, options) {
+    const config = options && typeof options === "object" ? options : {};
+    const activePage = String(config.activePage || "").trim();
+    const isShell = Boolean(config.shell);
+    const hrefs = isShell
+      ? {
+          studio: "studio.html",
+          clients: "studio.html?view=clients.html",
+          resources: "studio.html?view=resources.html",
+          lens: "studio.html?view=lens.html",
+          strategy: "studio.html?view=strategy-builder.html",
+          policy: "studio.html?view=policy-web.html"
+        }
+      : {
+          studio: "studio.html",
+          clients: "clients.html",
+          resources: "resources.html",
+          lens: "lens.html",
+          strategy: "strategy-builder.html",
+          policy: "policy-web.html"
+        };
+
     return [
-      { key: "studio", label: "Start Page", href: "studio.html", active: mode === "studio" },
-      { key: "clients", label: "Client Directory", href: "clients.html", active: mode === "directory" || mode === "client-detail" },
-      { key: "resources", label: "Resources", href: "resources.html", active: mode === "resources" },
-      { key: "lens", label: "LENS Analysis", href: "lens.html", active: mode === "lens" },
-      { key: "strategy", label: "Strategy Builder", href: "strategy-builder.html", active: false },
-      { key: "policy", label: "Policy Web", href: "policy-web.html", active: false }
+      { key: "studio", label: "Start Page", href: hrefs.studio, active: activePage ? activePage === "studio" : mode === "studio" },
+      { key: "clients", label: "Client Directory", href: hrefs.clients, active: activePage ? activePage === "clients" : mode === "directory" || mode === "client-detail" },
+      { key: "resources", label: "Resources", href: hrefs.resources, active: activePage ? activePage === "resources" : mode === "resources" },
+      { key: "lens", label: "LENS Analysis", href: hrefs.lens, active: activePage ? activePage === "lens" : mode === "lens" },
+      { key: "strategy", label: "Strategy Builder", href: hrefs.strategy, active: activePage === "strategy" },
+      { key: "policy", label: "Policy Web", href: hrefs.policy, active: activePage === "policy" }
     ];
   }
 
@@ -182,8 +203,8 @@
     `;
   }
 
-  function renderDirectorySidebar() {
-    const pages = getWorkspacePages("directory");
+  function renderDirectorySidebar(options) {
+    const pages = getWorkspacePages("directory", options);
     const items = [
       { key: "all", label: "View All" },
       { key: "households", label: "Households" },
@@ -245,8 +266,8 @@
     `;
   }
 
-  function renderClientDetailSidebar() {
-    const pages = getWorkspacePages("client-detail");
+  function renderClientDetailSidebar(options) {
+    const pages = getWorkspacePages("client-detail", options);
     const tabs = [
       { key: "overview", label: "Dashboard" },
       { key: "planning", label: "Planning" },
@@ -317,8 +338,8 @@
     `;
   }
 
-  function renderLensSidebar() {
-    const pages = getWorkspacePages("lens");
+  function renderLensSidebar(options) {
+    const pages = getWorkspacePages("lens", options);
     const items = [
       { key: "overview", label: "Overview", href: "#lens-overview", active: true },
       { key: "start", label: "Start Analysis", href: "#lens-start-analysis", active: false },
@@ -388,8 +409,8 @@
     `;
   }
 
-  function renderStudioSidebar() {
-    const pages = getWorkspacePages("studio");
+  function renderStudioSidebar(options) {
+    const pages = getWorkspacePages("studio", options);
     const items = [
       { key: "overview", label: "Overview", href: "#studio-overview", active: true },
       { key: "planning", label: "Planning Tools", href: "#studio-planning-tools", active: false },
@@ -459,8 +480,8 @@
     `;
   }
 
-  function renderResourcesSidebar() {
-    const pages = getWorkspacePages("resources");
+  function renderResourcesSidebar(options) {
+    const pages = getWorkspacePages("resources", options);
     const items = [
       { key: "calendar", label: "Calendar", href: "#resources-calendar-board", active: true },
       { key: "agenda", label: "Agenda", href: "#resources-agenda", active: false },
@@ -530,25 +551,25 @@
     `;
   }
 
-  function render(mode) {
+  function render(mode, options) {
     if (mode === "studio") {
-      return renderStudioSidebar();
+      return renderStudioSidebar(options);
     }
 
     if (mode === "directory") {
-      return renderDirectorySidebar();
+      return renderDirectorySidebar(options);
     }
 
     if (mode === "client-detail") {
-      return renderClientDetailSidebar();
+      return renderClientDetailSidebar(options);
     }
 
     if (mode === "lens") {
-      return renderLensSidebar();
+      return renderLensSidebar(options);
     }
 
     if (mode === "resources") {
-      return renderResourcesSidebar();
+      return renderResourcesSidebar(options);
     }
 
     return "";
