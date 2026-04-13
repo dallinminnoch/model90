@@ -3572,7 +3572,7 @@ body.is-modal-open {
 .client-status-tab-label {
   display: inline-flex;
   align-items: center;
-  padding-bottom: 0.28rem;
+  padding-bottom: 0.82rem;
   border-bottom: 3px solid transparent;
   transform: translateY(0.08rem);
 }
@@ -4715,6 +4715,11 @@ body.client-detail-page .client-detail-header {
   display: grid;
   align-content: start;
   gap: 0.92rem;
+}
+
+.client-profile-overview-stack > [data-primary-action-panel-host] {
+  display: block;
+  padding-bottom: 0.82rem;
 }
 
 .client-profile-overview-main {
@@ -11111,7 +11116,7 @@ body.lens-start-page .lens-start-card {
   border: 1px solid rgba(220, 227, 237, 0.95);
   border-right: 1px solid rgba(225, 231, 240, 0.92);
   border-radius: 1.05rem;
-  background: rgba(255, 255, 255, 0.96);
+  background: #E8EDF5;
   box-shadow: 0 14px 34px rgba(19, 34, 58, 0.06);
 }
 
@@ -11232,7 +11237,7 @@ body.lens-start-page .lens-intake-sidecard {
 .chart-placeholder {
   padding: clamp(1rem, 1.8vw, 1.5rem);
   border: 1px solid rgba(213, 221, 232, 0.85);
-  background: rgba(255, 255, 255, 0.96);
+  background: #E8EDF5;
 }
 
 .panel-stack,
@@ -11529,7 +11534,7 @@ body.lens-intake-page .workflow-shell {
   padding: 1.55rem 1.7rem;
   border: 1px solid rgba(220, 227, 237, 0.95);
   border-radius: 1.05rem;
-  background: rgba(255, 255, 255, 0.96);
+  background: #E8EDF5;
   box-shadow: 0 14px 34px rgba(19, 34, 58, 0.06);
 }
 
@@ -12503,7 +12508,7 @@ body.lens-intake-page .workflow-shell {
   margin: 14vh auto 0;
   padding: 1.6rem;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.96);
+  background: #E8EDF5;
   border: 1px solid rgba(148, 163, 184, 0.24);
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
 }
@@ -13365,7 +13370,7 @@ body.lens-intake-page .workflow-shell {
   padding: 1.35rem 1.25rem;
   border: 1px solid rgba(220, 227, 237, 0.95);
   border-radius: 1.05rem;
-  background: rgba(255, 255, 255, 0.96);
+  background: #E8EDF5;
   box-shadow: 0 14px 34px rgba(19, 34, 58, 0.05);
 }
 
@@ -13983,8 +13988,8 @@ body[data-step] .step-item:focus-visible .step-title {
     border: 1px solid rgba(220, 227, 236, 0.92);
     border-left: 0;
     border-radius: 0 0.35rem 0.35rem 0;
-    background: rgba(255, 255, 255, 0.96);
-    color: #8c97a8;
+    background: #E8EDF5;
+    color: #6f7b8c;
     box-shadow: 3px 8px 16px rgba(16, 33, 52, 0.035);
     z-index: 34;
   }

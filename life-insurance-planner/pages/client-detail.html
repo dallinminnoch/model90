@@ -2605,6 +2605,9 @@
         const hasAnalysisCompleted = Boolean(record?.analysisCompleted)
           || record?.statusGroup === "coverage-placed"
           || record?.statusGroup === "closed";
+        const activityEntries = Array.isArray(record?.activityLog) ? record.activityLog : [];
+        const deliveredIndex = getLatestActivityIndexByType(activityEntries, "policy-delivered");
+        const hasPolicyDelivered = deliveredIndex !== -1;
         const profileStatus = hasProfileCreated
           ? `Saved ${formatDate(record?.dateProfileCreated || record?.lastUpdatedDate)}`
           : "Incomplete";
@@ -2617,12 +2620,16 @@
         const analysisStatus = hasAnalysisCompleted
           ? `Saved ${formatDate(record?.analysisCompletedDate || record?.lastUpdatedDate)}`
           : "Incomplete";
+        const deliveredStatus = hasPolicyDelivered
+          ? `Saved ${formatDate(activityEntries[deliveredIndex]?.date || activityEntries[deliveredIndex]?.savedAt || record?.lastUpdatedDate)}`
+          : "Incomplete";
 
         return [
           { label: "Create Profile", complete: hasProfileCreated, detail: profileStatus },
           { label: "Preliminary Underwriting", complete: Boolean(record?.preliminaryUnderwritingCompleted), detail: preliminaryStatus },
           { label: "Protection Modeling Inputs", complete: Boolean(record?.pmiCompleted), detail: pmiStatus },
-          { label: "Complete Analysis", complete: hasAnalysisCompleted, detail: analysisStatus }
+          { label: "Complete Analysis", complete: hasAnalysisCompleted, detail: analysisStatus },
+          { label: "Policy Delivered", complete: hasPolicyDelivered, detail: deliveredStatus }
         ];
       }
 
@@ -2667,6 +2674,10 @@
 
         if (nextItem.label === "Complete Analysis") {
           return "Complete Analysis to finalize the recommendation and pressure-test the coverage need.";
+        }
+
+        if (nextItem.label === "Policy Delivered") {
+          return "Log Policy Delivered once placement is complete so the case record reflects the final outcome.";
         }
 
         return "Advance the next workflow step to keep the case moving forward.";
@@ -3110,32 +3121,32 @@
         let status = "On Track";
         let statusTone = "good";
         let alertCopy = "Recent activity is being tracked consistently.";
-        let nextAction = "Keep the current client touchpoint cadence going.";
+        let nextAction = "Keep client outreach moving.";
         let quickActionLabel = "Log Follow-Up";
 
         if (!activityEntries.length) {
           status = "No Activity";
           statusTone = "warn";
           alertCopy = "No activity has been logged on this profile yet.";
-          nextAction = "Log an initial touchpoint to establish momentum.";
+          nextAction = "Log the first client touchpoint.";
           quickActionLabel = "Log First Activity";
         } else if (latestActivityAge !== null && latestActivityAge >= 28) {
           status = "Inactive";
           statusTone = "inactive";
           alertCopy = "No activity has been logged for 4 weeks or longer.";
-          nextAction = "Reconnect with the client and re-establish engagement.";
+          nextAction = "Reconnect with the client.";
           quickActionLabel = "Log Reconnect";
         } else if (latestActivityAge !== null && latestActivityAge > 7) {
           status = "At Risk";
           statusTone = "risk";
           alertCopy = "The last recorded activity is more than 1 week old.";
-          nextAction = "Follow up with client and confirm the next step.";
+          nextAction = "Follow up with the client.";
           quickActionLabel = "Log Follow-Up Call";
         } else if (latestActivityAge !== null && latestActivityAge <= 7) {
           status = "Active";
           statusTone = "good";
           alertCopy = "A recent activity was logged within the last week.";
-          nextAction = "Keep the next meeting or follow-up moving forward.";
+          nextAction = "Keep the next client follow-up moving.";
           quickActionLabel = "Log Meeting";
         }
 
@@ -3144,34 +3155,34 @@
         } else if (latestActivityAge !== null && latestActivityAge >= 28) {
           // Keep the reconnect action above all case-state prompts when the account is inactive.
         } else if (isHousehold && linkedMembers.length === 0) {
-          nextAction = "Add the primary household member.";
-          quickActionLabel = "Add Household Member";
+          nextAction = "Reach out about the household member.";
+          quickActionLabel = "Log Client Follow-Up";
         } else if (isHousehold && !hasDependents && hasProjectedDependents) {
-          nextAction = "Review projected dependents.";
-          quickActionLabel = "Open PMI";
+          nextAction = "Reach out about projected dependents.";
+          quickActionLabel = "Log Client Follow-Up";
         } else if (!hasPmi) {
-          nextAction = "Complete protection modeling inputs.";
-          quickActionLabel = "Open PMI";
+          nextAction = "Reach out about modeling inputs.";
+          quickActionLabel = "Log Client Call";
         } else if (!hasAnalysis) {
-          nextAction = "Finalize the protection analysis.";
-          quickActionLabel = "Open Analysis";
+          nextAction = "Reach out to review the analysis.";
+          quickActionLabel = "Log Client Review";
         } else if (illustrationIndex !== -1 && (applicationIndex === -1 || applicationIndex > illustrationIndex)) {
-          nextAction = "Move from illustration to application.";
-          quickActionLabel = "Log Application Submitted";
+          nextAction = "Reach out about moving to application.";
+          quickActionLabel = "Log Application Follow-Up";
         } else if (applicationIndex !== -1 && (documentIndex === -1 || documentIndex > applicationIndex)) {
-          nextAction = "Follow up on underwriting documents.";
-          quickActionLabel = "Log Document Received";
+          nextAction = "Reach out about underwriting documents.";
+          quickActionLabel = "Log Document Follow-Up";
         } else if (documentIndex !== -1 && (deliveredIndex === -1 || deliveredIndex > documentIndex)) {
-          nextAction = "Keep underwriting moving forward.";
-          quickActionLabel = "Log Follow-Up";
+          nextAction = "Reach out about underwriting progress.";
+          quickActionLabel = "Log Underwriting Follow-Up";
         } else if (!hasPolicies) {
-          nextAction = "Add the first placed policy.";
-          quickActionLabel = "Add Policy";
+          nextAction = "Reach out about placed coverage.";
+          quickActionLabel = "Log Placement Follow-Up";
         } else if (deliveredIndex !== -1) {
-          nextAction = "Schedule a policy review.";
-          quickActionLabel = "Log Meeting";
+          nextAction = "Reach out to schedule policy review.";
+          quickActionLabel = "Log Review Meeting";
         } else if (responseRate.label === "Needs Response") {
-          nextAction = "Respond to the latest client activity.";
+          nextAction = "Respond to latest client activity.";
           quickActionLabel = "Log Follow-Up";
         } else if (responseRate.label === "Awaiting Response") {
           nextAction = "Follow up on recent outreach.";
