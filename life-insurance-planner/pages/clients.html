@@ -151,21 +151,127 @@
 
         <section class="client-directory-main">
         <header class="client-directory-header">
-          <div class="client-directory-title-block client-directory-title-block-compact">
-            <span class="client-directory-title-icon" aria-hidden="true">
-              <svg viewBox="0 0 20 20" fill="none">
-                <circle cx="7" cy="7.2" r="2.3" stroke="currentColor" stroke-width="1.55"/>
-                <circle cx="13.2" cy="8.1" r="2" stroke="currentColor" stroke-width="1.55"/>
-                <path d="M3.95 15.2c.55-2.05 2.15-3.3 4.05-3.3s3.45 1.25 4 3.3" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-                <path d="M11.15 15.2c.38-1.55 1.58-2.5 3.05-2.5 1.05 0 2.02.47 2.68 1.38" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-              </svg>
-            </span>
-            <h1>Client Directory</h1>
-            <span class="client-directory-title-chevron" aria-hidden="true">
-              <svg viewBox="0 0 16 16" fill="none">
-                <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
+          <div class="client-directory-header-main">
+            <div class="client-directory-title-menu" data-directory-title-menu>
+              <div class="client-directory-title-block client-directory-title-block-compact" data-directory-title-menu-surface>
+                <span class="client-directory-title-icon" aria-hidden="true">
+                  <img src="../Images/clientdirectory.svg" alt="" />
+                </span>
+                <h1>Client Directory</h1>
+                <button class="client-directory-title-menu-trigger" type="button" data-directory-title-menu-trigger aria-expanded="false" aria-haspopup="menu" aria-label="Open client directory menu">
+                  <span class="client-directory-title-chevron" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" fill="none">
+                      <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                </button>
+              </div>
+              <div class="client-directory-title-menu-panel" role="menu" aria-label="Client directory actions">
+                <div class="client-directory-title-menu-section">
+                  <button class="client-directory-title-menu-option" type="button" data-directory-title-menu-action="new-individual" role="menuitem">
+                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 20 20" fill="none">
+                        <circle cx="10" cy="6.5" r="2.35" stroke="currentColor" stroke-width="1.55"/>
+                        <path d="M5.2 15.2c.56-2.34 2.35-3.75 4.8-3.75s4.24 1.41 4.8 3.75" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                      </svg>
+                    </span>
+                    <span>New Individual</span>
+                  </button>
+                  <button class="client-directory-title-menu-option" type="button" data-directory-title-menu-action="new-household" role="menuitem">
+                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 20 20" fill="none">
+                        <path d="M3.7 8.4 10 3.7l6.3 4.7v7.1a1.3 1.3 0 0 1-1.3 1.3H5a1.3 1.3 0 0 1-1.3-1.3V8.4Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+                        <path d="M7.65 16.8v-4.15h4.7v4.15" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+                      </svg>
+                    </span>
+                    <span>New Household</span>
+                  </button>
+                  <button class="client-directory-title-menu-option" type="button" data-directory-title-menu-action="new-business" role="menuitem">
+                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 20 20" fill="none">
+                        <path d="M4.2 16.75V7.55a1.2 1.2 0 0 1 1.2-1.2h9.2a1.2 1.2 0 0 1 1.2 1.2v9.2" stroke="currentColor" stroke-width="1.55"/>
+                        <path d="M7 6.35V4.7a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1.65" stroke="currentColor" stroke-width="1.55"/>
+                        <path d="M8 10.05h1.5M8 12.95h1.5M11.55 10.05h1.45M11.55 12.95h1.45" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                      </svg>
+                    </span>
+                    <span>New Business</span>
+                  </button>
+                </div>
+                <div class="client-directory-title-menu-section">
+                  <button class="client-directory-title-menu-option" type="button" data-directory-title-menu-action="import-package" role="menuitem">
+                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 20 20" fill="none">
+                        <path d="M10 3.85v8.35" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                        <path d="m6.6 8.9 3.4 3.4 3.4-3.4" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 15.35h12" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                      </svg>
+                    </span>
+                    <span>Import Advisor Package</span>
+                  </button>
+                  <button class="client-directory-title-menu-option" type="button" data-directory-title-menu-action="export-view" role="menuitem">
+                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 20 20" fill="none">
+                        <path d="M10 12.45V4.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                        <path d="m13.4 7.5-3.4-3.4-3.4 3.4" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 15.35h12" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                      </svg>
+                    </span>
+                    <span>Export Current View</span>
+                  </button>
+                  <button class="client-directory-title-menu-option" type="button" data-directory-title-menu-action="export-selected" data-directory-export-selected role="menuitem">
+                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 20 20" fill="none">
+                        <path d="M4.6 10.1 7.85 13.2 15.4 5.65" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16.1 10.55v4.5a1.2 1.2 0 0 1-1.2 1.2H5.1a1.2 1.2 0 0 1-1.2-1.2V5.25a1.2 1.2 0 0 1 1.2-1.2h6.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </span>
+                    <span>Export Selected Profiles</span>
+                  </button>
+                </div>
+              </div>
+              <input class="client-directory-import-input" type="file" accept=".json,application/json" data-directory-import-input hidden>
+            </div>
+            <div class="client-directory-utility-actions" aria-label="Client directory utilities">
+              <button class="client-directory-utility-button" type="button" data-directory-utility="trash" data-label="Trash" aria-label="Trash">
+                <span class="client-directory-utility-icon" aria-hidden="true">
+                  <img src="../Images/trashbin.svg" alt="" />
+                </span>
+              </button>
+              <button class="client-directory-utility-button" type="button" data-directory-utility="archive" data-label="Archive" aria-label="Archive">
+                <span class="client-directory-utility-icon" aria-hidden="true">
+                  <img src="../Images/archive.svg" alt="" />
+                </span>
+              </button>
+              <button class="client-directory-utility-button" type="button" data-directory-utility="accessibility" data-label="Accessibility" aria-label="Accessibility">
+                <span class="client-directory-utility-icon" aria-hidden="true">
+                  <img src="../Images/accessibility.svg" alt="" />
+                </span>
+              </button>
+              <div class="client-directory-summary-customize" data-summary-customize>
+                <button class="client-directory-utility-button client-directory-utility-button-labeled" type="button" data-summary-customize-trigger aria-expanded="false" aria-haspopup="dialog">
+                  <span class="client-directory-utility-icon" aria-hidden="true">
+                    <img src="../Images/customizepreviewcards.svg" alt="" />
+                  </span>
+                  <span class="client-directory-utility-button-text">Customize Cards</span>
+                </button>
+                <div class="client-directory-summary-customize-panel" data-summary-customize-panel aria-label="Customize preview cards">
+                  <span class="client-directory-summary-customize-title">Preview Cards</span>
+                  <p class="client-directory-summary-customize-note">Choose which summary cards stay above the client directory.</p>
+                  <label class="client-directory-summary-customize-option">
+                    <input type="checkbox" data-summary-card-toggle="placed" checked>
+                    <span>Coverage Placed</span>
+                  </label>
+                  <label class="client-directory-summary-customize-option">
+                    <input type="checkbox" data-summary-card-toggle="pipeline" checked>
+                    <span>Prospects In Pipeline</span>
+                  </label>
+                  <label class="client-directory-summary-customize-option">
+                    <input type="checkbox" data-summary-card-toggle="gap" checked>
+                    <span>Clients With Gaps</span>
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="client-directory-header-actions">
             <div class="client-export-dropdown" data-export-dropdown>
@@ -183,8 +289,8 @@
           </div>
         </header>
 
-        <section class="client-directory-summary" aria-label="Client directory summary">
-          <article class="client-directory-summary-card client-directory-summary-card-placed">
+        <section class="client-directory-summary" data-directory-summary aria-label="Client directory summary">
+          <article class="client-directory-summary-card client-directory-summary-card-placed" data-summary-card="placed">
             <div class="client-directory-summary-top">
               <span class="client-directory-summary-icon" aria-hidden="true">
                 <svg viewBox="0 0 20 20" fill="none">
@@ -213,7 +319,7 @@
             </div>
           </article>
 
-          <article class="client-directory-summary-card client-directory-summary-card-pipeline">
+          <article class="client-directory-summary-card client-directory-summary-card-pipeline" data-summary-card="pipeline">
             <div class="client-directory-summary-top">
               <span class="client-directory-summary-icon" aria-hidden="true">
                 <svg viewBox="0 0 20 20" fill="none">
@@ -245,7 +351,7 @@
             </div>
           </article>
 
-          <article class="client-directory-summary-card client-directory-summary-card-gap">
+          <article class="client-directory-summary-card client-directory-summary-card-gap" data-summary-card="gap">
             <div class="client-directory-summary-top">
               <span class="client-directory-summary-icon" aria-hidden="true">
                 <svg viewBox="0 0 20 20" fill="none">
@@ -438,11 +544,26 @@
       const summaryGapHigh = document.querySelector("[data-summary-gap-high]");
       const summaryGapMid = document.querySelector("[data-summary-gap-mid]");
       const summaryGapLow = document.querySelector("[data-summary-gap-low]");
+      const directorySummaryHost = document.querySelector("[data-directory-summary]");
+      const summaryCardElements = {
+        placed: document.querySelector('[data-summary-card="placed"]'),
+        pipeline: document.querySelector('[data-summary-card="pipeline"]'),
+        gap: document.querySelector('[data-summary-card="gap"]')
+      };
+      const summaryCustomize = document.querySelector("[data-summary-customize]");
+      const summaryCustomizeTrigger = document.querySelector("[data-summary-customize-trigger]");
+      const summaryCardToggles = Array.from(document.querySelectorAll("[data-summary-card-toggle]"));
       const directorySidebarHost = document.querySelector('[data-workspace-side-nav="directory"]');
       const directorySidebarLayout = document.querySelector("[data-directory-sidebar-layout]");
       const directorySidebarToggle = document.querySelector("[data-directory-sidebar-toggle]");
       const directorySidebarButtons = Array.from(document.querySelectorAll("[data-directory-nav-action]"));
       const directoryAddButton = document.querySelector("[data-add-client-button]");
+      const directoryTitleMenu = document.querySelector("[data-directory-title-menu]");
+      const directoryTitleMenuSurface = document.querySelector("[data-directory-title-menu-surface]");
+      const directoryTitleMenuTrigger = document.querySelector("[data-directory-title-menu-trigger]");
+      const directoryTitleMenuActions = Array.from(document.querySelectorAll("[data-directory-title-menu-action]"));
+      const directoryImportInput = document.querySelector("[data-directory-import-input]");
+      const directoryExportSelectedButton = document.querySelector("[data-directory-export-selected]");
 
       if (!rowsHost) {
         return;
@@ -451,7 +572,8 @@
       const STORAGE_KEYS = {
         authSession: "lipPlannerAuthSession",
         clientRecords: "lensClientRecords",
-        pendingClientRecords: "lensPendingClientRecords"
+        pendingClientRecords: "lensPendingClientRecords",
+        summaryCards: "clientDirectorySummaryCards"
       };
 
       let activeLetter = "all";
@@ -460,6 +582,8 @@
       let itemsShown = 15;
       let currentPage = 1;
       let records = [];
+      const selectedRecordIds = new Set();
+      let summaryCardVisibility = null;
 
       function loadJson(source, key) {
         try {
@@ -479,6 +603,62 @@
       }
 
       const directorySidebarStorageKey = `workspaceSideNavCollapsed:${getStorageIdentity()}`;
+      const summaryCardsStorageKey = `${STORAGE_KEYS.summaryCards}:${getStorageIdentity()}`;
+
+      function toStorageCompatibleRecord(record) {
+        if (!record || typeof record !== "object") {
+          return record;
+        }
+
+        const nextRecord = { ...record };
+        if (String(nextRecord.viewType || "").trim() === "businesses") {
+          nextRecord.viewType = "companies";
+        }
+
+        return nextRecord;
+      }
+
+      function toStorageCompatibleRecords(sourceRecords) {
+        return Array.isArray(sourceRecords)
+          ? sourceRecords.map(toStorageCompatibleRecord)
+          : [];
+      }
+
+      function formatDateInputValue(value) {
+        const date = value instanceof Date ? value : new Date(value);
+        if (Number.isNaN(date.getTime())) {
+          return "";
+        }
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      function buildNextCaseRef(sourceRecords, prefix) {
+        const normalizedPrefix = String(prefix || "CL").trim().toUpperCase();
+        const highestNumber = (Array.isArray(sourceRecords) ? sourceRecords : []).reduce(function (highest, record) {
+          const match = String(record?.caseRef || "").toUpperCase().match(new RegExp(`${normalizedPrefix}/(\\d+)`));
+          return match ? Math.max(highest, Number(match[1])) : highest;
+        }, 80400);
+
+        return `${normalizedPrefix}/${highestNumber + 1}`;
+      }
+
+      function formatHouseholdDisplayName(value) {
+        const trimmed = String(value || "").trim();
+        if (!trimmed) {
+          return "New Household";
+        }
+
+        return /household$/i.test(trimmed) ? trimmed : `${trimmed} Household`;
+      }
+
+      function formatBusinessDisplayName(value) {
+        const trimmed = String(value || "").trim();
+        return trimmed || "New Business";
+      }
 
       function normalizePriority(value) {
         const normalized = String(value || "").trim().toLowerCase();
@@ -717,14 +897,16 @@
           .filter(function (record) { return !persistedIds.has(record.id); })
           .concat(normalizedPersisted);
 
-        localStorage.setItem(storageKey, JSON.stringify(merged));
+        const mergedForStorage = toStorageCompatibleRecords(merged);
+        localStorage.setItem(storageKey, JSON.stringify(mergedForStorage));
         sessionStorage.removeItem(STORAGE_KEYS.pendingClientRecords);
-        return merged;
+        return mergedForStorage.map(normalizeRecord);
       }
 
       function persistRecords(nextRecords) {
-        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(nextRecords));
-        records = nextRecords.map(normalizeRecord);
+        const nextRecordsForStorage = toStorageCompatibleRecords(nextRecords);
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(nextRecordsForStorage));
+        records = nextRecordsForStorage.map(normalizeRecord);
       }
 
       function buildStatusCounts(sourceRecords) {
@@ -818,6 +1000,81 @@
         target.textContent = text;
         target.setAttribute("data-tone", tone || "neutral");
       }
+
+      function loadSummaryCardVisibility() {
+        const defaults = {
+          placed: true,
+          pipeline: true,
+          gap: true
+        };
+        const persisted = loadJson(localStorage, summaryCardsStorageKey);
+        if (!persisted || typeof persisted !== "object") {
+          return defaults;
+        }
+
+        const nextVisibility = {
+          placed: persisted.placed !== false,
+          pipeline: persisted.pipeline !== false,
+          gap: persisted.gap !== false
+        };
+
+        return Object.values(nextVisibility).some(Boolean) ? nextVisibility : defaults;
+      }
+
+      function persistSummaryCardVisibility() {
+        try {
+          localStorage.setItem(summaryCardsStorageKey, JSON.stringify(summaryCardVisibility));
+        } catch (error) {
+          // Ignore persistence issues and keep the in-memory preference state.
+        }
+      }
+
+      function getVisibleSummaryCardCount() {
+        return Object.keys(summaryCardVisibility || {}).filter(function (key) {
+          return Boolean(summaryCardVisibility[key]);
+        }).length;
+      }
+
+      function setSummaryCustomizeOpen(isOpen) {
+        if (!(summaryCustomize instanceof HTMLElement) || !(summaryCustomizeTrigger instanceof HTMLButtonElement)) {
+          return;
+        }
+
+        summaryCustomize.classList.toggle("is-open", Boolean(isOpen));
+        summaryCustomizeTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      }
+
+      function syncSummaryCardVisibility() {
+        const visibleCount = Math.max(0, getVisibleSummaryCardCount());
+
+        Object.keys(summaryCardElements).forEach(function (key) {
+          const card = summaryCardElements[key];
+          if (card instanceof HTMLElement) {
+            card.hidden = !summaryCardVisibility[key];
+          }
+        });
+
+        if (directorySummaryHost instanceof HTMLElement) {
+          directorySummaryHost.setAttribute("data-visible-count", String(visibleCount));
+        }
+
+        summaryCardToggles.forEach(function (toggle) {
+          const key = String(toggle.dataset.summaryCardToggle || "").trim();
+          if (!key) {
+            return;
+          }
+
+          const isVisible = Boolean(summaryCardVisibility[key]);
+          toggle.checked = isVisible;
+          toggle.disabled = visibleCount <= 1 && isVisible;
+          const option = toggle.closest(".client-directory-summary-customize-option");
+          if (option instanceof HTMLElement) {
+            option.classList.toggle("is-disabled", toggle.disabled);
+          }
+        });
+      }
+
+      summaryCardVisibility = loadSummaryCardVisibility();
 
       function syncDirectorySummaryCards() {
         const scopedRecords = getDirectoryScopeRecords({ includeStatus: false });
@@ -1049,6 +1306,264 @@
         });
       }
 
+      function pruneSelectedRecordIds() {
+        const validIds = new Set(records.map(function (record) { return String(record.id || "").trim(); }));
+        Array.from(selectedRecordIds).forEach(function (recordId) {
+          if (!validIds.has(recordId)) {
+            selectedRecordIds.delete(recordId);
+          }
+        });
+      }
+
+      function getSelectedRecords() {
+        return records.filter(function (record) {
+          return selectedRecordIds.has(String(record.id || "").trim());
+        });
+      }
+
+      function setDirectoryTitleMenuOpen(isOpen) {
+        if (!directoryTitleMenu || !directoryTitleMenuTrigger) {
+          return;
+        }
+
+        directoryTitleMenu.classList.toggle("is-open", isOpen);
+        directoryTitleMenuTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      }
+
+      function syncDirectoryTitleMenuState() {
+        if (!(directoryExportSelectedButton instanceof HTMLButtonElement)) {
+          return;
+        }
+
+        const hasSelectedRecords = getSelectedRecords().length > 0;
+        directoryExportSelectedButton.disabled = !hasSelectedRecords;
+        directoryExportSelectedButton.classList.toggle("is-disabled", !hasSelectedRecords);
+      }
+
+      function downloadJsonFile(filename, payload) {
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function buildAdvisorPackagePayload(sourceRecords, scope) {
+        const safeRecords = toStorageCompatibleRecords(sourceRecords);
+        return {
+          packageType: "MODEL90_ADVISOR_PACKAGE",
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          scope: String(scope || "current-view"),
+          filters: {
+            view: activeView,
+            letter: activeLetter,
+            status: activeStatus,
+            itemsShown
+          },
+          recordCount: safeRecords.length,
+          records: safeRecords
+        };
+      }
+
+      function exportAdvisorPackage(scope, sourceRecords) {
+        const exportRecords = Array.isArray(sourceRecords) ? sourceRecords : [];
+        if (!exportRecords.length) {
+          window.alert("There are no profiles available for that export.");
+          return false;
+        }
+
+        const todayLabel = formatDateInputValue(new Date()) || "export";
+        const scopeLabel = String(scope || "view").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        const filename = `model90-${scopeLabel}-${todayLabel}.json`;
+        downloadJsonFile(filename, buildAdvisorPackagePayload(exportRecords, scope));
+        return true;
+      }
+
+      function createGroupRecord(kind) {
+        const normalizedKind = String(kind || "").trim().toLowerCase();
+        const isBusiness = normalizedKind === "business";
+        const label = isBusiness ? "business" : "household";
+        const rawName = window.prompt(`Enter the ${label} name:`, "");
+
+        if (rawName === null) {
+          return false;
+        }
+
+        const trimmedName = String(rawName || "").trim();
+        if (!trimmedName) {
+          window.alert(`Enter a ${label} name to continue.`);
+          return false;
+        }
+
+        const nextRecords = loadRecords().slice();
+        const today = formatDateInputValue(new Date());
+        const record = {
+          id: `${isBusiness ? "co" : "hh"}-${Date.now()}`,
+          viewType: isBusiness ? "companies" : "households",
+          displayName: isBusiness ? formatBusinessDisplayName(trimmedName) : formatHouseholdDisplayName(trimmedName),
+          lastName: trimmedName.split(/\s+/).slice(-1)[0] || trimmedName,
+          summary: isBusiness ? "Business profile" : "Household profile",
+          caseRef: buildNextCaseRef(nextRecords, isBusiness ? "CL" : "HH"),
+          lastReview: today,
+          dateProfileCreated: today,
+          lastUpdatedDate: today,
+          insured: "1",
+          source: "Advisor Entered",
+          dataSource: "Advisor Entered",
+          statusGroup: "prospects",
+          priority: "medium",
+          coverageAmount: 0,
+          coverageGap: 0,
+          policyCount: 0
+        };
+
+        nextRecords.unshift(record);
+        selectedRecordIds.clear();
+        persistRecords(nextRecords);
+        activeView = isBusiness ? "businesses" : "households";
+        activeLetter = "all";
+        activeStatus = "all";
+        currentPage = 1;
+        renderDirectory();
+        return true;
+      }
+
+      function parseAdvisorPackage(payload) {
+        if (Array.isArray(payload)) {
+          return payload;
+        }
+
+        if (payload && typeof payload === "object" && Array.isArray(payload.records)) {
+          return payload.records;
+        }
+
+        return [];
+      }
+
+      function mergeImportedRecords(existingRecords, incomingRecords) {
+        const nextRecords = Array.isArray(existingRecords) ? existingRecords.slice() : [];
+        let createdCount = 0;
+        let updatedCount = 0;
+
+        (Array.isArray(incomingRecords) ? incomingRecords : []).forEach(function (record, index) {
+          const normalized = normalizeRecord(record, nextRecords.length + index);
+          const normalizedId = String(normalized.id || "").trim();
+          const normalizedCaseRef = normalizeCaseRef(normalized.caseRef);
+
+          const existingIndex = nextRecords.findIndex(function (currentRecord) {
+            const currentId = String(currentRecord.id || "").trim();
+            const currentCaseRef = normalizeCaseRef(currentRecord.caseRef);
+            return (normalizedId && currentId === normalizedId)
+              || (normalizedCaseRef && currentCaseRef === normalizedCaseRef);
+          });
+
+          const incomingStorageRecord = toStorageCompatibleRecord(normalized);
+
+          if (existingIndex >= 0) {
+            nextRecords[existingIndex] = {
+              ...nextRecords[existingIndex],
+              ...incomingStorageRecord,
+              id: nextRecords[existingIndex].id || incomingStorageRecord.id
+            };
+            updatedCount += 1;
+            return;
+          }
+
+          nextRecords.unshift(incomingStorageRecord);
+          createdCount += 1;
+        });
+
+        return {
+          records: nextRecords,
+          createdCount,
+          updatedCount
+        };
+      }
+
+      async function importAdvisorPackage(file) {
+        if (!(file instanceof File)) {
+          return false;
+        }
+
+        let payload = null;
+        try {
+          payload = JSON.parse(await file.text());
+        } catch (error) {
+          window.alert("That file could not be read as a MODEL90 advisor package.");
+          return false;
+        }
+
+        const importedRecords = parseAdvisorPackage(payload);
+        if (!importedRecords.length) {
+          window.alert("That package did not contain any client records.");
+          return false;
+        }
+
+        const mergeResult = mergeImportedRecords(loadRecords(), importedRecords);
+        selectedRecordIds.clear();
+        persistRecords(mergeResult.records);
+        activeLetter = "all";
+        activeStatus = "all";
+        currentPage = 1;
+        renderDirectory();
+        window.alert(`${mergeResult.createdCount} profile${mergeResult.createdCount === 1 ? "" : "s"} added and ${mergeResult.updatedCount} updated.`);
+        return true;
+      }
+
+      function handleDirectoryTitleMenuAction(action) {
+        const normalizedAction = String(action || "").trim();
+        if (!normalizedAction) {
+          return false;
+        }
+
+        if (normalizedAction === "new-individual") {
+          setDirectoryTitleMenuOpen(false);
+          window.location.href = "profile-only-form.html";
+          return true;
+        }
+
+        if (normalizedAction === "new-household") {
+          const createdHousehold = createGroupRecord("household");
+          setDirectoryTitleMenuOpen(false);
+          return createdHousehold;
+        }
+
+        if (normalizedAction === "new-business") {
+          const createdBusiness = createGroupRecord("business");
+          setDirectoryTitleMenuOpen(false);
+          return createdBusiness;
+        }
+
+        if (normalizedAction === "import-package") {
+          setDirectoryTitleMenuOpen(false);
+          if (directoryImportInput) {
+            directoryImportInput.value = "";
+            directoryImportInput.click();
+            return true;
+          }
+          return false;
+        }
+
+        if (normalizedAction === "export-view") {
+          const exportedView = exportAdvisorPackage("current-view", getFilteredRecords());
+          setDirectoryTitleMenuOpen(false);
+          return exportedView;
+        }
+
+        if (normalizedAction === "export-selected") {
+          const exportedSelected = exportAdvisorPackage("selected-profiles", getSelectedRecords());
+          setDirectoryTitleMenuOpen(false);
+          return exportedSelected;
+        }
+
+        return false;
+      }
+
       function syncDirectorySidebarButtons() {
         directorySidebarButtons.forEach(function (button) {
           const action = String(button.dataset.directoryNavAction || "").trim();
@@ -1163,7 +1678,7 @@
         const avatarStyle = isHouseholdAvatar ? "" : ` style="background: ${getAvatarBackground(record.age, record.dateOfBirth)};"`;
         return `
           <div class="client-table client-table-clickable" role="row" tabindex="0" data-client-open="${record.id}">
-            <div class="client-table-cell client-table-cell-check"><input type="checkbox" aria-label="Select ${record.displayName}"></div>
+            <div class="client-table-cell client-table-cell-check"><input type="checkbox" data-client-select="${record.id}" aria-label="Select ${record.displayName}"${selectedRecordIds.has(String(record.id || "").trim()) ? " checked" : ""}></div>
             <div class="client-table-cell client-table-cell-client">
               <span class="${avatarClasses}"${avatarStyle}>${getInitials(record.displayName, record.viewType, record.lastName)}</span>
               <div>
@@ -1215,6 +1730,29 @@
         });
 
         persistRecords(nextRecords);
+      }
+
+      function bindSelectionCheckboxes() {
+        rowsHost.querySelectorAll("[data-client-select]").forEach(function (input) {
+          input.addEventListener("click", function (event) {
+            event.stopPropagation();
+          });
+
+          input.addEventListener("change", function () {
+            const recordId = String(input.dataset.clientSelect || "").trim();
+            if (!recordId) {
+              return;
+            }
+
+            if (input.checked) {
+              selectedRecordIds.add(recordId);
+            } else {
+              selectedRecordIds.delete(recordId);
+            }
+
+            syncDirectoryTitleMenuState();
+          });
+        });
       }
 
       function bindPriorityDropdowns() {
@@ -1279,6 +1817,7 @@
 
       function renderDirectory() {
         records = loadRecords();
+        pruneSelectedRecordIds();
         const filtered = getFilteredRecords();
         const totalPages = Math.max(1, Math.ceil(filtered.length / itemsShown));
         currentPage = Math.min(currentPage, totalPages);
@@ -1290,6 +1829,7 @@
           emptyState.hidden = visibleRecords.length > 0;
         }
 
+        bindSelectionCheckboxes();
         bindPriorityDropdowns();
         bindRowClicks();
         syncStatusButtons();
@@ -1297,6 +1837,7 @@
         syncTableHeadings();
         syncLetterButtons();
         syncItemsShown();
+        syncDirectoryTitleMenuState();
         syncDirectorySummaryCards();
         syncDirectorySidebarButtons();
         renderPagination(totalPages);
@@ -1382,6 +1923,64 @@
         });
       });
 
+      directoryTitleMenuTrigger?.addEventListener("click", function (event) {
+        event.stopPropagation();
+        const willOpen = !directoryTitleMenu?.classList.contains("is-open");
+        setDirectoryTitleMenuOpen(Boolean(willOpen));
+      });
+
+      directoryTitleMenuSurface?.addEventListener("click", function (event) {
+        if (event.target.closest("[data-directory-title-menu-trigger]")) {
+          return;
+        }
+
+        event.stopPropagation();
+        const willOpen = !directoryTitleMenu?.classList.contains("is-open");
+        setDirectoryTitleMenuOpen(Boolean(willOpen));
+      });
+
+      directoryTitleMenuActions.forEach(function (button) {
+        button.addEventListener("click", function (event) {
+          event.stopPropagation();
+          handleDirectoryTitleMenuAction(button.dataset.directoryTitleMenuAction);
+        });
+      });
+
+      summaryCustomizeTrigger?.addEventListener("click", function (event) {
+        event.stopPropagation();
+        const willOpen = !summaryCustomize?.classList.contains("is-open");
+        setSummaryCustomizeOpen(Boolean(willOpen));
+      });
+
+      summaryCardToggles.forEach(function (toggle) {
+        toggle.addEventListener("change", function () {
+          const key = String(toggle.dataset.summaryCardToggle || "").trim();
+          if (!key) {
+            return;
+          }
+
+          if (!toggle.checked && getVisibleSummaryCardCount() <= 1 && summaryCardVisibility[key]) {
+            toggle.checked = true;
+            return;
+          }
+
+          summaryCardVisibility[key] = toggle.checked;
+          persistSummaryCardVisibility();
+          syncSummaryCardVisibility();
+        });
+      });
+
+      directoryImportInput?.addEventListener("change", function () {
+        const file = directoryImportInput.files && directoryImportInput.files[0];
+        if (!file) {
+          return;
+        }
+
+        importAdvisorPackage(file).finally(function () {
+          directoryImportInput.value = "";
+        });
+      });
+
       window.ClientDirectoryShellApi = {
         triggerAction: handleDirectoryNavAction,
         setView: setDirectoryView
@@ -1409,6 +2008,14 @@
           });
         }
 
+        if (!event.target.closest("[data-directory-title-menu]")) {
+          setDirectoryTitleMenuOpen(false);
+        }
+
+        if (!event.target.closest("[data-summary-customize]")) {
+          setSummaryCustomizeOpen(false);
+        }
+
         if (!event.target.closest("[data-items-dropdown]")) {
           itemsDropdown?.classList.remove("is-open");
           itemsTrigger?.setAttribute("aria-expanded", "false");
@@ -1421,6 +2028,7 @@
         closePriorityDropdowns();
       });
 
+      syncSummaryCardVisibility();
       renderDirectory();
     })();
   </script>
@@ -1428,6 +2036,20 @@
     document.addEventListener("keydown", function (event) {
       if (event.key !== "Escape") {
         return;
+      }
+
+      const directoryTitleMenu = document.querySelector("[data-directory-title-menu]");
+      const directoryTitleMenuTrigger = document.querySelector("[data-directory-title-menu-trigger]");
+      if (directoryTitleMenu && directoryTitleMenuTrigger) {
+        directoryTitleMenu.classList.remove("is-open");
+        directoryTitleMenuTrigger.setAttribute("aria-expanded", "false");
+      }
+
+      const summaryCustomize = document.querySelector("[data-summary-customize]");
+      const summaryCustomizeTrigger = document.querySelector("[data-summary-customize-trigger]");
+      if (summaryCustomize && summaryCustomizeTrigger) {
+        summaryCustomize.classList.remove("is-open");
+        summaryCustomizeTrigger.setAttribute("aria-expanded", "false");
       }
 
       document.querySelectorAll(".workspace-page-menu[open]").forEach(function (menu) {

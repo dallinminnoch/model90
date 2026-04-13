@@ -81,12 +81,7 @@
 
     if (key === "clients") {
       return `
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <circle cx="7" cy="7.2" r="2.35" stroke="currentColor" stroke-width="1.55"/>
-          <circle cx="13.3" cy="8.15" r="2.05" stroke="currentColor" stroke-width="1.55"/>
-          <path d="M3.9 15.35c.55-2.15 2.2-3.45 4.15-3.45 1.95 0 3.55 1.3 4.1 3.45" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-          <path d="M11.2 15.35c.4-1.65 1.7-2.65 3.25-2.65 1.1 0 2.15.5 2.85 1.45" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-        </svg>
+        <img src="../Images/clientdirectory.svg" alt="" />
       `;
     }
 
