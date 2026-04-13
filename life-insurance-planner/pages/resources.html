@@ -10,6 +10,19 @@
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body class="home-page resources-page">
+  <script>
+    (function () {
+      try {
+        const session = JSON.parse(localStorage.getItem("lipPlannerAuthSession") || "null");
+        const identity = session && session.email ? String(session.email).trim().toLowerCase() : "guest";
+        if (localStorage.getItem(`workspaceSideNavCollapsed:${identity}`) === "1") {
+          document.body.classList.add("workspace-side-nav-collapsed");
+        }
+      } catch (error) {
+        // Ignore storage issues and fall back to the default expanded state.
+      }
+    })();
+  </script>
   <div class="workspace-page-topbar">
     <div class="workspace-page-topbar-inner">
       <details class="workspace-page-menu">
@@ -25,6 +38,17 @@
               </svg>
             </span>
             <span class="workspace-page-menu-link-label">Home</span>
+          </a>
+          <a class="workspace-page-menu-link" href="studio.html">
+            <span class="workspace-page-menu-link-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <rect x="2.75" y="2.75" width="5.1" height="5.1" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
+                <rect x="12.15" y="2.75" width="5.1" height="5.1" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
+                <rect x="2.75" y="12.15" width="5.1" height="5.1" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
+                <rect x="12.15" y="12.15" width="5.1" height="5.1" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
+              </svg>
+            </span>
+            <span class="workspace-page-menu-link-label">Start Page</span>
           </a>
           <a class="workspace-page-menu-link" href="clients.html">
             <span class="workspace-page-menu-link-icon" aria-hidden="true">
@@ -86,6 +110,12 @@
       </div>
     </div>
   </div>
+  <div class="workspace-side-nav-host" data-workspace-side-nav-host data-workspace-side-nav="resources"></div>
+  <script>
+    if (document.body.classList.contains("workspace-side-nav-collapsed")) {
+      document.currentScript.previousElementSibling.classList.add("is-collapsed");
+    }
+  </script>
 
   <main class="home-shell app-home-shell resources-shell">
     <section class="resources-workspace">
@@ -104,7 +134,7 @@
       </header>
 
       <section class="resources-calendar-layout" data-resources-calendar-root>
-        <section class="resources-calendar-board">
+        <section class="resources-calendar-board" id="resources-calendar-board">
           <div class="resources-calendar-toolbar">
             <div class="resources-calendar-toolbar-copy">
               <span class="resources-calendar-kicker">Planning Month</span>
@@ -137,7 +167,7 @@
             <p data-calendar-selected-subcopy>Select any day on the calendar to review the schedule.</p>
           </section>
 
-          <section class="resources-calendar-sidebar-card">
+          <section class="resources-calendar-sidebar-card" id="resources-agenda">
             <div class="resources-calendar-sidebar-card-header">
               <span class="resources-calendar-sidebar-kicker">Agenda</span>
               <span class="resources-calendar-sidebar-count" data-calendar-selected-count>0 items</span>
@@ -145,7 +175,7 @@
             <div class="resources-calendar-agenda" data-calendar-agenda></div>
           </section>
 
-          <section class="resources-calendar-sidebar-card resources-calendar-sidebar-card-summary">
+          <section class="resources-calendar-sidebar-card resources-calendar-sidebar-card-summary" id="resources-month-summary">
             <div class="resources-calendar-sidebar-card-header">
               <span class="resources-calendar-sidebar-kicker">This Month</span>
             </div>
@@ -173,8 +203,13 @@
     </section>
   </main>
 
+  <script src="../workspace-side-nav.js"></script>
   <script>
     (function () {
+      const pageMenu = document.querySelector(".workspace-page-menu");
+      const resourcesSidebarHost = document.querySelector('[data-workspace-side-nav="resources"]');
+      const resourcesSidebarToggle = document.querySelector("[data-resources-side-tabs-toggle]");
+      const resourcesNavLinks = Array.from(document.querySelectorAll("[data-resources-tab]"));
       const monthLabel = document.querySelector("[data-calendar-month-label]");
       const grid = document.querySelector("[data-calendar-grid]");
       const selectedLabel = document.querySelector("[data-calendar-selected-label]");
@@ -185,6 +220,63 @@
       if (!monthLabel || !grid || !selectedLabel || !selectedSubcopy || !selectedCount || !agenda) {
         return;
       }
+
+      function getStorageIdentity() {
+        try {
+          const session = JSON.parse(localStorage.getItem("lipPlannerAuthSession") || "null");
+          return session && session.email ? String(session.email).trim().toLowerCase() : "guest";
+        } catch (error) {
+          return "guest";
+        }
+      }
+
+      const resourcesSidebarStorageKey = `workspaceSideNavCollapsed:${getStorageIdentity()}`;
+
+      function setResourcesSidebarCollapsed(isCollapsed) {
+        if (!resourcesSidebarHost || !resourcesSidebarToggle) {
+          return;
+        }
+
+        document.body.classList.toggle("workspace-side-nav-collapsed", isCollapsed);
+        resourcesSidebarHost.classList.toggle("is-collapsed", isCollapsed);
+        resourcesSidebarToggle.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
+        resourcesSidebarToggle.setAttribute("aria-label", isCollapsed ? "Expand resources navigation" : "Collapse resources navigation");
+        resourcesSidebarToggle.setAttribute("title", isCollapsed ? "Expand resources navigation" : "Collapse resources navigation");
+      }
+
+      if (resourcesSidebarHost && resourcesSidebarToggle) {
+        let isSidebarCollapsed = false;
+
+        try {
+          isSidebarCollapsed = window.localStorage.getItem(resourcesSidebarStorageKey) === "1";
+        } catch (error) {
+          isSidebarCollapsed = false;
+        }
+
+        setResourcesSidebarCollapsed(isSidebarCollapsed);
+
+        resourcesSidebarToggle.addEventListener("click", function () {
+          const nextCollapsed = !resourcesSidebarHost.classList.contains("is-collapsed");
+          setResourcesSidebarCollapsed(nextCollapsed);
+
+          try {
+            window.localStorage.setItem(resourcesSidebarStorageKey, nextCollapsed ? "1" : "0");
+          } catch (error) {
+            // Ignore persistence issues and keep the in-memory state.
+          }
+        });
+      }
+
+      resourcesNavLinks.forEach(function (link) {
+        link.addEventListener("click", function () {
+          resourcesNavLinks.forEach(function (item) {
+            item.classList.remove("is-active");
+            item.removeAttribute("aria-current");
+          });
+          link.classList.add("is-active");
+          link.setAttribute("aria-current", "location");
+        });
+      });
 
       const summaryTargets = {
         training: document.querySelector("[data-calendar-summary-training]"),
@@ -368,10 +460,15 @@
 
       document.addEventListener("keydown", function (event) {
         if (event.key === "Escape") {
-          const pageMenu = document.querySelector(".workspace-page-menu");
           if (pageMenu && pageMenu.hasAttribute("open")) {
             pageMenu.removeAttribute("open");
           }
+        }
+      });
+
+      document.addEventListener("click", function (event) {
+        if (!event.target.closest(".workspace-page-menu") && pageMenu) {
+          pageMenu.removeAttribute("open");
         }
       });
 

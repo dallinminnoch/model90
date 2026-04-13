@@ -338,6 +338,11 @@
 
     const { markup, iconPaths } = getHeaderMarkup();
 
+    if (document.querySelector(".workspace-page-topbar")) {
+      bindFullscreenToggle(iconPaths);
+      return;
+    }
+
     const main = document.querySelector("main");
     if (main) {
       main.insertAdjacentHTML("beforebegin", markup);
