@@ -16218,7 +16218,8 @@ body.studio-page.is-embedded-tool:not(.workspace-side-nav-collapsed) .studio-emb
   display: flex;
   flex-direction: column;
   gap: 0.38rem;
-  min-height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .workspace-side-nav-shell .workspace-side-nav-primary-button {
@@ -16241,6 +16242,10 @@ body.studio-page.is-embedded-tool:not(.workspace-side-nav-collapsed) .studio-emb
   text-decoration: none;
   cursor: pointer;
   transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-button-settings {
+  margin-top: auto;
 }
 
 .workspace-side-nav-shell .workspace-side-nav-primary-button:hover,
@@ -16627,14 +16632,6 @@ body.studio-page.is-embedded-tool:not(.workspace-side-nav-collapsed) .studio-emb
 .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-items,
 .client-directory-shell-layout.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-items {
   align-items: center;
-}
-
-.workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-button,
-.client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-button,
-.client-directory-shell-layout.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-button {
-  width: 100%;
-  min-height: 3.15rem;
-  padding: 0.8rem 0;
 }
 
 .workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-label,

@@ -129,6 +129,12 @@
       `;
     }
 
+    if (key === "settings") {
+      return `
+        <img src="../Images/settings.svg" alt="" />
+      `;
+    }
+
     return `
       <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
         <path d="M4.25 5.25h11.5a1.1 1.1 0 0 1 1.1 1.1v7.3a1.1 1.1 0 0 1-1.1 1.1H4.25a1.1 1.1 0 0 1-1.1-1.1v-7.3a1.1 1.1 0 0 1 1.1-1.1Z" stroke="currentColor" stroke-width="1.55"/>
@@ -190,6 +196,16 @@
             `;
           }).join("")}
         </nav>
+        <button
+          class="workspace-side-nav-button workspace-side-nav-primary-button workspace-side-nav-primary-button-settings"
+          type="button"
+          aria-label="Settings"
+          title="Settings"
+        >
+          <span class="workspace-side-nav-icon workspace-side-nav-primary-icon" aria-hidden="true">
+            ${getWorkspacePageIcon("settings")}
+          </span>
+        </button>
       </div>
     `;
   }
