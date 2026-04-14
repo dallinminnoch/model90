@@ -444,12 +444,12 @@
           <div class="client-table client-table-header" role="row">
             <div class="client-table-cell client-table-cell-check"></div>
             <div class="client-table-cell client-table-cell-client" id="client-table-heading-name">Client</div>
+            <div class="client-table-cell client-table-cell-flag"></div>
             <div class="client-table-cell">Case Ref</div>
             <div class="client-table-cell client-table-cell-last-review">Date Created</div>
-            <div class="client-table-cell client-table-cell-insured-title" id="client-table-heading-insured">Insured</div>
-            <div class="client-table-cell client-table-cell-source-title" id="client-table-heading-source">Source</div>
+            <div class="client-table-cell client-table-cell-next-action-title" id="client-table-heading-next-action">Next Action</div>
             <div class="client-table-cell client-table-cell-status-title" id="client-table-heading-status">Client Status</div>
-            <div class="client-table-cell client-table-cell-nowrap client-table-cell-coverage-amount-title" id="client-table-heading-coverage">Coverage Amount</div>
+            <div class="client-table-cell client-table-cell-nowrap client-table-cell-coverage-amount-title" id="client-table-heading-coverage">Coverage Gap</div>
             <div class="client-table-cell client-table-cell-value client-table-cell-priority-title">Priority</div>
           </div>
           <div id="client-table-rows"></div>
@@ -552,9 +552,8 @@
       const itemsTrigger = document.querySelector("[data-items-trigger]");
       const itemsOptions = Array.from(document.querySelectorAll("[data-items-option]"));
       const nameHeading = document.getElementById("client-table-heading-name");
-      const insuredHeading = document.getElementById("client-table-heading-insured");
+      const nextActionHeading = document.getElementById("client-table-heading-next-action");
       const coverageHeading = document.getElementById("client-table-heading-coverage");
-      const sourceHeading = document.getElementById("client-table-heading-source");
       const statusHeading = document.getElementById("client-table-heading-status");
       const summaryPlacedChip = document.querySelector("[data-summary-placed-chip]");
       const summaryPlacedTotal = document.querySelector("[data-summary-placed-total]");
@@ -763,6 +762,46 @@
         return "Prospects";
       }
 
+      function hasDirectoryProfileCreated(record) {
+        return Boolean(String(record?.displayName || "").trim()) && Boolean(String(record?.caseRef || "").trim());
+      }
+
+      function hasDirectoryAnalysisCompleted(record) {
+        return Boolean(record?.analysisCompleted) || record?.statusGroup === "coverage-placed" || record?.statusGroup === "closed";
+      }
+
+      function hasDirectoryPreliminaryCompleted(record) {
+        return Boolean(record?.preliminaryUnderwritingCompleted) || Boolean(record?.pmiCompleted) || hasDirectoryAnalysisCompleted(record);
+      }
+
+      function hasDirectoryPmiCompleted(record) {
+        return Boolean(record?.pmiCompleted) || hasDirectoryAnalysisCompleted(record);
+      }
+
+      function getDirectoryNextAction(record) {
+        if (!hasDirectoryProfileCreated(record)) {
+          return "Create Profile";
+        }
+
+        if (!hasDirectoryPreliminaryCompleted(record)) {
+          return "Preliminary Underwriting";
+        }
+
+        if (!hasDirectoryPmiCompleted(record)) {
+          return "Protection Modeling Inputs";
+        }
+
+        if (!hasDirectoryAnalysisCompleted(record)) {
+          return "Complete Analysis";
+        }
+
+        if (record?.statusGroup === "coverage-placed") {
+          return "Policy Delivered";
+        }
+
+        return "Workflow Complete";
+      }
+
       function getInitials(name, viewType, lastName) {
         if (viewType === "households") {
           const householdLastInitial = getLastInitial(lastName);
@@ -880,19 +919,6 @@
 
       function getDirectoryCreatedDate(record) {
         return String(record?.dateProfileCreated || record?.lastReview || "").trim();
-      }
-
-      function getDependentsDisplay(record) {
-        const count = Number(record?.dependentsCount || 0);
-        if (Number.isFinite(count) && count > 0) {
-          return String(count);
-        }
-        return String(record?.hasDependents || "").trim().toLowerCase() === "yes" ? "Yes" : "-";
-      }
-
-      function getPoliciesDisplay(record) {
-        const count = Number(record?.policyCount || 0);
-        return Number.isFinite(count) && count > 0 ? String(count) : "0";
       }
 
       function normalizeCaseRef(value) {
@@ -1067,7 +1093,6 @@
       function isRecordIncomplete(record) {
         const missingBaseFields = !String(record.displayName || "").trim()
           || !String(record.caseRef || "").trim()
-          || !String(record.source || "").trim()
           || !String(record.priority || "").trim();
 
         if (missingBaseFields) {
@@ -1428,21 +1453,14 @@
         if (nameHeading) {
           nameHeading.textContent = activeView === "households" ? "Household" : activeView === "businesses" ? "Business" : "Client";
         }
-        if (insuredHeading) {
-          insuredHeading.textContent = activeView === "households" ? "Members" : "Insured";
-          insuredHeading.classList.toggle("is-households-view", activeView === "households");
+        if (nextActionHeading) {
+          nextActionHeading.textContent = "Next Action";
         }
         if (coverageHeading) {
-          coverageHeading.textContent = activeView === "households" ? "Coverage Gap" : "Coverage Amount";
-          coverageHeading.classList.toggle("is-households-view", activeView === "households");
-        }
-        if (sourceHeading) {
-          sourceHeading.textContent = activeView === "households" ? "Dependents" : "Source";
-          sourceHeading.classList.toggle("is-households-view", activeView === "households");
+          coverageHeading.textContent = "Coverage Gap";
         }
         if (statusHeading) {
-          statusHeading.textContent = activeView === "households" ? "Policies" : "Client Status";
-          statusHeading.classList.toggle("is-households-view", activeView === "households");
+          statusHeading.textContent = "Client Status";
         }
       }
 
@@ -2024,6 +2042,7 @@
         const isHouseholdAvatar = record.viewType === "households";
         const avatarClasses = `client-avatar${isHouseholdAvatar ? " client-avatar-household" : ""}`;
         const avatarStyle = isHouseholdAvatar ? "" : ` style="background: ${getAvatarBackground(record.age, record.dateOfBirth)};"`;
+        const isFlagged = Boolean(record.isFlagged);
         return `
           <div class="client-table client-table-clickable" role="row" tabindex="0" data-client-open="${record.id}">
             <div class="client-table-cell client-table-cell-check"><input type="checkbox" data-client-select="${record.id}" aria-label="Select ${record.displayName}"${selectedRecordIds.has(String(record.id || "").trim()) ? " checked" : ""}></div>
@@ -2034,12 +2053,16 @@
                 <span>${getClientDirectorySubtitle(record)}</span>
               </div>
             </div>
+            <div class="client-table-cell client-table-cell-flag">
+              <button class="client-row-flag-button${isFlagged ? " is-flagged" : ""}" type="button" data-client-flag-toggle="${record.id}" aria-pressed="${isFlagged ? "true" : "false"}" aria-label="${isFlagged ? `Unflag ${record.displayName}` : `Flag ${record.displayName}`}">
+                <span class="client-row-flag-icon" aria-hidden="true"></span>
+              </button>
+            </div>
             <div class="client-table-cell">${record.caseRef || "--"}</div>
             <div class="client-table-cell client-table-cell-last-review">${formatDateForDirectory(getDirectoryCreatedDate(record))}</div>
-            <div class="client-table-cell client-table-cell-insured-value">${record.insured}</div>
-            <div class="client-table-cell client-table-cell-source-value${activeView === "households" ? " is-households-view" : ""}">${activeView === "households" ? getDependentsDisplay(record) : record.source}</div>
-            <div class="client-table-cell client-table-cell-status-value${activeView === "households" ? " is-households-view" : ""}">${activeView === "households" ? getPoliciesDisplay(record) : getClientStatusDisplay(record.statusGroup)}</div>
-            <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(activeView === "households" ? record.coverageGap : record.coverageAmount)}</div>
+            <div class="client-table-cell client-table-cell-next-action-value">${getDirectoryNextAction(record)}</div>
+            <div class="client-table-cell client-table-cell-status-value">${getClientStatusDisplay(record.statusGroup)}</div>
+            <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(record.coverageGap)}</div>
             <div class="client-table-cell client-table-cell-value client-table-cell-priority-value">
               <div class="client-priority-dropdown" data-priority-dropdown="${record.id}">
                 <button class="client-priority-button ${priority ? `client-priority-button-${priority}` : "client-priority-button-unset"}" type="button" data-priority-trigger aria-expanded="false">
@@ -2078,6 +2101,29 @@
         });
 
         persistRecords(nextRecords);
+      }
+
+      function toggleRecordFlag(recordId) {
+        const normalizedRecordId = String(recordId || "").trim();
+        if (!normalizedRecordId) {
+          return false;
+        }
+
+        const nextRecords = loadRecords().map(function (record, index) {
+          const normalized = normalizeRecord(record, index);
+          if (normalized.id !== normalizedRecordId) {
+            return normalized;
+          }
+
+          return {
+            ...normalized,
+            isFlagged: !Boolean(normalized.isFlagged)
+          };
+        });
+
+        persistRecords(nextRecords);
+        renderDirectory();
+        return true;
       }
 
       function bindSelectionCheckboxes() {
@@ -2141,10 +2187,24 @@
         });
       }
 
+      function bindFlagButtons() {
+        rowsHost.querySelectorAll("[data-client-flag-toggle]").forEach(function (button) {
+          button.addEventListener("click", function (event) {
+            event.stopPropagation();
+            const recordId = String(button.getAttribute("data-client-flag-toggle") || "").trim();
+            if (!recordId) {
+              return;
+            }
+
+            toggleRecordFlag(recordId);
+          });
+        });
+      }
+
       function bindRowClicks() {
         rowsHost.querySelectorAll("[data-client-open]").forEach(function (row) {
           row.addEventListener("click", function (event) {
-            if (event.target.closest("input") || event.target.closest("[data-priority-dropdown]")) {
+            if (event.target.closest("input") || event.target.closest("[data-priority-dropdown]") || event.target.closest("[data-client-flag-toggle]")) {
               return;
             }
             window.location.href = `client-detail.html?id=${encodeURIComponent(row.dataset.clientOpen)}`;
@@ -2154,7 +2214,7 @@
             if (event.key !== "Enter" && event.key !== " ") {
               return;
             }
-            if (event.target.closest("input") || event.target.closest("[data-priority-dropdown]")) {
+            if (event.target.closest("input") || event.target.closest("[data-priority-dropdown]") || event.target.closest("[data-client-flag-toggle]")) {
               return;
             }
             event.preventDefault();
@@ -2179,6 +2239,7 @@
 
         bindSelectionCheckboxes();
         bindPriorityDropdowns();
+        bindFlagButtons();
         bindRowClicks();
         syncStatusButtons();
         syncViewButtons();

@@ -492,9 +492,11 @@
       try {
         const state = embeddedDirectoryApi.getState();
         const activeView = String(state?.activeView || "").trim();
+        const activeScope = String(state?.activeScope || "").trim();
         const activePriority = String(state?.activePriority || "").trim();
         return {
           activeView: activeView || "individuals",
+          activeScope: activeScope || "all",
           activePriority: activePriority || "all",
           isAllActive: Boolean(state?.isAllActive)
         };

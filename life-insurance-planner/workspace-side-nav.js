@@ -58,6 +58,20 @@
     `;
   }
 
+  function getDirectoryScopeIcon(key) {
+    const assetMap = {
+      flagged: "../Images/flag.svg",
+      "recently-viewed": "../Images/recentlyviewed.svg",
+      "recently-added": "../Images/recentlyadded.svg",
+      incomplete: "../Images/incomplete.svg"
+    };
+    const src = assetMap[String(key || "").trim()];
+    if (!src) {
+      return "";
+    }
+    return `<img src="${escapeHtml(src)}" alt="" aria-hidden="true">`;
+  }
+
   function getWorkspacePageIcon(key) {
     if (key === "studio") {
       return `
@@ -319,6 +333,9 @@
                           data-directory-scope-view="${escapeHtml(item.key)}"
                           data-directory-scope="${escapeHtml(scopeItem.key)}"
                         >
+                          <span class="workspace-side-nav-submenu-icon" aria-hidden="true">
+                            ${getDirectoryScopeIcon(scopeItem.key)}
+                          </span>
                           <span class="workspace-side-nav-submenu-label">${escapeHtml(scopeItem.label)}</span>
                         </button>
                       `;
