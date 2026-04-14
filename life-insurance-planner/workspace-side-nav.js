@@ -274,6 +274,18 @@
       { key: "businesses", label: "Businesses" },
       { key: "add", label: "Add New", extraClass: " workspace-side-nav-context-button-add" }
     ];
+    const priorityItems = [
+      { key: "all", label: "All Priorities" },
+      { key: "high", label: "High Priority" },
+      { key: "medium", label: "Medium Priority" },
+      { key: "low", label: "Low Priority" }
+    ];
+    const scopeItems = [
+      { key: "flagged", label: "Flagged" },
+      { key: "recently-viewed", label: "Recently Viewed" },
+      { key: "recently-added", label: "Recently Added" },
+      { key: "incomplete", label: "Incomplete Profiles" }
+    ];
 
     return renderWorkspaceShell({
       ariaLabel: "Client directory navigation",
@@ -287,13 +299,47 @@
       contextMarkup: `
         <nav class="workspace-side-nav-items workspace-side-nav-context-items" aria-label="Client directory actions">
           ${items.map(function (item) {
+            const supportsPrioritySubmenu = item.key === "individuals" || item.key === "households" || item.key === "businesses";
             return `
-              <button class="workspace-side-nav-button workspace-side-nav-context-button${item.extraClass || ""}" type="button" data-directory-nav-action="${escapeHtml(item.key)}">
-                <span class="workspace-side-nav-icon workspace-side-nav-context-icon" aria-hidden="true">
-                  ${getDirectoryIcon(item.key)}
-                </span>
-                <span class="workspace-side-nav-label workspace-side-nav-context-label">${escapeHtml(item.label)}</span>
-              </button>
+              <div class="workspace-side-nav-context-group${supportsPrioritySubmenu ? " workspace-side-nav-context-group-has-submenu" : ""}" data-directory-context-group${supportsPrioritySubmenu ? ` data-directory-context-group-key="${escapeHtml(item.key)}"` : ""}>
+                <button class="workspace-side-nav-button workspace-side-nav-context-button${item.extraClass || ""}" type="button" data-directory-nav-action="${escapeHtml(item.key)}">
+                  <span class="workspace-side-nav-icon workspace-side-nav-context-icon" aria-hidden="true">
+                    ${getDirectoryIcon(item.key)}
+                  </span>
+                  <span class="workspace-side-nav-label workspace-side-nav-context-label">${escapeHtml(item.label)}</span>
+                </button>
+                ${supportsPrioritySubmenu ? `
+                  <div class="workspace-side-nav-submenu" aria-label="${escapeHtml(item.label)} filters">
+                    ${scopeItems.map(function (scopeItem) {
+                      return `
+                        <button
+                          class="workspace-side-nav-button workspace-side-nav-submenu-button"
+                          type="button"
+                          data-directory-scope-action="${escapeHtml(`${item.key}:scope:${scopeItem.key}`)}"
+                          data-directory-scope-view="${escapeHtml(item.key)}"
+                          data-directory-scope="${escapeHtml(scopeItem.key)}"
+                        >
+                          <span class="workspace-side-nav-submenu-label">${escapeHtml(scopeItem.label)}</span>
+                        </button>
+                      `;
+                    }).join("")}
+                    <div class="workspace-side-nav-submenu-divider" role="presentation"></div>
+                    ${priorityItems.map(function (priorityItem) {
+                      return `
+                        <button
+                          class="workspace-side-nav-button workspace-side-nav-submenu-button"
+                          type="button"
+                          data-directory-priority-action="${escapeHtml(`${item.key}:${priorityItem.key}`)}"
+                          data-directory-priority-view="${escapeHtml(item.key)}"
+                          data-directory-priority="${escapeHtml(priorityItem.key)}"
+                        >
+                          <span class="workspace-side-nav-submenu-label">${escapeHtml(priorityItem.label)}</span>
+                        </button>
+                      `;
+                    }).join("")}
+                  </div>
+                ` : ""}
+              </div>
             `;
           }).join("")}
         </nav>

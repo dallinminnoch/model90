@@ -227,6 +227,25 @@
                     </span>
                     <span>Export Selected Profiles</span>
                   </button>
+                  <button class="client-directory-title-menu-option" type="button" data-directory-title-menu-action="flag-selected" data-directory-flag-selected role="menuitem">
+                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 20 20" fill="none">
+                        <path d="M5.25 3.55v12.9" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                        <path d="M6.2 4.2h7.1l-1.45 2.55 1.45 2.45H6.2" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+                      </svg>
+                    </span>
+                    <span>Flag Selected Profiles</span>
+                  </button>
+                  <button class="client-directory-title-menu-option" type="button" data-directory-title-menu-action="unflag-selected" data-directory-unflag-selected role="menuitem">
+                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 20 20" fill="none">
+                        <path d="M5.25 3.55v12.9" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                        <path d="M6.2 4.2h7.1l-1.45 2.55 1.45 2.45H6.2" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+                        <path d="m8.15 8.15 4.25 4.25M12.4 8.15l-4.25 4.25" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"/>
+                      </svg>
+                    </span>
+                    <span>Remove Flag from Selected</span>
+                  </button>
                 </div>
               </div>
               <input class="client-directory-import-input" type="file" accept=".json,application/json" data-directory-import-input hidden>
@@ -396,6 +415,15 @@
           </nav>
           <div class="client-directory-filter-bar">
             <div class="client-directory-toolbar-actions">
+              <div class="client-items-dropdown client-order-dropdown" data-order-dropdown>
+                <button class="client-toolbar-button client-order-trigger" type="button" data-order-trigger aria-expanded="false">
+                  Order: Date Created
+                </button>
+                <div class="client-items-menu client-order-menu">
+                  <button class="client-items-option is-active" type="button" data-order-option="date-created">Date Created</button>
+                  <button class="client-items-option" type="button" data-order-option="alphabetical">Alphabetical</button>
+                </div>
+              </div>
               <div class="client-items-dropdown" data-items-dropdown>
                 <button class="client-toolbar-button client-items-trigger" type="button" data-items-trigger aria-expanded="false">
                   Items Shown (15)
@@ -517,6 +545,9 @@
       const paginationHost = document.getElementById("client-pagination-numbers");
       const prevPageButton = document.getElementById("client-prev-page");
       const nextPageButton = document.getElementById("client-next-page");
+      const orderDropdown = document.querySelector("[data-order-dropdown]");
+      const orderTrigger = document.querySelector("[data-order-trigger]");
+      const orderOptions = Array.from(document.querySelectorAll("[data-order-option]"));
       const itemsDropdown = document.querySelector("[data-items-dropdown]");
       const itemsTrigger = document.querySelector("[data-items-trigger]");
       const itemsOptions = Array.from(document.querySelectorAll("[data-items-option]"));
@@ -556,7 +587,10 @@
       const directorySidebarHost = document.querySelector('[data-workspace-side-nav="directory"]');
       const directorySidebarLayout = document.querySelector("[data-directory-sidebar-layout]");
       const directorySidebarToggle = document.querySelector("[data-directory-sidebar-toggle]");
+      const directorySidebarGroups = Array.from(document.querySelectorAll("[data-directory-context-group-key]"));
       const directorySidebarButtons = Array.from(document.querySelectorAll("[data-directory-nav-action]"));
+      const directorySidebarScopeButtons = Array.from(document.querySelectorAll("[data-directory-scope-action]"));
+      const directorySidebarPriorityButtons = Array.from(document.querySelectorAll("[data-directory-priority-action]"));
       const directoryAddButton = document.querySelector("[data-add-client-button]");
       const directoryTitleMenu = document.querySelector("[data-directory-title-menu]");
       const directoryTitleMenuSurface = document.querySelector("[data-directory-title-menu-surface]");
@@ -564,6 +598,8 @@
       const directoryTitleMenuActions = Array.from(document.querySelectorAll("[data-directory-title-menu-action]"));
       const directoryImportInput = document.querySelector("[data-directory-import-input]");
       const directoryExportSelectedButton = document.querySelector("[data-directory-export-selected]");
+      const directoryFlagSelectedButton = document.querySelector("[data-directory-flag-selected]");
+      const directoryUnflagSelectedButton = document.querySelector("[data-directory-unflag-selected]");
 
       if (!rowsHost) {
         return;
@@ -573,12 +609,16 @@
         authSession: "lipPlannerAuthSession",
         clientRecords: "lensClientRecords",
         pendingClientRecords: "lensPendingClientRecords",
-        summaryCards: "clientDirectorySummaryCards"
+        summaryCards: "clientDirectorySummaryCards",
+        directoryOrder: "clientDirectoryOrder"
       };
 
       let activeLetter = "all";
       let activeView = "individuals";
       let activeStatus = "all";
+      let activeScope = "all";
+      let activePriority = "all";
+      let sortOrder = "date-created";
       let itemsShown = 15;
       let currentPage = 1;
       let records = [];
@@ -604,6 +644,26 @@
 
       const directorySidebarStorageKey = `workspaceSideNavCollapsed:${getStorageIdentity()}`;
       const summaryCardsStorageKey = `${STORAGE_KEYS.summaryCards}:${getStorageIdentity()}`;
+      const directoryOrderStorageKey = `${STORAGE_KEYS.directoryOrder}:${getStorageIdentity()}`;
+
+      function loadDirectoryOrder() {
+        try {
+          const storedValue = String(localStorage.getItem(directoryOrderStorageKey) || "").trim();
+          return storedValue === "alphabetical" ? "alphabetical" : "date-created";
+        } catch (error) {
+          return "date-created";
+        }
+      }
+
+      function persistDirectoryOrder() {
+        try {
+          localStorage.setItem(directoryOrderStorageKey, sortOrder);
+        } catch (error) {
+          // Ignore persistence failures and keep the current in-memory sort.
+        }
+      }
+
+      sortOrder = loadDirectoryOrder();
 
       function toStorageCompatibleRecord(record) {
         if (!record || typeof record !== "object") {
@@ -663,6 +723,18 @@
       function normalizePriority(value) {
         const normalized = String(value || "").trim().toLowerCase();
         return ["low", "medium", "high"].includes(normalized) ? normalized : "";
+      }
+
+      function normalizeDirectoryPriority(value) {
+        const normalized = String(value || "").trim().toLowerCase();
+        return ["all", "low", "medium", "high"].includes(normalized) ? normalized : "all";
+      }
+
+      function normalizeDirectoryScope(value) {
+        const normalized = String(value || "").trim().toLowerCase();
+        return ["all", "flagged", "recently-viewed", "recently-added", "incomplete"].includes(normalized)
+          ? normalized
+          : "all";
       }
 
       function getPriorityDisplay(value) {
@@ -880,6 +952,8 @@
           source: String(record.source || record.dataSource || "Advisor Entered"),
           statusGroup: ["prospects", "in-review", "coverage-placed", "closed"].includes(String(record.statusGroup || "")) ? String(record.statusGroup) : "prospects",
           priority: normalizePriority(record.priority),
+          isFlagged: Boolean(record.isFlagged),
+          lastViewedAt: String(record.lastViewedAt || "").trim(),
           coverageAmount: Number(record.coverageAmount || 0),
           coverageGap: Number(record.coverageGap || 0),
           policyCount: Number(record.policyCount || 0)
@@ -938,9 +1012,11 @@
           const matchesView = record.viewType === activeView;
           const matchesLetter = activeLetter === "all" || getLastInitial(record.lastName) === activeLetter;
           const matchesStatus = !includeStatus || activeStatus === "all" || record.statusGroup === activeStatus;
+          const matchesScope = matchesDirectoryScope(record);
+          const matchesPriority = activePriority === "all" || String(record.priority || "").trim().toLowerCase() === activePriority;
           const matchesSearch = matchesDirectorySearch(record, query);
 
-          return matchesView && matchesLetter && matchesStatus && matchesSearch;
+          return matchesView && matchesLetter && matchesStatus && matchesScope && matchesPriority && matchesSearch;
         });
       }
 
@@ -956,6 +1032,85 @@
 
         const parsed = new Date(`${rawValue}T00:00:00`);
         return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+
+      function getRecordCreatedDate(record) {
+        const rawValue = String(record?.dateProfileCreated || "").trim();
+        if (!rawValue) {
+          return null;
+        }
+
+        const parsed = new Date(`${rawValue}T00:00:00`);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+
+      function getRecordViewedDate(record) {
+        const rawValue = String(record?.lastViewedAt || "").trim();
+        if (!rawValue) {
+          return null;
+        }
+
+        const parsed = new Date(rawValue);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+
+      function isDateWithinDays(date, days, endDate) {
+        if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+          return false;
+        }
+
+        const end = endDate instanceof Date ? endDate : new Date();
+        const windowMs = Math.max(0, Number(days || 0)) * 86400000;
+        return (end.getTime() - date.getTime()) <= windowMs;
+      }
+
+      function isRecordIncomplete(record) {
+        const missingBaseFields = !String(record.displayName || "").trim()
+          || !String(record.caseRef || "").trim()
+          || !String(record.source || "").trim()
+          || !String(record.priority || "").trim();
+
+        if (missingBaseFields) {
+          return true;
+        }
+
+        if (record.viewType === "individuals") {
+          return !String(record.phoneNumber || "").trim()
+            || !String(record.emailAddress || "").trim()
+            || !String(record.dateOfBirth || "").trim();
+        }
+
+        if (record.viewType === "households") {
+          return !String(record.lastName || "").trim()
+            || !String(record.insured || "").trim();
+        }
+
+        if (record.viewType === "businesses") {
+          return !String(record.firmName || record.displayName || "").trim()
+            || !String(record.advisorName || "").trim();
+        }
+
+        return false;
+      }
+
+      function matchesDirectoryScope(record) {
+        if (activeScope === "flagged") {
+          return Boolean(record.isFlagged);
+        }
+
+        if (activeScope === "recently-viewed") {
+          return isDateWithinDays(getRecordViewedDate(record), 7);
+        }
+
+        if (activeScope === "recently-added") {
+          return isDateWithinDays(getRecordCreatedDate(record), 30);
+        }
+
+        if (activeScope === "incomplete") {
+          return isRecordIncomplete(record);
+        }
+
+        return true;
       }
 
       function formatSummaryCount(value) {
@@ -1306,6 +1461,78 @@
         });
       }
 
+      function getDirectoryOrderLabel() {
+        return sortOrder === "alphabetical" ? "Alphabetical" : "Date Created";
+      }
+
+      function syncDirectoryOrder() {
+        if (orderTrigger) {
+          orderTrigger.textContent = `Order: ${getDirectoryOrderLabel()}`;
+        }
+
+        orderOptions.forEach(function (button) {
+          button.classList.toggle("is-active", String(button.dataset.orderOption || "").trim() === sortOrder);
+        });
+      }
+
+      function setItemsMenuOpen(isOpen) {
+        if (!itemsDropdown || !itemsTrigger) {
+          return;
+        }
+
+        itemsDropdown.classList.toggle("is-open", isOpen);
+        itemsTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      }
+
+      function setOrderMenuOpen(isOpen) {
+        if (!orderDropdown || !orderTrigger) {
+          return;
+        }
+
+        orderDropdown.classList.toggle("is-open", isOpen);
+        orderTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      }
+
+      function compareDirectoryRecordsAlphabetically(firstRecord, secondRecord) {
+        const nameResult = String(firstRecord.displayName || "").localeCompare(String(secondRecord.displayName || ""), undefined, {
+          sensitivity: "base",
+          numeric: true
+        });
+
+        if (nameResult !== 0) {
+          return nameResult;
+        }
+
+        return normalizeCaseRef(firstRecord.caseRef).localeCompare(normalizeCaseRef(secondRecord.caseRef), undefined, {
+          sensitivity: "base",
+          numeric: true
+        });
+      }
+
+      function sortDirectoryRecords(sourceRecords) {
+        return sourceRecords.slice().sort(function (firstRecord, secondRecord) {
+          if (sortOrder === "alphabetical") {
+            return compareDirectoryRecordsAlphabetically(firstRecord, secondRecord);
+          }
+
+          const firstDate = getRecordTimelineDate(firstRecord);
+          const secondDate = getRecordTimelineDate(secondRecord);
+
+          if (firstDate && secondDate) {
+            const timeDifference = secondDate.getTime() - firstDate.getTime();
+            if (timeDifference !== 0) {
+              return timeDifference;
+            }
+          } else if (secondDate) {
+            return 1;
+          } else if (firstDate) {
+            return -1;
+          }
+
+          return compareDirectoryRecordsAlphabetically(firstRecord, secondRecord);
+        });
+      }
+
       function pruneSelectedRecordIds() {
         const validIds = new Set(records.map(function (record) { return String(record.id || "").trim(); }));
         Array.from(selectedRecordIds).forEach(function (recordId) {
@@ -1338,6 +1565,14 @@
         const hasSelectedRecords = getSelectedRecords().length > 0;
         directoryExportSelectedButton.disabled = !hasSelectedRecords;
         directoryExportSelectedButton.classList.toggle("is-disabled", !hasSelectedRecords);
+        if (directoryFlagSelectedButton instanceof HTMLButtonElement) {
+          directoryFlagSelectedButton.disabled = !hasSelectedRecords;
+          directoryFlagSelectedButton.classList.toggle("is-disabled", !hasSelectedRecords);
+        }
+        if (directoryUnflagSelectedButton instanceof HTMLButtonElement) {
+          directoryUnflagSelectedButton.disabled = !hasSelectedRecords;
+          directoryUnflagSelectedButton.classList.toggle("is-disabled", !hasSelectedRecords);
+        }
       }
 
       function downloadJsonFile(filename, payload) {
@@ -1363,6 +1598,8 @@
             view: activeView,
             letter: activeLetter,
             status: activeStatus,
+            scope: activeScope,
+            priority: activePriority,
             itemsShown
           },
           recordCount: safeRecords.length,
@@ -1381,6 +1618,33 @@
         const scopeLabel = String(scope || "view").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
         const filename = `model90-${scopeLabel}-${todayLabel}.json`;
         downloadJsonFile(filename, buildAdvisorPackagePayload(exportRecords, scope));
+        return true;
+      }
+
+      function setSelectedRecordsFlagState(nextFlagged) {
+        const selectedIds = new Set(getSelectedRecords().map(function (record) {
+          return String(record.id || "").trim();
+        }).filter(Boolean));
+        if (!selectedIds.size) {
+          window.alert("Select at least one profile first.");
+          return false;
+        }
+
+        const nextRecords = loadRecords().map(function (record, index) {
+          const normalizedRecord = normalizeRecord(record, index);
+          const recordId = String(normalizedRecord.id || "").trim();
+          if (!selectedIds.has(recordId)) {
+            return normalizedRecord;
+          }
+
+          return {
+            ...normalizedRecord,
+            isFlagged: Boolean(nextFlagged)
+          };
+        });
+
+        persistRecords(nextRecords);
+        renderDirectory();
         return true;
       }
 
@@ -1428,6 +1692,8 @@
         activeView = isBusiness ? "businesses" : "households";
         activeLetter = "all";
         activeStatus = "all";
+        activeScope = "all";
+        activePriority = "all";
         currentPage = 1;
         renderDirectory();
         return true;
@@ -1509,6 +1775,8 @@
         persistRecords(mergeResult.records);
         activeLetter = "all";
         activeStatus = "all";
+        activeScope = "all";
+        activePriority = "all";
         currentPage = 1;
         renderDirectory();
         window.alert(`${mergeResult.createdCount} profile${mergeResult.createdCount === 1 ? "" : "s"} added and ${mergeResult.updatedCount} updated.`);
@@ -1561,16 +1829,33 @@
           return exportedSelected;
         }
 
+        if (normalizedAction === "flag-selected") {
+          const flaggedSelected = setSelectedRecordsFlagState(true);
+          setDirectoryTitleMenuOpen(false);
+          return flaggedSelected;
+        }
+
+        if (normalizedAction === "unflag-selected") {
+          const unflaggedSelected = setSelectedRecordsFlagState(false);
+          setDirectoryTitleMenuOpen(false);
+          return unflaggedSelected;
+        }
+
         return false;
       }
 
       function syncDirectorySidebarButtons() {
+        directorySidebarGroups.forEach(function (group) {
+          const groupKey = String(group.dataset.directoryContextGroupKey || "").trim();
+          group.classList.toggle("is-expanded", groupKey === activeView);
+        });
+
         directorySidebarButtons.forEach(function (button) {
           const action = String(button.dataset.directoryNavAction || "").trim();
           let isActive = false;
 
           if (action === "all") {
-            isActive = activeLetter === "all" && activeStatus === "all";
+            isActive = activeLetter === "all" && activeStatus === "all" && activeScope === "all" && activePriority === "all";
           } else if (action === "households") {
             isActive = activeView === "households";
           } else if (action === "individuals") {
@@ -1579,6 +1864,20 @@
             isActive = activeView === "businesses";
           }
 
+          button.classList.toggle("is-active", isActive);
+        });
+
+        directorySidebarScopeButtons.forEach(function (button) {
+          const view = String(button.dataset.directoryScopeView || "").trim();
+          const scope = normalizeDirectoryScope(button.dataset.directoryScope);
+          const isActive = view === activeView && scope === activeScope;
+          button.classList.toggle("is-active", isActive);
+        });
+
+        directorySidebarPriorityButtons.forEach(function (button) {
+          const view = String(button.dataset.directoryPriorityView || "").trim();
+          const priority = normalizeDirectoryPriority(button.dataset.directoryPriority);
+          const isActive = view === activeView && priority === activePriority;
           button.classList.toggle("is-active", isActive);
         });
       }
@@ -1590,6 +1889,34 @@
         }
 
         activeView = normalizedView;
+        activeScope = "all";
+        activePriority = "all";
+        currentPage = 1;
+        renderDirectory();
+        return true;
+      }
+
+      function setDirectoryScope(nextView, nextScope) {
+        const normalizedView = String(nextView || "").trim();
+        if (normalizedView !== "households" && normalizedView !== "individuals" && normalizedView !== "businesses") {
+          return false;
+        }
+
+        activeView = normalizedView;
+        activeScope = normalizeDirectoryScope(nextScope);
+        currentPage = 1;
+        renderDirectory();
+        return true;
+      }
+
+      function setDirectoryPriority(nextView, nextPriority) {
+        const normalizedView = String(nextView || "").trim();
+        if (normalizedView !== "households" && normalizedView !== "individuals" && normalizedView !== "businesses") {
+          return false;
+        }
+
+        activeView = normalizedView;
+        activePriority = normalizeDirectoryPriority(nextPriority);
         currentPage = 1;
         renderDirectory();
         return true;
@@ -1598,9 +1925,20 @@
       function resetDirectoryToAll() {
         activeLetter = "all";
         activeStatus = "all";
+        activeScope = "all";
+        activePriority = "all";
         currentPage = 1;
         renderDirectory();
         return true;
+      }
+
+      function getDirectorySidebarState() {
+        return {
+          activeView: activeView,
+          activeScope: activeScope,
+          activePriority: activePriority,
+          isAllActive: activeLetter === "all" && activeStatus === "all" && activeScope === "all" && activePriority === "all"
+        };
       }
 
       function openDirectoryAddModal() {
@@ -1624,6 +1962,16 @@
 
         if (normalizedAction === "households" || normalizedAction === "individuals" || normalizedAction === "businesses") {
           return setDirectoryView(normalizedAction);
+        }
+
+        const priorityMatch = normalizedAction.match(/^(individuals|households|businesses):(all|high|medium|low)$/);
+        if (priorityMatch) {
+          return setDirectoryPriority(priorityMatch[1], priorityMatch[2]);
+        }
+
+        const scopeMatch = normalizedAction.match(/^(individuals|households|businesses):scope:(all|flagged|recently-viewed|recently-added|incomplete)$/);
+        if (scopeMatch) {
+          return setDirectoryScope(scopeMatch[1], scopeMatch[2]);
         }
 
         if (normalizedAction === "add") {
@@ -1818,7 +2166,7 @@
       function renderDirectory() {
         records = loadRecords();
         pruneSelectedRecordIds();
-        const filtered = getFilteredRecords();
+        const filtered = sortDirectoryRecords(getFilteredRecords());
         const totalPages = Math.max(1, Math.ceil(filtered.length / itemsShown));
         currentPage = Math.min(currentPage, totalPages);
         const startIndex = (currentPage - 1) * itemsShown;
@@ -1837,6 +2185,7 @@
         syncTableHeadings();
         syncLetterButtons();
         syncItemsShown();
+        syncDirectoryOrder();
         syncDirectoryTitleMenuState();
         syncDirectorySummaryCards();
         syncDirectorySidebarButtons();
@@ -1854,6 +2203,8 @@
       viewButtons.forEach(function (button) {
         button.addEventListener("click", function () {
           activeView = button.dataset.clientView || "individuals";
+          activeScope = "all";
+          activePriority = "all";
           currentPage = 1;
           renderDirectory();
         });
@@ -1877,20 +2228,39 @@
           itemsShown = Number(button.dataset.itemsOption) || 15;
           currentPage = 1;
           renderDirectory();
-          if (itemsDropdown) {
-            itemsDropdown.classList.remove("is-open");
-          }
-          if (itemsTrigger) {
-            itemsTrigger.setAttribute("aria-expanded", "false");
-            itemsTrigger.blur();
-          }
+          setItemsMenuOpen(false);
+          itemsTrigger?.blur();
         });
       });
 
       itemsTrigger?.addEventListener("click", function (event) {
         event.stopPropagation();
-        const isOpen = itemsDropdown?.classList.toggle("is-open");
-        itemsTrigger.setAttribute("aria-expanded", String(Boolean(isOpen)));
+        const willOpen = !itemsDropdown?.classList.contains("is-open");
+        setOrderMenuOpen(false);
+        setItemsMenuOpen(Boolean(willOpen));
+      });
+
+      orderOptions.forEach(function (button) {
+        button.addEventListener("click", function () {
+          const nextOrder = String(button.dataset.orderOption || "").trim();
+          if (nextOrder !== "alphabetical" && nextOrder !== "date-created") {
+            return;
+          }
+
+          sortOrder = nextOrder;
+          persistDirectoryOrder();
+          currentPage = 1;
+          renderDirectory();
+          setOrderMenuOpen(false);
+          orderTrigger?.blur();
+        });
+      });
+
+      orderTrigger?.addEventListener("click", function (event) {
+        event.stopPropagation();
+        const willOpen = !orderDropdown?.classList.contains("is-open");
+        setItemsMenuOpen(false);
+        setOrderMenuOpen(Boolean(willOpen));
       });
 
       if (directorySidebarLayout && directorySidebarToggle) {
@@ -1919,6 +2289,20 @@
       directorySidebarButtons.forEach(function (button) {
         button.addEventListener("click", function () {
           const action = String(button.dataset.directoryNavAction || "").trim();
+          handleDirectoryNavAction(action);
+        });
+      });
+
+      directorySidebarScopeButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          const action = String(button.dataset.directoryScopeAction || "").trim();
+          handleDirectoryNavAction(action);
+        });
+      });
+
+      directorySidebarPriorityButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          const action = String(button.dataset.directoryPriorityAction || "").trim();
           handleDirectoryNavAction(action);
         });
       });
@@ -1983,7 +2367,8 @@
 
       window.ClientDirectoryShellApi = {
         triggerAction: handleDirectoryNavAction,
-        setView: setDirectoryView
+        setView: setDirectoryView,
+        getState: getDirectorySidebarState
       };
 
       prevPageButton?.addEventListener("click", function () {
@@ -2017,8 +2402,11 @@
         }
 
         if (!event.target.closest("[data-items-dropdown]")) {
-          itemsDropdown?.classList.remove("is-open");
-          itemsTrigger?.setAttribute("aria-expanded", "false");
+          setItemsMenuOpen(false);
+        }
+
+        if (!event.target.closest("[data-order-dropdown]")) {
+          setOrderMenuOpen(false);
         }
 
         if (event.target.closest("[data-priority-dropdown]")) {
@@ -2050,6 +2438,20 @@
       if (summaryCustomize && summaryCustomizeTrigger) {
         summaryCustomize.classList.remove("is-open");
         summaryCustomizeTrigger.setAttribute("aria-expanded", "false");
+      }
+
+      const orderDropdown = document.querySelector("[data-order-dropdown]");
+      const orderTrigger = document.querySelector("[data-order-trigger]");
+      if (orderDropdown && orderTrigger) {
+        orderDropdown.classList.remove("is-open");
+        orderTrigger.setAttribute("aria-expanded", "false");
+      }
+
+      const itemsDropdown = document.querySelector("[data-items-dropdown]");
+      const itemsTrigger = document.querySelector("[data-items-trigger]");
+      if (itemsDropdown && itemsTrigger) {
+        itemsDropdown.classList.remove("is-open");
+        itemsTrigger.setAttribute("aria-expanded", "false");
       }
 
       document.querySelectorAll(".workspace-page-menu[open]").forEach(function (menu) {

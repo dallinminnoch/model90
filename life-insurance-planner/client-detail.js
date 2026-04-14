@@ -1430,6 +1430,34 @@
         return null;
       }
 
+      function markRecordViewed(currentRecord) {
+        if (!currentRecord || !String(currentRecord.id || "").trim()) {
+          return currentRecord;
+        }
+
+        const records = loadJson(localStorage, getRecordsStorageKey());
+        if (!Array.isArray(records)) {
+          return currentRecord;
+        }
+
+        const recordIndex = records.findIndex(function (item) {
+          return String(item?.id || "").trim() === String(currentRecord.id || "").trim();
+        });
+        if (recordIndex === -1) {
+          return currentRecord;
+        }
+
+        const viewedAt = new Date().toISOString();
+        records[recordIndex] = {
+          ...records[recordIndex],
+          lastViewedAt: viewedAt
+        };
+
+        localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
+        currentRecord.lastViewedAt = viewedAt;
+        return currentRecord;
+      }
+
       function getLatestRecordSnapshot() {
         const records = loadJson(localStorage, getRecordsStorageKey());
         if (!Array.isArray(records)) {
@@ -4512,7 +4540,7 @@
         `;
       }
 
-      const record = getRecord();
+      const record = markRecordViewed(getRecord());
 
       if (!record) {
         host.innerHTML = `

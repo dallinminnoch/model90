@@ -483,6 +483,101 @@
     });
   }
 
+  function getEmbeddedDirectoryState() {
+    const frameWindow = getIframeWindow();
+    const doc = getIframeDocument();
+    const embeddedDirectoryApi = frameWindow && frameWindow.ClientDirectoryShellApi;
+
+    if (embeddedDirectoryApi && typeof embeddedDirectoryApi.getState === "function") {
+      try {
+        const state = embeddedDirectoryApi.getState();
+        const activeView = String(state?.activeView || "").trim();
+        const activePriority = String(state?.activePriority || "").trim();
+        return {
+          activeView: activeView || "individuals",
+          activePriority: activePriority || "all",
+          isAllActive: Boolean(state?.isAllActive)
+        };
+      } catch (_error) {
+        // Fall through to DOM-based state detection if the embedded API is unavailable.
+      }
+    }
+
+    if (!doc) {
+      return {
+        activeView: "individuals",
+        activeScope: "all",
+        activePriority: "all",
+        isAllActive: true
+      };
+    }
+
+    const activeView = String(doc.querySelector("[data-client-view].is-active")?.getAttribute("data-client-view") || "").trim() || "individuals";
+    const activeScope = String(doc.querySelector("[data-directory-scope-action].is-active")?.getAttribute("data-directory-scope") || "").trim() || "all";
+    const activePriority = String(doc.querySelector("[data-directory-priority-action].is-active")?.getAttribute("data-directory-priority") || "").trim() || "all";
+    const isAllActive = Boolean(doc.querySelector('[data-directory-nav-action="all"].is-active'));
+
+    return {
+      activeView: activeView,
+      activeScope: activeScope,
+      activePriority: activePriority,
+      isAllActive: isAllActive
+    };
+  }
+
+  function syncDirectoryCurrentPageControls() {
+    const directoryState = getEmbeddedDirectoryState();
+    const activeView = String(directoryState.activeView || "").trim() || "individuals";
+    const activeScope = String(directoryState.activeScope || "").trim() || "all";
+    const activePriority = String(directoryState.activePriority || "").trim() || "all";
+    const isAllActive = Boolean(directoryState.isAllActive);
+
+    sidebarHost.querySelectorAll("[data-directory-context-group-key]").forEach(function (group) {
+      const groupKey = String(group.getAttribute("data-directory-context-group-key") || "").trim();
+      group.classList.toggle("is-expanded", groupKey === activeView);
+    });
+
+    sidebarHost.querySelectorAll("[data-directory-nav-action]").forEach(function (button) {
+      const action = String(button.getAttribute("data-directory-nav-action") || "").trim();
+      const isActive = action === "all"
+        ? isAllActive
+        : action === activeView;
+
+      button.classList.toggle("is-active", isActive);
+      if (isActive) {
+        button.setAttribute("aria-current", "location");
+      } else {
+        button.removeAttribute("aria-current");
+      }
+    });
+
+    sidebarHost.querySelectorAll("[data-directory-scope-action]").forEach(function (button) {
+      const buttonView = String(button.getAttribute("data-directory-scope-view") || "").trim();
+      const buttonScope = String(button.getAttribute("data-directory-scope") || "").trim() || "all";
+      const isActive = buttonView === activeView && buttonScope === activeScope;
+
+      button.classList.toggle("is-active", isActive);
+      if (isActive) {
+        button.setAttribute("aria-current", "location");
+      } else {
+        button.removeAttribute("aria-current");
+      }
+    });
+
+    sidebarHost.querySelectorAll("[data-directory-priority-action]").forEach(function (button) {
+      const buttonView = String(button.getAttribute("data-directory-priority-view") || "").trim();
+      const buttonPriority = String(button.getAttribute("data-directory-priority") || "").trim() || "all";
+      const isActive = buttonView === activeView && buttonPriority === activePriority;
+
+      button.classList.toggle("is-active", isActive);
+      if (isActive) {
+        button.setAttribute("aria-current", "location");
+      } else {
+        button.removeAttribute("aria-current");
+      }
+    });
+  }
+
   function syncCurrentPageControls(mode, meta) {
     if (mode === "studio") {
       setCurrentPageState(Array.from(sidebarHost.querySelectorAll("[data-studio-tab]")), currentScrollKey, "data-studio-tab");
@@ -490,8 +585,7 @@
     }
 
     if (mode === "directory") {
-      const activeKey = getActiveInnerValue("[data-directory-nav-action]", "directoryNavAction") || "all";
-      setCurrentPageState(Array.from(sidebarHost.querySelectorAll("[data-directory-nav-action]")), activeKey, "data-directory-nav-action");
+      syncDirectoryCurrentPageControls();
       return;
     }
 
@@ -697,6 +791,24 @@
       return true;
     }
 
+    if (/^(individuals|households|businesses):(all|high|medium|low)$/.test(normalizedAction)) {
+      const priorityButton = doc.querySelector(`[data-directory-priority-action="${normalizedAction}"]`);
+      if (!(priorityButton instanceof HTMLElement)) {
+        return false;
+      }
+      priorityButton.click();
+      return true;
+    }
+
+    if (/^(individuals|households|businesses):scope:(all|flagged|recently-viewed|recently-added|incomplete)$/.test(normalizedAction)) {
+      const scopeButton = doc.querySelector(`[data-directory-scope-action="${normalizedAction}"]`);
+      if (!(scopeButton instanceof HTMLElement)) {
+        return false;
+      }
+      scopeButton.click();
+      return true;
+    }
+
     if (normalizedAction === "add") {
       const addButton = doc.querySelector("[data-add-client-button]");
       if (!(addButton instanceof HTMLElement)) {
@@ -829,6 +941,34 @@
           }
 
           if (setEmbeddedDirectoryAction(action) || clickEmbeddedControl(`[data-directory-nav-action="${action}"]`)) {
+            window.setTimeout(function () {
+              syncCurrentPageControls("directory", meta);
+            }, 60);
+          }
+        });
+      });
+      sidebarHost.querySelectorAll("[data-directory-scope-action]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          const action = String(button.getAttribute("data-directory-scope-action") || "").trim();
+          if (!action) {
+            return;
+          }
+
+          if (setEmbeddedDirectoryAction(action) || clickEmbeddedControl(`[data-directory-scope-action="${action}"]`)) {
+            window.setTimeout(function () {
+              syncCurrentPageControls("directory", meta);
+            }, 60);
+          }
+        });
+      });
+      sidebarHost.querySelectorAll("[data-directory-priority-action]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          const action = String(button.getAttribute("data-directory-priority-action") || "").trim();
+          if (!action) {
+            return;
+          }
+
+          if (setEmbeddedDirectoryAction(action) || clickEmbeddedControl(`[data-directory-priority-action="${action}"]`)) {
             window.setTimeout(function () {
               syncCurrentPageControls("directory", meta);
             }, 60);
