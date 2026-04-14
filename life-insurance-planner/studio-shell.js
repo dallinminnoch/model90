@@ -285,12 +285,25 @@
 
     const doc = getIframeDocument();
     const viewportHeight = getStudioEmbedViewportHeight();
-    const contentHeight = getEmbeddedDocumentHeight(doc);
-    const nextHeight = Math.max(viewportHeight, contentHeight);
+    const viewMeta = getViewMeta(currentView);
 
-    embedShell.style.minHeight = `${viewportHeight}px`;
+    if (viewMeta.shellMode === "directory") {
+      const fixedHeight = Math.max(0, viewportHeight);
+      embedShell.style.minHeight = `${fixedHeight}px`;
+      embedShell.style.height = `${fixedHeight}px`;
+      embedFrame.style.minHeight = `${fixedHeight}px`;
+      embedFrame.style.height = `${fixedHeight}px`;
+      return;
+    }
+
+    const contentHeight = getEmbeddedDocumentHeight(doc);
+    const measuredHeight = contentHeight > 0 ? contentHeight : viewportHeight;
+    const nextHeight = Math.max(0, Math.ceil(measuredHeight) + 2);
+    const nextMinHeight = contentHeight > 0 ? 0 : viewportHeight;
+
+    embedShell.style.minHeight = `${nextMinHeight}px`;
     embedShell.style.height = `${nextHeight}px`;
-    embedFrame.style.minHeight = `${viewportHeight}px`;
+    embedFrame.style.minHeight = `${nextMinHeight}px`;
     embedFrame.style.height = `${nextHeight}px`;
   }
 
@@ -378,7 +391,7 @@
         width: 100% !important;
         height: auto !important;
         min-width: 0 !important;
-        min-height: 100% !important;
+        min-height: 0 !important;
         overflow-x: hidden !important;
         background: transparent !important;
       }
@@ -386,6 +399,10 @@
       body.studio-embed-mode {
         overflow-x: hidden !important;
         overflow-y: visible !important;
+      }
+
+      body.studio-embed-mode.clients-page {
+        overflow-y: auto !important;
       }
 
       body.studio-embed-mode .workspace-page-topbar,

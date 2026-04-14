@@ -267,27 +267,73 @@
                 </span>
               </button>
               <div class="client-directory-summary-customize" data-summary-customize>
-                <button class="client-directory-utility-button client-directory-utility-button-labeled" type="button" data-summary-customize-trigger aria-expanded="false" aria-haspopup="dialog">
+                <button class="client-directory-utility-button client-directory-utility-button-labeled" type="button" data-summary-customize-trigger aria-expanded="false" aria-haspopup="dialog" aria-controls="client-directory-summary-customize-dialog">
                   <span class="client-directory-utility-icon" aria-hidden="true">
                     <img src="../Images/customizepreviewcards.svg" alt="" />
                   </span>
                   <span class="client-directory-utility-button-text">Customize Cards</span>
                 </button>
-                <div class="client-directory-summary-customize-panel" data-summary-customize-panel aria-label="Customize preview cards">
-                  <span class="client-directory-summary-customize-title">Preview Cards</span>
-                  <p class="client-directory-summary-customize-note">Choose which summary cards stay above the client directory.</p>
-                  <label class="client-directory-summary-customize-option">
-                    <input type="checkbox" data-summary-card-toggle="placed" checked>
-                    <span>Coverage Placed</span>
-                  </label>
-                  <label class="client-directory-summary-customize-option">
-                    <input type="checkbox" data-summary-card-toggle="pipeline" checked>
-                    <span>Prospects In Pipeline</span>
-                  </label>
-                  <label class="client-directory-summary-customize-option">
-                    <input type="checkbox" data-summary-card-toggle="gap" checked>
-                    <span>Clients With Gaps</span>
-                  </label>
+                <div class="client-directory-summary-customize-dialog" id="client-directory-summary-customize-dialog" data-summary-customize-dialog hidden>
+                  <button class="client-directory-summary-customize-backdrop" type="button" data-summary-customize-close tabindex="-1" aria-label="Close customize cards"></button>
+                  <div class="client-directory-summary-customize-panel" data-summary-customize-panel role="dialog" aria-modal="true" aria-labelledby="client-directory-summary-customize-title" aria-describedby="client-directory-summary-customize-note" tabindex="-1">
+                    <div class="client-directory-summary-customize-header">
+                      <div class="client-directory-summary-customize-copy">
+                        <span class="client-directory-summary-customize-kicker">Customize Cards</span>
+                        <h2 class="client-directory-summary-customize-title" id="client-directory-summary-customize-title">Preview Cards</h2>
+                        <p class="client-directory-summary-customize-note" id="client-directory-summary-customize-note">Choose which summary cards stay above the client directory.</p>
+                      </div>
+                      <button class="client-directory-summary-customize-close" type="button" data-summary-customize-close aria-label="Close customize cards">
+                        <span aria-hidden="true">
+                          <svg viewBox="0 0 16 16" fill="none">
+                            <path d="m4 4 8 8M12 4 4 12" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                          </svg>
+                        </span>
+                      </button>
+                    </div>
+                    <div class="client-directory-summary-customize-options" role="group" aria-label="Visible preview cards">
+                      <label class="client-directory-summary-customize-option">
+                        <input type="checkbox" data-summary-card-toggle="placed" checked>
+                        <span>Coverage Placed</span>
+                      </label>
+                      <label class="client-directory-summary-customize-option">
+                        <input type="checkbox" data-summary-card-toggle="pipeline" checked>
+                        <span>Prospects In Pipeline</span>
+                      </label>
+                      <label class="client-directory-summary-customize-option">
+                        <input type="checkbox" data-summary-card-toggle="gap" checked>
+                        <span>Clients With Gaps</span>
+                      </label>
+                      <label class="client-directory-summary-customize-option">
+                        <input type="checkbox" data-summary-card-toggle="opportunity">
+                        <span>Coverage Opportunity</span>
+                      </label>
+                      <label class="client-directory-summary-customize-option">
+                        <input type="checkbox" data-summary-card-toggle="placement-rate">
+                        <span>Placement Rate</span>
+                      </label>
+                      <label class="client-directory-summary-customize-option">
+                        <input type="checkbox" data-summary-card-toggle="average-gap">
+                        <span>Average Coverage Gap</span>
+                      </label>
+                      <label class="client-directory-summary-customize-option">
+                        <input type="checkbox" data-summary-card-toggle="protection-progress">
+                        <span>Protection Progress</span>
+                      </label>
+                      <label class="client-directory-summary-customize-option">
+                        <input type="checkbox" data-summary-card-toggle="household-exposure">
+                        <span>Household Exposure</span>
+                      </label>
+                      <label class="client-directory-summary-customize-option">
+                        <input type="checkbox" data-summary-card-toggle="business-cases">
+                        <span>Business Protection Cases</span>
+                      </label>
+                      <label class="client-directory-summary-customize-option">
+                        <input type="checkbox" data-summary-card-toggle="review-health">
+                        <span>Review Cycle Health</span>
+                      </label>
+                    </div>
+                    <p class="client-directory-summary-customize-footnote">At least one preview card remains visible.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -397,6 +443,220 @@
               <div class="client-directory-summary-list-row">
                 <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-low" aria-hidden="true"></span>Gap &lt; $500k</span>
                 <strong data-summary-gap-low>0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-opportunity" data-summary-card="opportunity" hidden>
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M4.15 15.2h11.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  <path d="M6.3 13.85V9.25" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  <path d="M10 13.85V6.45" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  <path d="M13.7 13.85V4.55" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-opportunity-chip data-tone="neutral">No modeled opportunity</span>
+            </div>
+            <span class="client-directory-summary-kicker">Coverage Opportunity</span>
+            <strong class="client-directory-summary-value" data-summary-opportunity-total>$0</strong>
+            <p class="client-directory-summary-note" data-summary-opportunity-note>No open protection opportunity in current view</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-opportunity" aria-hidden="true"></span>High priority</span>
+                <strong data-summary-opportunity-high-priority>$0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-pipeline" aria-hidden="true"></span>In pipeline</span>
+                <strong data-summary-opportunity-pipeline>$0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-largest" aria-hidden="true"></span>Largest case</span>
+                <strong data-summary-opportunity-largest>$0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-placement-rate" data-summary-card="placement-rate" hidden>
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <circle cx="10" cy="10" r="6.15" stroke="currentColor" stroke-width="1.7"/>
+                  <path d="M6.55 11.1 8.95 13.4 13.6 8.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-placement-chip data-tone="neutral">No placement cycle</span>
+            </div>
+            <span class="client-directory-summary-kicker">Placement Rate</span>
+            <strong class="client-directory-summary-value" data-summary-placement-total>0%</strong>
+            <p class="client-directory-summary-note" data-summary-placement-note>No placed or active pipeline cases yet</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-placed" aria-hidden="true"></span>Placed</span>
+                <strong data-summary-placement-placed>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-review" aria-hidden="true"></span>In review</span>
+                <strong data-summary-placement-review>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-prospecting" aria-hidden="true"></span>Prospecting</span>
+                <strong data-summary-placement-prospect>0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-average-gap" data-summary-card="average-gap" hidden>
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M4.2 14.95h11.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  <path d="M6.05 14.95V9.65" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  <path d="M10 14.95V6.95" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  <path d="M13.95 14.95v-3.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-average-gap-chip data-tone="neutral">No gap average</span>
+            </div>
+            <span class="client-directory-summary-kicker">Average Coverage Gap</span>
+            <strong class="client-directory-summary-value" data-summary-average-gap-total>$0</strong>
+            <p class="client-directory-summary-note" data-summary-average-gap-note>No unmet need to average yet</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-largest" aria-hidden="true"></span>Largest gap</span>
+                <strong data-summary-average-gap-largest>$0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-median" aria-hidden="true"></span>Median gap</span>
+                <strong data-summary-average-gap-median>$0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-smallest" aria-hidden="true"></span>Smallest gap</span>
+                <strong data-summary-average-gap-smallest>$0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-protection-progress" data-summary-card="protection-progress" hidden>
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M10 3.75 15.7 6v4.3c0 3.2-2.15 5.85-5.7 7.15-3.55-1.3-5.7-3.95-5.7-7.15V6L10 3.75Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                  <path d="m7.55 10.2 1.5 1.5 3.4-3.45" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-protection-chip data-tone="neutral">No modeled need</span>
+            </div>
+            <span class="client-directory-summary-kicker">Protection Progress</span>
+            <strong class="client-directory-summary-value" data-summary-protection-total>0%</strong>
+            <p class="client-directory-summary-note" data-summary-protection-note>No modeled need to track yet</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-progress">
+              <div class="client-directory-summary-progress-head">
+                <span>Protection level</span>
+                <strong data-summary-protection-progress-percent>0%</strong>
+              </div>
+              <div class="client-directory-summary-progress-track" aria-hidden="true">
+                <span class="client-directory-summary-progress-fill" data-summary-protection-progress-fill style="width:0%;"></span>
+              </div>
+              <div class="client-directory-summary-progress-foot">
+                <span data-summary-protection-remaining>$0 remaining</span>
+                <strong data-summary-protection-modeled>$0 modeled</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-household-exposure" data-summary-card="household-exposure" hidden>
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M3.85 8.25 10 3.75l6.15 4.5v7a1.25 1.25 0 0 1-1.25 1.25h-9.8a1.25 1.25 0 0 1-1.25-1.25v-7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                  <path d="M7.65 16.45v-4.15h4.7v4.15" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-household-chip data-tone="neutral">No household exposure</span>
+            </div>
+            <span class="client-directory-summary-kicker">Household Exposure</span>
+            <strong class="client-directory-summary-value" data-summary-household-total>0</strong>
+            <p class="client-directory-summary-note" data-summary-household-note>No open household planning exposure in current view</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-household" aria-hidden="true"></span>Gap &gt; $1M</span>
+                <strong data-summary-household-high-gap>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-review" aria-hidden="true"></span>In review</span>
+                <strong data-summary-household-review>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-opportunity" aria-hidden="true"></span>Analysis pending</span>
+                <strong data-summary-household-pending>0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-business-cases" data-summary-card="business-cases" hidden>
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M4.2 16.2V7.6a1.2 1.2 0 0 1 1.2-1.2h9.2a1.2 1.2 0 0 1 1.2 1.2v8.6" stroke="currentColor" stroke-width="1.7"/>
+                  <path d="M7.1 6.4V4.95A1.05 1.05 0 0 1 8.15 3.9h3.7A1.05 1.05 0 0 1 12.9 4.95V6.4" stroke="currentColor" stroke-width="1.7"/>
+                  <path d="M8.1 10.05h1.35M8.1 12.85h1.35M10.55 10.05h1.35M10.55 12.85h1.35" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-business-chip data-tone="neutral">No active business cases</span>
+            </div>
+            <span class="client-directory-summary-kicker">Business Protection Cases</span>
+            <strong class="client-directory-summary-value" data-summary-business-total>0</strong>
+            <p class="client-directory-summary-note" data-summary-business-note>No business planning cases in current view</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-business" aria-hidden="true"></span>Open gap</span>
+                <strong data-summary-business-open-gap>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-review" aria-hidden="true"></span>In review</span>
+                <strong data-summary-business-review>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-placed" aria-hidden="true"></span>Coverage placed</span>
+                <strong data-summary-business-placed>0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-review-health" data-summary-card="review-health" hidden>
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <circle cx="10" cy="10" r="6.2" stroke="currentColor" stroke-width="1.7"/>
+                  <path d="M10 6.55v3.75l2.45 1.45" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-review-chip data-tone="neutral">No review cadence yet</span>
+            </div>
+            <span class="client-directory-summary-kicker">Review Cycle Health</span>
+            <strong class="client-directory-summary-value" data-summary-review-total>0%</strong>
+            <p class="client-directory-summary-note" data-summary-review-note>No review dates available yet</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-current" aria-hidden="true"></span>Current (0-90 days)</span>
+                <strong data-summary-review-current>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-due" aria-hidden="true"></span>Due soon</span>
+                <strong data-summary-review-due>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row">
+                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-overdue" aria-hidden="true"></span>Overdue</span>
+                <strong data-summary-review-overdue>0</strong>
               </div>
             </div>
           </article>
@@ -574,14 +834,67 @@
       const summaryGapHigh = document.querySelector("[data-summary-gap-high]");
       const summaryGapMid = document.querySelector("[data-summary-gap-mid]");
       const summaryGapLow = document.querySelector("[data-summary-gap-low]");
+      const summaryOpportunityChip = document.querySelector("[data-summary-opportunity-chip]");
+      const summaryOpportunityTotal = document.querySelector("[data-summary-opportunity-total]");
+      const summaryOpportunityNote = document.querySelector("[data-summary-opportunity-note]");
+      const summaryOpportunityHighPriority = document.querySelector("[data-summary-opportunity-high-priority]");
+      const summaryOpportunityPipeline = document.querySelector("[data-summary-opportunity-pipeline]");
+      const summaryOpportunityLargest = document.querySelector("[data-summary-opportunity-largest]");
+      const summaryPlacementChip = document.querySelector("[data-summary-placement-chip]");
+      const summaryPlacementTotal = document.querySelector("[data-summary-placement-total]");
+      const summaryPlacementNote = document.querySelector("[data-summary-placement-note]");
+      const summaryPlacementPlaced = document.querySelector("[data-summary-placement-placed]");
+      const summaryPlacementReview = document.querySelector("[data-summary-placement-review]");
+      const summaryPlacementProspect = document.querySelector("[data-summary-placement-prospect]");
+      const summaryAverageGapChip = document.querySelector("[data-summary-average-gap-chip]");
+      const summaryAverageGapTotal = document.querySelector("[data-summary-average-gap-total]");
+      const summaryAverageGapNote = document.querySelector("[data-summary-average-gap-note]");
+      const summaryAverageGapLargest = document.querySelector("[data-summary-average-gap-largest]");
+      const summaryAverageGapMedian = document.querySelector("[data-summary-average-gap-median]");
+      const summaryAverageGapSmallest = document.querySelector("[data-summary-average-gap-smallest]");
+      const summaryProtectionChip = document.querySelector("[data-summary-protection-chip]");
+      const summaryProtectionTotal = document.querySelector("[data-summary-protection-total]");
+      const summaryProtectionNote = document.querySelector("[data-summary-protection-note]");
+      const summaryProtectionProgressPercent = document.querySelector("[data-summary-protection-progress-percent]");
+      const summaryProtectionProgressFill = document.querySelector("[data-summary-protection-progress-fill]");
+      const summaryProtectionRemaining = document.querySelector("[data-summary-protection-remaining]");
+      const summaryProtectionModeled = document.querySelector("[data-summary-protection-modeled]");
+      const summaryHouseholdChip = document.querySelector("[data-summary-household-chip]");
+      const summaryHouseholdTotal = document.querySelector("[data-summary-household-total]");
+      const summaryHouseholdNote = document.querySelector("[data-summary-household-note]");
+      const summaryHouseholdHighGap = document.querySelector("[data-summary-household-high-gap]");
+      const summaryHouseholdReview = document.querySelector("[data-summary-household-review]");
+      const summaryHouseholdPending = document.querySelector("[data-summary-household-pending]");
+      const summaryBusinessChip = document.querySelector("[data-summary-business-chip]");
+      const summaryBusinessTotal = document.querySelector("[data-summary-business-total]");
+      const summaryBusinessNote = document.querySelector("[data-summary-business-note]");
+      const summaryBusinessOpenGap = document.querySelector("[data-summary-business-open-gap]");
+      const summaryBusinessReview = document.querySelector("[data-summary-business-review]");
+      const summaryBusinessPlaced = document.querySelector("[data-summary-business-placed]");
+      const summaryReviewChip = document.querySelector("[data-summary-review-chip]");
+      const summaryReviewTotal = document.querySelector("[data-summary-review-total]");
+      const summaryReviewNote = document.querySelector("[data-summary-review-note]");
+      const summaryReviewCurrent = document.querySelector("[data-summary-review-current]");
+      const summaryReviewDue = document.querySelector("[data-summary-review-due]");
+      const summaryReviewOverdue = document.querySelector("[data-summary-review-overdue]");
       const directorySummaryHost = document.querySelector("[data-directory-summary]");
       const summaryCardElements = {
         placed: document.querySelector('[data-summary-card="placed"]'),
         pipeline: document.querySelector('[data-summary-card="pipeline"]'),
-        gap: document.querySelector('[data-summary-card="gap"]')
+        gap: document.querySelector('[data-summary-card="gap"]'),
+        opportunity: document.querySelector('[data-summary-card="opportunity"]'),
+        "placement-rate": document.querySelector('[data-summary-card="placement-rate"]'),
+        "average-gap": document.querySelector('[data-summary-card="average-gap"]'),
+        "protection-progress": document.querySelector('[data-summary-card="protection-progress"]'),
+        "household-exposure": document.querySelector('[data-summary-card="household-exposure"]'),
+        "business-cases": document.querySelector('[data-summary-card="business-cases"]'),
+        "review-health": document.querySelector('[data-summary-card="review-health"]')
       };
       const summaryCustomize = document.querySelector("[data-summary-customize]");
       const summaryCustomizeTrigger = document.querySelector("[data-summary-customize-trigger]");
+      const summaryCustomizeDialog = document.querySelector("[data-summary-customize-dialog]");
+      const summaryCustomizePanel = document.querySelector("[data-summary-customize-panel]");
+      const summaryCustomizeCloseButtons = Array.from(document.querySelectorAll("[data-summary-customize-close]"));
       const summaryCardToggles = Array.from(document.querySelectorAll("[data-summary-card-toggle]"));
       const directorySidebarHost = document.querySelector('[data-workspace-side-nav="directory"]');
       const directorySidebarLayout = document.querySelector("[data-directory-sidebar-layout]");
@@ -623,6 +936,7 @@
       let records = [];
       const selectedRecordIds = new Set();
       let summaryCardVisibility = null;
+      let summaryCustomizeReturnFocus = null;
 
       function loadJson(source, key) {
         try {
@@ -1181,11 +1495,94 @@
         target.setAttribute("data-tone", tone || "neutral");
       }
 
+      function formatPercentValue(value) {
+        return `${Math.max(0, Math.round(Number(value || 0)))}%`;
+      }
+
+      function calculateMedian(values) {
+        if (!Array.isArray(values) || !values.length) {
+          return 0;
+        }
+
+        const sortedValues = values
+          .map(function (value) { return Number(value || 0); })
+          .filter(function (value) { return Number.isFinite(value); })
+          .sort(function (first, second) { return first - second; });
+
+        if (!sortedValues.length) {
+          return 0;
+        }
+
+        const midpoint = Math.floor(sortedValues.length / 2);
+        if (sortedValues.length % 2 === 0) {
+          return Math.round((sortedValues[midpoint - 1] + sortedValues[midpoint]) / 2);
+        }
+
+        return sortedValues[midpoint];
+      }
+
+      function getStatusLabelTokens(record) {
+        if (!Array.isArray(record?.statusLabels)) {
+          return [];
+        }
+
+        return record.statusLabels
+          .map(function (label) { return String(label || "").trim().toLowerCase(); })
+          .filter(Boolean);
+      }
+
+      function getBusinessRecordText(record) {
+        return [
+          record?.summary,
+          record?.displayName,
+          record?.firmName,
+          record?.businessPlanningFocus,
+          record?.businessCoverageRelevance,
+          record?.advisorName
+        ].map(function (value) {
+          return String(value || "").trim().toLowerCase();
+        }).join(" ");
+      }
+
+      function isBusinessProtectionRecord(record) {
+        if (!record || typeof record !== "object") {
+          return false;
+        }
+
+        if (record.viewType === "businesses") {
+          return true;
+        }
+
+        const labelTokens = getStatusLabelTokens(record);
+        if (labelTokens.includes("business")) {
+          return true;
+        }
+
+        return /\b(?:business|key person|buy[-\s]?sell|succession|executive|partner)\b/i.test(getBusinessRecordText(record));
+      }
+
+      function isHouseholdExposureRecord(record) {
+        if (!record || typeof record !== "object") {
+          return false;
+        }
+
+        return record.viewType === "households"
+          || Boolean(String(record.householdId || "").trim())
+          || Boolean(String(record.householdName || "").trim());
+      }
+
       function loadSummaryCardVisibility() {
         const defaults = {
           placed: true,
           pipeline: true,
-          gap: true
+          gap: true,
+          opportunity: false,
+          "placement-rate": false,
+          "average-gap": false,
+          "protection-progress": false,
+          "household-exposure": false,
+          "business-cases": false,
+          "review-health": false
         };
         const persisted = loadJson(localStorage, summaryCardsStorageKey);
         if (!persisted || typeof persisted !== "object") {
@@ -1195,7 +1592,14 @@
         const nextVisibility = {
           placed: persisted.placed !== false,
           pipeline: persisted.pipeline !== false,
-          gap: persisted.gap !== false
+          gap: persisted.gap !== false,
+          opportunity: persisted.opportunity === true,
+          "placement-rate": persisted["placement-rate"] === true,
+          "average-gap": persisted["average-gap"] === true,
+          "protection-progress": persisted["protection-progress"] === true,
+          "household-exposure": persisted["household-exposure"] === true,
+          "business-cases": persisted["business-cases"] === true,
+          "review-health": persisted["review-health"] === true
         };
 
         return Object.values(nextVisibility).some(Boolean) ? nextVisibility : defaults;
@@ -1215,28 +1619,122 @@
         }).length;
       }
 
-      function setSummaryCustomizeOpen(isOpen) {
-        if (!(summaryCustomize instanceof HTMLElement) || !(summaryCustomizeTrigger instanceof HTMLButtonElement)) {
+      function buildSummaryCardRowLayout(count) {
+        const visibleCount = Math.max(0, Number(count || 0));
+        const rows = [];
+        let remaining = visibleCount;
+
+        while (remaining > 0) {
+          if (remaining === 1) {
+            rows.push(1);
+            remaining = 0;
+            continue;
+          }
+
+          if (remaining === 2) {
+            rows.push(2);
+            remaining = 0;
+            continue;
+          }
+
+          if (remaining === 4) {
+            rows.push(2, 2);
+            remaining = 0;
+            continue;
+          }
+
+          rows.push(3);
+          remaining -= 3;
+        }
+
+        return rows;
+      }
+
+      function getSummaryCustomizeFocusableElements() {
+        if (!(summaryCustomizePanel instanceof HTMLElement)) {
+          return [];
+        }
+
+        return Array.from(summaryCustomizePanel.querySelectorAll('button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')).filter(function (element) {
+          return element instanceof HTMLElement && !element.closest("[hidden]");
+        });
+      }
+
+      function setSummaryCustomizeOpen(isOpen, shouldRestoreFocus) {
+        if (
+          !(summaryCustomize instanceof HTMLElement)
+          || !(summaryCustomizeTrigger instanceof HTMLButtonElement)
+          || !(summaryCustomizeDialog instanceof HTMLElement)
+          || !(summaryCustomizePanel instanceof HTMLElement)
+        ) {
           return;
         }
 
-        summaryCustomize.classList.toggle("is-open", Boolean(isOpen));
-        summaryCustomizeTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        const willOpen = Boolean(isOpen);
+        if (willOpen) {
+          summaryCustomizeReturnFocus = document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : summaryCustomizeTrigger;
+        }
+
+        summaryCustomize.classList.toggle("is-open", willOpen);
+        summaryCustomizeDialog.hidden = !willOpen;
+        summaryCustomizeDialog.setAttribute("aria-hidden", willOpen ? "false" : "true");
+        summaryCustomizeTrigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+        document.body.classList.toggle("summary-customize-open", willOpen);
+
+        if (willOpen) {
+          window.setTimeout(function () {
+            const firstFocusable = getSummaryCustomizeFocusableElements()[0];
+            if (firstFocusable instanceof HTMLElement) {
+              firstFocusable.focus();
+              return;
+            }
+
+            summaryCustomizePanel.focus();
+          }, 0);
+          return;
+        }
+
+        if (shouldRestoreFocus !== false && summaryCustomizeReturnFocus instanceof HTMLElement) {
+          summaryCustomizeReturnFocus.focus();
+        }
+
+        summaryCustomizeReturnFocus = null;
       }
 
       function syncSummaryCardVisibility() {
         const visibleCount = Math.max(0, getVisibleSummaryCardCount());
+        const visibleCards = [];
 
         Object.keys(summaryCardElements).forEach(function (key) {
           const card = summaryCardElements[key];
           if (card instanceof HTMLElement) {
-            card.hidden = !summaryCardVisibility[key];
+            const isVisible = Boolean(summaryCardVisibility[key]);
+            card.hidden = !isVisible;
+            if (isVisible) {
+              visibleCards.push(card);
+            } else {
+              card.style.removeProperty("--summary-card-span");
+            }
           }
         });
 
         if (directorySummaryHost instanceof HTMLElement) {
           directorySummaryHost.setAttribute("data-visible-count", String(visibleCount));
         }
+
+        let visibleCardIndex = 0;
+        buildSummaryCardRowLayout(visibleCount).forEach(function (cardsInRow) {
+          const span = cardsInRow === 1 ? 6 : cardsInRow === 2 ? 3 : 2;
+          for (let index = 0; index < cardsInRow; index += 1) {
+            const card = visibleCards[visibleCardIndex];
+            if (card instanceof HTMLElement) {
+              card.style.setProperty("--summary-card-span", String(span));
+            }
+            visibleCardIndex += 1;
+          }
+        });
 
         summaryCardToggles.forEach(function (toggle) {
           const key = String(toggle.dataset.summaryCardToggle || "").trim();
@@ -1430,6 +1928,267 @@
           summaryGapLow.textContent = formatSummaryCount(lowGapCount);
         }
         setSummaryBadge(summaryGapChip, gapRecords.length ? "Needs attention" : "No urgent gaps", gapRecords.length ? "warning" : "positive");
+
+        const highPriorityOpportunity = gapRecords.reduce(function (sum, record) {
+          return normalizePriority(record.priority) === "high"
+            ? sum + Number(record.coverageGap || 0)
+            : sum;
+        }, 0);
+        const pipelineOpportunity = pipelineRecords.reduce(function (sum, record) {
+          return sum + Number(record.coverageGap || 0);
+        }, 0);
+        const gapValues = gapRecords
+          .map(function (record) { return Number(record.coverageGap || 0); })
+          .filter(function (value) { return value > 0; })
+          .sort(function (first, second) { return first - second; });
+        const largestGap = gapValues.length ? gapValues[gapValues.length - 1] : 0;
+        const smallestGap = gapValues.length ? gapValues[0] : 0;
+        const averageGap = gapValues.length ? Math.round(totalGap / gapValues.length) : 0;
+        const medianGap = calculateMedian(gapValues);
+
+        if (summaryOpportunityTotal) {
+          summaryOpportunityTotal.textContent = formatCurrencyCompact(totalGap);
+        }
+        if (summaryOpportunityNote) {
+          summaryOpportunityNote.textContent = gapRecords.length
+            ? `${formatCurrencyCompact(averageGap)} average unmet need across ${formatSummaryCount(gapRecords.length)} client${gapRecords.length === 1 ? "" : "s"}`
+            : "No open protection opportunity in current view";
+        }
+        if (summaryOpportunityHighPriority) {
+          summaryOpportunityHighPriority.textContent = formatCurrencyCompact(highPriorityOpportunity);
+        }
+        if (summaryOpportunityPipeline) {
+          summaryOpportunityPipeline.textContent = formatCurrencyCompact(pipelineOpportunity);
+        }
+        if (summaryOpportunityLargest) {
+          summaryOpportunityLargest.textContent = formatCurrencyCompact(largestGap);
+        }
+        setSummaryBadge(
+          summaryOpportunityChip,
+          gapRecords.length ? `${formatSummaryCount(gapRecords.length)} modeled` : "No modeled opportunity",
+          highPriorityOpportunity > 0 ? "warning" : gapRecords.length ? "accent" : "neutral"
+        );
+
+        const placementUniverseCount = placedRecordCount + pipelineRecords.length;
+        const placementRate = placementUniverseCount > 0
+          ? Math.round((placedRecordCount / placementUniverseCount) * 100)
+          : 0;
+
+        if (summaryPlacementTotal) {
+          summaryPlacementTotal.textContent = formatPercentValue(placementRate);
+        }
+        if (summaryPlacementNote) {
+          summaryPlacementNote.textContent = placementUniverseCount > 0
+            ? `${formatSummaryCount(placedRecordCount)} of ${formatSummaryCount(placementUniverseCount)} active planning case${placementUniverseCount === 1 ? "" : "s"} placed`
+            : "No placed or active pipeline cases yet";
+        }
+        if (summaryPlacementPlaced) {
+          summaryPlacementPlaced.textContent = formatSummaryCount(placedRecordCount);
+        }
+        if (summaryPlacementReview) {
+          summaryPlacementReview.textContent = formatSummaryCount(pipelineInReview);
+        }
+        if (summaryPlacementProspect) {
+          summaryPlacementProspect.textContent = formatSummaryCount(pipelineProspects);
+        }
+        setSummaryBadge(
+          summaryPlacementChip,
+          placementUniverseCount > 0 ? `${formatSummaryCount(placedRecordCount)}/${formatSummaryCount(placementUniverseCount)} placed` : "No placement cycle",
+          placementRate >= 60 ? "positive" : placementUniverseCount > 0 ? "accent" : "neutral"
+        );
+
+        if (summaryAverageGapTotal) {
+          summaryAverageGapTotal.textContent = formatCurrencyCompact(averageGap);
+        }
+        if (summaryAverageGapNote) {
+          summaryAverageGapNote.textContent = gapRecords.length
+            ? `Across ${formatSummaryCount(gapRecords.length)} client${gapRecords.length === 1 ? "" : "s"} with unmet need`
+            : "No unmet need to average yet";
+        }
+        if (summaryAverageGapLargest) {
+          summaryAverageGapLargest.textContent = formatCurrencyCompact(largestGap);
+        }
+        if (summaryAverageGapMedian) {
+          summaryAverageGapMedian.textContent = formatCurrencyCompact(medianGap);
+        }
+        if (summaryAverageGapSmallest) {
+          summaryAverageGapSmallest.textContent = formatCurrencyCompact(smallestGap);
+        }
+        setSummaryBadge(
+          summaryAverageGapChip,
+          gapRecords.length ? `Median ${formatCurrencyCompact(medianGap)}` : "No gap average",
+          averageGap >= 1000000 ? "warning" : gapRecords.length ? "accent" : "neutral"
+        );
+
+        const totalModeledNeed = totalPlaced + totalGap;
+        const protectionProgressPercent = totalModeledNeed > 0
+          ? Math.round((totalPlaced / totalModeledNeed) * 100)
+          : 0;
+        const protectionProgressWidth = `${Math.max(0, Math.min(100, protectionProgressPercent))}%`;
+
+        if (summaryProtectionTotal) {
+          summaryProtectionTotal.textContent = formatPercentValue(protectionProgressPercent);
+        }
+        if (summaryProtectionNote) {
+          summaryProtectionNote.textContent = totalModeledNeed > 0
+            ? `${formatCurrencyCompact(totalPlaced)} placed of ${formatCurrencyCompact(totalModeledNeed)} modeled need`
+            : "No modeled need to track yet";
+        }
+        if (summaryProtectionProgressPercent) {
+          summaryProtectionProgressPercent.textContent = formatPercentValue(protectionProgressPercent);
+        }
+        if (summaryProtectionProgressFill) {
+          summaryProtectionProgressFill.style.width = protectionProgressWidth;
+        }
+        if (summaryProtectionRemaining) {
+          summaryProtectionRemaining.textContent = `${formatCurrencyCompact(totalGap)} remaining`;
+        }
+        if (summaryProtectionModeled) {
+          summaryProtectionModeled.textContent = `${formatCurrencyCompact(totalModeledNeed)} modeled`;
+        }
+        if (totalModeledNeed === 0) {
+          setSummaryBadge(summaryProtectionChip, "No modeled need", "neutral");
+        } else if (totalGap <= 0) {
+          setSummaryBadge(summaryProtectionChip, "Fully protected", "positive");
+        } else if (protectionProgressPercent >= 75) {
+          setSummaryBadge(summaryProtectionChip, "On track", "positive");
+        } else if (protectionProgressPercent >= 40) {
+          setSummaryBadge(summaryProtectionChip, "Building coverage", "accent");
+        } else {
+          setSummaryBadge(summaryProtectionChip, "Open protection gap", "warning");
+        }
+
+        const householdRelevantRecords = scopedRecords.filter(isHouseholdExposureRecord);
+        const householdExposureRecords = householdRelevantRecords.filter(function (record) {
+          return Number(record.coverageGap || 0) > 0
+            || record.statusGroup === "prospects"
+            || record.statusGroup === "in-review";
+        });
+        const householdExposureTotal = householdExposureRecords.reduce(function (sum, record) {
+          return sum + Number(record.coverageGap || 0);
+        }, 0);
+        const householdHighGapCount = householdExposureRecords.filter(function (record) {
+          return Number(record.coverageGap || 0) > 1000000;
+        }).length;
+        const householdReviewCount = householdExposureRecords.filter(function (record) {
+          return record.statusGroup === "in-review";
+        }).length;
+        const householdPendingCount = householdExposureRecords.filter(function (record) {
+          return !hasDirectoryAnalysisCompleted(record);
+        }).length;
+
+        if (summaryHouseholdTotal) {
+          summaryHouseholdTotal.textContent = formatSummaryCount(householdExposureRecords.length);
+        }
+        if (summaryHouseholdNote) {
+          summaryHouseholdNote.textContent = householdExposureRecords.length
+            ? `${formatCurrencyCompact(householdExposureTotal)} household exposure modeled`
+            : "No open household planning exposure in current view";
+        }
+        if (summaryHouseholdHighGap) {
+          summaryHouseholdHighGap.textContent = formatSummaryCount(householdHighGapCount);
+        }
+        if (summaryHouseholdReview) {
+          summaryHouseholdReview.textContent = formatSummaryCount(householdReviewCount);
+        }
+        if (summaryHouseholdPending) {
+          summaryHouseholdPending.textContent = formatSummaryCount(householdPendingCount);
+        }
+        if (householdExposureRecords.length > 0) {
+          setSummaryBadge(summaryHouseholdChip, `${formatSummaryCount(householdExposureRecords.length)} active`, householdHighGapCount > 0 ? "warning" : "accent");
+        } else if (householdRelevantRecords.length > 0) {
+          setSummaryBadge(summaryHouseholdChip, "Stable households", "positive");
+        } else {
+          setSummaryBadge(summaryHouseholdChip, "No household exposure", "neutral");
+        }
+
+        const businessRelevantRecords = scopedRecords.filter(isBusinessProtectionRecord);
+        const businessActiveRecords = businessRelevantRecords.filter(function (record) {
+          return Number(record.coverageGap || 0) > 0
+            || record.statusGroup === "prospects"
+            || record.statusGroup === "in-review";
+        });
+        const businessGapTotal = businessActiveRecords.reduce(function (sum, record) {
+          return sum + Number(record.coverageGap || 0);
+        }, 0);
+        const businessOpenGapCount = businessRelevantRecords.filter(function (record) {
+          return Number(record.coverageGap || 0) > 0;
+        }).length;
+        const businessReviewCount = businessRelevantRecords.filter(function (record) {
+          return record.statusGroup === "in-review";
+        }).length;
+        const businessPlacedCount = businessRelevantRecords.filter(function (record) {
+          return record.statusGroup === "coverage-placed"
+            || record.statusGroup === "closed"
+            || getRecordPolicies(record).length > 0;
+        }).length;
+
+        if (summaryBusinessTotal) {
+          summaryBusinessTotal.textContent = formatSummaryCount(businessActiveRecords.length);
+        }
+        if (summaryBusinessNote) {
+          if (businessActiveRecords.length) {
+            summaryBusinessNote.textContent = `${formatCurrencyCompact(businessGapTotal)} business opportunity modeled`;
+          } else if (businessRelevantRecords.length) {
+            summaryBusinessNote.textContent = "No active business protection cases in current view";
+          } else {
+            summaryBusinessNote.textContent = "No business planning cases in current view";
+          }
+        }
+        if (summaryBusinessOpenGap) {
+          summaryBusinessOpenGap.textContent = formatSummaryCount(businessOpenGapCount);
+        }
+        if (summaryBusinessReview) {
+          summaryBusinessReview.textContent = formatSummaryCount(businessReviewCount);
+        }
+        if (summaryBusinessPlaced) {
+          summaryBusinessPlaced.textContent = formatSummaryCount(businessPlacedCount);
+        }
+        if (businessActiveRecords.length > 0) {
+          setSummaryBadge(summaryBusinessChip, `${formatSummaryCount(businessActiveRecords.length)} active`, businessOpenGapCount > 0 ? "warning" : "accent");
+        } else if (businessPlacedCount > 0) {
+          setSummaryBadge(summaryBusinessChip, "Coverage placed", "positive");
+        } else {
+          setSummaryBadge(summaryBusinessChip, "No active business cases", "neutral");
+        }
+
+        const reviewAges = scopedRecords
+          .map(function (record) { return getDaysBetween(getRecordTimelineDate(record), now); })
+          .filter(function (value) { return Number.isFinite(value); });
+        const reviewCurrentCount = reviewAges.filter(function (value) { return value <= 90; }).length;
+        const reviewDueCount = reviewAges.filter(function (value) { return value > 90 && value <= 180; }).length;
+        const reviewOverdueCount = reviewAges.filter(function (value) { return value > 180; }).length;
+        const reviewHealthPercent = reviewAges.length
+          ? Math.round((reviewCurrentCount / reviewAges.length) * 100)
+          : 0;
+        const averageReviewAge = reviewAges.length
+          ? Math.round(reviewAges.reduce(function (sum, value) { return sum + value; }, 0) / reviewAges.length)
+          : 0;
+
+        if (summaryReviewTotal) {
+          summaryReviewTotal.textContent = formatPercentValue(reviewHealthPercent);
+        }
+        if (summaryReviewNote) {
+          summaryReviewNote.textContent = reviewAges.length
+            ? `Avg. last review ${averageReviewAge} day${averageReviewAge === 1 ? "" : "s"} ago`
+            : "No review dates available yet";
+        }
+        if (summaryReviewCurrent) {
+          summaryReviewCurrent.textContent = formatSummaryCount(reviewCurrentCount);
+        }
+        if (summaryReviewDue) {
+          summaryReviewDue.textContent = formatSummaryCount(reviewDueCount);
+        }
+        if (summaryReviewOverdue) {
+          summaryReviewOverdue.textContent = formatSummaryCount(reviewOverdueCount);
+        }
+        if (reviewOverdueCount > 0) {
+          setSummaryBadge(summaryReviewChip, `${formatSummaryCount(reviewOverdueCount)} overdue`, "warning");
+        } else if (reviewAges.length > 0) {
+          setSummaryBadge(summaryReviewChip, "Book healthy", "positive");
+        } else {
+          setSummaryBadge(summaryReviewChip, "No review cadence yet", "neutral");
+        }
       }
 
       function syncStatusButtons() {
@@ -2397,6 +3156,13 @@
         setSummaryCustomizeOpen(Boolean(willOpen));
       });
 
+      summaryCustomizeCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function (event) {
+          event.stopPropagation();
+          setSummaryCustomizeOpen(false);
+        });
+      });
+
       summaryCardToggles.forEach(function (toggle) {
         toggle.addEventListener("change", function () {
           const key = String(toggle.dataset.summaryCardToggle || "").trim();
@@ -2483,6 +3249,37 @@
   </script>
   <script>
     document.addEventListener("keydown", function (event) {
+      if (event.key === "Tab") {
+        const summaryCustomizeDialog = document.querySelector("[data-summary-customize-dialog]");
+        const summaryCustomizePanel = document.querySelector("[data-summary-customize-panel]");
+        if (!summaryCustomizeDialog || summaryCustomizeDialog.hidden || !summaryCustomizePanel) {
+          return;
+        }
+
+        const focusableElements = Array.from(summaryCustomizePanel.querySelectorAll('button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')).filter(function (element) {
+          return element instanceof HTMLElement && !element.closest("[hidden]");
+        });
+
+        if (!focusableElements.length) {
+          event.preventDefault();
+          summaryCustomizePanel.focus();
+          return;
+        }
+
+        const firstFocusable = focusableElements[0];
+        const lastFocusable = focusableElements[focusableElements.length - 1];
+
+        if (event.shiftKey && document.activeElement === firstFocusable) {
+          event.preventDefault();
+          lastFocusable.focus();
+        } else if (!event.shiftKey && document.activeElement === lastFocusable) {
+          event.preventDefault();
+          firstFocusable.focus();
+        }
+
+        return;
+      }
+
       if (event.key !== "Escape") {
         return;
       }
@@ -2496,9 +3293,19 @@
 
       const summaryCustomize = document.querySelector("[data-summary-customize]");
       const summaryCustomizeTrigger = document.querySelector("[data-summary-customize-trigger]");
+      const summaryCustomizeDialog = document.querySelector("[data-summary-customize-dialog]");
+      const wasSummaryCustomizeOpen = Boolean(summaryCustomizeDialog && !summaryCustomizeDialog.hidden);
       if (summaryCustomize && summaryCustomizeTrigger) {
         summaryCustomize.classList.remove("is-open");
+        if (summaryCustomizeDialog) {
+          summaryCustomizeDialog.hidden = true;
+          summaryCustomizeDialog.setAttribute("aria-hidden", "true");
+        }
         summaryCustomizeTrigger.setAttribute("aria-expanded", "false");
+        document.body.classList.remove("summary-customize-open");
+        if (wasSummaryCustomizeOpen) {
+          summaryCustomizeTrigger.focus();
+        }
       }
 
       const orderDropdown = document.querySelector("[data-order-dropdown]");
