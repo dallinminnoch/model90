@@ -7,7 +7,8 @@
 
       const STORAGE_KEYS = {
         authSession: "lipPlannerAuthSession",
-        clientRecords: "lensClientRecords"
+        clientRecords: "lensClientRecords",
+        accessibility: "clientDirectoryAccessibility"
       };
 
       function loadJson(source, key) {
@@ -25,6 +26,10 @@
 
       function getRecordsStorageKey() {
         return `${STORAGE_KEYS.clientRecords}:${getStorageIdentity()}`;
+      }
+
+      function getAccessibilitySettingsStorageKey() {
+        return `${STORAGE_KEYS.accessibility}:${getStorageIdentity()}`;
       }
 
       function escapeHtml(value) {
@@ -1143,11 +1148,28 @@
         return interpolateNumber(280, 360, (age - 65) / 35);
       }
 
-      function getAvatarBackground(ageValue, dateOfBirthValue) {
+      function prefersSoftAvatars() {
+        const settings = loadJson(localStorage, getAccessibilitySettingsStorageKey());
+        return Boolean(settings && settings["soft-avatars"]);
+      }
+
+      function getAvatarPresentation(ageValue, dateOfBirthValue) {
         const hue = getAvatarHue(ageValue, dateOfBirthValue);
+        if (prefersSoftAvatars()) {
+          return {
+            background: `hsl(${hue} 62% 88%)`,
+            color: `hsl(${hue} 46% 36%)`,
+            boxShadow: "none"
+          };
+        }
+
         const highlightHue = hue;
         const shadowHue = (hue + 22) % 360;
-        return `linear-gradient(135deg, hsl(${highlightHue} 72% 66%), hsl(${shadowHue} 68% 44%))`;
+        return {
+          background: `linear-gradient(135deg, hsl(${highlightHue} 72% 66%), hsl(${shadowHue} 68% 44%))`,
+          color: "#ffffff",
+          boxShadow: 'inset 0 0 0 2px rgba(255, 255, 255, 0.75)'
+        };
       }
 
       function getAccountMilestones(record) {
@@ -3957,9 +3979,10 @@
           const totalCoveragePercent = adequacyPercent;
           const householdMemberButtons = linkedHouseholdMembers.length
             ? linkedHouseholdMembers.map(function (member) {
+              const avatarPresentation = getAvatarPresentation(member.age, member.dateOfBirth);
               return `
                 <a class="client-household-member-button" href="client-detail.html?id=${escapeHtml(String(member.id || "").trim())}">
-                  <span class="client-household-member-avatar" style="background:${escapeHtml(getAvatarBackground(member.age, member.dateOfBirth))};">${escapeHtml(getInitials(formatValue(member.displayName)))}</span>
+                  <span class="client-household-member-avatar" style="background:${escapeHtml(avatarPresentation.background)};color:${escapeHtml(avatarPresentation.color)};box-shadow:${escapeHtml(avatarPresentation.boxShadow)};">${escapeHtml(getInitials(formatValue(member.displayName)))}</span>
                   <span class="client-household-member-button-copy">
                     <strong>${escapeHtml(formatValue(member.displayName))}</strong>
                     <em>${escapeHtml(formatValue(member.caseRef))}</em>

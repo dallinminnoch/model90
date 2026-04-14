@@ -2884,7 +2884,10 @@
     const priority = normalizePriority(record.priority);
     const isHouseholdAvatar = record.viewType === "households";
     const avatarClasses = `client-avatar${isHouseholdAvatar ? " client-avatar-household" : ""}`;
-    const avatarStyle = isHouseholdAvatar ? "" : ` style="background: ${getAvatarBackground(record.age, record.dateOfBirth)};"`;
+    const avatarPresentation = isHouseholdAvatar ? null : getAvatarPresentation(record.age, record.dateOfBirth);
+    const avatarStyle = avatarPresentation
+      ? ` style="background: ${avatarPresentation.background}; color: ${avatarPresentation.color};"`
+      : "";
 
     return `
       <div class="client-table client-table-clickable" role="row" tabindex="0" data-client-open="${record.id}">
@@ -3207,11 +3210,22 @@
     return interpolateNumber(280, 360, (age - 65) / 35);
   }
 
-  function getAvatarBackground(ageValue, dateOfBirthValue) {
+  function getAvatarPresentation(ageValue, dateOfBirthValue) {
     const hue = getAvatarHue(ageValue, dateOfBirthValue);
+    const prefersSoftAvatars = Boolean(document.querySelector(".client-directory-shell-layout.is-a11y-soft-avatars"));
+    if (prefersSoftAvatars) {
+      return {
+        background: `hsl(${hue} 62% 88%)`,
+        color: `hsl(${hue} 46% 36%)`
+      };
+    }
+
     const highlightHue = hue;
     const shadowHue = (hue + 22) % 360;
-    return `linear-gradient(135deg, hsl(${highlightHue} 72% 66%), hsl(${shadowHue} 68% 44%))`;
+    return {
+      background: `linear-gradient(135deg, hsl(${highlightHue} 72% 66%), hsl(${shadowHue} 68% 44%))`,
+      color: "#ffffff"
+    };
   }
 
   function getClientDirectorySubtitle(record) {

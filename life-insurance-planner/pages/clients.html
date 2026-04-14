@@ -300,6 +300,13 @@
                         </span>
                       </label>
                       <label class="client-directory-accessibility-option">
+                        <input type="checkbox" data-accessibility-setting="soft-avatars">
+                        <span class="client-directory-accessibility-option-copy">
+                          <span class="client-directory-accessibility-option-title">Softer Profile Icons</span>
+                          <span class="client-directory-accessibility-option-note">Switches initials avatars to light flat fills with darker matching initials.</span>
+                        </span>
+                      </label>
+                      <label class="client-directory-accessibility-option">
                         <input type="checkbox" data-accessibility-setting="reduced-motion">
                         <span class="client-directory-accessibility-option-copy">
                           <span class="client-directory-accessibility-option-title">Reduce Motion</span>
@@ -1031,6 +1038,7 @@
       const DEFAULT_ACCESSIBILITY_SETTINGS = Object.freeze({
         "large-text": false,
         "high-contrast": false,
+        "soft-avatars": false,
         "reduced-motion": false,
         "focus-assist": false
       });
@@ -1038,6 +1046,7 @@
       const ACCESSIBILITY_CLASS_BY_KEY = {
         "large-text": "is-a11y-large-text",
         "high-contrast": "is-a11y-high-contrast",
+        "soft-avatars": "is-a11y-soft-avatars",
         "reduced-motion": "is-a11y-reduced-motion",
         "focus-assist": "is-a11y-focus-assist"
       };
@@ -1336,11 +1345,21 @@
         return interpolateNumber(280, 360, (age - 65) / 35);
       }
 
-      function getAvatarBackground(ageValue, dateOfBirthValue) {
+      function getAvatarPresentation(ageValue, dateOfBirthValue) {
         const hue = getAvatarHue(ageValue, dateOfBirthValue);
+        if (Boolean(accessibilitySettings && accessibilitySettings["soft-avatars"])) {
+          return {
+            background: `hsl(${hue} 62% 88%)`,
+            color: `hsl(${hue} 46% 36%)`
+          };
+        }
+
         const highlightHue = hue;
         const shadowHue = (hue + 22) % 360;
-        return `linear-gradient(135deg, hsl(${highlightHue} 72% 66%), hsl(${shadowHue} 68% 44%))`;
+        return {
+          background: `linear-gradient(135deg, hsl(${highlightHue} 72% 66%), hsl(${shadowHue} 68% 44%))`,
+          color: "#ffffff"
+        };
       }
 
       function getClientDirectorySubtitle(record) {
@@ -3002,7 +3021,10 @@
         const priority = normalizePriority(record.priority);
         const isHouseholdAvatar = record.viewType === "households";
         const avatarClasses = `client-avatar${isHouseholdAvatar ? " client-avatar-household" : ""}`;
-        const avatarStyle = isHouseholdAvatar ? "" : ` style="background: ${getAvatarBackground(record.age, record.dateOfBirth)};"`;
+        const avatarPresentation = isHouseholdAvatar ? null : getAvatarPresentation(record.age, record.dateOfBirth);
+        const avatarStyle = avatarPresentation
+          ? ` style="background: ${avatarPresentation.background}; color: ${avatarPresentation.color};"`
+          : "";
         const isFlagged = Boolean(record.isFlagged);
         return `
           <div class="client-table client-table-clickable" role="row" tabindex="0" data-client-open="${record.id}">
@@ -3390,6 +3412,7 @@
           accessibilitySettings[key] = toggle.checked;
           persistAccessibilitySettings();
           syncAccessibilitySettings();
+          renderDirectory();
         });
       });
 
@@ -3397,6 +3420,7 @@
         accessibilitySettings = { ...DEFAULT_ACCESSIBILITY_SETTINGS };
         persistAccessibilitySettings();
         syncAccessibilitySettings();
+        renderDirectory();
       });
 
       summaryCardToggles.forEach(function (toggle) {
