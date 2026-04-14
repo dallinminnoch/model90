@@ -235,7 +235,9 @@
           aria-label="${escapeHtml(config.toggleLabel)}"
           title="${escapeHtml(config.toggleLabel)}"
         >
-          <span class="${escapeHtml(config.toggleGlyphClass)} workspace-side-nav-toggle-glyph" aria-hidden="true">&#8249;</span>
+          <span class="${escapeHtml(config.toggleGlyphClass)} workspace-side-nav-toggle-glyph" aria-hidden="true">
+            <img class="workspace-side-nav-toggle-art" src="../Images/doublearrow.svg" alt="">
+          </span>
         </button>
       </aside>
     `;

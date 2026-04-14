@@ -33,11 +33,12 @@
   const pageMenu = document.querySelector(".workspace-page-menu");
   const sidebarHost = document.querySelector("[data-workspace-side-nav-host]");
   const startView = document.querySelector("[data-studio-start-view]");
+  const nativeClientsView = document.querySelector("[data-studio-native-clients-view]");
   const embedShell = document.querySelector("[data-studio-embed-shell]");
   const embedFrame = document.querySelector("[data-studio-embed-frame]");
   const topbarLinks = Array.from(document.querySelectorAll("[data-studio-page]"));
 
-  if (!sidebarHost || !startView || !embedShell || !embedFrame || !window.WorkspaceSideNav) {
+  if (!sidebarHost || !startView || !nativeClientsView || !embedShell || !embedFrame || !window.WorkspaceSideNav) {
     return;
   }
 
@@ -197,12 +198,34 @@
     });
   }
 
+  function isNativeDirectoryView(viewValue) {
+    return getViewMeta(viewValue).shellMode === "directory";
+  }
+
+  function getNativeDirectoryApi() {
+    if (!isNativeDirectoryView(currentView)) {
+      return null;
+    }
+
+    const nativeApi = window.ClientDirectoryShellApi;
+    if (!nativeApi || typeof nativeApi.getState !== "function") {
+      return null;
+    }
+
+    return nativeApi;
+  }
+
   function syncShellVisibility() {
-    const isEmbedded = Boolean(currentView);
-    document.body.classList.toggle("is-embedded-tool", isEmbedded);
-    startView.hidden = isEmbedded;
-    embedShell.hidden = !isEmbedded;
-    if (!isEmbedded) {
+    const isToolView = Boolean(currentView);
+    const isNativeDirectory = isNativeDirectoryView(currentView);
+
+    document.body.classList.toggle("is-embedded-tool", isToolView && !isNativeDirectory);
+    document.body.classList.toggle("is-native-directory", isToolView && isNativeDirectory);
+    startView.hidden = isToolView;
+    nativeClientsView.hidden = !(isToolView && isNativeDirectory);
+    embedShell.hidden = !isToolView || isNativeDirectory;
+
+    if (!isToolView || isNativeDirectory) {
       resetEmbedAutoHeight();
     }
   }
@@ -501,6 +524,24 @@
   }
 
   function getEmbeddedDirectoryState() {
+    const nativeDirectoryApi = getNativeDirectoryApi();
+    if (nativeDirectoryApi) {
+      try {
+        const state = nativeDirectoryApi.getState();
+        const activeView = String(state?.activeView || "").trim();
+        const activeScope = String(state?.activeScope || "").trim();
+        const activePriority = String(state?.activePriority || "").trim();
+        return {
+          activeView: activeView || "individuals",
+          activeScope: activeScope || "all",
+          activePriority: activePriority || "all",
+          isAllActive: Boolean(state?.isAllActive)
+        };
+      } catch (_error) {
+        // Fall back to iframe or DOM-based state detection below.
+      }
+    }
+
     const frameWindow = getIframeWindow();
     const doc = getIframeDocument();
     const embeddedDirectoryApi = frameWindow && frameWindow.ClientDirectoryShellApi;
@@ -771,14 +812,24 @@
   }
 
   function setEmbeddedDirectoryAction(actionKey) {
-    const doc = getIframeDocument();
-    const frameWindow = getIframeWindow();
-    if (!doc) {
+    const nativeDirectoryApi = getNativeDirectoryApi();
+    const normalizedAction = String(actionKey || "").trim();
+
+    if (!normalizedAction) {
       return false;
     }
 
-    const normalizedAction = String(actionKey || "").trim();
-    if (!normalizedAction) {
+    if (nativeDirectoryApi && typeof nativeDirectoryApi.triggerAction === "function") {
+      try {
+        return Boolean(nativeDirectoryApi.triggerAction(normalizedAction));
+      } catch (_error) {
+        // Fall through to iframe-based controls when the native API is unavailable.
+      }
+    }
+
+    const doc = getIframeDocument();
+    const frameWindow = getIframeWindow();
+    if (!doc) {
       return false;
     }
 
@@ -843,11 +894,21 @@
   function navigateToView(viewValue, historyMode) {
     const nextView = normalizeViewValue(viewValue);
     const currentMode = historyMode || "push";
+    const nextMeta = getViewMeta(nextView);
 
     if (nextView === currentView && currentMode !== "none") {
       syncShellVisibility();
       renderSidebarForCurrentView();
-      scheduleEmbedAutoHeightSync();
+      if (nextMeta.shellMode === "directory" && window.StudioClientDirectory && typeof window.StudioClientDirectory.ensureMounted === "function") {
+        window.StudioClientDirectory.ensureMounted().then(function () {
+          if (window.ClientDirectoryShellApi && typeof window.ClientDirectoryShellApi.refresh === "function") {
+            window.ClientDirectoryShellApi.refresh();
+          }
+          syncCurrentPageControls("directory", nextMeta);
+        }).catch(function () {});
+      } else {
+        scheduleEmbedAutoHeightSync();
+      }
       return;
     }
 
@@ -865,6 +926,19 @@
     if (!nextView) {
       resetEmbedAutoHeight();
       scrollStartSection(currentScrollKey);
+      return;
+    }
+
+    if (nextMeta.shellMode === "directory") {
+      embedFrame.classList.remove("is-pending");
+      if (window.StudioClientDirectory && typeof window.StudioClientDirectory.ensureMounted === "function") {
+        window.StudioClientDirectory.ensureMounted().then(function () {
+          if (window.ClientDirectoryShellApi && typeof window.ClientDirectoryShellApi.refresh === "function") {
+            window.ClientDirectoryShellApi.refresh();
+          }
+          syncCurrentPageControls("directory", nextMeta);
+        }).catch(function () {});
+      }
       return;
     }
 
@@ -1131,15 +1205,9 @@
 
 
   setSidebarCollapsed(readSidebarCollapsed());
-  currentView = getViewFromWindowLocation(window.location);
-  syncShellVisibility();
-  renderSidebarForCurrentView();
-
-  if (currentView) {
-    embedFrame.classList.add("is-pending");
-    embedFrame.setAttribute("src", buildEmbedUrl(currentView));
-  } else {
-    scrollStartSection(currentScrollKey);
-  }
+  window.StudioShellApi = {
+    navigateToView: navigateToView
+  };
+  navigateToView(getViewFromWindowLocation(window.location), "none");
 })();
 

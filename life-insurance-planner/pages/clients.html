@@ -261,17 +261,71 @@
                   <img src="../Images/archive.svg" alt="" />
                 </span>
               </button>
-              <button class="client-directory-utility-button" type="button" data-directory-utility="accessibility" data-label="Accessibility" aria-label="Accessibility">
-                <span class="client-directory-utility-icon" aria-hidden="true">
-                  <img src="../Images/accessibility.svg" alt="" />
-                </span>
-              </button>
+              <div class="client-directory-accessibility" data-directory-accessibility>
+                <button class="client-directory-utility-button" type="button" data-directory-utility="accessibility" data-directory-accessibility-trigger data-label="Accessibility" aria-label="Accessibility" aria-expanded="false" aria-haspopup="dialog" aria-controls="client-directory-accessibility-dialog">
+                  <span class="client-directory-utility-icon" aria-hidden="true">
+                    <img src="../Images/accessibility.svg" alt="" />
+                  </span>
+                </button>
+                <div class="client-directory-accessibility-dialog" id="client-directory-accessibility-dialog" data-directory-accessibility-dialog hidden>
+                  <button class="client-directory-accessibility-backdrop" type="button" data-directory-accessibility-close tabindex="-1" aria-label="Close accessibility settings"></button>
+                  <div class="client-directory-accessibility-panel" data-directory-accessibility-panel role="dialog" aria-modal="true" aria-labelledby="client-directory-accessibility-title" aria-describedby="client-directory-accessibility-note" tabindex="-1">
+                    <div class="client-directory-accessibility-header">
+                      <div class="client-directory-accessibility-copy">
+                        <span class="client-directory-accessibility-kicker">Accessibility</span>
+                        <h2 class="client-directory-accessibility-title" id="client-directory-accessibility-title">Directory Settings</h2>
+                        <p class="client-directory-accessibility-note" id="client-directory-accessibility-note">Adjust reading, contrast, motion, and focus styling for this client directory view. Settings save automatically to your profile.</p>
+                      </div>
+                      <button class="client-directory-accessibility-close" type="button" data-directory-accessibility-close aria-label="Close accessibility settings">
+                        <span aria-hidden="true">
+                          <svg viewBox="0 0 16 16" fill="none">
+                            <path d="m4 4 8 8M12 4 4 12" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                          </svg>
+                        </span>
+                      </button>
+                    </div>
+                    <div class="client-directory-accessibility-options" role="group" aria-label="Accessibility settings">
+                      <label class="client-directory-accessibility-option">
+                        <input type="checkbox" data-accessibility-setting="large-text">
+                        <span class="client-directory-accessibility-option-copy">
+                          <span class="client-directory-accessibility-option-title">Larger Text</span>
+                          <span class="client-directory-accessibility-option-note">Slightly increases key titles, filters, table text, and search copy.</span>
+                        </span>
+                      </label>
+                      <label class="client-directory-accessibility-option">
+                        <input type="checkbox" data-accessibility-setting="high-contrast">
+                        <span class="client-directory-accessibility-option-copy">
+                          <span class="client-directory-accessibility-option-title">High Contrast</span>
+                          <span class="client-directory-accessibility-option-note">Deepens text and border contrast for easier scanning.</span>
+                        </span>
+                      </label>
+                      <label class="client-directory-accessibility-option">
+                        <input type="checkbox" data-accessibility-setting="reduced-motion">
+                        <span class="client-directory-accessibility-option-copy">
+                          <span class="client-directory-accessibility-option-title">Reduce Motion</span>
+                          <span class="client-directory-accessibility-option-note">Turns off hover lift, animated movement, and motion-heavy transitions.</span>
+                        </span>
+                      </label>
+                      <label class="client-directory-accessibility-option">
+                        <input type="checkbox" data-accessibility-setting="focus-assist">
+                        <span class="client-directory-accessibility-option-copy">
+                          <span class="client-directory-accessibility-option-title">Stronger Focus</span>
+                          <span class="client-directory-accessibility-option-note">Adds more visible focus rings to buttons, inputs, rows, and controls.</span>
+                        </span>
+                      </label>
+                    </div>
+                    <div class="client-directory-accessibility-actions">
+                      <p class="client-directory-accessibility-footnote">Changes apply immediately and stay with your advisor profile.</p>
+                      <button class="client-directory-accessibility-reset" type="button" data-directory-accessibility-reset>Reset</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div class="client-directory-summary-customize" data-summary-customize>
-                <button class="client-directory-utility-button client-directory-utility-button-labeled" type="button" data-summary-customize-trigger aria-expanded="false" aria-haspopup="dialog" aria-controls="client-directory-summary-customize-dialog">
+                <button class="client-directory-utility-button" type="button" data-summary-customize-trigger data-label="Customize Cards" aria-label="Customize Cards" aria-expanded="false" aria-haspopup="dialog" aria-controls="client-directory-summary-customize-dialog">
                   <span class="client-directory-utility-icon" aria-hidden="true">
                     <img src="../Images/customizepreviewcards.svg" alt="" />
                   </span>
-                  <span class="client-directory-utility-button-text">Customize Cards</span>
                 </button>
                 <div class="client-directory-summary-customize-dialog" id="client-directory-summary-customize-dialog" data-summary-customize-dialog hidden>
                   <button class="client-directory-summary-customize-backdrop" type="button" data-summary-customize-close tabindex="-1" aria-label="Close customize cards"></button>
@@ -663,9 +717,11 @@
         </section>
 
         <section class="client-directory-toolbar">
+          <div class="client-directory-toolbar-spacer" aria-hidden="true"></div>
           <form class="client-table-search" role="search">
             <input type="search" placeholder="Search for Clients">
           </form>
+          <div class="client-directory-toolbar-search-spacer" aria-hidden="true"></div>
           <nav class="client-status-tabs" aria-label="Client status filters">
                 <button class="client-status-tab is-active" type="button" data-client-status="all"><span class="client-status-tab-label">View All</span><span class="client-status-tab-count" data-status-count="all">0</span></button>
             <button class="client-status-tab" type="button" data-client-status="prospects"><span class="client-status-tab-label">Prospects</span><span class="client-status-tab-count" data-status-count="prospects">0</span></button>
@@ -712,8 +768,10 @@
             <div class="client-table-cell client-table-cell-nowrap client-table-cell-coverage-amount-title" id="client-table-heading-coverage">Coverage Gap</div>
             <div class="client-table-cell client-table-cell-value client-table-cell-priority-title">Priority</div>
           </div>
-          <div id="client-table-rows"></div>
-          <div class="client-empty-state" id="client-empty-state" hidden>No Results</div>
+          <div class="client-table-body">
+            <div id="client-table-rows"></div>
+            <div class="client-empty-state" id="client-empty-state" hidden>No Results</div>
+          </div>
 
           <footer class="client-table-footer">
             <button class="client-pagination-button" type="button" id="client-prev-page">Previous</button>
@@ -896,6 +954,13 @@
       const summaryCustomizePanel = document.querySelector("[data-summary-customize-panel]");
       const summaryCustomizeCloseButtons = Array.from(document.querySelectorAll("[data-summary-customize-close]"));
       const summaryCardToggles = Array.from(document.querySelectorAll("[data-summary-card-toggle]"));
+      const directoryAccessibility = document.querySelector("[data-directory-accessibility]");
+      const directoryAccessibilityTrigger = document.querySelector("[data-directory-accessibility-trigger]");
+      const directoryAccessibilityDialog = document.querySelector("[data-directory-accessibility-dialog]");
+      const directoryAccessibilityPanel = document.querySelector("[data-directory-accessibility-panel]");
+      const directoryAccessibilityCloseButtons = Array.from(document.querySelectorAll("[data-directory-accessibility-close]"));
+      const directoryAccessibilityToggles = Array.from(document.querySelectorAll("[data-accessibility-setting]"));
+      const directoryAccessibilityResetButton = document.querySelector("[data-directory-accessibility-reset]");
       const directorySidebarHost = document.querySelector('[data-workspace-side-nav="directory"]');
       const directorySidebarLayout = document.querySelector("[data-directory-sidebar-layout]");
       const directorySidebarToggle = document.querySelector("[data-directory-sidebar-toggle]");
@@ -922,7 +987,8 @@
         clientRecords: "lensClientRecords",
         pendingClientRecords: "lensPendingClientRecords",
         summaryCards: "clientDirectorySummaryCards",
-        directoryOrder: "clientDirectoryOrder"
+        directoryOrder: "clientDirectoryOrder",
+        accessibility: "clientDirectoryAccessibility"
       };
 
       let activeLetter = "all";
@@ -937,6 +1003,8 @@
       const selectedRecordIds = new Set();
       let summaryCardVisibility = null;
       let summaryCustomizeReturnFocus = null;
+      let accessibilitySettings = null;
+      let directoryAccessibilityReturnFocus = null;
 
       function loadJson(source, key) {
         try {
@@ -958,6 +1026,21 @@
       const directorySidebarStorageKey = `workspaceSideNavCollapsed:${getStorageIdentity()}`;
       const summaryCardsStorageKey = `${STORAGE_KEYS.summaryCards}:${getStorageIdentity()}`;
       const directoryOrderStorageKey = `${STORAGE_KEYS.directoryOrder}:${getStorageIdentity()}`;
+      const directoryAccessibilityStorageKey = `${STORAGE_KEYS.accessibility}:${getStorageIdentity()}`;
+
+      const DEFAULT_ACCESSIBILITY_SETTINGS = Object.freeze({
+        "large-text": false,
+        "high-contrast": false,
+        "reduced-motion": false,
+        "focus-assist": false
+      });
+
+      const ACCESSIBILITY_CLASS_BY_KEY = {
+        "large-text": "is-a11y-large-text",
+        "high-contrast": "is-a11y-high-contrast",
+        "reduced-motion": "is-a11y-reduced-motion",
+        "focus-assist": "is-a11y-focus-assist"
+      };
 
       function loadDirectoryOrder() {
         try {
@@ -976,7 +1059,72 @@
         }
       }
 
+      function normalizeAccessibilitySettings(value) {
+        const normalized = { ...DEFAULT_ACCESSIBILITY_SETTINGS };
+        if (!value || typeof value !== "object") {
+          return normalized;
+        }
+
+        Object.keys(normalized).forEach(function (key) {
+          normalized[key] = Boolean(value[key]);
+        });
+
+        return normalized;
+      }
+
+      function loadAccessibilitySettings() {
+        try {
+          return normalizeAccessibilitySettings(loadJson(localStorage, directoryAccessibilityStorageKey));
+        } catch (error) {
+          return { ...DEFAULT_ACCESSIBILITY_SETTINGS };
+        }
+      }
+
+      function persistAccessibilitySettings() {
+        try {
+          localStorage.setItem(directoryAccessibilityStorageKey, JSON.stringify(accessibilitySettings));
+        } catch (error) {
+          // Ignore persistence failures and keep the current in-memory state.
+        }
+      }
+
+      function hasActiveAccessibilitySetting() {
+        return Object.keys(DEFAULT_ACCESSIBILITY_SETTINGS).some(function (key) {
+          return Boolean(accessibilitySettings && accessibilitySettings[key]);
+        });
+      }
+
+      function syncAccessibilitySettings() {
+        const accessibilityRoot = directorySidebarLayout instanceof HTMLElement
+          ? directorySidebarLayout
+          : document.querySelector(".client-directory-shell-layout");
+
+        if (accessibilityRoot instanceof HTMLElement) {
+          Object.keys(ACCESSIBILITY_CLASS_BY_KEY).forEach(function (key) {
+            accessibilityRoot.classList.toggle(ACCESSIBILITY_CLASS_BY_KEY[key], Boolean(accessibilitySettings && accessibilitySettings[key]));
+          });
+        }
+
+        directoryAccessibilityToggles.forEach(function (toggle) {
+          const key = String(toggle.dataset.accessibilitySetting || "").trim();
+          if (!key || !(key in DEFAULT_ACCESSIBILITY_SETTINGS)) {
+            return;
+          }
+
+          toggle.checked = Boolean(accessibilitySettings && accessibilitySettings[key]);
+        });
+
+        if (directoryAccessibilityTrigger instanceof HTMLElement) {
+          directoryAccessibilityTrigger.classList.toggle("is-active", hasActiveAccessibilitySetting());
+        }
+
+        if (directoryAccessibilityResetButton instanceof HTMLButtonElement) {
+          directoryAccessibilityResetButton.disabled = !hasActiveAccessibilitySetting();
+        }
+      }
+
       sortOrder = loadDirectoryOrder();
+      accessibilitySettings = loadAccessibilitySettings();
 
       function toStorageCompatibleRecord(record) {
         if (!record || typeof record !== "object") {
@@ -1660,6 +1808,16 @@
         });
       }
 
+      function getDirectoryAccessibilityFocusableElements() {
+        if (!(directoryAccessibilityPanel instanceof HTMLElement)) {
+          return [];
+        }
+
+        return Array.from(directoryAccessibilityPanel.querySelectorAll('button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')).filter(function (element) {
+          return element instanceof HTMLElement && !element.closest("[hidden]");
+        });
+      }
+
       function setSummaryCustomizeOpen(isOpen, shouldRestoreFocus) {
         if (
           !(summaryCustomize instanceof HTMLElement)
@@ -1701,6 +1859,49 @@
         }
 
         summaryCustomizeReturnFocus = null;
+      }
+
+      function setDirectoryAccessibilityOpen(isOpen, shouldRestoreFocus) {
+        if (
+          !(directoryAccessibility instanceof HTMLElement)
+          || !(directoryAccessibilityTrigger instanceof HTMLButtonElement)
+          || !(directoryAccessibilityDialog instanceof HTMLElement)
+          || !(directoryAccessibilityPanel instanceof HTMLElement)
+        ) {
+          return;
+        }
+
+        const willOpen = Boolean(isOpen);
+        if (willOpen) {
+          directoryAccessibilityReturnFocus = document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : directoryAccessibilityTrigger;
+        }
+
+        directoryAccessibility.classList.toggle("is-open", willOpen);
+        directoryAccessibilityDialog.hidden = !willOpen;
+        directoryAccessibilityDialog.setAttribute("aria-hidden", willOpen ? "false" : "true");
+        directoryAccessibilityTrigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+        document.body.classList.toggle("directory-accessibility-open", willOpen);
+
+        if (willOpen) {
+          window.setTimeout(function () {
+            const firstFocusable = getDirectoryAccessibilityFocusableElements()[0];
+            if (firstFocusable instanceof HTMLElement) {
+              firstFocusable.focus();
+              return;
+            }
+
+            directoryAccessibilityPanel.focus();
+          }, 0);
+          return;
+        }
+
+        if (shouldRestoreFocus !== false && directoryAccessibilityReturnFocus instanceof HTMLElement) {
+          directoryAccessibilityReturnFocus.focus();
+        }
+
+        directoryAccessibilityReturnFocus = null;
       }
 
       function syncSummaryCardVisibility() {
@@ -1753,6 +1954,7 @@
       }
 
       summaryCardVisibility = loadSummaryCardVisibility();
+      syncAccessibilitySettings();
 
       function syncDirectorySummaryCards() {
         const scopedRecords = getDirectoryScopeRecords({ includeStatus: false });
@@ -3152,6 +3354,7 @@
 
       summaryCustomizeTrigger?.addEventListener("click", function (event) {
         event.stopPropagation();
+        setDirectoryAccessibilityOpen(false, false);
         const willOpen = !summaryCustomize?.classList.contains("is-open");
         setSummaryCustomizeOpen(Boolean(willOpen));
       });
@@ -3161,6 +3364,39 @@
           event.stopPropagation();
           setSummaryCustomizeOpen(false);
         });
+      });
+
+      directoryAccessibilityTrigger?.addEventListener("click", function (event) {
+        event.stopPropagation();
+        setSummaryCustomizeOpen(false, false);
+        const willOpen = !directoryAccessibility?.classList.contains("is-open");
+        setDirectoryAccessibilityOpen(Boolean(willOpen));
+      });
+
+      directoryAccessibilityCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function (event) {
+          event.stopPropagation();
+          setDirectoryAccessibilityOpen(false);
+        });
+      });
+
+      directoryAccessibilityToggles.forEach(function (toggle) {
+        toggle.addEventListener("change", function () {
+          const key = String(toggle.dataset.accessibilitySetting || "").trim();
+          if (!key || !(key in DEFAULT_ACCESSIBILITY_SETTINGS)) {
+            return;
+          }
+
+          accessibilitySettings[key] = toggle.checked;
+          persistAccessibilitySettings();
+          syncAccessibilitySettings();
+        });
+      });
+
+      directoryAccessibilityResetButton?.addEventListener("click", function () {
+        accessibilitySettings = { ...DEFAULT_ACCESSIBILITY_SETTINGS };
+        persistAccessibilitySettings();
+        syncAccessibilitySettings();
       });
 
       summaryCardToggles.forEach(function (toggle) {
@@ -3224,6 +3460,10 @@
           setDirectoryTitleMenuOpen(false);
         }
 
+        if (!event.target.closest("[data-directory-accessibility]")) {
+          setDirectoryAccessibilityOpen(false);
+        }
+
         if (!event.target.closest("[data-summary-customize]")) {
           setSummaryCustomizeOpen(false);
         }
@@ -3250,19 +3490,30 @@
   <script>
     document.addEventListener("keydown", function (event) {
       if (event.key === "Tab") {
-        const summaryCustomizeDialog = document.querySelector("[data-summary-customize-dialog]");
-        const summaryCustomizePanel = document.querySelector("[data-summary-customize-panel]");
-        if (!summaryCustomizeDialog || summaryCustomizeDialog.hidden || !summaryCustomizePanel) {
+        const activeDialogState = [
+          {
+            dialog: document.querySelector("[data-directory-accessibility-dialog]"),
+            panel: document.querySelector("[data-directory-accessibility-panel]")
+          },
+          {
+            dialog: document.querySelector("[data-summary-customize-dialog]"),
+            panel: document.querySelector("[data-summary-customize-panel]")
+          }
+        ].find(function (state) {
+          return state.dialog && !state.dialog.hidden && state.panel;
+        });
+
+        if (!activeDialogState) {
           return;
         }
 
-        const focusableElements = Array.from(summaryCustomizePanel.querySelectorAll('button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')).filter(function (element) {
+        const focusableElements = Array.from(activeDialogState.panel.querySelectorAll('button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')).filter(function (element) {
           return element instanceof HTMLElement && !element.closest("[hidden]");
         });
 
         if (!focusableElements.length) {
           event.preventDefault();
-          summaryCustomizePanel.focus();
+          activeDialogState.panel.focus();
           return;
         }
 
@@ -3289,6 +3540,23 @@
       if (directoryTitleMenu && directoryTitleMenuTrigger) {
         directoryTitleMenu.classList.remove("is-open");
         directoryTitleMenuTrigger.setAttribute("aria-expanded", "false");
+      }
+
+      const directoryAccessibility = document.querySelector("[data-directory-accessibility]");
+      const directoryAccessibilityTrigger = document.querySelector("[data-directory-accessibility-trigger]");
+      const directoryAccessibilityDialog = document.querySelector("[data-directory-accessibility-dialog]");
+      const wasDirectoryAccessibilityOpen = Boolean(directoryAccessibilityDialog && !directoryAccessibilityDialog.hidden);
+      if (directoryAccessibility && directoryAccessibilityTrigger) {
+        directoryAccessibility.classList.remove("is-open");
+        if (directoryAccessibilityDialog) {
+          directoryAccessibilityDialog.hidden = true;
+          directoryAccessibilityDialog.setAttribute("aria-hidden", "true");
+        }
+        directoryAccessibilityTrigger.setAttribute("aria-expanded", "false");
+        document.body.classList.remove("directory-accessibility-open");
+        if (wasDirectoryAccessibilityOpen) {
+          directoryAccessibilityTrigger.focus();
+        }
       }
 
       const summaryCustomize = document.querySelector("[data-summary-customize]");
