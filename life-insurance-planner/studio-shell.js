@@ -37,6 +37,11 @@
   const embedShell = document.querySelector("[data-studio-embed-shell]");
   const embedFrame = document.querySelector("[data-studio-embed-frame]");
   const topbarLinks = Array.from(document.querySelectorAll("[data-studio-page]"));
+  const studioSearchHost = document.querySelector("[data-studio-search-host]");
+  const studioSearchShell = document.querySelector("[data-studio-search-shell]");
+  const studioSearchField = document.querySelector("[data-studio-search-field]");
+  const studioSearchInput = document.querySelector("[data-studio-search-input]");
+  const studioSearchResults = document.querySelector("[data-studio-search-results]");
 
   if (!sidebarHost || !startView || !nativeClientsView || !embedShell || !embedFrame || !window.WorkspaceSideNav) {
     return;
@@ -49,6 +54,7 @@
   let embedMutationObserver = null;
   let observedEmbedWindow = null;
   let observedEmbedWindowResizeHandler = null;
+  let studioSearchApi = null;
 
   function getStorageIdentity() {
     try {
@@ -1149,11 +1155,23 @@
     document.querySelectorAll(".workspace-page-menu[open]").forEach(function (menu) {
       menu.removeAttribute("open");
     });
+    if (studioSearchApi && typeof studioSearchApi.hide === "function") {
+      studioSearchApi.hide();
+    }
   }
 
   document.addEventListener("click", function (event) {
-    if (!event.target.closest(".workspace-page-menu")) {
-      closeMenus();
+    const clickedInsidePageMenu = Boolean(event.target.closest(".workspace-page-menu"));
+    const clickedInsideSearch = Boolean(event.target.closest("[data-studio-search-shell]"));
+
+    if (!clickedInsidePageMenu) {
+      document.querySelectorAll(".workspace-page-menu[open]").forEach(function (menu) {
+        menu.removeAttribute("open");
+      });
+    }
+
+    if (!clickedInsideSearch && studioSearchApi && typeof studioSearchApi.hide === "function") {
+      studioSearchApi.hide();
     }
 
     const returnToDirectoryLink = event.target.closest("[data-client-directory-return]");
@@ -1187,6 +1205,12 @@
     }
   });
 
+  document.addEventListener("focusin", function (event) {
+    if (!event.target.closest("[data-studio-search-shell]") && studioSearchApi && typeof studioSearchApi.hide === "function") {
+      studioSearchApi.hide();
+    }
+  });
+
   embedFrame.addEventListener("load", function () {
     const doc = getIframeDocument();
     injectEmbedStyles(doc);
@@ -1205,6 +1229,18 @@
 
 
   setSidebarCollapsed(readSidebarCollapsed());
+  // CODE NOTE: Keep Studio search modular so shell routing/layout stays easy to edit.
+  if (window.StudioSearch && typeof window.StudioSearch.create === "function") {
+    studioSearchApi = window.StudioSearch.create({
+      host: studioSearchHost,
+      shell: studioSearchShell,
+      field: studioSearchField,
+      input: studioSearchInput,
+      results: studioSearchResults,
+      navigateToView: navigateToView,
+      getStorageIdentity: getStorageIdentity
+    });
+  }
   window.StudioShellApi = {
     navigateToView: navigateToView
   };

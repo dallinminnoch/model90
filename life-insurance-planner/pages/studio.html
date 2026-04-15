@@ -102,6 +102,22 @@
           </a>
         </div>
       </details>
+      <!-- CODE NOTE: Studio-wide search lives in the top nav so it stays constant across all Studio pages. -->
+      <div class="workspace-page-topbar-search-host" data-studio-search-host>
+        <div class="studio-command-search-shell" data-studio-search-shell>
+          <label class="sr-only" for="studio-command-search-input">Search Studio</label>
+          <div class="studio-command-search-field" data-studio-search-field>
+            <span class="studio-command-search-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <circle cx="8.7" cy="8.7" r="4.95" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M12.45 12.45 16.2 16.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <input id="studio-command-search-input" type="search" data-studio-search-input placeholder="Search clients, pages, and tools" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="studio-command-search-results" data-studio-search-results hidden></div>
+        </div>
+      </div>
       <div class="workspace-page-topbar-actions">
         <button class="fullscreen-toggle" type="button" data-fullscreen-toggle aria-label="Enter full screen" title="Enter full screen" aria-pressed="false">
           <img class="fullscreen-toggle-icon" data-fullscreen-icon src="../Images/openfullscreen.svg" alt="" aria-hidden="true">
@@ -238,6 +254,7 @@
   <!-- CODE NOTE: Shared Close Index engine for native Studio-mounted Client Directory. -->
   <script src="../opportunity-score.js"></script>
   <script src="../studio-client-directory.js"></script>
+  <script src="../studio-search.js"></script>
   <script src="../studio-shell.js"></script>
 </body>
 </html>
