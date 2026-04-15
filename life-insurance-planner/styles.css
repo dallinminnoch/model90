@@ -4323,6 +4323,13 @@ select option:disabled {
   outline: none;
 }
 
+.client-directory-summary-customize-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+  box-shadow: none;
+  transform: none;
+}
+
 .client-directory-summary-customize-card.is-drop-target {
   border-color: rgba(92, 63, 214, 0.38);
   box-shadow: 0 0 0 2px rgba(92, 63, 214, 0.14);
@@ -4998,13 +5005,76 @@ body.is-modal-open {
   height: 1.42rem;
 }
 
-.client-directory-summary-card-placed .client-directory-summary-icon {
-  color: #5b52ca;
+.client-directory-summary-icon-glyph {
+  width: 1.42rem;
+  height: 1.42rem;
+  display: block;
+  background-color: currentColor;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+}
+
+.client-directory-summary-icon-glyph-uparrows {
+  -webkit-mask-image: url("Images/uparrows.svg");
+  mask-image: url("Images/uparrows.svg");
+}
+
+.client-directory-summary-card-recommended-actions .client-directory-summary-icon {
+  color: #5f57ca;
   background: #eceafd;
 }
 
-.client-directory-summary-card-placed {
-  border-bottom-color: #5b52ca;
+.client-directory-summary-card-recommended-actions {
+  border-bottom-color: #5f57ca;
+}
+
+.client-directory-summary-card-high-probability-closers .client-directory-summary-icon {
+  color: #16824d;
+  background: #e2f6ea;
+}
+
+.client-directory-summary-card-high-probability-closers {
+  border-bottom-color: #16824d;
+}
+
+.client-directory-summary-card-revenue-at-risk .client-directory-summary-icon {
+  color: #c66a05;
+  background: #fff0d2;
+}
+
+.client-directory-summary-card-revenue-at-risk {
+  border-bottom-color: #c66a05;
+}
+
+.client-directory-summary-card-largest-opportunities .client-directory-summary-icon {
+  color: #0f766e;
+  background: #dff7f4;
+}
+
+.client-directory-summary-card-largest-opportunities {
+  border-bottom-color: #0f766e;
+}
+
+.client-directory-summary-card-blocked-missing-information .client-directory-summary-icon {
+  color: #5c6478;
+  background: #eef1f6;
+}
+
+.client-directory-summary-card-blocked-missing-information {
+  border-bottom-color: #5c6478;
+}
+
+.client-directory-summary-card-pipeline-bottlenecks .client-directory-summary-icon {
+  color: #2563eb;
+  background: #e7efff;
+}
+
+.client-directory-summary-card-pipeline-bottlenecks {
+  border-bottom-color: #2563eb;
 }
 
 .client-directory-summary-card-pipeline .client-directory-summary-icon {
@@ -5025,60 +5095,6 @@ body.is-modal-open {
   border-bottom-color: #d27c00;
 }
 
-.client-directory-summary-card-opportunity .client-directory-summary-icon {
-  color: #0f766e;
-  background: #dff7f4;
-}
-
-.client-directory-summary-card-opportunity {
-  border-bottom-color: #0f766e;
-}
-
-.client-directory-summary-card-placement-rate .client-directory-summary-icon {
-  color: #15803d;
-  background: #ddf6e5;
-}
-
-.client-directory-summary-card-placement-rate {
-  border-bottom-color: #15803d;
-}
-
-.client-directory-summary-card-average-gap .client-directory-summary-icon {
-  color: #c26700;
-  background: #fff1d8;
-}
-
-.client-directory-summary-card-average-gap {
-  border-bottom-color: #c26700;
-}
-
-.client-directory-summary-card-protection-progress .client-directory-summary-icon {
-  color: #6d4de5;
-  background: #ede8ff;
-}
-
-.client-directory-summary-card-protection-progress {
-  border-bottom-color: #6d4de5;
-}
-
-.client-directory-summary-card-household-exposure .client-directory-summary-icon {
-  color: #0f766e;
-  background: #ddf7f0;
-}
-
-.client-directory-summary-card-household-exposure {
-  border-bottom-color: #0f766e;
-}
-
-.client-directory-summary-card-business-cases .client-directory-summary-icon {
-  color: #2563eb;
-  background: #e6efff;
-}
-
-.client-directory-summary-card-business-cases {
-  border-bottom-color: #2563eb;
-}
-
 .client-directory-summary-card-review-health .client-directory-summary-icon {
   color: #475569;
   background: #edf2f7;
@@ -5086,6 +5102,24 @@ body.is-modal-open {
 
 .client-directory-summary-card-review-health {
   border-bottom-color: #475569;
+}
+
+.client-directory-summary-card-placed .client-directory-summary-icon {
+  color: #5b52ca;
+  background: #eceafd;
+}
+
+.client-directory-summary-card-placed {
+  border-bottom-color: #5b52ca;
+}
+
+.client-directory-summary-card-household-joint-review .client-directory-summary-icon {
+  color: #0f766e;
+  background: #ddf7f0;
+}
+
+.client-directory-summary-card-household-joint-review {
+  border-bottom-color: #0f766e;
 }
 
 .client-directory-summary-badge {
@@ -5246,6 +5280,30 @@ body.is-modal-open {
   flex-shrink: 0;
 }
 
+.client-directory-summary-dot-muted {
+  background: #d8deea;
+}
+
+.client-directory-summary-dot-action {
+  background: #5d54d0;
+}
+
+.client-directory-summary-dot-closer {
+  background: #16a34a;
+}
+
+.client-directory-summary-dot-risk {
+  background: #de7f08;
+}
+
+.client-directory-summary-dot-bottleneck {
+  background: #2563eb;
+}
+
+.client-directory-summary-dot-blocked {
+  background: #6b7280;
+}
+
 .client-directory-summary-dot-prospect {
   background: #5d54d0;
 }
@@ -5271,7 +5329,7 @@ body.is-modal-open {
 }
 
 .client-directory-summary-dot-opportunity {
-  background: #dc2626;
+  background: #0f766e;
 }
 
 .client-directory-summary-dot-pipeline {

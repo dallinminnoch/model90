@@ -341,7 +341,7 @@
                       <div class="client-directory-summary-customize-copy">
                         <span class="client-directory-summary-customize-kicker">Customize Cards</span>
                         <h2 class="client-directory-summary-customize-title" id="client-directory-summary-customize-title">Preview Cards</h2>
-                        <p class="client-directory-summary-customize-note" id="client-directory-summary-customize-note">Drag cards into the preview, move them around, and save when the layout looks right.</p>
+                        <p class="client-directory-summary-customize-note" id="client-directory-summary-customize-note">Build the execution view advisors see first. Choose up to 6 cards, arrange them here, and save when the row feels right.</p>
                       </div>
                       <button class="client-directory-summary-customize-close" type="button" data-summary-customize-close aria-label="Close customize cards">
                         <span aria-hidden="true">
@@ -356,14 +356,14 @@
                         <section class="client-directory-summary-customize-section" aria-labelledby="client-directory-summary-customize-library-title">
                           <div class="client-directory-summary-customize-section-head">
                             <span class="client-directory-summary-customize-section-kicker" id="client-directory-summary-customize-library-title">Available Cards</span>
-                            <p class="client-directory-summary-customize-section-note">Drag cards into the preview, or click them to add them to the end.</p>
+                            <p class="client-directory-summary-customize-section-note">Core execution cards come first. Drag a card into the preview, or click to add it at the end.</p>
                           </div>
                           <div class="client-directory-summary-customize-library" data-summary-customize-available data-summary-dropzone="available" role="list" aria-label="Available preview cards"></div>
                         </section>
                         <section class="client-directory-summary-customize-section client-directory-summary-customize-section-preview" aria-labelledby="client-directory-summary-customize-preview-title">
                           <div class="client-directory-summary-customize-section-head">
                             <span class="client-directory-summary-customize-section-kicker" id="client-directory-summary-customize-preview-title">Preview Layout</span>
-                            <p class="client-directory-summary-customize-section-note">Move cards around here to preview the row order before saving.</p>
+                            <p class="client-directory-summary-customize-section-note">Arrange up to 6 cards in the order advisors should see them on the Client Directory screen.</p>
                           </div>
                           <div class="client-directory-summary-customize-preview-shell">
                             <div class="client-directory-summary-customize-screen">
@@ -448,7 +448,7 @@
                       </div>
                     </div>
                     <div class="client-directory-summary-customize-actions">
-                      <p class="client-directory-summary-customize-footnote" data-summary-customize-status>At least one preview card remains visible. Drag cards on or off the preview before saving.</p>
+                      <p class="client-directory-summary-customize-footnote" data-summary-customize-status>Choose between 1 and 6 cards. Drag cards on or off the preview before saving.</p>
                       <div class="client-directory-summary-customize-action-buttons">
                         <button class="client-directory-summary-customize-action client-header-action client-header-action-secondary" type="button" data-summary-customize-cancel>Cancel</button>
                         <button class="client-directory-summary-customize-action client-header-action client-header-action-primary" type="button" data-summary-customize-save>Save Cards</button>
@@ -476,36 +476,240 @@
         </header>
 
         <section class="client-directory-summary" data-directory-summary aria-label="Client directory summary">
-          <article class="client-directory-summary-card client-directory-summary-card-placed" data-summary-card="placed">
+          <article class="client-directory-summary-card client-directory-summary-card-recommended-actions" data-summary-card="recommended-actions">
             <div class="client-directory-summary-top">
               <span class="client-directory-summary-icon" aria-hidden="true">
                 <svg viewBox="0 0 20 20" fill="none">
-                  <path d="M4 13.4 7.2 9.7l2.4 2.35L15.7 4.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M12.95 4.9h2.75v2.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M5.1 5.35h4.35M5.1 10h4.35M5.1 14.65h4.35" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  <path d="m11.95 6.55 1.15 1.15 1.95-2.2M11.95 11.2l1.15 1.15 1.95-2.2M11.95 15.85l1.15 1.15 1.95-2.2" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </span>
-              <span class="client-directory-summary-badge" data-summary-placed-chip data-tone="positive">No monthly change</span>
+              <span class="client-directory-summary-badge" data-summary-chip data-tone="neutral">No urgent actions</span>
             </div>
-            <span class="client-directory-summary-kicker">Coverage Placed</span>
-            <strong class="client-directory-summary-value" data-summary-placed-total>$0</strong>
-            <p class="client-directory-summary-note" data-summary-placed-note>No placed coverage yet</p>
+            <span class="client-directory-summary-kicker">Recommended Actions</span>
+            <strong class="client-directory-summary-value" data-summary-total>0</strong>
+            <p class="client-directory-summary-note" data-summary-note>No immediate advisor actions are waiting in this view.</p>
             <div class="client-directory-summary-divider" aria-hidden="true"></div>
-            <div class="client-directory-summary-progress">
-              <div class="client-directory-summary-progress-head">
-                <span>Monthly goal</span>
-                <strong data-summary-placed-progress-percent>0%</strong>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-action" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Highest-impact advisor follow-up</span>
+                </span>
+                <strong data-summary-row-value>$0</strong>
               </div>
-              <div class="client-directory-summary-progress-track" aria-hidden="true">
-                <span class="client-directory-summary-progress-fill" data-summary-placed-progress-fill style="width:0%;"></span>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-action" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Next best execution step</span>
+                </span>
+                <strong data-summary-row-value>$0</strong>
               </div>
-              <div class="client-directory-summary-progress-foot">
-                <span data-summary-placed-month-detail>$0 added this month</span>
-                <strong data-summary-placed-goal>$0 target</strong>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-action" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Advisor follow-up ranked by impact</span>
+                </span>
+                <strong data-summary-row-value>$0</strong>
               </div>
             </div>
           </article>
 
-          <article class="client-directory-summary-card client-directory-summary-card-pipeline" data-summary-card="pipeline">
+          <article class="client-directory-summary-card client-directory-summary-card-high-probability-closers" data-summary-card="high-probability-closers">
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <circle cx="10" cy="10" r="5.9" stroke="currentColor" stroke-width="1.7"/>
+                  <circle cx="10" cy="10" r="2.05" stroke="currentColor" stroke-width="1.55"/>
+                  <path d="M10 2.95v2.15M17.05 10H14.9M10 17.05V14.9M2.95 10H5.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-chip data-tone="neutral">No late-stage momentum</span>
+            </div>
+            <span class="client-directory-summary-kicker">High-Probability Closers</span>
+            <strong class="client-directory-summary-value" data-summary-total>$0</strong>
+            <p class="client-directory-summary-note" data-summary-note>No late-stage cases are lining up to close soon.</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-closer" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Late-stage case likely to close</span>
+                </span>
+                <strong data-summary-row-value>$0</strong>
+              </div>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-closer" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Proposal-ready case</span>
+                </span>
+                <strong data-summary-row-value>$0</strong>
+              </div>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-closer" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Likely close in the next 30 days</span>
+                </span>
+                <strong data-summary-row-value>$0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-revenue-at-risk" data-summary-card="revenue-at-risk">
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M4.25 14.9h11.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                  <path d="m6.65 7.15 2.15 2.25 3.15-3.3 2.15 2.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M14.1 8.3V5.8h-2.55" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-chip data-tone="neutral">No aging case risk</span>
+            </div>
+            <span class="client-directory-summary-kicker">Revenue at Risk</span>
+            <strong class="client-directory-summary-value" data-summary-total>$0</strong>
+            <p class="client-directory-summary-note" data-summary-note>No aging cases are putting modeled revenue at risk.</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-risk" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Aging case at risk of slipping</span>
+                </span>
+                <strong data-summary-row-value>$0</strong>
+              </div>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-risk" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Underwriting follow-up overdue</span>
+                </span>
+                <strong data-summary-row-value>$0</strong>
+              </div>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-risk" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Case needs intervention now</span>
+                </span>
+                <strong data-summary-row-value>$0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-largest-opportunities" data-summary-card="largest-opportunities">
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <span class="client-directory-summary-icon-glyph client-directory-summary-icon-glyph-uparrows"></span>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-chip data-tone="neutral">No modeled opportunities</span>
+            </div>
+            <span class="client-directory-summary-kicker">Largest Opportunities</span>
+            <strong class="client-directory-summary-value" data-summary-total>$0</strong>
+            <p class="client-directory-summary-note" data-summary-note>No uncovered opportunity remains after current coverage in this view.</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-opportunity" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Largest net uncovered opportunity</span>
+                </span>
+                <strong data-summary-row-value>$0</strong>
+              </div>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-opportunity" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Net of current coverage on file</span>
+                </span>
+                <strong data-summary-row-value>$0</strong>
+              </div>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-opportunity" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Highest-value gap in the current view</span>
+                </span>
+                <strong data-summary-row-value>$0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-blocked-missing-information" data-summary-card="blocked-missing-information">
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M6.1 4.55h7.8A1.4 1.4 0 0 1 15.3 5.95v8.1a1.4 1.4 0 0 1-1.4 1.4H6.1a1.4 1.4 0 0 1-1.4-1.4v-8.1a1.4 1.4 0 0 1 1.4-1.4Z" stroke="currentColor" stroke-width="1.7"/>
+                  <path d="M7.3 8.1h5.4M7.3 11h3.2" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"/>
+                  <circle cx="13.65" cy="13.3" r="1.15" fill="currentColor"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-chip data-tone="neutral">Workflow clear</span>
+            </div>
+            <span class="client-directory-summary-kicker">Blocked / Missing Information</span>
+            <strong class="client-directory-summary-value" data-summary-total>0</strong>
+            <p class="client-directory-summary-note" data-summary-note>No active cases are waiting on missing information.</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-blocked" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Waiting on client financial input</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-blocked" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Incomplete profile or missing intake</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-blocked" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Analysis still waiting to start</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-pipeline-bottlenecks" data-summary-card="pipeline-bottlenecks">
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M4.25 5.05h11.5l-3.85 4.45v3.45l-3.8 2V9.5L4.25 5.05Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-chip data-tone="neutral">No workflow pileup</span>
+            </div>
+            <span class="client-directory-summary-kicker">Pipeline Bottlenecks</span>
+            <strong class="client-directory-summary-value" data-summary-total>0</strong>
+            <p class="client-directory-summary-note" data-summary-note>The workflow is moving cleanly with no concentrated bottleneck.</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-bottleneck" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Preliminary underwriting</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-bottleneck" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Protection modeling inputs</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-bottleneck" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Needs analysis</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-pipeline" data-summary-card="pipeline" hidden>
             <div class="client-directory-summary-top">
               <span class="client-directory-summary-icon" aria-hidden="true">
                 <svg viewBox="0 0 20 20" fill="none">
@@ -515,29 +719,38 @@
                   <path d="M11.4 15.2c.34-1.42 1.45-2.32 2.86-2.32 1.02 0 1.95.46 2.61 1.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
                 </svg>
               </span>
-              <span class="client-directory-summary-badge" data-summary-pipeline-chip data-tone="accent">0 active</span>
+              <span class="client-directory-summary-badge" data-summary-chip data-tone="neutral">No active prospects</span>
             </div>
-            <span class="client-directory-summary-kicker">Prospects In Pipeline</span>
-            <strong class="client-directory-summary-value" data-summary-pipeline-total>0</strong>
-            <p class="client-directory-summary-note" data-summary-pipeline-note>No active prospects in pipeline</p>
+            <span class="client-directory-summary-kicker">Prospects in Pipeline</span>
+            <strong class="client-directory-summary-value" data-summary-total>0</strong>
+            <p class="client-directory-summary-note" data-summary-note>No active prospects are in the planning pipeline right now.</p>
             <div class="client-directory-summary-divider" aria-hidden="true"></div>
             <div class="client-directory-summary-list">
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-prospect" aria-hidden="true"></span>Not contacted</span>
-                <strong data-summary-pipeline-prospects>0</strong>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-prospect" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Discovery underway</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
               </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-conversation" aria-hidden="true"></span>In conversation</span>
-                <strong data-summary-pipeline-review>0</strong>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-conversation" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Carrier review active</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
               </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-stalled" aria-hidden="true"></span>Stalled 14+ days</span>
-                <strong data-summary-pipeline-stalled>0</strong>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-stalled" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Stalled 14+ days</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
               </div>
             </div>
           </article>
 
-          <article class="client-directory-summary-card client-directory-summary-card-gap" data-summary-card="gap">
+          <article class="client-directory-summary-card client-directory-summary-card-gap" data-summary-card="gap" hidden>
             <div class="client-directory-summary-top">
               <span class="client-directory-summary-icon" aria-hidden="true">
                 <svg viewBox="0 0 20 20" fill="none">
@@ -546,208 +759,33 @@
                   <circle cx="10" cy="13.95" r="0.82" fill="currentColor"/>
                 </svg>
               </span>
-              <span class="client-directory-summary-badge" data-summary-gap-chip data-tone="warning">No urgent gaps</span>
+              <span class="client-directory-summary-badge" data-summary-chip data-tone="neutral">No uncovered need</span>
             </div>
             <span class="client-directory-summary-kicker">Clients With Gaps</span>
-            <strong class="client-directory-summary-value" data-summary-gap-total>0</strong>
-            <p class="client-directory-summary-note" data-summary-gap-note>No uncovered modeled need</p>
+            <strong class="client-directory-summary-value" data-summary-total>0</strong>
+            <p class="client-directory-summary-note" data-summary-note>No uncovered protection gap is open in this view.</p>
             <div class="client-directory-summary-divider" aria-hidden="true"></div>
             <div class="client-directory-summary-list">
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-high" aria-hidden="true"></span>Gap &gt; $1M</span>
-                <strong data-summary-gap-high>0</strong>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-high" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Gap greater than $1M</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
               </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-mid" aria-hidden="true"></span>Gap $500k-$1M</span>
-                <strong data-summary-gap-mid>0</strong>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-mid" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Gap from $500K to $1M</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
               </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-low" aria-hidden="true"></span>Gap &lt; $500k</span>
-                <strong data-summary-gap-low>0</strong>
-              </div>
-            </div>
-          </article>
-
-          <article class="client-directory-summary-card client-directory-summary-card-opportunity" data-summary-card="opportunity" hidden>
-            <div class="client-directory-summary-top">
-              <span class="client-directory-summary-icon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" fill="none">
-                  <path d="M4.15 15.2h11.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-                  <path d="M6.3 13.85V9.25" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-                  <path d="M10 13.85V6.45" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-                  <path d="M13.7 13.85V4.55" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-                </svg>
-              </span>
-              <span class="client-directory-summary-badge" data-summary-opportunity-chip data-tone="neutral">No modeled opportunity</span>
-            </div>
-            <span class="client-directory-summary-kicker">Coverage Opportunity</span>
-            <strong class="client-directory-summary-value" data-summary-opportunity-total>$0</strong>
-            <p class="client-directory-summary-note" data-summary-opportunity-note>No open protection opportunity in current view</p>
-            <div class="client-directory-summary-divider" aria-hidden="true"></div>
-            <div class="client-directory-summary-list">
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-opportunity" aria-hidden="true"></span>High priority</span>
-                <strong data-summary-opportunity-high-priority>$0</strong>
-              </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-pipeline" aria-hidden="true"></span>In pipeline</span>
-                <strong data-summary-opportunity-pipeline>$0</strong>
-              </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-largest" aria-hidden="true"></span>Largest case</span>
-                <strong data-summary-opportunity-largest>$0</strong>
-              </div>
-            </div>
-          </article>
-
-          <article class="client-directory-summary-card client-directory-summary-card-placement-rate" data-summary-card="placement-rate" hidden>
-            <div class="client-directory-summary-top">
-              <span class="client-directory-summary-icon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" fill="none">
-                  <circle cx="10" cy="10" r="6.15" stroke="currentColor" stroke-width="1.7"/>
-                  <path d="M6.55 11.1 8.95 13.4 13.6 8.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </span>
-              <span class="client-directory-summary-badge" data-summary-placement-chip data-tone="neutral">No placement cycle</span>
-            </div>
-            <span class="client-directory-summary-kicker">Placement Rate</span>
-            <strong class="client-directory-summary-value" data-summary-placement-total>0%</strong>
-            <p class="client-directory-summary-note" data-summary-placement-note>No placed or active pipeline cases yet</p>
-            <div class="client-directory-summary-divider" aria-hidden="true"></div>
-            <div class="client-directory-summary-list">
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-placed" aria-hidden="true"></span>Placed</span>
-                <strong data-summary-placement-placed>0</strong>
-              </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-review" aria-hidden="true"></span>In review</span>
-                <strong data-summary-placement-review>0</strong>
-              </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-prospecting" aria-hidden="true"></span>Prospecting</span>
-                <strong data-summary-placement-prospect>0</strong>
-              </div>
-            </div>
-          </article>
-
-          <article class="client-directory-summary-card client-directory-summary-card-average-gap" data-summary-card="average-gap" hidden>
-            <div class="client-directory-summary-top">
-              <span class="client-directory-summary-icon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" fill="none">
-                  <path d="M4.2 14.95h11.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-                  <path d="M6.05 14.95V9.65" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-                  <path d="M10 14.95V6.95" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-                  <path d="M13.95 14.95v-3.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-                </svg>
-              </span>
-              <span class="client-directory-summary-badge" data-summary-average-gap-chip data-tone="neutral">No gap average</span>
-            </div>
-            <span class="client-directory-summary-kicker">Average Coverage Gap</span>
-            <strong class="client-directory-summary-value" data-summary-average-gap-total>$0</strong>
-            <p class="client-directory-summary-note" data-summary-average-gap-note>No unmet need to average yet</p>
-            <div class="client-directory-summary-divider" aria-hidden="true"></div>
-            <div class="client-directory-summary-list">
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-largest" aria-hidden="true"></span>Largest gap</span>
-                <strong data-summary-average-gap-largest>$0</strong>
-              </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-median" aria-hidden="true"></span>Median gap</span>
-                <strong data-summary-average-gap-median>$0</strong>
-              </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-smallest" aria-hidden="true"></span>Smallest gap</span>
-                <strong data-summary-average-gap-smallest>$0</strong>
-              </div>
-            </div>
-          </article>
-
-          <article class="client-directory-summary-card client-directory-summary-card-protection-progress" data-summary-card="protection-progress" hidden>
-            <div class="client-directory-summary-top">
-              <span class="client-directory-summary-icon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" fill="none">
-                  <path d="M10 3.75 15.7 6v4.3c0 3.2-2.15 5.85-5.7 7.15-3.55-1.3-5.7-3.95-5.7-7.15V6L10 3.75Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-                  <path d="m7.55 10.2 1.5 1.5 3.4-3.45" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </span>
-              <span class="client-directory-summary-badge" data-summary-protection-chip data-tone="neutral">No modeled need</span>
-            </div>
-            <span class="client-directory-summary-kicker">Protection Progress</span>
-            <strong class="client-directory-summary-value" data-summary-protection-total>0%</strong>
-            <p class="client-directory-summary-note" data-summary-protection-note>No modeled need to track yet</p>
-            <div class="client-directory-summary-divider" aria-hidden="true"></div>
-            <div class="client-directory-summary-progress">
-              <div class="client-directory-summary-progress-head">
-                <span>Protection level</span>
-                <strong data-summary-protection-progress-percent>0%</strong>
-              </div>
-              <div class="client-directory-summary-progress-track" aria-hidden="true">
-                <span class="client-directory-summary-progress-fill" data-summary-protection-progress-fill style="width:0%;"></span>
-              </div>
-              <div class="client-directory-summary-progress-foot">
-                <span data-summary-protection-remaining>$0 remaining</span>
-                <strong data-summary-protection-modeled>$0 modeled</strong>
-              </div>
-            </div>
-          </article>
-
-          <article class="client-directory-summary-card client-directory-summary-card-household-exposure" data-summary-card="household-exposure" hidden>
-            <div class="client-directory-summary-top">
-              <span class="client-directory-summary-icon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" fill="none">
-                  <path d="M3.85 8.25 10 3.75l6.15 4.5v7a1.25 1.25 0 0 1-1.25 1.25h-9.8a1.25 1.25 0 0 1-1.25-1.25v-7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-                  <path d="M7.65 16.45v-4.15h4.7v4.15" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-                </svg>
-              </span>
-              <span class="client-directory-summary-badge" data-summary-household-chip data-tone="neutral">No household exposure</span>
-            </div>
-            <span class="client-directory-summary-kicker">Household Exposure</span>
-            <strong class="client-directory-summary-value" data-summary-household-total>0</strong>
-            <p class="client-directory-summary-note" data-summary-household-note>No open household planning exposure in current view</p>
-            <div class="client-directory-summary-divider" aria-hidden="true"></div>
-            <div class="client-directory-summary-list">
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-household" aria-hidden="true"></span>Gap &gt; $1M</span>
-                <strong data-summary-household-high-gap>0</strong>
-              </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-review" aria-hidden="true"></span>In review</span>
-                <strong data-summary-household-review>0</strong>
-              </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-opportunity" aria-hidden="true"></span>Analysis pending</span>
-                <strong data-summary-household-pending>0</strong>
-              </div>
-            </div>
-          </article>
-
-          <article class="client-directory-summary-card client-directory-summary-card-business-cases" data-summary-card="business-cases" hidden>
-            <div class="client-directory-summary-top">
-              <span class="client-directory-summary-icon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" fill="none">
-                  <path d="M4.2 16.2V7.6a1.2 1.2 0 0 1 1.2-1.2h9.2a1.2 1.2 0 0 1 1.2 1.2v8.6" stroke="currentColor" stroke-width="1.7"/>
-                  <path d="M7.1 6.4V4.95A1.05 1.05 0 0 1 8.15 3.9h3.7A1.05 1.05 0 0 1 12.9 4.95V6.4" stroke="currentColor" stroke-width="1.7"/>
-                  <path d="M8.1 10.05h1.35M8.1 12.85h1.35M10.55 10.05h1.35M10.55 12.85h1.35" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-                </svg>
-              </span>
-              <span class="client-directory-summary-badge" data-summary-business-chip data-tone="neutral">No active business cases</span>
-            </div>
-            <span class="client-directory-summary-kicker">Business Protection Cases</span>
-            <strong class="client-directory-summary-value" data-summary-business-total>0</strong>
-            <p class="client-directory-summary-note" data-summary-business-note>No business planning cases in current view</p>
-            <div class="client-directory-summary-divider" aria-hidden="true"></div>
-            <div class="client-directory-summary-list">
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-business" aria-hidden="true"></span>Open gap</span>
-                <strong data-summary-business-open-gap>0</strong>
-              </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-review" aria-hidden="true"></span>In review</span>
-                <strong data-summary-business-review>0</strong>
-              </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-placed" aria-hidden="true"></span>Coverage placed</span>
-                <strong data-summary-business-placed>0</strong>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-low" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Gap below $500K</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
               </div>
             </div>
           </article>
@@ -760,24 +798,111 @@
                   <path d="M10 6.55v3.75l2.45 1.45" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </span>
-              <span class="client-directory-summary-badge" data-summary-review-chip data-tone="neutral">No review cadence yet</span>
+              <span class="client-directory-summary-badge" data-summary-chip data-tone="neutral">No review cadence yet</span>
             </div>
             <span class="client-directory-summary-kicker">Review Cycle Health</span>
-            <strong class="client-directory-summary-value" data-summary-review-total>0%</strong>
-            <p class="client-directory-summary-note" data-summary-review-note>No review dates available yet</p>
+            <strong class="client-directory-summary-value" data-summary-total>0%</strong>
+            <p class="client-directory-summary-note" data-summary-note>No review dates are available yet.</p>
             <div class="client-directory-summary-divider" aria-hidden="true"></div>
             <div class="client-directory-summary-list">
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-current" aria-hidden="true"></span>Current (0-90 days)</span>
-                <strong data-summary-review-current>0</strong>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-current" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Current (0-90 days)</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
               </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-due" aria-hidden="true"></span>Due soon</span>
-                <strong data-summary-review-due>0</strong>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-due" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Due soon</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
               </div>
-              <div class="client-directory-summary-list-row">
-                <span class="client-directory-summary-list-label"><span class="client-directory-summary-dot client-directory-summary-dot-overdue" aria-hidden="true"></span>Overdue</span>
-                <strong data-summary-review-overdue>0</strong>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-overdue" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Overdue</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-placed" data-summary-card="placed" hidden>
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M4 13.4 7.2 9.7l2.4 2.35L15.7 4.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M12.95 4.9h2.75v2.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-chip data-tone="neutral">No production yet</span>
+            </div>
+            <span class="client-directory-summary-kicker">Coverage Placed</span>
+            <strong class="client-directory-summary-value" data-summary-total>$0</strong>
+            <p class="client-directory-summary-note" data-summary-note>No placed business is on file yet.</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-placed" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>YTD production</span>
+                </span>
+                <strong data-summary-row-value>$0</strong>
+              </div>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-placed" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Cases placed MTD</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-placed" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Prior-month pace</span>
+                </span>
+                <strong data-summary-row-value>$0</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="client-directory-summary-card client-directory-summary-card-household-joint-review" data-summary-card="household-joint-review" hidden>
+            <div class="client-directory-summary-top">
+              <span class="client-directory-summary-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M3.85 8.25 10 3.75l6.15 4.5v7a1.25 1.25 0 0 1-1.25 1.25h-9.8a1.25 1.25 0 0 1-1.25-1.25v-7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                  <path d="M6.95 12.3a1.42 1.42 0 1 0 0-2.85 1.42 1.42 0 0 0 0 2.85ZM12.95 12.3a1.42 1.42 0 1 0 0-2.85 1.42 1.42 0 0 0 0 2.85ZM5.45 15.2c.28-1.2 1.15-1.9 2.15-1.9s1.87.7 2.15 1.9M10.25 15.2c.28-1.2 1.15-1.9 2.15-1.9s1.87.7 2.15 1.9" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="client-directory-summary-badge" data-summary-chip data-tone="neutral">No coordinated review needed</span>
+            </div>
+            <span class="client-directory-summary-kicker">Households Needing Joint Review</span>
+            <strong class="client-directory-summary-value" data-summary-total>0</strong>
+            <p class="client-directory-summary-note" data-summary-note>No household planning cases need coordinated review right now.</p>
+            <div class="client-directory-summary-divider" aria-hidden="true"></div>
+            <div class="client-directory-summary-list">
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-household" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Open household protection gap</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-household" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Missing joint financial inputs</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
+              </div>
+              <div class="client-directory-summary-list-row" data-summary-row>
+                <span class="client-directory-summary-list-label">
+                  <span class="client-directory-summary-dot client-directory-summary-dot-household" data-summary-row-dot aria-hidden="true"></span>
+                  <span data-summary-row-label>Review overdue</span>
+                </span>
+                <strong data-summary-row-value>0</strong>
               </div>
             </div>
           </article>
@@ -940,81 +1065,43 @@
       const nextActionHeading = document.getElementById("client-table-heading-next-action");
       const coverageHeading = document.getElementById("client-table-heading-coverage");
       const statusHeading = document.getElementById("client-table-heading-status");
-      const summaryPlacedChip = document.querySelector("[data-summary-placed-chip]");
-      const summaryPlacedTotal = document.querySelector("[data-summary-placed-total]");
-      const summaryPlacedNote = document.querySelector("[data-summary-placed-note]");
-      const summaryPlacedProgressPercent = document.querySelector("[data-summary-placed-progress-percent]");
-      const summaryPlacedProgressFill = document.querySelector("[data-summary-placed-progress-fill]");
-      const summaryPlacedMonthDetail = document.querySelector("[data-summary-placed-month-detail]");
-      const summaryPlacedGoal = document.querySelector("[data-summary-placed-goal]");
-      const summaryPipelineChip = document.querySelector("[data-summary-pipeline-chip]");
-      const summaryPipelineTotal = document.querySelector("[data-summary-pipeline-total]");
-      const summaryPipelineNote = document.querySelector("[data-summary-pipeline-note]");
-      const summaryPipelineProspects = document.querySelector("[data-summary-pipeline-prospects]");
-      const summaryPipelineReview = document.querySelector("[data-summary-pipeline-review]");
-      const summaryPipelineStalled = document.querySelector("[data-summary-pipeline-stalled]");
-      const summaryGapChip = document.querySelector("[data-summary-gap-chip]");
-      const summaryGapTotal = document.querySelector("[data-summary-gap-total]");
-      const summaryGapNote = document.querySelector("[data-summary-gap-note]");
-      const summaryGapHigh = document.querySelector("[data-summary-gap-high]");
-      const summaryGapMid = document.querySelector("[data-summary-gap-mid]");
-      const summaryGapLow = document.querySelector("[data-summary-gap-low]");
-      const summaryOpportunityChip = document.querySelector("[data-summary-opportunity-chip]");
-      const summaryOpportunityTotal = document.querySelector("[data-summary-opportunity-total]");
-      const summaryOpportunityNote = document.querySelector("[data-summary-opportunity-note]");
-      const summaryOpportunityHighPriority = document.querySelector("[data-summary-opportunity-high-priority]");
-      const summaryOpportunityPipeline = document.querySelector("[data-summary-opportunity-pipeline]");
-      const summaryOpportunityLargest = document.querySelector("[data-summary-opportunity-largest]");
-      const summaryPlacementChip = document.querySelector("[data-summary-placement-chip]");
-      const summaryPlacementTotal = document.querySelector("[data-summary-placement-total]");
-      const summaryPlacementNote = document.querySelector("[data-summary-placement-note]");
-      const summaryPlacementPlaced = document.querySelector("[data-summary-placement-placed]");
-      const summaryPlacementReview = document.querySelector("[data-summary-placement-review]");
-      const summaryPlacementProspect = document.querySelector("[data-summary-placement-prospect]");
-      const summaryAverageGapChip = document.querySelector("[data-summary-average-gap-chip]");
-      const summaryAverageGapTotal = document.querySelector("[data-summary-average-gap-total]");
-      const summaryAverageGapNote = document.querySelector("[data-summary-average-gap-note]");
-      const summaryAverageGapLargest = document.querySelector("[data-summary-average-gap-largest]");
-      const summaryAverageGapMedian = document.querySelector("[data-summary-average-gap-median]");
-      const summaryAverageGapSmallest = document.querySelector("[data-summary-average-gap-smallest]");
-      const summaryProtectionChip = document.querySelector("[data-summary-protection-chip]");
-      const summaryProtectionTotal = document.querySelector("[data-summary-protection-total]");
-      const summaryProtectionNote = document.querySelector("[data-summary-protection-note]");
-      const summaryProtectionProgressPercent = document.querySelector("[data-summary-protection-progress-percent]");
-      const summaryProtectionProgressFill = document.querySelector("[data-summary-protection-progress-fill]");
-      const summaryProtectionRemaining = document.querySelector("[data-summary-protection-remaining]");
-      const summaryProtectionModeled = document.querySelector("[data-summary-protection-modeled]");
-      const summaryHouseholdChip = document.querySelector("[data-summary-household-chip]");
-      const summaryHouseholdTotal = document.querySelector("[data-summary-household-total]");
-      const summaryHouseholdNote = document.querySelector("[data-summary-household-note]");
-      const summaryHouseholdHighGap = document.querySelector("[data-summary-household-high-gap]");
-      const summaryHouseholdReview = document.querySelector("[data-summary-household-review]");
-      const summaryHouseholdPending = document.querySelector("[data-summary-household-pending]");
-      const summaryBusinessChip = document.querySelector("[data-summary-business-chip]");
-      const summaryBusinessTotal = document.querySelector("[data-summary-business-total]");
-      const summaryBusinessNote = document.querySelector("[data-summary-business-note]");
-      const summaryBusinessOpenGap = document.querySelector("[data-summary-business-open-gap]");
-      const summaryBusinessReview = document.querySelector("[data-summary-business-review]");
-      const summaryBusinessPlaced = document.querySelector("[data-summary-business-placed]");
-      const summaryReviewChip = document.querySelector("[data-summary-review-chip]");
-      const summaryReviewTotal = document.querySelector("[data-summary-review-total]");
-      const summaryReviewNote = document.querySelector("[data-summary-review-note]");
-      const summaryReviewCurrent = document.querySelector("[data-summary-review-current]");
-      const summaryReviewDue = document.querySelector("[data-summary-review-due]");
-      const summaryReviewOverdue = document.querySelector("[data-summary-review-overdue]");
       const directorySummaryHost = document.querySelector("[data-directory-summary]");
       const summaryCardElements = {
-        placed: document.querySelector('[data-summary-card="placed"]'),
+        "recommended-actions": document.querySelector('[data-summary-card="recommended-actions"]'),
+        "high-probability-closers": document.querySelector('[data-summary-card="high-probability-closers"]'),
+        "revenue-at-risk": document.querySelector('[data-summary-card="revenue-at-risk"]'),
+        "largest-opportunities": document.querySelector('[data-summary-card="largest-opportunities"]'),
+        "blocked-missing-information": document.querySelector('[data-summary-card="blocked-missing-information"]'),
+        "pipeline-bottlenecks": document.querySelector('[data-summary-card="pipeline-bottlenecks"]'),
         pipeline: document.querySelector('[data-summary-card="pipeline"]'),
         gap: document.querySelector('[data-summary-card="gap"]'),
-        opportunity: document.querySelector('[data-summary-card="opportunity"]'),
-        "placement-rate": document.querySelector('[data-summary-card="placement-rate"]'),
-        "average-gap": document.querySelector('[data-summary-card="average-gap"]'),
-        "protection-progress": document.querySelector('[data-summary-card="protection-progress"]'),
-        "household-exposure": document.querySelector('[data-summary-card="household-exposure"]'),
-        "business-cases": document.querySelector('[data-summary-card="business-cases"]'),
-        "review-health": document.querySelector('[data-summary-card="review-health"]')
+        "review-health": document.querySelector('[data-summary-card="review-health"]'),
+        placed: document.querySelector('[data-summary-card="placed"]'),
+        "household-joint-review": document.querySelector('[data-summary-card="household-joint-review"]')
       };
+      function buildSummaryCardHandle(card) {
+        const rows = card instanceof HTMLElement
+          ? Array.from(card.querySelectorAll("[data-summary-row]")).map(function (row) {
+            return {
+              row,
+              dot: row.querySelector("[data-summary-row-dot]"),
+              label: row.querySelector("[data-summary-row-label]"),
+              value: row.querySelector("[data-summary-row-value]")
+            };
+          })
+          : [];
+        return {
+          card: card instanceof HTMLElement ? card : null,
+          chip: card instanceof HTMLElement ? card.querySelector("[data-summary-chip]") : null,
+          total: card instanceof HTMLElement ? card.querySelector("[data-summary-total]") : null,
+          note: card instanceof HTMLElement ? card.querySelector("[data-summary-note]") : null,
+          rows
+        };
+      }
+      const summaryCardHandles = Object.keys(summaryCardElements).reduce(function (handles, key) {
+        handles[key] = buildSummaryCardHandle(summaryCardElements[key]);
+        return handles;
+      }, {});
       const summaryCustomize = document.querySelector("[data-summary-customize]");
       const summaryCustomizeTrigger = document.querySelector("[data-summary-customize-trigger]");
       const summaryCustomizeDialog = document.querySelector("[data-summary-customize-dialog]");
@@ -1036,19 +1123,98 @@
       const directorySidebarLayout = document.querySelector("[data-directory-sidebar-layout]");
       const directorySidebarToggle = document.querySelector("[data-directory-sidebar-toggle]");
       const directorySidebarGroups = Array.from(document.querySelectorAll("[data-directory-context-group-key]"));
-      const SUMMARY_CARD_DEFAULT_ORDER = Object.freeze(Object.keys(summaryCardElements));
-      const summaryCardCatalog = SUMMARY_CARD_DEFAULT_ORDER.reduce(function (catalog, key) {
-        const card = summaryCardElements[key];
-        const title = card?.querySelector(".client-directory-summary-kicker")?.textContent?.trim() || key;
-        const note = card?.querySelector(".client-directory-summary-note")?.textContent?.trim() || "Preview card";
-        const toneClass = card instanceof HTMLElement
-          ? Array.from(card.classList).find(function (className) {
-            return className.startsWith("client-directory-summary-card-") && className !== "client-directory-summary-card";
-          }) || ""
-          : "";
-        catalog[key] = { key, title, note, toneClass };
-        return catalog;
-      }, {});
+      const SUMMARY_CARD_DEFAULT_ORDER = Object.freeze([
+        "recommended-actions",
+        "high-probability-closers",
+        "revenue-at-risk",
+        "largest-opportunities",
+        "blocked-missing-information",
+        "pipeline-bottlenecks",
+        "pipeline",
+        "gap",
+        "review-health",
+        "placed",
+        "household-joint-review"
+      ]);
+      const summaryCardCatalog = Object.freeze({
+        "recommended-actions": Object.freeze({
+          key: "recommended-actions",
+          title: "Recommended Actions",
+          note: "Elkhorn Household | $1.2M open | Underwriting follow-up due today.",
+          toneClass: "client-directory-summary-card-recommended-actions",
+          categoryLabel: "Core Execution"
+        }),
+        "high-probability-closers": Object.freeze({
+          key: "high-probability-closers",
+          title: "High-Probability Closers",
+          note: "Minnoch Household | $900K likely close | In review, pending final carrier touch.",
+          toneClass: "client-directory-summary-card-high-probability-closers",
+          categoryLabel: "Core Execution"
+        }),
+        "revenue-at-risk": Object.freeze({
+          key: "revenue-at-risk",
+          title: "Revenue at Risk",
+          note: "Rober Household | $1.2M at risk | Underwriting has stalled for 28 days.",
+          toneClass: "client-directory-summary-card-revenue-at-risk",
+          categoryLabel: "Core Execution"
+        }),
+        "largest-opportunities": Object.freeze({
+          key: "largest-opportunities",
+          title: "Largest Opportunities",
+          note: "Smith Household | $1.1M uncovered after current coverage | Basis sourced from HLV and Needs inputs.",
+          toneClass: "client-directory-summary-card-largest-opportunities",
+          categoryLabel: "Core Execution"
+        }),
+        "blocked-missing-information": Object.freeze({
+          key: "blocked-missing-information",
+          title: "Blocked / Missing Information",
+          note: "Janet Smith | Waiting on private financial input before the needs recommendation can run.",
+          toneClass: "client-directory-summary-card-blocked-missing-information",
+          categoryLabel: "Core Execution"
+        }),
+        "pipeline-bottlenecks": Object.freeze({
+          key: "pipeline-bottlenecks",
+          title: "Pipeline Bottlenecks",
+          note: "Four cases are stacking up in Protection Modeling Inputs before recommendations can move.",
+          toneClass: "client-directory-summary-card-pipeline-bottlenecks",
+          categoryLabel: "Core Execution"
+        }),
+        pipeline: Object.freeze({
+          key: "pipeline",
+          title: "Prospects in Pipeline",
+          note: "Five open prospects, with two conversations stalled beyond 14 days.",
+          toneClass: "client-directory-summary-card-pipeline",
+          categoryLabel: "Supporting Snapshot"
+        }),
+        gap: Object.freeze({
+          key: "gap",
+          title: "Clients With Gaps",
+          note: "Two households still carry uncovered protection gaps after analysis.",
+          toneClass: "client-directory-summary-card-gap",
+          categoryLabel: "Supporting Snapshot"
+        }),
+        "review-health": Object.freeze({
+          key: "review-health",
+          title: "Review Cycle Health",
+          note: "Three reviews are due soon and one household is already overdue.",
+          toneClass: "client-directory-summary-card-review-health",
+          categoryLabel: "Supporting Snapshot"
+        }),
+        placed: Object.freeze({
+          key: "placed",
+          title: "Coverage Placed",
+          note: "$650K placed MTD with $2.3M YTD production already on the board.",
+          toneClass: "client-directory-summary-card-placed",
+          categoryLabel: "Supporting Snapshot"
+        }),
+        "household-joint-review": Object.freeze({
+          key: "household-joint-review",
+          title: "Households Needing Joint Review",
+          note: "Two households still need both spouses' inputs before the recommendation can be finalized.",
+          toneClass: "client-directory-summary-card-household-joint-review",
+          categoryLabel: "Supporting Snapshot"
+        })
+      });
       const directorySidebarButtons = Array.from(document.querySelectorAll("[data-directory-nav-action]"));
       const directorySidebarScopeButtons = Array.from(document.querySelectorAll("[data-directory-scope-action]"));
       const directorySidebarPriorityButtons = Array.from(document.querySelectorAll("[data-directory-priority-action]"));
@@ -1773,6 +1939,214 @@
         return sortedValues[midpoint];
       }
 
+      function readSummaryNumber(value) {
+        const numericValue = Number(String(value ?? "").replace(/[^\d.-]/g, ""));
+        return Number.isFinite(numericValue) ? numericValue : 0;
+      }
+
+      function getLatestProtectionModelingPayload(record) {
+        if (!record || typeof record !== "object") {
+          return null;
+        }
+
+        if (record.protectionModeling && typeof record.protectionModeling === "object") {
+          return record.protectionModeling;
+        }
+
+        if (Array.isArray(record.protectionModelingEntries) && record.protectionModelingEntries.length) {
+          return record.protectionModelingEntries[record.protectionModelingEntries.length - 1];
+        }
+
+        return null;
+      }
+
+      function getLatestProtectionModelingData(record) {
+        const payload = getLatestProtectionModelingPayload(record);
+        if (!payload || typeof payload !== "object") {
+          return null;
+        }
+
+        return payload.data && typeof payload.data === "object"
+          ? payload.data
+          : payload;
+      }
+
+      function getRecordCurrentCoverageValue(record) {
+        const modelingData = getLatestProtectionModelingData(record) || {};
+        const modeledCoverageTotal = readSummaryNumber(modelingData.existingCoverageTotal)
+          || (
+            readSummaryNumber(modelingData.individualDeathBenefit)
+            + readSummaryNumber(modelingData.groupLifeCoverage)
+            + readSummaryNumber(modelingData.currentCoverageAmount)
+            + readSummaryNumber(modelingData.currentLifeInsuranceCoverage)
+          );
+        const recordCoverage = readSummaryNumber(record?.coverageAmount);
+        return Math.max(0, modeledCoverageTotal, recordCoverage);
+      }
+
+      function getRecordModeledNeedValue(record) {
+        const modelingData = getLatestProtectionModelingData(record) || {};
+        const explicitModeledNeed = Math.max(
+          0,
+          readSummaryNumber(modelingData.totalModeledNeed),
+          readSummaryNumber(modelingData.totalNeed),
+          readSummaryNumber(modelingData.totalCoverageNeed),
+          readSummaryNumber(modelingData.totalDeathBenefitNeed),
+          readSummaryNumber(modelingData.deathBenefitNeed),
+          readSummaryNumber(modelingData.estimatedNeed),
+          readSummaryNumber(modelingData.coverageNeed),
+          readSummaryNumber(modelingData.coverageTarget),
+          readSummaryNumber(record?.modeledNeed)
+        );
+
+        if (explicitModeledNeed > 0) {
+          return explicitModeledNeed;
+        }
+
+        const storedModeledNeed = Math.max(0, readSummaryNumber(record?.coverageGap));
+        return storedModeledNeed;
+      }
+
+      function getRecordLargestOpportunityValue(record) {
+        const modeledNeed = getRecordModeledNeedValue(record);
+        const currentCoverage = getRecordCurrentCoverageValue(record);
+        return Math.max(0, modeledNeed - currentCoverage);
+      }
+
+      function getRecordReviewDate(record) {
+        const rawValue = String(record?.lastReview || record?.lastUpdatedDate || record?.dateProfileCreated || "").trim();
+        if (!rawValue) {
+          return null;
+        }
+
+        const parsed = new Date(`${rawValue}T00:00:00`);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+
+      function getRecordOpenOpportunityValue(record) {
+        const gapValue = Number(record?.coverageGap || 0);
+        if (gapValue > 0) {
+          return gapValue;
+        }
+
+        const coverageValue = Number(record?.coverageAmount || 0);
+        return coverageValue > 0 ? coverageValue : 0;
+      }
+
+      function getSummaryCardDisplayName(record) {
+        const label = String(record?.displayName || record?.householdName || record?.firmName || "Client").trim();
+        return label.length > 28 ? `${label.slice(0, 27).trimEnd()}…` : label;
+      }
+
+      function getOpportunityBasis(record) {
+        const payload = getLatestProtectionModelingPayload(record);
+        const modelingData = getLatestProtectionModelingData(record) || {};
+        const variantTokens = [
+          payload?.variant,
+          payload?.template,
+          payload?.name,
+          modelingData?.analysisBasis
+        ].map(function (value) {
+          return String(value || "").trim().toLowerCase();
+        }).join(" ");
+        const labelTokens = getStatusLabelTokens(record);
+
+        if (/\bhlv\b|\bhuman life\b/.test(variantTokens) || labelTokens.includes("hlv")) {
+          return "HLV";
+        }
+
+        if (/\bdime\b/.test(variantTokens) || labelTokens.includes("dime")) {
+          return "DIME";
+        }
+
+        if (/\bneeds?\b/.test(variantTokens) || labelTokens.includes("needs")) {
+          return "Needs";
+        }
+
+        if (
+          readSummaryNumber(modelingData.mortgageBalance) > 0
+          || readSummaryNumber(modelingData.finalExpensesTotal) > 0
+          || readSummaryNumber(modelingData.educationFundingTotal) > 0
+        ) {
+          return "Needs";
+        }
+
+        if (
+          readSummaryNumber(modelingData.annualIncomeToReplace) > 0
+          || readSummaryNumber(modelingData.incomeReplacementDuration) > 0
+        ) {
+          return "HLV";
+        }
+
+        return "Modeled";
+      }
+
+      function getExecutionStageLabel(record) {
+        if (!hasDirectoryPreliminaryCompleted(record)) {
+          return "Preliminary Underwriting";
+        }
+
+        if (!hasDirectoryPmiCompleted(record)) {
+          return "Protection Modeling Inputs";
+        }
+
+        if (!hasDirectoryAnalysisCompleted(record)) {
+          return "Needs Analysis";
+        }
+
+        if (record?.statusGroup === "in-review") {
+          return "Carrier Review";
+        }
+
+        if (record?.statusGroup === "coverage-placed") {
+          return "Policy Delivery";
+        }
+
+        return "Advisor Follow-Up";
+      }
+
+      function setSummaryCardRows(cardKey, rows) {
+        const handle = summaryCardHandles[cardKey];
+        if (!handle || !Array.isArray(handle.rows)) {
+          return;
+        }
+
+        handle.rows.forEach(function (rowHandle, index) {
+          const row = Array.isArray(rows) && rows[index]
+            ? rows[index]
+            : { label: "No active cases", value: "--", dotClass: "client-directory-summary-dot-muted" };
+          if (rowHandle.label) {
+            rowHandle.label.textContent = row.label || "No active cases";
+          }
+          if (rowHandle.value) {
+            rowHandle.value.textContent = row.value || "--";
+          }
+          if (rowHandle.dot) {
+            rowHandle.dot.className = "client-directory-summary-dot";
+            if (row.dotClass) {
+              rowHandle.dot.classList.add(row.dotClass);
+            }
+          }
+        });
+      }
+
+      function setSummaryCardMetric(cardKey, config) {
+        const handle = summaryCardHandles[cardKey];
+        if (!handle) {
+          return;
+        }
+
+        if (handle.total) {
+          handle.total.textContent = config?.total || "0";
+        }
+        if (handle.note) {
+          handle.note.textContent = config?.note || "";
+        }
+
+        setSummaryBadge(handle.chip, config?.badgeText || "", config?.badgeTone || "neutral");
+        setSummaryCardRows(cardKey, config?.rows || []);
+      }
+
       function getStatusLabelTokens(record) {
         if (!Array.isArray(record?.statusLabels)) {
           return [];
@@ -1823,17 +2197,20 @@
           || Boolean(String(record.householdName || "").trim());
       }
 
+      const SUMMARY_CARD_MIN_VISIBLE = 1;
+      const SUMMARY_CARD_MAX_VISIBLE = 6;
       const DEFAULT_SUMMARY_CARD_VISIBILITY = Object.freeze({
-        placed: true,
-        pipeline: true,
-        gap: true,
-        opportunity: false,
-        "placement-rate": false,
-        "average-gap": false,
-        "protection-progress": false,
-        "household-exposure": false,
-        "business-cases": false,
-        "review-health": false
+        "recommended-actions": true,
+        "high-probability-closers": true,
+        "revenue-at-risk": true,
+        "largest-opportunities": true,
+        "blocked-missing-information": true,
+        "pipeline-bottlenecks": true,
+        pipeline: false,
+        gap: false,
+        "review-health": false,
+        placed: false,
+        "household-joint-review": false
       });
 
       function cloneSummaryCardVisibility(value) {
@@ -1849,6 +2226,26 @@
         return Object.values(nextVisibility).some(Boolean)
           ? nextVisibility
           : { ...DEFAULT_SUMMARY_CARD_VISIBILITY };
+      }
+
+      function clampSummaryCardVisibility(visibilityState, orderState) {
+        const nextVisibility = cloneSummaryCardVisibility(visibilityState);
+        const orderedKeys = getOrderedSummaryCardKeys(orderState);
+        const visibleKeys = orderedKeys.filter(function (key) {
+          return Boolean(nextVisibility[key]);
+        });
+
+        if (visibleKeys.length > SUMMARY_CARD_MAX_VISIBLE) {
+          visibleKeys.slice(SUMMARY_CARD_MAX_VISIBLE).forEach(function (key) {
+            nextVisibility[key] = false;
+          });
+        }
+
+        if (!orderedKeys.some(function (key) { return Boolean(nextVisibility[key]); })) {
+          nextVisibility[orderedKeys[0] || SUMMARY_CARD_DEFAULT_ORDER[0]] = true;
+        }
+
+        return nextVisibility;
       }
 
       function normalizeSummaryCardOrder(value) {
@@ -1878,7 +2275,7 @@
         const persisted = loadJson(localStorage, summaryCardsStorageKey);
         if (!persisted || typeof persisted !== "object") {
           return {
-            visibility: { ...DEFAULT_SUMMARY_CARD_VISIBILITY },
+            visibility: clampSummaryCardVisibility(DEFAULT_SUMMARY_CARD_VISIBILITY, SUMMARY_CARD_DEFAULT_ORDER),
             order: [...SUMMARY_CARD_DEFAULT_ORDER]
           };
         }
@@ -1888,9 +2285,10 @@
           : persisted;
         const orderSource = Array.isArray(persisted.order) ? persisted.order : SUMMARY_CARD_DEFAULT_ORDER;
 
+        const normalizedOrder = normalizeSummaryCardOrder(orderSource);
         return {
-          visibility: cloneSummaryCardVisibility(visibilitySource),
-          order: normalizeSummaryCardOrder(orderSource)
+          visibility: clampSummaryCardVisibility(visibilitySource, normalizedOrder),
+          order: normalizedOrder
         };
       }
 
@@ -1928,8 +2326,8 @@
       }
 
       function cloneSummaryCustomizeDraft() {
-        summaryCardDraftVisibility = cloneSummaryCardVisibility(summaryCardVisibility);
         summaryCardDraftOrder = normalizeSummaryCardOrder(summaryCardOrder);
+        summaryCardDraftVisibility = clampSummaryCardVisibility(summaryCardVisibility, summaryCardDraftOrder);
       }
 
       function clearSummaryCustomizeDraft() {
@@ -2140,19 +2538,21 @@
           return !summaryCardDraftVisibility[key];
         });
         const spanMap = buildSummaryCardSpanMap(visibleKeys);
+        const visibleCount = visibleKeys.length;
+        const maxVisibleReached = visibleCount >= SUMMARY_CARD_MAX_VISIBLE;
 
         summaryCustomizeAvailableHost.innerHTML = availableKeys.length
           ? availableKeys.map(function (key) {
             const metadata = summaryCardCatalog[key];
             return `
-              <button class="client-directory-summary-customize-card client-directory-summary-customize-card-library ${metadata.toneClass}" type="button" draggable="true" data-summary-draft-card="${key}" data-summary-draft-zone="available">
-                <span class="client-directory-summary-customize-card-eyebrow">Available</span>
+              <button class="client-directory-summary-customize-card client-directory-summary-customize-card-library ${metadata.toneClass}" type="button" draggable="${maxVisibleReached ? "false" : "true"}" data-summary-draft-card="${key}" data-summary-draft-zone="available" ${maxVisibleReached ? "disabled" : ""}>
+                <span class="client-directory-summary-customize-card-eyebrow">${metadata.categoryLabel}</span>
                 <strong>${metadata.title}</strong>
                 <span>${metadata.note}</span>
               </button>
             `;
           }).join("")
-          : '<div class="client-directory-summary-customize-empty">Every preview card is already on the layout.</div>';
+          : '<div class="client-directory-summary-customize-empty">Every available insight is already staged in the preview.</div>';
 
         summaryCustomizePreviewHost.innerHTML = visibleKeys.map(function (key, index) {
           const metadata = summaryCardCatalog[key];
@@ -2167,13 +2567,15 @@
         summaryCustomizePreviewHost.setAttribute("data-preview-count", String(visibleKeys.length));
 
         if (summaryCustomizeStatus instanceof HTMLElement) {
-          const visibleCount = getVisibleSummaryCardCount(summaryCardDraftVisibility);
           const changedLabel = hasSummaryCustomizeChanges()
             ? "Save to apply your updated preview row."
             : "Drag cards on or off the preview before saving.";
-          summaryCustomizeStatus.textContent = visibleCount <= 1
-            ? `At least one preview card remains visible. ${changedLabel}`
-            : changedLabel;
+          const rangeLabel = visibleCount <= SUMMARY_CARD_MIN_VISIBLE
+            ? "At least one preview card must remain visible."
+            : maxVisibleReached
+              ? `Your execution row is full at ${SUMMARY_CARD_MAX_VISIBLE} cards. Remove one to add another.`
+              : `Choose between ${SUMMARY_CARD_MIN_VISIBLE} and ${SUMMARY_CARD_MAX_VISIBLE} cards.`;
+          summaryCustomizeStatus.textContent = `${rangeLabel} ${changedLabel}`;
         }
 
         if (summaryCustomizeSaveButton instanceof HTMLButtonElement) {
@@ -2220,7 +2622,7 @@
       summaryCardOrder = loadedSummaryCardPreferences.order;
       syncAccessibilitySettings();
 
-      function syncDirectorySummaryCards() {
+      function syncDirectorySummaryCardsLegacy() {
         const scopedRecords = getDirectoryScopeRecords({ includeStatus: false });
         const now = new Date();
         const currentYear = now.getFullYear();
@@ -2655,6 +3057,486 @@
         } else {
           setSummaryBadge(summaryReviewChip, "No review cadence yet", "neutral");
         }
+      }
+
+      function syncDirectorySummaryCards() {
+        const scopedRecords = getDirectoryScopeRecords({ includeStatus: false });
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const previousMonthDate = new Date(currentYear, currentMonth - 1, 1);
+        const previousYear = previousMonthDate.getFullYear();
+        const previousMonth = previousMonthDate.getMonth();
+
+        const placedPolicyEntries = scopedRecords.flatMap(function (record) {
+          return getRecordPolicies(record).map(function (policy) {
+            return {
+              record,
+              faceAmount: parsePolicyFaceAmount(policy),
+              timelineDate: getPolicyTimelineDate(policy, record)
+            };
+          });
+        }).filter(function (entry) {
+          return entry.faceAmount > 0;
+        });
+        const legacyPlacedRecords = scopedRecords.filter(function (record) {
+          return !getRecordPolicies(record).length
+            && (record.statusGroup === "coverage-placed" || record.statusGroup === "closed")
+            && Number(record.coverageAmount || 0) > 0;
+        });
+        const totalPlaced = placedPolicyEntries.reduce(function (sum, entry) {
+          return sum + entry.faceAmount;
+        }, 0) + legacyPlacedRecords.reduce(function (sum, record) {
+          return sum + Number(record.coverageAmount || 0);
+        }, 0);
+        const currentMonthPlaced = placedPolicyEntries.reduce(function (sum, entry) {
+          const date = entry.timelineDate;
+          return date && date.getFullYear() === currentYear && date.getMonth() === currentMonth
+            ? sum + entry.faceAmount
+            : sum;
+        }, 0) + legacyPlacedRecords.reduce(function (sum, record) {
+          const date = getRecordTimelineDate(record);
+          return date && date.getFullYear() === currentYear && date.getMonth() === currentMonth
+            ? sum + Number(record.coverageAmount || 0)
+            : sum;
+        }, 0);
+        const previousMonthPlaced = placedPolicyEntries.reduce(function (sum, entry) {
+          const date = entry.timelineDate;
+          return date && date.getFullYear() === previousYear && date.getMonth() === previousMonth
+            ? sum + entry.faceAmount
+            : sum;
+        }, 0) + legacyPlacedRecords.reduce(function (sum, record) {
+          const date = getRecordTimelineDate(record);
+          return date && date.getFullYear() === previousYear && date.getMonth() === previousMonth
+            ? sum + Number(record.coverageAmount || 0)
+            : sum;
+        }, 0);
+        const placedRecordCount = scopedRecords.filter(function (record) {
+          return getRecordPolicies(record).length > 0
+            || ((record.statusGroup === "coverage-placed" || record.statusGroup === "closed") && Number(record.coverageAmount || 0) > 0);
+        }).length;
+        const currentMonthPlacedCaseIds = new Set();
+        placedPolicyEntries.forEach(function (entry) {
+          const date = entry.timelineDate;
+          if (date && date.getFullYear() === currentYear && date.getMonth() === currentMonth) {
+            const key = String(entry.record?.id || entry.record?.caseRef || "").trim();
+            if (key) {
+              currentMonthPlacedCaseIds.add(key);
+            }
+          }
+        });
+        legacyPlacedRecords.forEach(function (record) {
+          const date = getRecordTimelineDate(record);
+          if (date && date.getFullYear() === currentYear && date.getMonth() === currentMonth) {
+            const key = String(record?.id || record?.caseRef || "").trim();
+            if (key) {
+              currentMonthPlacedCaseIds.add(key);
+            }
+          }
+        });
+
+        const pipelineRecords = scopedRecords.filter(function (record) {
+          return record.statusGroup === "prospects" || record.statusGroup === "in-review";
+        });
+        const activePipelineRecords = scopedRecords.filter(function (record) {
+          return record.statusGroup !== "coverage-placed" && record.statusGroup !== "closed";
+        });
+        const pipelineProspects = pipelineRecords.filter(function (record) { return record.statusGroup === "prospects"; }).length;
+        const pipelineInReview = pipelineRecords.filter(function (record) { return record.statusGroup === "in-review"; }).length;
+        const pipelineDays = pipelineRecords.map(function (record) {
+          return getDaysBetween(getRecordTimelineDate(record), now);
+        }).filter(function (value) {
+          return Number.isFinite(value);
+        });
+        const stalledPipeline = pipelineDays.filter(function (value) {
+          return value >= 14;
+        }).length;
+
+        const gapRecords = scopedRecords.filter(function (record) {
+          return Number(record.coverageGap || 0) > 0;
+        });
+        const totalGap = gapRecords.reduce(function (sum, record) {
+          return sum + Number(record.coverageGap || 0);
+        }, 0);
+        const highGapCount = gapRecords.filter(function (record) {
+          return Number(record.coverageGap || 0) > 1000000;
+        }).length;
+        const midGapCount = gapRecords.filter(function (record) {
+          const gap = Number(record.coverageGap || 0);
+          return gap >= 500000 && gap <= 1000000;
+        }).length;
+        const lowGapCount = gapRecords.filter(function (record) {
+          const gap = Number(record.coverageGap || 0);
+          return gap > 0 && gap < 500000;
+        }).length;
+        const gapValues = gapRecords.map(function (record) {
+          return Number(record.coverageGap || 0);
+        }).filter(function (value) {
+          return value > 0;
+        }).sort(function (first, second) {
+          return first - second;
+        });
+        const largestGap = gapValues.length ? gapValues[gapValues.length - 1] : 0;
+        const topGapRecords = gapRecords.slice().sort(function (first, second) {
+          return Number(second.coverageGap || 0) - Number(first.coverageGap || 0);
+        });
+        const largestOpportunityEntries = scopedRecords.map(function (record) {
+          return {
+            record,
+            opportunityValue: getRecordLargestOpportunityValue(record)
+          };
+        }).filter(function (entry) {
+          return entry.opportunityValue > 0;
+        }).sort(function (first, second) {
+          return second.opportunityValue - first.opportunityValue;
+        });
+        const largestOpportunityTotal = largestOpportunityEntries.reduce(function (sum, entry) {
+          return sum + entry.opportunityValue;
+        }, 0);
+        const largestOpportunityValue = largestOpportunityEntries.length
+          ? largestOpportunityEntries[0].opportunityValue
+          : 0;
+
+        const recommendedActionCandidates = scopedRecords.map(function (record) {
+          const opportunityValue = getRecordOpenOpportunityValue(record);
+          const openDays = getDaysBetween(getRecordTimelineDate(record), now);
+          const reviewDays = getDaysBetween(getRecordReviewDate(record), now);
+          let actionLabel = "";
+          let score = opportunityValue;
+          let valueText = opportunityValue > 0 ? formatCurrencyCompact(opportunityValue) : "Review";
+
+          if (record.statusGroup === "in-review" && openDays >= 21) {
+            actionLabel = "Move stalled underwriting";
+            score += 700000 + (openDays * 8000);
+          } else if (!hasDirectoryPmiCompleted(record)) {
+            actionLabel = "Collect financial input";
+            score += 550000 + (openDays * 5000);
+            valueText = opportunityValue > 0 ? valueText : "Input";
+          } else if (!hasDirectoryAnalysisCompleted(record)) {
+            actionLabel = "Finalize needs analysis";
+            score += 475000 + (openDays * 4500);
+            valueText = opportunityValue > 0 ? valueText : "Analysis";
+          } else if (Number(record.coverageGap || 0) > 0) {
+            actionLabel = "Present recommendation";
+            score += 325000 + (openDays * 2500);
+          } else if (reviewDays > 180) {
+            actionLabel = "Schedule overdue review";
+            score += 240000 + (reviewDays * 1500);
+          } else {
+            return null;
+          }
+
+          if (normalizePriority(record.priority) === "high") {
+            score += 250000;
+          } else if (normalizePriority(record.priority) === "medium") {
+            score += 100000;
+          }
+          if (isRecordIncomplete(record)) {
+            score += 120000;
+          }
+
+          return {
+            label: `${getSummaryCardDisplayName(record)} • ${actionLabel}`,
+            score,
+            value: opportunityValue,
+            valueText
+          };
+        }).filter(Boolean).sort(function (first, second) {
+          return second.score - first.score;
+        });
+        const urgentActionCount = recommendedActionCandidates.filter(function (item) {
+          return item.score >= 1000000;
+        }).length;
+        const recommendedTopValue = recommendedActionCandidates.slice(0, 3).reduce(function (sum, item) {
+          return sum + Math.max(0, Number(item.value || 0));
+        }, 0);
+        setSummaryCardMetric("recommended-actions", {
+          total: formatSummaryCount(recommendedActionCandidates.length),
+          note: recommendedActionCandidates.length
+            ? `Top actions touch ${formatCurrencyCompact(recommendedTopValue)} of open protection opportunity.`
+            : "No immediate advisor actions are waiting in this view.",
+          badgeText: recommendedActionCandidates.length
+            ? `${formatSummaryCount(urgentActionCount || recommendedActionCandidates.length)} urgent now`
+            : "No urgent actions",
+          badgeTone: urgentActionCount > 0 ? "warning" : recommendedActionCandidates.length ? "accent" : "neutral",
+          rows: recommendedActionCandidates.slice(0, 3).map(function (item) {
+            return { label: item.label, value: item.valueText, dotClass: "client-directory-summary-dot-action" };
+          })
+        });
+
+        const closerCandidates = pipelineRecords.map(function (record) {
+          const opportunityValue = getRecordOpenOpportunityValue(record);
+          const openDays = getDaysBetween(getRecordTimelineDate(record), now);
+          if (!hasDirectoryPmiCompleted(record) || opportunityValue <= 0) {
+            return null;
+          }
+
+          const blocker = openDays > 21 ? "stalled underwriting" : !hasDirectoryAnalysisCompleted(record) ? "analysis pending" : "";
+          const stage = record.statusGroup === "in-review"
+            ? "Carrier review"
+            : hasDirectoryAnalysisCompleted(record)
+              ? "Recommendation ready"
+              : "Needs analysis";
+          let score = opportunityValue;
+          if (record.statusGroup === "in-review") {
+            score += 600000;
+          }
+          if (hasDirectoryAnalysisCompleted(record)) {
+            score += 350000;
+          }
+          if (openDays <= 30) {
+            score += 180000;
+          } else if (openDays <= 45) {
+            score += 90000;
+          } else {
+            score -= 120000;
+          }
+          if (normalizePriority(record.priority) === "high") {
+            score += 150000;
+          }
+
+          return score >= 400000
+            ? {
+              label: `${getSummaryCardDisplayName(record)} • ${stage}${blocker ? `, ${blocker}` : ""}`,
+              score,
+              value: opportunityValue
+            }
+            : null;
+        }).filter(Boolean).sort(function (first, second) {
+          return second.score - first.score;
+        });
+        const totalCloserValue = closerCandidates.reduce(function (sum, item) {
+          return sum + item.value;
+        }, 0);
+        setSummaryCardMetric("high-probability-closers", {
+          total: formatCurrencyCompact(totalCloserValue),
+          note: closerCandidates.length
+            ? `${formatSummaryCount(closerCandidates.length)} case${closerCandidates.length === 1 ? "" : "s"} likely to close in the next 14 to 30 days.`
+            : "No late-stage cases are lining up to close soon.",
+          badgeText: closerCandidates.length ? `${formatSummaryCount(closerCandidates.length)} likely soon` : "No late-stage momentum",
+          badgeTone: closerCandidates.length ? "positive" : "neutral",
+          rows: closerCandidates.slice(0, 3).map(function (item) {
+            return { label: item.label, value: formatCurrencyCompact(item.value), dotClass: "client-directory-summary-dot-closer" };
+          })
+        });
+
+        const atRiskCandidates = pipelineRecords.map(function (record) {
+          const opportunityValue = getRecordOpenOpportunityValue(record);
+          const openDays = getDaysBetween(getRecordTimelineDate(record), now);
+          if (opportunityValue <= 0) {
+            return null;
+          }
+
+          const missingInput = !hasDirectoryPmiCompleted(record) && openDays >= 10;
+          const stalledUnderwriting = record.statusGroup === "in-review" && openDays >= 21;
+          const analysisLag = hasDirectoryPmiCompleted(record) && !hasDirectoryAnalysisCompleted(record) && openDays >= 14;
+          if (!(missingInput || stalledUnderwriting || analysisLag)) {
+            return null;
+          }
+
+          return {
+            label: `${getSummaryCardDisplayName(record)} • ${stalledUnderwriting ? "stalled underwriting" : missingInput ? "missing client financial input" : "analysis not finalized"}`,
+            score: opportunityValue + (openDays * 12000),
+            value: opportunityValue
+          };
+        }).filter(Boolean).sort(function (first, second) {
+          return second.score - first.score;
+        });
+        const totalAtRiskValue = atRiskCandidates.reduce(function (sum, item) {
+          return sum + item.value;
+        }, 0);
+        setSummaryCardMetric("revenue-at-risk", {
+          total: formatCurrencyCompact(totalAtRiskValue),
+          note: atRiskCandidates.length
+            ? `${formatSummaryCount(atRiskCandidates.length)} aging case${atRiskCandidates.length === 1 ? "" : "s"} could slip without intervention.`
+            : "No aging cases are putting modeled revenue at risk.",
+          badgeText: atRiskCandidates.length ? `${formatSummaryCount(atRiskCandidates.length)} at risk` : "No aging case risk",
+          badgeTone: atRiskCandidates.length ? "warning" : "neutral",
+          rows: atRiskCandidates.slice(0, 3).map(function (item) {
+            return { label: item.label, value: formatCurrencyCompact(item.value), dotClass: "client-directory-summary-dot-risk" };
+          })
+        });
+
+        setSummaryCardMetric("largest-opportunities", {
+          total: formatCurrencyCompact(largestOpportunityTotal),
+          note: largestOpportunityEntries.length
+            ? `Net of current coverage across ${formatSummaryCount(largestOpportunityEntries.length)} client${largestOpportunityEntries.length === 1 ? "" : "s"} in the current view.`
+            : "No uncovered opportunity remains after current coverage in this view.",
+          badgeText: largestOpportunityEntries.length ? `${formatSummaryCount(largestOpportunityEntries.length)} uncovered` : "No modeled opportunities",
+          badgeTone: largestOpportunityValue >= 1000000 ? "warning" : largestOpportunityEntries.length ? "accent" : "neutral",
+          rows: largestOpportunityEntries.slice(0, 3).map(function (entry) {
+            const record = entry.record;
+            return {
+              label: `${getSummaryCardDisplayName(record)} • ${getOpportunityBasis(record)} basis`,
+              value: formatCurrencyCompact(entry.opportunityValue),
+              dotClass: "client-directory-summary-dot-opportunity"
+            };
+          })
+        });
+
+        const missingProfileCount = activePipelineRecords.filter(function (record) {
+          return isRecordIncomplete(record);
+        }).length;
+        const missingFinancialInputCount = activePipelineRecords.filter(function (record) {
+          return hasDirectoryPreliminaryCompleted(record) && !hasDirectoryPmiCompleted(record);
+        }).length;
+        const analysisPendingCount = activePipelineRecords.filter(function (record) {
+          return hasDirectoryPmiCompleted(record) && !hasDirectoryAnalysisCompleted(record);
+        }).length;
+        const blockedRecords = activePipelineRecords.filter(function (record) {
+          return isRecordIncomplete(record) || !hasDirectoryPmiCompleted(record) || !hasDirectoryAnalysisCompleted(record);
+        });
+        const blockedBreakdown = [
+          { label: "Waiting on client financial input", count: missingFinancialInputCount },
+          { label: "Incomplete profile or intake", count: missingProfileCount },
+          { label: "Analysis still waiting to start", count: analysisPendingCount }
+        ];
+        const topBlockedCategory = blockedBreakdown.slice().sort(function (first, second) {
+          return second.count - first.count;
+        })[0];
+        setSummaryCardMetric("blocked-missing-information", {
+          total: formatSummaryCount(blockedRecords.length),
+          note: blockedRecords.length
+            ? `${formatSummaryCount(blockedRecords.length)} case${blockedRecords.length === 1 ? "" : "s"} are waiting on profile, PMI, or analysis inputs.`
+            : "No active cases are waiting on missing information.",
+          badgeText: topBlockedCategory && topBlockedCategory.count > 0 ? `${formatSummaryCount(topBlockedCategory.count)} blocked now` : "Workflow clear",
+          badgeTone: topBlockedCategory && topBlockedCategory.count > 0 ? "warning" : "positive",
+          rows: blockedBreakdown.map(function (entry) {
+            return { label: entry.label, value: formatSummaryCount(entry.count), dotClass: "client-directory-summary-dot-blocked" };
+          })
+        });
+
+        const bottleneckStages = [
+          {
+            label: "Preliminary underwriting",
+            count: activePipelineRecords.filter(function (record) { return !hasDirectoryPreliminaryCompleted(record); }).length
+          },
+          {
+            label: "Protection modeling inputs",
+            count: activePipelineRecords.filter(function (record) {
+              return hasDirectoryPreliminaryCompleted(record) && !hasDirectoryPmiCompleted(record);
+            }).length
+          },
+          {
+            label: "Needs analysis",
+            count: activePipelineRecords.filter(function (record) {
+              return hasDirectoryPmiCompleted(record) && !hasDirectoryAnalysisCompleted(record);
+            }).length
+          },
+          {
+            label: "Carrier review",
+            count: activePipelineRecords.filter(function (record) {
+              return hasDirectoryAnalysisCompleted(record) && record.statusGroup === "in-review";
+            }).length
+          }
+        ].sort(function (first, second) {
+          return second.count - first.count;
+        });
+        const topBottleneck = bottleneckStages[0];
+        setSummaryCardMetric("pipeline-bottlenecks", {
+          total: formatSummaryCount(topBottleneck?.count || 0),
+          note: topBottleneck && topBottleneck.count > 0
+            ? `The heaviest buildup is in ${topBottleneck.label.toLowerCase()}.`
+            : "The workflow is moving cleanly with no concentrated bottleneck.",
+          badgeText: topBottleneck && topBottleneck.count > 0 ? `Most stuck in ${topBottleneck.label.toLowerCase()}` : "No workflow pileup",
+          badgeTone: topBottleneck && topBottleneck.count > 0 ? "accent" : "positive",
+          rows: bottleneckStages.slice(0, 3).map(function (stage) {
+            return { label: stage.label, value: formatSummaryCount(stage.count), dotClass: "client-directory-summary-dot-bottleneck" };
+          })
+        });
+
+        setSummaryCardMetric("pipeline", {
+          total: formatSummaryCount(pipelineRecords.length),
+          note: pipelineRecords.length
+            ? `${formatSummaryCount(pipelineRecords.length)} early and mid-stage planning case${pipelineRecords.length === 1 ? "" : "s"} are currently in motion.`
+            : "No active prospects are in the planning pipeline right now.",
+          badgeText: pipelineRecords.length ? `${formatSummaryCount(pipelineRecords.length)} active` : "No active prospects",
+          badgeTone: pipelineRecords.length ? "accent" : "neutral",
+          rows: [
+            { label: "Discovery underway", value: formatSummaryCount(pipelineProspects), dotClass: "client-directory-summary-dot-prospect" },
+            { label: "Carrier review active", value: formatSummaryCount(pipelineInReview), dotClass: "client-directory-summary-dot-conversation" },
+            { label: "Stalled 14+ days", value: formatSummaryCount(stalledPipeline), dotClass: "client-directory-summary-dot-stalled" }
+          ]
+        });
+
+        setSummaryCardMetric("gap", {
+          total: formatSummaryCount(gapRecords.length),
+          note: gapRecords.length ? `${formatCurrencyCompact(totalGap)} total uncovered protection gap is still open.` : "No uncovered protection gap is open in this view.",
+          badgeText: gapRecords.length ? "Needs attention" : "No uncovered need",
+          badgeTone: highGapCount > 0 ? "warning" : gapRecords.length ? "accent" : "positive",
+          rows: [
+            { label: "Gap greater than $1M", value: formatSummaryCount(highGapCount), dotClass: "client-directory-summary-dot-high" },
+            { label: "Gap from $500K to $1M", value: formatSummaryCount(midGapCount), dotClass: "client-directory-summary-dot-mid" },
+            { label: "Gap below $500K", value: formatSummaryCount(lowGapCount), dotClass: "client-directory-summary-dot-low" }
+          ]
+        });
+
+        const reviewAges = scopedRecords.map(function (record) {
+          return getDaysBetween(getRecordReviewDate(record), now);
+        }).filter(function (value) {
+          return Number.isFinite(value);
+        });
+        const reviewCurrentCount = reviewAges.filter(function (value) { return value <= 90; }).length;
+        const reviewDueCount = reviewAges.filter(function (value) { return value > 90 && value <= 180; }).length;
+        const reviewOverdueCount = reviewAges.filter(function (value) { return value > 180; }).length;
+        const reviewHealthPercent = reviewAges.length
+          ? Math.round((reviewCurrentCount / reviewAges.length) * 100)
+          : 0;
+        const averageReviewAge = reviewAges.length
+          ? Math.round(reviewAges.reduce(function (sum, value) { return sum + value; }, 0) / reviewAges.length)
+          : 0;
+        setSummaryCardMetric("review-health", {
+          total: formatPercentValue(reviewHealthPercent),
+          note: reviewAges.length ? `Avg. last review ${averageReviewAge} day${averageReviewAge === 1 ? "" : "s"} ago.` : "No review dates are available yet.",
+          badgeText: reviewOverdueCount > 0 ? `${formatSummaryCount(reviewOverdueCount)} overdue` : reviewAges.length > 0 ? "Book healthy" : "No review cadence yet",
+          badgeTone: reviewOverdueCount > 0 ? "warning" : reviewAges.length > 0 ? "positive" : "neutral",
+          rows: [
+            { label: "Current (0-90 days)", value: formatSummaryCount(reviewCurrentCount), dotClass: "client-directory-summary-dot-current" },
+            { label: "Due soon", value: formatSummaryCount(reviewDueCount), dotClass: "client-directory-summary-dot-due" },
+            { label: "Overdue", value: formatSummaryCount(reviewOverdueCount), dotClass: "client-directory-summary-dot-overdue" }
+          ]
+        });
+
+        const placedPrimaryValue = currentMonthPlaced > 0 ? currentMonthPlaced : totalPlaced;
+        setSummaryCardMetric("placed", {
+          total: formatCurrencyCompact(placedPrimaryValue),
+          note: totalPlaced > 0 ? `${formatCurrencyCompact(totalPlaced)} placed YTD across ${formatSummaryCount(placedRecordCount)} case${placedRecordCount === 1 ? "" : "s"}.` : "No placed business is on file yet.",
+          badgeText: currentMonthPlaced > 0 ? "MTD production" : totalPlaced > 0 ? "YTD production" : "No production yet",
+          badgeTone: currentMonthPlaced > 0 ? "positive" : totalPlaced > 0 ? "accent" : "neutral",
+          rows: [
+            { label: "YTD production", value: formatCurrencyCompact(totalPlaced), dotClass: "client-directory-summary-dot-placed" },
+            { label: "Cases placed MTD", value: formatSummaryCount(currentMonthPlacedCaseIds.size), dotClass: "client-directory-summary-dot-placed" },
+            { label: "Prior-month pace", value: formatCurrencyCompact(previousMonthPlaced), dotClass: "client-directory-summary-dot-placed" }
+          ]
+        });
+
+        const householdRecords = scopedRecords.filter(isHouseholdExposureRecord);
+        const householdsNeedingReview = householdRecords.filter(function (record) {
+          return Number(record.coverageGap || 0) > 0
+            || !hasDirectoryPmiCompleted(record)
+            || !hasDirectoryAnalysisCompleted(record)
+            || getDaysBetween(getRecordReviewDate(record), now) > 180;
+        });
+        const householdGapCount = householdsNeedingReview.filter(function (record) {
+          return Number(record.coverageGap || 0) > 0;
+        }).length;
+        const householdMissingInputCount = householdsNeedingReview.filter(function (record) {
+          return !hasDirectoryPmiCompleted(record);
+        }).length;
+        const householdOverdueCount = householdsNeedingReview.filter(function (record) {
+          return getDaysBetween(getRecordReviewDate(record), now) > 180;
+        }).length;
+        setSummaryCardMetric("household-joint-review", {
+          total: formatSummaryCount(householdsNeedingReview.length),
+          note: householdsNeedingReview.length ? "Household planning cases still need joint input or coordinated follow-up." : "No household planning cases need coordinated review right now.",
+          badgeText: householdMissingInputCount > 0 ? `${formatSummaryCount(householdMissingInputCount)} waiting on joint inputs` : householdsNeedingReview.length > 0 ? `${formatSummaryCount(householdsNeedingReview.length)} active households` : "No coordinated review needed",
+          badgeTone: householdMissingInputCount > 0 ? "warning" : householdsNeedingReview.length > 0 ? "accent" : "positive",
+          rows: [
+            { label: "Open household protection gap", value: formatSummaryCount(householdGapCount), dotClass: "client-directory-summary-dot-household" },
+            { label: "Missing joint financial inputs", value: formatSummaryCount(householdMissingInputCount), dotClass: "client-directory-summary-dot-household" },
+            { label: "Review overdue", value: formatSummaryCount(householdOverdueCount), dotClass: "client-directory-summary-dot-household" }
+          ]
+        });
       }
 
       function syncStatusButtons() {
@@ -3709,6 +4591,11 @@
           return;
         }
 
+        if (!isVisible && getVisibleSummaryCardCount(summaryCardDraftVisibility) >= SUMMARY_CARD_MAX_VISIBLE) {
+          renderSummaryCustomizeBuilder();
+          return;
+        }
+
         if (!isVisible) {
           summaryCardDraftVisibility[key] = true;
         }
@@ -3840,8 +4727,8 @@
           return;
         }
 
-        summaryCardVisibility = cloneSummaryCardVisibility(summaryCardDraftVisibility);
         summaryCardOrder = normalizeSummaryCardOrder(summaryCardDraftOrder);
+        summaryCardVisibility = clampSummaryCardVisibility(summaryCardDraftVisibility, summaryCardOrder);
         persistSummaryCardPreferences();
         syncSummaryCardVisibility();
         setSummaryCustomizeOpen(false);
