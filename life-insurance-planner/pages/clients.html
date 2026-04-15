@@ -341,7 +341,7 @@
                       <div class="client-directory-summary-customize-copy">
                         <span class="client-directory-summary-customize-kicker">Customize Cards</span>
                         <h2 class="client-directory-summary-customize-title" id="client-directory-summary-customize-title">Preview Cards</h2>
-                        <p class="client-directory-summary-customize-note" id="client-directory-summary-customize-note">Choose which summary cards stay above the client directory.</p>
+                        <p class="client-directory-summary-customize-note" id="client-directory-summary-customize-note">Drag cards into the preview, move them around, and save when the layout looks right.</p>
                       </div>
                       <button class="client-directory-summary-customize-close" type="button" data-summary-customize-close aria-label="Close customize cards">
                         <span aria-hidden="true">
@@ -351,49 +351,107 @@
                         </span>
                       </button>
                     </div>
-                    <div class="client-directory-summary-customize-options" role="group" aria-label="Visible preview cards">
-                      <label class="client-directory-summary-customize-option">
-                        <input type="checkbox" data-summary-card-toggle="placed" checked>
-                        <span>Coverage Placed</span>
-                      </label>
-                      <label class="client-directory-summary-customize-option">
-                        <input type="checkbox" data-summary-card-toggle="pipeline" checked>
-                        <span>Prospects In Pipeline</span>
-                      </label>
-                      <label class="client-directory-summary-customize-option">
-                        <input type="checkbox" data-summary-card-toggle="gap" checked>
-                        <span>Clients With Gaps</span>
-                      </label>
-                      <label class="client-directory-summary-customize-option">
-                        <input type="checkbox" data-summary-card-toggle="opportunity">
-                        <span>Coverage Opportunity</span>
-                      </label>
-                      <label class="client-directory-summary-customize-option">
-                        <input type="checkbox" data-summary-card-toggle="placement-rate">
-                        <span>Placement Rate</span>
-                      </label>
-                      <label class="client-directory-summary-customize-option">
-                        <input type="checkbox" data-summary-card-toggle="average-gap">
-                        <span>Average Coverage Gap</span>
-                      </label>
-                      <label class="client-directory-summary-customize-option">
-                        <input type="checkbox" data-summary-card-toggle="protection-progress">
-                        <span>Protection Progress</span>
-                      </label>
-                      <label class="client-directory-summary-customize-option">
-                        <input type="checkbox" data-summary-card-toggle="household-exposure">
-                        <span>Household Exposure</span>
-                      </label>
-                      <label class="client-directory-summary-customize-option">
-                        <input type="checkbox" data-summary-card-toggle="business-cases">
-                        <span>Business Protection Cases</span>
-                      </label>
-                      <label class="client-directory-summary-customize-option">
-                        <input type="checkbox" data-summary-card-toggle="review-health">
-                        <span>Review Cycle Health</span>
-                      </label>
+                    <div class="client-directory-summary-customize-builder">
+                      <section class="client-directory-summary-customize-section" aria-labelledby="client-directory-summary-customize-library-title">
+                        <div class="client-directory-summary-customize-section-head">
+                          <span class="client-directory-summary-customize-section-kicker" id="client-directory-summary-customize-library-title">Available Cards</span>
+                          <p class="client-directory-summary-customize-section-note">Drag cards into the preview, or click them to add them to the end.</p>
+                        </div>
+                        <div class="client-directory-summary-customize-library" data-summary-customize-available data-summary-dropzone="available" role="list" aria-label="Available preview cards"></div>
+                      </section>
+                      <section class="client-directory-summary-customize-section client-directory-summary-customize-section-preview" aria-labelledby="client-directory-summary-customize-preview-title">
+                        <div class="client-directory-summary-customize-section-head">
+                          <span class="client-directory-summary-customize-section-kicker" id="client-directory-summary-customize-preview-title">Preview Layout</span>
+                          <p class="client-directory-summary-customize-section-note">Move cards around here to preview the row order before saving.</p>
+                        </div>
+                        <div class="client-directory-summary-customize-preview-shell">
+                          <div class="client-directory-summary-customize-screen">
+                            <div class="client-directory-summary-customize-screen-topbar" aria-hidden="true">
+                              <span class="client-directory-summary-customize-screen-menu"></span>
+                              <span class="client-directory-summary-customize-screen-actions">
+                                <span></span>
+                                <span></span>
+                              </span>
+                            </div>
+                            <div class="client-directory-summary-customize-screen-body">
+                              <aside class="client-directory-summary-customize-screen-rail" aria-hidden="true">
+                                <span class="client-directory-summary-customize-screen-rail-item client-directory-summary-customize-screen-rail-item-logo"></span>
+                                <span class="client-directory-summary-customize-screen-rail-item client-directory-summary-customize-screen-rail-item-grid client-directory-summary-customize-screen-rail-item-active"></span>
+                                <span class="client-directory-summary-customize-screen-rail-item client-directory-summary-customize-screen-rail-item-people"></span>
+                                <span class="client-directory-summary-customize-screen-rail-item client-directory-summary-customize-screen-rail-item-doc"></span>
+                                <span class="client-directory-summary-customize-screen-rail-item client-directory-summary-customize-screen-rail-item-chart"></span>
+                                <span class="client-directory-summary-customize-screen-rail-spacer"></span>
+                                <span class="client-directory-summary-customize-screen-rail-item client-directory-summary-customize-screen-rail-item-settings"></span>
+                              </aside>
+                              <aside class="client-directory-summary-customize-screen-sidebar" aria-hidden="true">
+                                <span class="client-directory-summary-customize-screen-sidebar-kicker"></span>
+                                <span class="client-directory-summary-customize-screen-sidebar-title"></span>
+                                <span class="client-directory-summary-customize-screen-sidebar-block"></span>
+                                <span class="client-directory-summary-customize-screen-sidebar-item"></span>
+                                <span class="client-directory-summary-customize-screen-sidebar-item"></span>
+                                <span class="client-directory-summary-customize-screen-sidebar-item client-directory-summary-customize-screen-sidebar-item-short"></span>
+                              </aside>
+                              <div class="client-directory-summary-customize-screen-main">
+                                <div class="client-directory-summary-customize-screen-header" aria-hidden="true">
+                                  <span class="client-directory-summary-customize-screen-header-title"></span>
+                                  <span class="client-directory-summary-customize-screen-header-buttons">
+                                    <span></span>
+                                    <span></span>
+                                  </span>
+                                </div>
+                                <div class="client-directory-summary-customize-preview" data-summary-customize-preview data-summary-dropzone="preview" role="list" aria-label="Preview card layout"></div>
+                                <div class="client-directory-summary-customize-screen-search" aria-hidden="true"></div>
+                                <div class="client-directory-summary-customize-screen-tabs" aria-hidden="true">
+                                  <span class="is-active"></span>
+                                  <span></span>
+                                  <span></span>
+                                  <span></span>
+                                </div>
+                                <div class="client-directory-summary-customize-screen-table" aria-hidden="true">
+                                  <div class="client-directory-summary-customize-screen-table-head">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                  </div>
+                                  <div class="client-directory-summary-customize-screen-table-row">
+                                    <span class="client-directory-summary-customize-screen-table-person">
+                                      <span class="client-directory-summary-customize-screen-avatar client-directory-summary-customize-screen-avatar-violet" data-initials="DE"></span>
+                                      <span class="client-directory-summary-customize-screen-table-line"></span>
+                                    </span>
+                                    <span></span>
+                                    <span></span>
+                                  </div>
+                                  <div class="client-directory-summary-customize-screen-table-row">
+                                    <span class="client-directory-summary-customize-screen-table-person">
+                                      <span class="client-directory-summary-customize-screen-avatar client-directory-summary-customize-screen-avatar-blue" data-initials="MM"></span>
+                                      <span class="client-directory-summary-customize-screen-table-line"></span>
+                                    </span>
+                                    <span></span>
+                                    <span></span>
+                                  </div>
+                                  <div class="client-directory-summary-customize-screen-table-row">
+                                    <span class="client-directory-summary-customize-screen-table-person">
+                                      <span class="client-directory-summary-customize-screen-avatar client-directory-summary-customize-screen-avatar-green" data-initials="CR"></span>
+                                      <span class="client-directory-summary-customize-screen-table-line"></span>
+                                    </span>
+                                    <span></span>
+                                    <span></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </section>
                     </div>
-                    <p class="client-directory-summary-customize-footnote">At least one preview card remains visible.</p>
+                    <div class="client-directory-summary-customize-actions">
+                      <p class="client-directory-summary-customize-footnote" data-summary-customize-status>At least one preview card remains visible. Drag cards on or off the preview before saving.</p>
+                      <div class="client-directory-summary-customize-action-buttons">
+                        <button class="client-directory-summary-customize-action client-directory-summary-customize-action-secondary" type="button" data-summary-customize-cancel>Cancel</button>
+                        <button class="client-directory-summary-customize-action client-directory-summary-customize-action-primary" type="button" data-summary-customize-save>Save Cards</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -960,7 +1018,11 @@
       const summaryCustomizeDialog = document.querySelector("[data-summary-customize-dialog]");
       const summaryCustomizePanel = document.querySelector("[data-summary-customize-panel]");
       const summaryCustomizeCloseButtons = Array.from(document.querySelectorAll("[data-summary-customize-close]"));
-      const summaryCardToggles = Array.from(document.querySelectorAll("[data-summary-card-toggle]"));
+      const summaryCustomizeAvailableHost = document.querySelector("[data-summary-customize-available]");
+      const summaryCustomizePreviewHost = document.querySelector("[data-summary-customize-preview]");
+      const summaryCustomizeStatus = document.querySelector("[data-summary-customize-status]");
+      const summaryCustomizeCancelButton = document.querySelector("[data-summary-customize-cancel]");
+      const summaryCustomizeSaveButton = document.querySelector("[data-summary-customize-save]");
       const directoryAccessibility = document.querySelector("[data-directory-accessibility]");
       const directoryAccessibilityTrigger = document.querySelector("[data-directory-accessibility-trigger]");
       const directoryAccessibilityDialog = document.querySelector("[data-directory-accessibility-dialog]");
@@ -972,6 +1034,19 @@
       const directorySidebarLayout = document.querySelector("[data-directory-sidebar-layout]");
       const directorySidebarToggle = document.querySelector("[data-directory-sidebar-toggle]");
       const directorySidebarGroups = Array.from(document.querySelectorAll("[data-directory-context-group-key]"));
+      const SUMMARY_CARD_DEFAULT_ORDER = Object.freeze(Object.keys(summaryCardElements));
+      const summaryCardCatalog = SUMMARY_CARD_DEFAULT_ORDER.reduce(function (catalog, key) {
+        const card = summaryCardElements[key];
+        const title = card?.querySelector(".client-directory-summary-kicker")?.textContent?.trim() || key;
+        const note = card?.querySelector(".client-directory-summary-note")?.textContent?.trim() || "Preview card";
+        const toneClass = card instanceof HTMLElement
+          ? Array.from(card.classList).find(function (className) {
+            return className.startsWith("client-directory-summary-card-") && className !== "client-directory-summary-card";
+          }) || ""
+          : "";
+        catalog[key] = { key, title, note, toneClass };
+        return catalog;
+      }, {});
       const directorySidebarButtons = Array.from(document.querySelectorAll("[data-directory-nav-action]"));
       const directorySidebarScopeButtons = Array.from(document.querySelectorAll("[data-directory-scope-action]"));
       const directorySidebarPriorityButtons = Array.from(document.querySelectorAll("[data-directory-priority-action]"));
@@ -984,6 +1059,10 @@
       const directoryExportSelectedButton = document.querySelector("[data-directory-export-selected]");
       const directoryFlagSelectedButton = document.querySelector("[data-directory-flag-selected]");
       const directoryUnflagSelectedButton = document.querySelector("[data-directory-unflag-selected]");
+
+      if (summaryCustomizeDialog instanceof HTMLElement && summaryCustomizeDialog.parentElement !== document.body) {
+        document.body.appendChild(summaryCustomizeDialog);
+      }
 
       if (!rowsHost) {
         return;
@@ -1009,6 +1088,10 @@
       let records = [];
       const selectedRecordIds = new Set();
       let summaryCardVisibility = null;
+      let summaryCardOrder = null;
+      let summaryCardDraftVisibility = null;
+      let summaryCardDraftOrder = null;
+      let summaryCustomizeDragKey = "";
       let summaryCustomizeReturnFocus = null;
       let accessibilitySettings = null;
       let directoryAccessibilityReturnFocus = null;
@@ -1738,52 +1821,150 @@
           || Boolean(String(record.householdName || "").trim());
       }
 
-      function loadSummaryCardVisibility() {
-        const defaults = {
-          placed: true,
-          pipeline: true,
-          gap: true,
-          opportunity: false,
-          "placement-rate": false,
-          "average-gap": false,
-          "protection-progress": false,
-          "household-exposure": false,
-          "business-cases": false,
-          "review-health": false
-        };
-        const persisted = loadJson(localStorage, summaryCardsStorageKey);
-        if (!persisted || typeof persisted !== "object") {
-          return defaults;
+      const DEFAULT_SUMMARY_CARD_VISIBILITY = Object.freeze({
+        placed: true,
+        pipeline: true,
+        gap: true,
+        opportunity: false,
+        "placement-rate": false,
+        "average-gap": false,
+        "protection-progress": false,
+        "household-exposure": false,
+        "business-cases": false,
+        "review-health": false
+      });
+
+      function cloneSummaryCardVisibility(value) {
+        const nextVisibility = { ...DEFAULT_SUMMARY_CARD_VISIBILITY };
+        if (value && typeof value === "object") {
+          SUMMARY_CARD_DEFAULT_ORDER.forEach(function (key) {
+            if (key in value) {
+              nextVisibility[key] = Boolean(value[key]);
+            }
+          });
         }
 
-        const nextVisibility = {
-          placed: persisted.placed !== false,
-          pipeline: persisted.pipeline !== false,
-          gap: persisted.gap !== false,
-          opportunity: persisted.opportunity === true,
-          "placement-rate": persisted["placement-rate"] === true,
-          "average-gap": persisted["average-gap"] === true,
-          "protection-progress": persisted["protection-progress"] === true,
-          "household-exposure": persisted["household-exposure"] === true,
-          "business-cases": persisted["business-cases"] === true,
-          "review-health": persisted["review-health"] === true
-        };
-
-        return Object.values(nextVisibility).some(Boolean) ? nextVisibility : defaults;
+        return Object.values(nextVisibility).some(Boolean)
+          ? nextVisibility
+          : { ...DEFAULT_SUMMARY_CARD_VISIBILITY };
       }
 
-      function persistSummaryCardVisibility() {
+      function normalizeSummaryCardOrder(value) {
+        const seen = new Set();
+        const nextOrder = [];
+        if (Array.isArray(value)) {
+          value.forEach(function (entry) {
+            const key = String(entry || "").trim();
+            if (!SUMMARY_CARD_DEFAULT_ORDER.includes(key) || seen.has(key)) {
+              return;
+            }
+            seen.add(key);
+            nextOrder.push(key);
+          });
+        }
+
+        SUMMARY_CARD_DEFAULT_ORDER.forEach(function (key) {
+          if (!seen.has(key)) {
+            nextOrder.push(key);
+          }
+        });
+
+        return nextOrder;
+      }
+
+      function loadSummaryCardPreferences() {
+        const persisted = loadJson(localStorage, summaryCardsStorageKey);
+        if (!persisted || typeof persisted !== "object") {
+          return {
+            visibility: { ...DEFAULT_SUMMARY_CARD_VISIBILITY },
+            order: [...SUMMARY_CARD_DEFAULT_ORDER]
+          };
+        }
+
+        const visibilitySource = persisted.visibility && typeof persisted.visibility === "object"
+          ? persisted.visibility
+          : persisted;
+        const orderSource = Array.isArray(persisted.order) ? persisted.order : SUMMARY_CARD_DEFAULT_ORDER;
+
+        return {
+          visibility: cloneSummaryCardVisibility(visibilitySource),
+          order: normalizeSummaryCardOrder(orderSource)
+        };
+      }
+
+      function persistSummaryCardPreferences() {
         try {
-          localStorage.setItem(summaryCardsStorageKey, JSON.stringify(summaryCardVisibility));
+          localStorage.setItem(summaryCardsStorageKey, JSON.stringify({
+            visibility: summaryCardVisibility,
+            order: summaryCardOrder
+          }));
         } catch (error) {
           // Ignore persistence issues and keep the in-memory preference state.
         }
       }
 
-      function getVisibleSummaryCardCount() {
-        return Object.keys(summaryCardVisibility || {}).filter(function (key) {
-          return Boolean(summaryCardVisibility[key]);
+      function getVisibleSummaryCardCount(visibilityState) {
+        const source = visibilityState && typeof visibilityState === "object"
+          ? visibilityState
+          : summaryCardVisibility;
+        return SUMMARY_CARD_DEFAULT_ORDER.filter(function (key) {
+          return Boolean(source && source[key]);
         }).length;
+      }
+
+      function getOrderedSummaryCardKeys(orderState) {
+        return normalizeSummaryCardOrder(orderState || summaryCardOrder);
+      }
+
+      function getVisibleSummaryCardKeys(visibilityState, orderState) {
+        const source = visibilityState && typeof visibilityState === "object"
+          ? visibilityState
+          : summaryCardVisibility;
+        return getOrderedSummaryCardKeys(orderState).filter(function (key) {
+          return Boolean(source && source[key]);
+        });
+      }
+
+      function cloneSummaryCustomizeDraft() {
+        summaryCardDraftVisibility = cloneSummaryCardVisibility(summaryCardVisibility);
+        summaryCardDraftOrder = normalizeSummaryCardOrder(summaryCardOrder);
+      }
+
+      function clearSummaryCustomizeDraft() {
+        summaryCardDraftVisibility = null;
+        summaryCardDraftOrder = null;
+        summaryCustomizeDragKey = "";
+      }
+
+      function hasSummaryCustomizeChanges() {
+        if (!summaryCardDraftVisibility || !summaryCardDraftOrder) {
+          return false;
+        }
+
+        const visibilityChanged = SUMMARY_CARD_DEFAULT_ORDER.some(function (key) {
+          return Boolean(summaryCardDraftVisibility[key]) !== Boolean(summaryCardVisibility[key]);
+        });
+
+        if (visibilityChanged) {
+          return true;
+        }
+
+        const liveOrder = getOrderedSummaryCardKeys(summaryCardOrder);
+        const draftOrder = getOrderedSummaryCardKeys(summaryCardDraftOrder);
+        return liveOrder.some(function (key, index) {
+          return draftOrder[index] !== key;
+        });
+      }
+
+      function moveSummaryCardInOrder(key, targetKey, placeAfter, orderState) {
+        const normalizedOrder = getOrderedSummaryCardKeys(orderState);
+        const nextOrder = normalizedOrder.filter(function (entry) {
+          return entry !== key;
+        });
+        const targetIndex = targetKey ? nextOrder.indexOf(targetKey) : -1;
+        const insertIndex = targetIndex < 0 ? nextOrder.length : targetIndex + (placeAfter ? 1 : 0);
+        nextOrder.splice(insertIndex, 0, key);
+        return normalizeSummaryCardOrder(nextOrder);
       }
 
       function buildSummaryCardRowLayout(count) {
@@ -1852,6 +2033,8 @@
           summaryCustomizeReturnFocus = document.activeElement instanceof HTMLElement
             ? document.activeElement
             : summaryCustomizeTrigger;
+          cloneSummaryCustomizeDraft();
+          renderSummaryCustomizeBuilder();
         }
 
         summaryCustomize.classList.toggle("is-open", willOpen);
@@ -1877,6 +2060,7 @@
           summaryCustomizeReturnFocus.focus();
         }
 
+        clearSummaryCustomizeDraft();
         summaryCustomizeReturnFocus = null;
       }
 
@@ -1923,56 +2107,113 @@
         directoryAccessibilityReturnFocus = null;
       }
 
-      function syncSummaryCardVisibility() {
-        const visibleCount = Math.max(0, getVisibleSummaryCardCount());
-        const visibleCards = [];
-
-        Object.keys(summaryCardElements).forEach(function (key) {
-          const card = summaryCardElements[key];
-          if (card instanceof HTMLElement) {
-            const isVisible = Boolean(summaryCardVisibility[key]);
-            card.hidden = !isVisible;
-            if (isVisible) {
-              visibleCards.push(card);
-            } else {
-              card.style.removeProperty("--summary-card-span");
+      function buildSummaryCardSpanMap(orderedVisibleKeys) {
+        const spanMap = {};
+        let visibleCardIndex = 0;
+        buildSummaryCardRowLayout(orderedVisibleKeys.length).forEach(function (cardsInRow) {
+          const span = cardsInRow === 1 ? 6 : cardsInRow === 2 ? 3 : 2;
+          for (let index = 0; index < cardsInRow; index += 1) {
+            const key = orderedVisibleKeys[visibleCardIndex];
+            if (key) {
+              spanMap[key] = span;
             }
+            visibleCardIndex += 1;
           }
+        });
+        return spanMap;
+      }
+
+      function renderSummaryCustomizeBuilder() {
+        if (!(summaryCustomizeAvailableHost instanceof HTMLElement) || !(summaryCustomizePreviewHost instanceof HTMLElement)) {
+          return;
+        }
+
+        if (!summaryCardDraftVisibility || !summaryCardDraftOrder) {
+          cloneSummaryCustomizeDraft();
+        }
+
+        const orderedKeys = getOrderedSummaryCardKeys(summaryCardDraftOrder);
+        const visibleKeys = getVisibleSummaryCardKeys(summaryCardDraftVisibility, summaryCardDraftOrder);
+        const availableKeys = orderedKeys.filter(function (key) {
+          return !summaryCardDraftVisibility[key];
+        });
+        const spanMap = buildSummaryCardSpanMap(visibleKeys);
+
+        summaryCustomizeAvailableHost.innerHTML = availableKeys.length
+          ? availableKeys.map(function (key) {
+            const metadata = summaryCardCatalog[key];
+            return `
+              <button class="client-directory-summary-customize-card client-directory-summary-customize-card-library ${metadata.toneClass}" type="button" draggable="true" data-summary-draft-card="${key}" data-summary-draft-zone="available">
+                <span class="client-directory-summary-customize-card-eyebrow">Available</span>
+                <strong>${metadata.title}</strong>
+                <span>${metadata.note}</span>
+              </button>
+            `;
+          }).join("")
+          : '<div class="client-directory-summary-customize-empty">Every preview card is already on the layout.</div>';
+
+        summaryCustomizePreviewHost.innerHTML = visibleKeys.map(function (key, index) {
+          const metadata = summaryCardCatalog[key];
+          return `
+            <button class="client-directory-summary-customize-card client-directory-summary-customize-card-preview ${metadata.toneClass}" type="button" draggable="true" data-summary-draft-card="${key}" data-summary-draft-zone="preview" style="--summary-customize-card-span:${spanMap[key] || 2};">
+              <span class="client-directory-summary-customize-card-index">${index + 1}</span>
+              <strong>${metadata.title}</strong>
+              <span>Drag to reorder</span>
+            </button>
+          `;
+        }).join("");
+        summaryCustomizePreviewHost.setAttribute("data-preview-count", String(visibleKeys.length));
+
+        if (summaryCustomizeStatus instanceof HTMLElement) {
+          const visibleCount = getVisibleSummaryCardCount(summaryCardDraftVisibility);
+          const changedLabel = hasSummaryCustomizeChanges()
+            ? "Save to apply your updated preview row."
+            : "Drag cards on or off the preview before saving.";
+          summaryCustomizeStatus.textContent = visibleCount <= 1
+            ? `At least one preview card remains visible. ${changedLabel}`
+            : changedLabel;
+        }
+
+        if (summaryCustomizeSaveButton instanceof HTMLButtonElement) {
+          summaryCustomizeSaveButton.disabled = !hasSummaryCustomizeChanges();
+        }
+      }
+
+      function syncSummaryCardVisibility() {
+        const orderedKeys = getOrderedSummaryCardKeys(summaryCardOrder);
+        const visibleKeys = getVisibleSummaryCardKeys(summaryCardVisibility, summaryCardOrder);
+        const visibleCount = Math.max(0, visibleKeys.length);
+        const spanMap = buildSummaryCardSpanMap(visibleKeys);
+
+        orderedKeys.forEach(function (key, index) {
+          const card = summaryCardElements[key];
+          if (!(card instanceof HTMLElement)) {
+            return;
+          }
+
+          card.style.order = String(index + 1);
+          const isVisible = Boolean(summaryCardVisibility[key]);
+          card.hidden = !isVisible;
+          if (isVisible) {
+            card.style.setProperty("--summary-card-span", String(spanMap[key] || 2));
+            return;
+          }
+
+          card.style.removeProperty("--summary-card-span");
         });
 
         if (directorySummaryHost instanceof HTMLElement) {
           directorySummaryHost.setAttribute("data-visible-count", String(visibleCount));
         }
 
-        let visibleCardIndex = 0;
-        buildSummaryCardRowLayout(visibleCount).forEach(function (cardsInRow) {
-          const span = cardsInRow === 1 ? 6 : cardsInRow === 2 ? 3 : 2;
-          for (let index = 0; index < cardsInRow; index += 1) {
-            const card = visibleCards[visibleCardIndex];
-            if (card instanceof HTMLElement) {
-              card.style.setProperty("--summary-card-span", String(span));
-            }
-            visibleCardIndex += 1;
-          }
-        });
-
-        summaryCardToggles.forEach(function (toggle) {
-          const key = String(toggle.dataset.summaryCardToggle || "").trim();
-          if (!key) {
-            return;
-          }
-
-          const isVisible = Boolean(summaryCardVisibility[key]);
-          toggle.checked = isVisible;
-          toggle.disabled = visibleCount <= 1 && isVisible;
-          const option = toggle.closest(".client-directory-summary-customize-option");
-          if (option instanceof HTMLElement) {
-            option.classList.toggle("is-disabled", toggle.disabled);
-          }
-        });
+        if (summaryCustomize?.classList.contains("is-open")) {
+          renderSummaryCustomizeBuilder();
+        }
       }
 
-      summaryCardVisibility = loadSummaryCardVisibility();
+      const loadedSummaryCardPreferences = loadSummaryCardPreferences();
+      summaryCardVisibility = loadedSummaryCardPreferences.visibility;
+      summaryCardOrder = loadedSummaryCardPreferences.order;
       syncAccessibilitySettings();
 
       function syncDirectorySummaryCards() {
@@ -3423,22 +3664,183 @@
         renderDirectory();
       });
 
-      summaryCardToggles.forEach(function (toggle) {
-        toggle.addEventListener("change", function () {
-          const key = String(toggle.dataset.summaryCardToggle || "").trim();
-          if (!key) {
-            return;
-          }
+      function clearSummaryCustomizeDropTargets() {
+        if (!(summaryCustomizePanel instanceof HTMLElement)) {
+          return;
+        }
 
-          if (!toggle.checked && getVisibleSummaryCardCount() <= 1 && summaryCardVisibility[key]) {
-            toggle.checked = true;
-            return;
-          }
-
-          summaryCardVisibility[key] = toggle.checked;
-          persistSummaryCardVisibility();
-          syncSummaryCardVisibility();
+        summaryCustomizePanel.querySelectorAll(".is-drop-target").forEach(function (element) {
+          element.classList.remove("is-drop-target");
         });
+      }
+
+      function setSummaryCustomizeDropTarget(target) {
+        clearSummaryCustomizeDropTargets();
+        if (target instanceof HTMLElement) {
+          target.classList.add("is-drop-target");
+        }
+      }
+
+      function applySummaryCustomizeDraftMove(key, targetZone, targetKey, placeAfter) {
+        if (!key || !summaryCardDraftVisibility || !summaryCardDraftOrder) {
+          return;
+        }
+
+        const isVisible = Boolean(summaryCardDraftVisibility[key]);
+        if (targetZone === "available") {
+          if (!isVisible || getVisibleSummaryCardCount(summaryCardDraftVisibility) <= 1) {
+            return;
+          }
+
+          summaryCardDraftVisibility[key] = false;
+          renderSummaryCustomizeBuilder();
+          return;
+        }
+
+        if (targetZone !== "preview") {
+          return;
+        }
+
+        if (targetKey === key) {
+          return;
+        }
+
+        if (!isVisible) {
+          summaryCardDraftVisibility[key] = true;
+        }
+
+        const visibleWithoutDragged = getVisibleSummaryCardKeys(summaryCardDraftVisibility, summaryCardDraftOrder).filter(function (entry) {
+          return entry !== key;
+        });
+        const fallbackTargetKey = targetKey || visibleWithoutDragged[visibleWithoutDragged.length - 1] || "";
+        summaryCardDraftOrder = moveSummaryCardInOrder(
+          key,
+          fallbackTargetKey,
+          targetKey ? placeAfter : true,
+          summaryCardDraftOrder
+        );
+        renderSummaryCustomizeBuilder();
+      }
+
+      summaryCustomizePanel?.addEventListener("click", function (event) {
+        const card = event.target instanceof Element
+          ? event.target.closest("[data-summary-draft-card]")
+          : null;
+        if (!(card instanceof HTMLButtonElement)) {
+          return;
+        }
+
+        const key = String(card.dataset.summaryDraftCard || "").trim();
+        const zone = String(card.dataset.summaryDraftZone || "").trim();
+        if (!key || !zone) {
+          return;
+        }
+
+        applySummaryCustomizeDraftMove(key, zone === "available" ? "preview" : "available", "", false);
+      });
+
+      summaryCustomizePanel?.addEventListener("dragstart", function (event) {
+        const card = event.target instanceof Element
+          ? event.target.closest("[data-summary-draft-card]")
+          : null;
+        if (!(card instanceof HTMLElement)) {
+          return;
+        }
+
+        const key = String(card.dataset.summaryDraftCard || "").trim();
+        if (!key) {
+          return;
+        }
+
+        summaryCustomizeDragKey = key;
+        card.classList.add("is-dragging");
+        if (event.dataTransfer) {
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", key);
+        }
+      });
+
+      summaryCustomizePanel?.addEventListener("dragover", function (event) {
+        if (!summaryCustomizeDragKey || !(event.target instanceof Element)) {
+          return;
+        }
+
+        const dropCard = event.target.closest("[data-summary-draft-card]");
+        const dropZone = event.target.closest("[data-summary-dropzone]");
+        if (!(dropCard instanceof HTMLElement) && !(dropZone instanceof HTMLElement)) {
+          return;
+        }
+
+        event.preventDefault();
+        if (event.dataTransfer) {
+          event.dataTransfer.dropEffect = "move";
+        }
+
+        if (dropCard instanceof HTMLElement && String(dropCard.dataset.summaryDraftCard || "").trim() !== summaryCustomizeDragKey) {
+          setSummaryCustomizeDropTarget(dropCard);
+          return;
+        }
+
+        if (dropZone instanceof HTMLElement) {
+          setSummaryCustomizeDropTarget(dropZone);
+        }
+      });
+
+      summaryCustomizePanel?.addEventListener("drop", function (event) {
+        if (!summaryCustomizeDragKey || !(event.target instanceof Element)) {
+          return;
+        }
+
+        const dropCard = event.target.closest("[data-summary-draft-card]");
+        const dropZone = event.target.closest("[data-summary-dropzone]");
+        const targetZone = dropCard instanceof HTMLElement
+          ? String(dropCard.dataset.summaryDraftZone || "").trim()
+          : dropZone instanceof HTMLElement
+            ? String(dropZone.dataset.summaryDropzone || "").trim()
+            : "";
+
+        if (!targetZone) {
+          return;
+        }
+
+        event.preventDefault();
+
+        let targetKey = "";
+        let placeAfter = false;
+        if (dropCard instanceof HTMLElement && targetZone === "preview") {
+          targetKey = String(dropCard.dataset.summaryDraftCard || "").trim();
+          const rect = dropCard.getBoundingClientRect();
+          placeAfter = event.clientX > rect.left + rect.width / 2;
+        }
+
+        applySummaryCustomizeDraftMove(summaryCustomizeDragKey, targetZone, targetKey, placeAfter);
+        clearSummaryCustomizeDropTargets();
+      });
+
+      summaryCustomizePanel?.addEventListener("dragend", function () {
+        summaryCustomizeDragKey = "";
+        if (summaryCustomizePanel instanceof HTMLElement) {
+          summaryCustomizePanel.querySelectorAll(".is-dragging").forEach(function (element) {
+            element.classList.remove("is-dragging");
+          });
+        }
+        clearSummaryCustomizeDropTargets();
+      });
+
+      summaryCustomizeCancelButton?.addEventListener("click", function () {
+        setSummaryCustomizeOpen(false);
+      });
+
+      summaryCustomizeSaveButton?.addEventListener("click", function () {
+        if (!summaryCardDraftVisibility || !summaryCardDraftOrder) {
+          return;
+        }
+
+        summaryCardVisibility = cloneSummaryCardVisibility(summaryCardDraftVisibility);
+        summaryCardOrder = normalizeSummaryCardOrder(summaryCardDraftOrder);
+        persistSummaryCardPreferences();
+        syncSummaryCardVisibility();
+        setSummaryCustomizeOpen(false);
       });
 
       directoryImportInput?.addEventListener("change", function () {
@@ -3488,7 +3890,10 @@
           setDirectoryAccessibilityOpen(false);
         }
 
-        if (!event.target.closest("[data-summary-customize]")) {
+        if (
+          !event.target.closest("[data-summary-customize]")
+          && !event.target.closest("[data-summary-customize-dialog]")
+        ) {
           setSummaryCustomizeOpen(false);
         }
 
