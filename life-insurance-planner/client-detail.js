@@ -129,6 +129,118 @@
         return Number.isFinite(number) ? number : 0;
       }
 
+      function getLatestProtectionModelingPayload(record) {
+        if (!record || typeof record !== "object") {
+          return null;
+        }
+
+        if (record.protectionModeling && typeof record.protectionModeling === "object") {
+          return record.protectionModeling;
+        }
+
+        if (Array.isArray(record.protectionModelingEntries) && record.protectionModelingEntries.length) {
+          return record.protectionModelingEntries[record.protectionModelingEntries.length - 1];
+        }
+
+        return null;
+      }
+
+      function getRecordCurrentCoverageValue(record) {
+        const modelingPayload = getLatestProtectionModelingPayload(record);
+        const modelingData = modelingPayload && modelingPayload.data && typeof modelingPayload.data === "object"
+          ? modelingPayload.data
+          : {};
+        const modeledCoverageTotal = parseCurrencyNumber(modelingData.existingCoverageTotal)
+          || (
+            parseCurrencyNumber(modelingData.individualDeathBenefit)
+            + parseCurrencyNumber(modelingData.groupLifeCoverage)
+            + parseCurrencyNumber(modelingData.currentCoverageAmount)
+            + parseCurrencyNumber(modelingData.currentLifeInsuranceCoverage)
+          );
+        const recordCoverage = Math.max(
+          parseCurrencyNumber(record?.currentCoverage),
+          parseCurrencyNumber(record?.coverageAmount)
+        );
+        const hasExplicitRecordCoverage = record && typeof record === "object"
+          && Object.prototype.hasOwnProperty.call(record, "currentCoverage");
+        return hasExplicitRecordCoverage
+          ? Math.max(0, parseCurrencyNumber(record?.currentCoverage))
+          : Math.max(0, modeledCoverageTotal, recordCoverage);
+      }
+
+      function getRecordModeledNeedValue(record) {
+        const modelingPayload = getLatestProtectionModelingPayload(record);
+        const modelingData = modelingPayload && modelingPayload.data && typeof modelingPayload.data === "object"
+          ? modelingPayload.data
+          : {};
+        const storedModeledNeed = Math.max(
+          0,
+          parseCurrencyNumber(record?.modeledNeed),
+          parseCurrencyNumber(record?.coverageGap)
+        );
+        const hasStoredModeledNeed = record && typeof record === "object"
+          && Object.prototype.hasOwnProperty.call(record, "modeledNeed");
+
+        if (hasStoredModeledNeed) {
+          return Math.max(0, parseCurrencyNumber(record?.modeledNeed));
+        }
+
+        return Math.max(
+          0,
+          storedModeledNeed,
+          parseCurrencyNumber(modelingData.totalModeledNeed),
+          parseCurrencyNumber(modelingData.totalNeed),
+          parseCurrencyNumber(modelingData.totalCoverageNeed),
+          parseCurrencyNumber(modelingData.totalDeathBenefitNeed),
+          parseCurrencyNumber(modelingData.deathBenefitNeed),
+          parseCurrencyNumber(modelingData.estimatedNeed),
+          parseCurrencyNumber(modelingData.coverageNeed),
+          parseCurrencyNumber(modelingData.coverageTarget)
+        );
+      }
+
+      function getRecordUncoveredGapValue(record) {
+        const explicitUncoveredGap = parseCurrencyNumber(record?.uncoveredGap);
+        const hasExplicitUncoveredGap = record && typeof record === "object"
+          && Object.prototype.hasOwnProperty.call(record, "uncoveredGap");
+        if (hasExplicitUncoveredGap) {
+          return Math.max(0, explicitUncoveredGap);
+        }
+
+        return Math.max(0, getRecordModeledNeedValue(record) - getRecordCurrentCoverageValue(record));
+      }
+
+      function synchronizeRecordCoverageFields(record, overrides) {
+        if (!record || typeof record !== "object") {
+          return record;
+        }
+
+        const nextRecord = {
+          ...record,
+          ...(overrides && typeof overrides === "object" ? overrides : {})
+        };
+        const currentCoverage = getRecordCurrentCoverageValue(nextRecord);
+        const modeledNeed = getRecordModeledNeedValue(nextRecord);
+        const hasExplicitCoverageFields = Object.prototype.hasOwnProperty.call(nextRecord, "currentCoverage")
+          || Object.prototype.hasOwnProperty.call(nextRecord, "modeledNeed");
+        const uncoveredGap = hasExplicitCoverageFields
+          ? Math.max(0, modeledNeed - currentCoverage)
+          : Math.max(
+            0,
+            parseCurrencyNumber(nextRecord.uncoveredGap),
+            modeledNeed - currentCoverage
+          );
+
+        return {
+          ...nextRecord,
+          currentCoverage,
+          modeledNeed,
+          uncoveredGap,
+          coverageAmount: currentCoverage,
+          coverageGap: modeledNeed
+        };
+      }
+
       function getCoverageAnnualPremiumMultiplier(mode) {
         const normalized = String(mode || "").trim().toLowerCase();
 
@@ -1439,14 +1551,15 @@
             return String(item?.id || "").trim() === recordId;
           }) || null;
           if (matchedById) {
-            return matchedById;
+            return synchronizeRecordCoverageFields(matchedById);
           }
         }
 
         if (caseRef) {
-          return records.find(function (item) {
+          const matchedByCaseRef = records.find(function (item) {
             return String(item?.caseRef || "").trim().toUpperCase() === caseRef;
           }) || null;
+          return matchedByCaseRef ? synchronizeRecordCoverageFields(matchedByCaseRef) : null;
         }
 
         return null;
@@ -1490,7 +1603,7 @@
           return String(item?.id || "").trim() === String(record?.id || "").trim();
         });
 
-        return matched || record;
+        return synchronizeRecordCoverageFields(matched || record);
       }
 
       const POLICY_DOCUMENT_DB_NAME = "lipPlannerPolicyDocuments";
@@ -1787,7 +1900,7 @@
           return false;
         }
 
-        const currentRecord = records[recordIndex];
+        const currentRecord = synchronizeRecordCoverageFields(records[recordIndex]);
         const policies = Array.isArray(currentRecord.coveragePolicies) ? currentRecord.coveragePolicies.slice() : [];
         const policyIndex = policies.findIndex(function (policy) {
           return String(policy?.id || "").trim() === String(policyId || "").trim();
@@ -2514,6 +2627,7 @@
       function renderAnalysisPreviewCard(record) {
         const planningStatus = getPlanningStatus(record);
         const nextStep = getPlanningNextStep(record);
+        const coverageFields = synchronizeRecordCoverageFields(record);
         const latestPlanningDate = formatDate(
           record.analysisCompletedDate
           || record.protectionModeling?.savedAt
@@ -2525,8 +2639,8 @@
         return renderPlanningCard("Analysis Preview", [
           { label: "Planning Status", value: planningStatus },
           { label: "Coverage Adequacy", value: `${getCoverageAdequacy(record)}%` },
-          { label: "Coverage Amount", value: formatCoverageCardCurrency(record.coverageAmount) },
-          { label: "Coverage Gap", value: formatCoverageCardCurrency(record.coverageGap) },
+          { label: "Current Coverage", value: formatCoverageCardCurrency(coverageFields.currentCoverage) },
+          { label: "Modeled Need", value: formatCoverageCardCurrency(coverageFields.modeledNeed) },
           { label: "Last Planning Update", value: latestPlanningDate },
           { label: "Next Planning Move", value: nextStep }
         ], "client-planning-card-wide");
@@ -2787,12 +2901,13 @@
         const nextItem = items.find(function (item) { return !item.complete; }) || null;
         const nextAction = nextItem ? getChecklistAction(record, nextItem) : null;
         const isCollapsed = getPrimaryActionPanelCollapsed();
-        const coverageGap = Math.max(0, parseCurrencyNumber(record?.coverageGap));
-        const coverageAmount = Math.max(0, parseCurrencyNumber(record?.coverageAmount));
+        const coverageFields = synchronizeRecordCoverageFields(record);
+        const coverageGap = coverageFields.uncoveredGap;
+        const coverageAmount = coverageFields.currentCoverage;
         const adequacy = getCoverageAdequacy(record);
         const policies = Array.isArray(record?.coveragePolicies) ? record.coveragePolicies : [];
-        const hasCoverageView = policies.length > 0 || coverageAmount > 0 || coverageGap > 0;
-        const gapDisplay = coverageGap > 0 ? formatCompactCoverageCardCurrency(coverageGap) : "No gap";
+        const hasCoverageView = policies.length > 0 || coverageAmount > 0 || coverageFields.modeledNeed > 0;
+        const gapDisplay = coverageGap > 0 ? formatCompactCoverageCardCurrency(coverageGap) : "No uncovered need";
         const coverageDisplay = coverageAmount > 0 ? formatCompactCoverageCardCurrency(coverageAmount) : "$0";
         const adequacyDisplay = `${adequacy}%`;
         const nextStepDisplay = nextItem ? nextItem.label : "Protection Review";
@@ -2800,7 +2915,7 @@
         let problemText = "";
 
         if (coverageGap > 0) {
-          headline = `${formatCompactCoverageCardCurrency(coverageGap)} coverage shortfall`;
+          headline = `${formatCompactCoverageCardCurrency(coverageGap)} uncovered protection need`;
           problemText = adequacy > 0
             ? `Current coverage only addresses ${adequacy}% of the modeled protection need.`
             : "No effective coverage is currently mapped against the modeled protection need.";
@@ -2854,7 +2969,7 @@
               </div>
               <div class="client-primary-action-facts">
                 <div class="client-primary-action-fact">
-                  <span>Coverage Gap</span>
+                  <span>Uncovered Need</span>
                   <strong>${escapeHtml(gapDisplay)}</strong>
                 </div>
                 <div class="client-primary-action-fact">
@@ -3875,20 +3990,27 @@
         const fieldName = String(options?.fieldName || "").trim();
         const rawValue = String(options?.rawValue || "").trim();
         const showMeta = String(meta || "").trim().length > 0;
-        const numericRawValue = Number(String(rawValue || "").replace(/,/g, ""));
         const fullDisplayValue = String(value || "").trim();
-        const isResponsiveCoverageStat = fieldName === "coverageAmount" || fieldName === "coverageGap";
-        const coverageGapStateClass = fieldName === "coverageGap"
-          ? (Number.isFinite(numericRawValue) && numericRawValue === 0 ? " is-zero" : " has-gap")
+        const legacyFieldClass = fieldName === "currentCoverage"
+          ? " client-detail-stat-card-coverageAmount"
+          : fieldName === "modeledNeed"
+            ? " client-detail-stat-card-coverageGap"
+            : "";
+        const isResponsiveCoverageStat = fieldName === "currentCoverage"
+          || fieldName === "modeledNeed"
+          || fieldName === "coverageAmount"
+          || fieldName === "coverageGap";
+        const displayStateClass = options?.displayStateClass === "is-zero" || options?.displayStateClass === "has-gap"
+          ? ` ${options.displayStateClass}`
           : "";
 
-        const fieldClass = fieldName ? ` client-detail-stat-card-${escapeHtml(fieldName)}` : "";
+        const fieldClass = fieldName ? ` client-detail-stat-card-${escapeHtml(fieldName)}${legacyFieldClass}` : "";
         return `
           <section class="client-detail-card client-detail-stat-card${isEditable ? " is-editable" : ""}${fieldClass}">
             <div class="client-detail-stat-header">
               <span>${escapeHtml(title)}</span>
               ${isEditable ? `
-                <div class="client-detail-stat-display${coverageGapStateClass}">
+                <div class="client-detail-stat-display${displayStateClass}">
                   <strong
                     data-stat-display="${escapeHtml(fieldName)}"
                     ${isResponsiveCoverageStat ? `data-stat-full-value="${escapeHtml(fullDisplayValue)}" data-stat-raw-value="${escapeHtml(rawValue)}"` : ""}
@@ -3913,17 +4035,14 @@
       }
 
       function getCoverageAdequacy(record) {
-        const coverageAmount = Number(String(record.coverageAmount || "").replace(/,/g, ""));
-        const coverageGap = Number(String(record.coverageGap || "").replace(/,/g, ""));
-        const safeCoverageAmount = Number.isFinite(coverageAmount) ? Math.max(0, coverageAmount) : 0;
-        const safeCoverageGap = Number.isFinite(coverageGap) ? Math.max(0, coverageGap) : 0;
-        const totalNeed = safeCoverageAmount + safeCoverageGap;
+        const coverageFields = synchronizeRecordCoverageFields(record);
+        const totalNeed = coverageFields.modeledNeed;
 
         if (totalNeed <= 0) {
           return 0;
         }
 
-        return Math.max(0, Math.min(100, Math.round((safeCoverageAmount / totalNeed) * 100)));
+        return Math.max(0, Math.min(100, Math.round((coverageFields.currentCoverage / totalNeed) * 100)));
       }
 
       function renderCoverageAdequacyBar(record) {
@@ -3968,14 +4087,13 @@
           || record.statusGroup === "closed";
         const completion = calculateProfileCompletion(record);
         const checklistItems = getDashboardChecklistItems(record);
+        const coverageFields = synchronizeRecordCoverageFields(record);
 
         if (isHousehold) {
           const membersLabel = `${Number.isFinite(membersCount) && membersCount > 0 ? membersCount : 0} member${Number.isFinite(membersCount) && membersCount === 1 ? "" : "s"}`;
           const dependentsLabel = `${Number(record.dependentsCount || 0) || 0} dependent${Number(record.dependentsCount || 0) === 1 ? "" : "s"}`;
-          const coverageSummaryLabel = Number(record.coverageAmount || 0) > 0 ? "Coverage in force" : "No coverage";
-          const adequacyPercent = Number(record.coverageGap || 0) > 0
-            ? Math.max(0, Math.min(100, Math.round((Number(record.coverageAmount || 0) / (Number(record.coverageAmount || 0) + Number(record.coverageGap || 0))) * 100)))
-            : (Number(record.coverageAmount || 0) > 0 ? 100 : 0);
+          const coverageSummaryLabel = coverageFields.currentCoverage > 0 ? "Coverage in force" : "No coverage";
+          const adequacyPercent = getCoverageAdequacy(record);
           const totalCoveragePercent = adequacyPercent;
           const householdMemberButtons = linkedHouseholdMembers.length
             ? linkedHouseholdMembers.map(function (member) {
@@ -4266,15 +4384,16 @@
                       ${renderClientProfileSidebar(record, completion, hasCoveragePlaced, subtitleParts)}
                       <div class="client-profile-overview-main">
                       <div class="client-profile-stats">
-                        ${renderStatCard("Current Coverage", formatCoverageCardCurrency(record.coverageAmount), "", {
+                        ${renderStatCard("Current Coverage", formatCoverageCardCurrency(coverageFields.currentCoverage), "", {
                           editable: true,
-                          fieldName: "coverageAmount",
-                          rawValue: formatValue(record.coverageAmount) === "Not provided" ? "0" : String(record.coverageAmount || "0")
+                          fieldName: "currentCoverage",
+                          rawValue: String(coverageFields.currentCoverage || "0")
                         })}
-                        ${renderStatCard("Modeled Need", formatCoverageCardCurrency(record.coverageGap), "", {
+                        ${renderStatCard("Modeled Need", formatCoverageCardCurrency(coverageFields.modeledNeed), "", {
                           editable: true,
-                          fieldName: "coverageGap",
-                          rawValue: formatValue(record.coverageGap) === "Not provided" ? "0" : String(record.coverageGap || "0")
+                          fieldName: "modeledNeed",
+                          rawValue: String(coverageFields.modeledNeed || "0"),
+                          displayStateClass: coverageFields.uncoveredGap > 0 ? "has-gap" : "is-zero"
                         })}
                       </div>
                       ${renderCoverageAdequacyBar(record)}
@@ -4607,14 +4726,27 @@
           return;
         }
 
-        records[recordIndex] = {
+        const normalizedFieldName = fieldName === "coverageAmount"
+          ? "currentCoverage"
+          : fieldName === "coverageGap"
+            ? "modeledNeed"
+            : fieldName;
+        const normalizedValue = normalizedFieldName === "currentCoverage" || normalizedFieldName === "modeledNeed"
+          ? parseCurrencyNumber(nextValue)
+          : nextValue;
+        const fieldOverrides = normalizedFieldName === "modeledNeed"
+          ? { modeledNeedSource: "custom-amount" }
+          : {};
+        const nextRecord = synchronizeRecordCoverageFields({
           ...records[recordIndex],
-          [fieldName]: nextValue,
+          ...fieldOverrides,
+          [normalizedFieldName]: normalizedValue,
           lastUpdatedDate: new Date().toISOString().slice(0, 10)
-        };
+        });
 
+        records[recordIndex] = nextRecord;
         localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
-        record[fieldName] = nextValue;
+        Object.assign(record, nextRecord);
       }
 
       function normalizeCurrencyInput(value) {
@@ -4636,7 +4768,7 @@
           return "";
         }
 
-        if (fieldName === "coverageAmount") {
+        if (fieldName === "currentCoverage") {
           return String(Math.min(numericValue, 99999999));
         }
 
@@ -4746,7 +4878,7 @@
       let coverageStatSyncFrame = 0;
 
       function syncResponsiveCoverageStatDisplays() {
-        host.querySelectorAll('[data-stat-display="coverageAmount"], [data-stat-display="coverageGap"]').forEach(function (display) {
+        host.querySelectorAll('[data-stat-display="currentCoverage"], [data-stat-display="modeledNeed"]').forEach(function (display) {
           const rawValue = String(display.dataset.statRawValue || "").trim();
           const fullValue = String(display.dataset.statFullValue || formatCoverageCardCurrency(rawValue)).trim();
           const displayShell = display.closest(".client-detail-stat-display");
@@ -4796,12 +4928,45 @@
         });
       }
 
+      function refreshCoverageStatDisplays() {
+        const coverageFields = synchronizeRecordCoverageFields(record);
+        const statDisplayMap = [
+          {
+            fieldName: "currentCoverage",
+            value: coverageFields.currentCoverage,
+            stateClass: ""
+          },
+          {
+            fieldName: "modeledNeed",
+            value: coverageFields.modeledNeed,
+            stateClass: coverageFields.uncoveredGap > 0 ? "has-gap" : "is-zero"
+          }
+        ];
+
+        statDisplayMap.forEach(function (entry) {
+          const display = host.querySelector(`[data-stat-display="${entry.fieldName}"]`);
+          if (!display) {
+            return;
+          }
+
+          const fullDisplayValue = formatCoverageCardCurrency(entry.value);
+          display.dataset.statRawValue = String(entry.value || 0);
+          display.dataset.statFullValue = fullDisplayValue;
+          display.textContent = fullDisplayValue;
+          const displayShell = display.closest(".client-detail-stat-display");
+          if (displayShell) {
+            displayShell.classList.toggle("is-zero", entry.stateClass === "is-zero");
+            displayShell.classList.toggle("has-gap", entry.stateClass === "has-gap");
+          }
+        });
+      }
+
       if (typeof window.ResizeObserver === "function") {
         const coverageStatResizeObserver = new window.ResizeObserver(function () {
           scheduleResponsiveCoverageStatDisplaySync();
         });
 
-        host.querySelectorAll(".client-profile-stats, .client-detail-stat-card-coverageAmount, .client-detail-stat-card-coverageGap").forEach(function (node) {
+        host.querySelectorAll(".client-profile-stats, .client-detail-stat-card-currentCoverage, .client-detail-stat-card-modeledNeed").forEach(function (node) {
           coverageStatResizeObserver.observe(node);
         });
       }
@@ -6157,7 +6322,7 @@
           return null;
         }
 
-        const currentRecord = records[index];
+        const currentRecord = synchronizeRecordCoverageFields(records[index]);
         const existingPolicies = Array.isArray(currentRecord.coveragePolicies) ? currentRecord.coveragePolicies : [];
         if (policyIndex < 0 && existingPolicies.length >= 30) {
           return { error: "A maximum of 30 policies can be saved to one profile." };
@@ -6168,7 +6333,7 @@
         const existingPolicy = policyIndex >= 0 ? nextPolicies[policyIndex] : null;
         const existingDocuments = getPolicyDocumentEntries(existingPolicy);
         const selectedDocuments = Array.from(policyDocumentFiles || []).filter(Boolean);
-        const currentCoverageAmount = Number(String(currentRecord.coverageAmount || "").replace(/,/g, ""));
+        const currentCoverageAmount = Number(String(currentRecord.currentCoverage || currentRecord.coverageAmount || "").replace(/,/g, ""));
         const existingPolicyFaceAmount = Number(String(existingPolicy?.faceAmount || "").replace(/,/g, ""));
         const nextPolicyFaceAmount = Number(String(policy.faceAmount || "").replace(/,/g, ""));
         const nextPolicy = {
@@ -6212,17 +6377,19 @@
         const nextRecord = {
           ...currentRecord,
           coveragePolicies: nextPolicies,
-          coverageAmount: Math.max(0, Math.min(nextCoverageAmount, 99999999)),
+          currentCoverage: Math.max(0, Math.min(nextCoverageAmount, 99999999)),
           lastUpdatedDate: today,
           lastReview: today
         };
 
-        records[index] = nextRecord;
+        const syncedNextRecord = synchronizeRecordCoverageFields(nextRecord);
+
+        records[index] = syncedNextRecord;
         localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
-        Object.assign(record, nextRecord);
+        Object.assign(record, syncedNextRecord);
 
         return {
-          record: nextRecord,
+          record: syncedNextRecord,
           policyIndex: policyIndex >= 0 && policyIndex < nextPolicies.length ? policyIndex : nextPolicies.length - 1
         };
       }
@@ -6237,14 +6404,7 @@
         if (currentCoverageCard) {
           currentCoverageCard.outerHTML = renderCoverageCard(record);
         }
-
-        const coverageDisplay = host.querySelector('[data-stat-display="coverageAmount"]');
-        if (coverageDisplay) {
-          const fullCoverageDisplay = formatCoverageCardCurrency(record.coverageAmount);
-          coverageDisplay.dataset.statRawValue = String(record.coverageAmount || "0");
-          coverageDisplay.dataset.statFullValue = fullCoverageDisplay;
-          coverageDisplay.textContent = fullCoverageDisplay;
-        }
+        refreshCoverageStatDisplays();
 
         scheduleResponsiveCoverageStatDisplaySync();
         refreshCoverageAdequacy();
@@ -7501,14 +7661,16 @@
         const nextRecord = {
           ...currentRecord,
           coveragePolicies: policies,
-          coverageAmount: Math.max(0, Math.min(nextCoverageAmount, 99999999)),
+          currentCoverage: Math.max(0, Math.min(nextCoverageAmount, 99999999)),
           lastUpdatedDate: today,
           lastReview: today
         };
 
-        records[recordIndex] = nextRecord;
+        const syncedNextRecord = synchronizeRecordCoverageFields(nextRecord);
+
+        records[recordIndex] = syncedNextRecord;
         localStorage.setItem(getRecordsStorageKey(), JSON.stringify(records));
-        Object.assign(record, nextRecord);
+        Object.assign(record, syncedNextRecord);
 
         if (removedPolicy?.id) {
           await deletePolicyDocumentFile(String(record.id || "").trim(), removedPolicy.id);
@@ -7688,20 +7850,10 @@
           const clamped = clampStatValue(activeStatField, normalized);
           saveRecordField(activeStatField, clamped);
           if (display) {
-            const fullDisplayValue = formatCoverageCardCurrency(clamped);
-            display.dataset.statRawValue = String(clamped || "0");
-            display.dataset.statFullValue = fullDisplayValue;
-            display.textContent = fullDisplayValue;
-            const displayShell = display.closest(".client-detail-stat-display");
-            if (displayShell && activeStatField === "coverageGap") {
-              const numericValue = Number(String(clamped || "").replace(/,/g, ""));
-              displayShell.classList.toggle("is-zero", Number.isFinite(numericValue) && numericValue === 0);
-              displayShell.classList.toggle("has-gap", !Number.isFinite(numericValue) || numericValue !== 0);
-            }
+            refreshCoverageStatDisplays();
           }
           scheduleResponsiveCoverageStatDisplaySync();
-          if (activeStatField === "coverageAmount" || activeStatField === "coverageGap") {
-            record[activeStatField] = clamped;
+          if (activeStatField === "currentCoverage" || activeStatField === "modeledNeed") {
             refreshCoverageAdequacy();
             refreshPrimaryActionPanel();
           }

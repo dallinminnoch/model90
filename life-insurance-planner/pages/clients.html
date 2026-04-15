@@ -518,23 +518,19 @@
           <article class="client-directory-summary-card client-directory-summary-card-high-probability-closers" data-summary-card="high-probability-closers">
             <div class="client-directory-summary-top">
               <span class="client-directory-summary-icon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" fill="none">
-                  <circle cx="10" cy="10" r="5.9" stroke="currentColor" stroke-width="1.7"/>
-                  <circle cx="10" cy="10" r="2.05" stroke="currentColor" stroke-width="1.55"/>
-                  <path d="M10 2.95v2.15M17.05 10H14.9M10 17.05V14.9M2.95 10H5.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-                </svg>
+                <span class="client-directory-summary-icon-glyph client-directory-summary-icon-glyph-target"></span>
               </span>
-              <span class="client-directory-summary-badge" data-summary-chip data-tone="neutral">No late-stage momentum</span>
+              <span class="client-directory-summary-badge" data-summary-chip data-tone="neutral">No cases above 70</span>
             </div>
             <span class="client-directory-summary-kicker">High-Probability Closers</span>
             <strong class="client-directory-summary-value" data-summary-total>$0</strong>
-            <p class="client-directory-summary-note" data-summary-note>No late-stage cases are lining up to close soon.</p>
+            <p class="client-directory-summary-note" data-summary-note>No cases with Close Index above 70 are active in this view.</p>
             <div class="client-directory-summary-divider" aria-hidden="true"></div>
             <div class="client-directory-summary-list">
               <div class="client-directory-summary-list-row" data-summary-row>
                 <span class="client-directory-summary-list-label">
                   <span class="client-directory-summary-dot client-directory-summary-dot-closer" data-summary-row-dot aria-hidden="true"></span>
-                  <span data-summary-row-label>Late-stage case likely to close</span>
+                  <span data-summary-row-label>Close Index above 70</span>
                 </span>
                 <strong data-summary-row-value>$0</strong>
               </div>
@@ -923,12 +919,13 @@
           </nav>
           <div class="client-directory-filter-bar">
             <div class="client-directory-toolbar-actions">
+              <!-- CODE NOTE: Directory sort controls now prioritize the shared Close Index engine. -->
               <div class="client-items-dropdown client-order-dropdown" data-order-dropdown>
                 <button class="client-toolbar-button client-order-trigger" type="button" data-order-trigger aria-expanded="false">
-                  Order: Date Created
+                  Order: Close Index
                 </button>
                 <div class="client-items-menu client-order-menu">
-                  <button class="client-items-option is-active" type="button" data-order-option="date-created">Date Created</button>
+                  <button class="client-items-option is-active" type="button" data-order-option="opportunity-score">Close Index</button>
                   <button class="client-items-option" type="button" data-order-option="alphabetical">Alphabetical</button>
                 </div>
               </div>
@@ -954,7 +951,8 @@
             <div class="client-table-cell client-table-cell-client" id="client-table-heading-name">Client</div>
             <div class="client-table-cell client-table-cell-flag"></div>
             <div class="client-table-cell">Case Ref</div>
-            <div class="client-table-cell client-table-cell-last-review">Date Created</div>
+            <!-- CODE NOTE: Close Index column replaced the legacy Date Created column. -->
+            <div class="client-table-cell client-table-cell-opportunity-score">Close Index</div>
             <div class="client-table-cell client-table-cell-next-action-title" id="client-table-heading-next-action">Next Action</div>
             <div class="client-table-cell client-table-cell-status-title" id="client-table-heading-status">Client Status</div>
             <div class="client-table-cell client-table-cell-nowrap client-table-cell-coverage-amount-title" id="client-table-heading-coverage">Coverage Gap</div>
@@ -1147,7 +1145,7 @@
         "high-probability-closers": Object.freeze({
           key: "high-probability-closers",
           title: "High-Probability Closers",
-          note: "Minnoch Household | $900K likely close | In review, pending final carrier touch.",
+          note: "Michael Minnoch | Close Index 86 | Carrier review with uncovered need still in play.",
           toneClass: "client-directory-summary-card-high-probability-closers",
           categoryLabel: "Core Execution"
         }),
@@ -1161,7 +1159,7 @@
         "largest-opportunities": Object.freeze({
           key: "largest-opportunities",
           title: "Largest Opportunities",
-          note: "Smith Household | $1.1M uncovered after current coverage | Basis sourced from HLV and Needs inputs.",
+          note: "Smith Household | $1.1M uncovered after current coverage | HLV Modeled result.",
           toneClass: "client-directory-summary-card-largest-opportunities",
           categoryLabel: "Core Execution"
         }),
@@ -1250,7 +1248,8 @@
       let activeStatus = "all";
       let activeScope = "all";
       let activePriority = "all";
-      let sortOrder = "date-created";
+      // CODE NOTE: Keep the directory defaulted to Close Index so execution-first sorting stays consistent.
+      let sortOrder = "opportunity-score";
       let itemsShown = 15;
       let currentPage = 1;
       let records = [];
@@ -1305,9 +1304,13 @@
       function loadDirectoryOrder() {
         try {
           const storedValue = String(localStorage.getItem(directoryOrderStorageKey) || "").trim();
-          return storedValue === "alphabetical" ? "alphabetical" : "date-created";
+          if (storedValue === "alphabetical") {
+            return "alphabetical";
+          }
+
+          return storedValue === "date-created" ? "opportunity-score" : "opportunity-score";
         } catch (error) {
-          return "date-created";
+          return "opportunity-score";
         }
       }
 
@@ -1392,9 +1395,15 @@
         }
 
         const nextRecord = { ...record };
+        const coverageFields = deriveRecordCoverageFields(nextRecord);
         if (String(nextRecord.viewType || "").trim() === "businesses") {
           nextRecord.viewType = "companies";
         }
+        nextRecord.currentCoverage = coverageFields.currentCoverage;
+        nextRecord.modeledNeed = coverageFields.modeledNeed;
+        nextRecord.uncoveredGap = coverageFields.uncoveredGap;
+        nextRecord.coverageAmount = coverageFields.currentCoverage;
+        nextRecord.coverageGap = coverageFields.modeledNeed;
 
         return nextRecord;
       }
@@ -1676,6 +1685,42 @@
         return normalizedCaseRef;
       }
 
+      function parseRecordCurrencyValue(value) {
+        const numericValue = Number(String(value ?? "").replace(/[^\d.-]/g, ""));
+        return Number.isFinite(numericValue) ? numericValue : 0;
+      }
+
+      function deriveRecordCoverageFields(record) {
+        const currentCoverage = Math.max(
+          0,
+          parseRecordCurrencyValue(record?.currentCoverage),
+          parseRecordCurrencyValue(record?.coverageAmount)
+        );
+        const modeledNeed = Math.max(
+          0,
+          parseRecordCurrencyValue(record?.modeledNeed),
+          parseRecordCurrencyValue(record?.coverageGap)
+        );
+        const hasExplicitCoverageFields = record && typeof record === "object"
+          && (
+            Object.prototype.hasOwnProperty.call(record, "currentCoverage")
+            || Object.prototype.hasOwnProperty.call(record, "modeledNeed")
+          );
+        const uncoveredGap = hasExplicitCoverageFields
+          ? Math.max(0, modeledNeed - currentCoverage)
+          : Math.max(
+            0,
+            parseRecordCurrencyValue(record?.uncoveredGap),
+            modeledNeed - currentCoverage
+          );
+
+        return {
+          currentCoverage,
+          modeledNeed,
+          uncoveredGap
+        };
+      }
+
       function normalizeRecord(record, index) {
         const preferredName = String(record.preferredName || "").trim();
         const firstName = String(record.firstName || "").trim();
@@ -1683,6 +1728,7 @@
         const displayName = String(record.displayName || "").trim()
           || `${preferredName || firstName} ${lastName}`.trim()
           || `Client ${index + 1}`;
+        const coverageFields = deriveRecordCoverageFields(record);
 
         return {
           ...record,
@@ -1712,8 +1758,11 @@
           priority: normalizePriority(record.priority),
           isFlagged: Boolean(record.isFlagged),
           lastViewedAt: String(record.lastViewedAt || "").trim(),
-          coverageAmount: Number(record.coverageAmount || 0),
-          coverageGap: Number(record.coverageGap || 0),
+          currentCoverage: coverageFields.currentCoverage,
+          modeledNeed: coverageFields.modeledNeed,
+          uncoveredGap: coverageFields.uncoveredGap,
+          coverageAmount: coverageFields.currentCoverage,
+          coverageGap: coverageFields.modeledNeed,
           policyCount: Number(record.policyCount || 0)
         };
       }
@@ -1980,14 +2029,34 @@
             + readSummaryNumber(modelingData.currentCoverageAmount)
             + readSummaryNumber(modelingData.currentLifeInsuranceCoverage)
           );
-        const recordCoverage = readSummaryNumber(record?.coverageAmount);
-        return Math.max(0, modeledCoverageTotal, recordCoverage);
+        const recordCoverage = Math.max(
+          readSummaryNumber(record?.currentCoverage),
+          readSummaryNumber(record?.coverageAmount)
+        );
+        const hasExplicitRecordCoverage = record && typeof record === "object"
+          && Object.prototype.hasOwnProperty.call(record, "currentCoverage");
+        return hasExplicitRecordCoverage
+          ? Math.max(0, readSummaryNumber(record?.currentCoverage))
+          : Math.max(0, modeledCoverageTotal, recordCoverage);
       }
 
       function getRecordModeledNeedValue(record) {
         const modelingData = getLatestProtectionModelingData(record) || {};
-        const explicitModeledNeed = Math.max(
+        const storedModeledNeed = Math.max(
           0,
+          readSummaryNumber(record?.modeledNeed),
+          readSummaryNumber(record?.coverageGap)
+        );
+        const hasStoredModeledNeed = record && typeof record === "object"
+          && Object.prototype.hasOwnProperty.call(record, "modeledNeed");
+
+        if (hasStoredModeledNeed) {
+          return Math.max(0, readSummaryNumber(record?.modeledNeed));
+        }
+
+        return Math.max(
+          0,
+          storedModeledNeed,
           readSummaryNumber(modelingData.totalModeledNeed),
           readSummaryNumber(modelingData.totalNeed),
           readSummaryNumber(modelingData.totalCoverageNeed),
@@ -1995,22 +2064,25 @@
           readSummaryNumber(modelingData.deathBenefitNeed),
           readSummaryNumber(modelingData.estimatedNeed),
           readSummaryNumber(modelingData.coverageNeed),
-          readSummaryNumber(modelingData.coverageTarget),
-          readSummaryNumber(record?.modeledNeed)
+          readSummaryNumber(modelingData.coverageTarget)
         );
-
-        if (explicitModeledNeed > 0) {
-          return explicitModeledNeed;
-        }
-
-        const storedModeledNeed = Math.max(0, readSummaryNumber(record?.coverageGap));
-        return storedModeledNeed;
       }
 
-      function getRecordLargestOpportunityValue(record) {
+      function getRecordUncoveredGapValue(record) {
+        const explicitUncoveredGap = readSummaryNumber(record?.uncoveredGap);
+        const hasExplicitUncoveredGap = record && typeof record === "object"
+          && Object.prototype.hasOwnProperty.call(record, "uncoveredGap");
+        if (hasExplicitUncoveredGap) {
+          return Math.max(0, explicitUncoveredGap);
+        }
+
         const modeledNeed = getRecordModeledNeedValue(record);
         const currentCoverage = getRecordCurrentCoverageValue(record);
         return Math.max(0, modeledNeed - currentCoverage);
+      }
+
+      function getRecordLargestOpportunityValue(record) {
+        return getRecordUncoveredGapValue(record);
       }
 
       function getRecordReviewDate(record) {
@@ -2024,13 +2096,40 @@
       }
 
       function getRecordOpenOpportunityValue(record) {
-        const gapValue = Number(record?.coverageGap || 0);
+        const gapValue = getRecordUncoveredGapValue(record);
         if (gapValue > 0) {
           return gapValue;
         }
 
-        const coverageValue = Number(record?.coverageAmount || 0);
+        const coverageValue = getRecordCurrentCoverageValue(record);
         return coverageValue > 0 ? coverageValue : 0;
+      }
+
+      // CODE NOTE: Shared directory/table score wrapper.
+      // If the Close Index formula changes later, start here and then jump to opportunity-score.js.
+      function getDirectoryOpportunityScoreResult(record) {
+        const opportunityScoreEngine = window.LipOpportunityScore;
+        if (!opportunityScoreEngine || typeof opportunityScoreEngine.calculate !== "function") {
+          return {
+            score: 0,
+            tier: "is-risk",
+            uncoveredGap: getRecordUncoveredGapValue(record)
+          };
+        }
+
+        return opportunityScoreEngine.calculate(record, {
+          modelingData: getLatestProtectionModelingData(record) || {},
+          currentCoverage: getRecordCurrentCoverageValue(record),
+          modeledNeed: getRecordModeledNeedValue(record),
+          uncoveredGap: getRecordUncoveredGapValue(record),
+          statusGroup: record?.statusGroup,
+          profileCreated: hasDirectoryProfileCreated(record),
+          preliminaryCompleted: hasDirectoryPreliminaryCompleted(record),
+          pmiCompleted: hasDirectoryPmiCompleted(record),
+          analysisCompleted: hasDirectoryAnalysisCompleted(record),
+          timelineDate: getRecordTimelineDate(record),
+          reviewDate: getRecordReviewDate(record)
+        });
       }
 
       function getSummaryCardDisplayName(record) {
@@ -2038,9 +2137,46 @@
         return label.length > 28 ? `${label.slice(0, 27).trimEnd()}…` : label;
       }
 
-      function getOpportunityBasis(record) {
+      function getOpportunityMethodLabel(record) {
+        const modeledNeedSource = String(record?.modeledNeedSource || "").trim().toLowerCase();
+        if (modeledNeedSource === "custom-amount") {
+          return "Custom Amount";
+        }
+
         const payload = getLatestProtectionModelingPayload(record);
         const modelingData = getLatestProtectionModelingData(record) || {};
+        const hasExplicitModeledNeed = record && typeof record === "object"
+          && (
+            Object.prototype.hasOwnProperty.call(record, "modeledNeed")
+            || Object.prototype.hasOwnProperty.call(record, "coverageGap")
+          );
+        const storedModeledNeed = Math.max(
+          0,
+          readSummaryNumber(record?.modeledNeed),
+          readSummaryNumber(record?.coverageGap)
+        );
+        const modeledNeedFromWorkflow = Math.max(
+          0,
+          readSummaryNumber(modelingData.totalModeledNeed),
+          readSummaryNumber(modelingData.totalNeed),
+          readSummaryNumber(modelingData.totalCoverageNeed),
+          readSummaryNumber(modelingData.totalDeathBenefitNeed),
+          readSummaryNumber(modelingData.deathBenefitNeed),
+          readSummaryNumber(modelingData.estimatedNeed),
+          readSummaryNumber(modelingData.coverageNeed),
+          readSummaryNumber(modelingData.coverageTarget)
+        );
+
+        if (hasExplicitModeledNeed && storedModeledNeed > 0) {
+          if (!payload || typeof payload !== "object") {
+            return "Custom Amount";
+          }
+
+          if (modeledNeedFromWorkflow <= 0 || Math.abs(storedModeledNeed - modeledNeedFromWorkflow) > 1) {
+            return "Custom Amount";
+          }
+        }
+
         const variantTokens = [
           payload?.variant,
           payload?.template,
@@ -2051,16 +2187,20 @@
         }).join(" ");
         const labelTokens = getStatusLabelTokens(record);
 
+        if (/\blens\b/.test(variantTokens) || labelTokens.includes("lens")) {
+          return "LENS Modeled";
+        }
+
         if (/\bhlv\b|\bhuman life\b/.test(variantTokens) || labelTokens.includes("hlv")) {
-          return "HLV";
+          return "HLV Modeled";
         }
 
         if (/\bdime\b/.test(variantTokens) || labelTokens.includes("dime")) {
-          return "DIME";
+          return "DIME Modeled";
         }
 
         if (/\bneeds?\b/.test(variantTokens) || labelTokens.includes("needs")) {
-          return "Needs";
+          return "Needs Modeled";
         }
 
         if (
@@ -2068,17 +2208,23 @@
           || readSummaryNumber(modelingData.finalExpensesTotal) > 0
           || readSummaryNumber(modelingData.educationFundingTotal) > 0
         ) {
-          return "Needs";
+          return "Needs Modeled";
         }
 
         if (
           readSummaryNumber(modelingData.annualIncomeToReplace) > 0
           || readSummaryNumber(modelingData.incomeReplacementDuration) > 0
         ) {
-          return "HLV";
+          return "HLV Modeled";
         }
 
-        return "Modeled";
+        return "";
+      }
+
+      function getOpportunityRowLabel(record) {
+        const displayName = getSummaryCardDisplayName(record);
+        const methodLabel = getOpportunityMethodLabel(record);
+        return methodLabel ? `${displayName} • ${methodLabel}` : displayName;
       }
 
       function getExecutionStageLabel(record) {
@@ -2105,21 +2251,54 @@
         return "Advisor Follow-Up";
       }
 
-      function setSummaryCardRows(cardKey, rows) {
+      function setSummaryCardRows(cardKey, rows, options) {
         const handle = summaryCardHandles[cardKey];
         if (!handle || !Array.isArray(handle.rows)) {
           return;
         }
 
+        const normalizedRows = Array.isArray(rows) ? rows.filter(Boolean) : [];
+        const rowOptions = options && typeof options === "object" ? options : {};
+        const emptyFallbackRow = rowOptions.emptyFallbackRow || {
+          label: "No active cases",
+          value: "--",
+          dotClass: "client-directory-summary-dot-muted",
+          isPlaceholder: true
+        };
+        const partialFallbackRow = rowOptions.partialFallbackRow || {
+          label: "No additional cases in this view",
+          value: "--",
+          dotClass: "client-directory-summary-dot-muted",
+          isPlaceholder: true
+        };
+
         handle.rows.forEach(function (rowHandle, index) {
-          const row = Array.isArray(rows) && rows[index]
-            ? rows[index]
-            : { label: "No active cases", value: "--", dotClass: "client-directory-summary-dot-muted" };
+          const row = normalizedRows[index]
+            ? normalizedRows[index]
+            : normalizedRows.length
+              ? partialFallbackRow
+              : emptyFallbackRow;
+          const isPlaceholder = Boolean(row?.isPlaceholder);
+          const rowClassName = typeof row?.rowClass === "string" ? row.rowClass.trim() : "";
+          const hideValue = Boolean(row?.hideValue);
+          const hasExplicitValue = row && typeof row === "object"
+            && Object.prototype.hasOwnProperty.call(row, "value");
+
+          if (rowHandle.row) {
+            rowHandle.row.className = "client-directory-summary-list-row";
+            if (isPlaceholder) {
+              rowHandle.row.classList.add("is-placeholder");
+            }
+            if (rowClassName) {
+              rowHandle.row.classList.add(rowClassName);
+            }
+          }
           if (rowHandle.label) {
             rowHandle.label.textContent = row.label || "No active cases";
           }
           if (rowHandle.value) {
-            rowHandle.value.textContent = row.value || "--";
+            rowHandle.value.textContent = hasExplicitValue ? String(row.value ?? "") : "--";
+            rowHandle.value.hidden = hideValue;
           }
           if (rowHandle.dot) {
             rowHandle.dot.className = "client-directory-summary-dot";
@@ -2144,7 +2323,7 @@
         }
 
         setSummaryBadge(handle.chip, config?.badgeText || "", config?.badgeTone || "neutral");
-        setSummaryCardRows(cardKey, config?.rows || []);
+        setSummaryCardRows(cardKey, config?.rows || [], config?.rowOptions || null);
       }
 
       function getStatusLabelTokens(record) {
@@ -3152,33 +3331,39 @@
           return value >= 14;
         }).length;
 
-        const gapRecords = scopedRecords.filter(function (record) {
-          return Number(record.coverageGap || 0) > 0;
+        const gapEntries = scopedRecords.map(function (record) {
+          return {
+            record,
+            gapValue: getRecordUncoveredGapValue(record)
+          };
+        }).filter(function (entry) {
+          return entry.gapValue > 0;
         });
-        const totalGap = gapRecords.reduce(function (sum, record) {
-          return sum + Number(record.coverageGap || 0);
+        const gapRecords = gapEntries.map(function (entry) {
+          return entry.record;
+        });
+        const totalGap = gapEntries.reduce(function (sum, entry) {
+          return sum + entry.gapValue;
         }, 0);
-        const highGapCount = gapRecords.filter(function (record) {
-          return Number(record.coverageGap || 0) > 1000000;
+        const highGapCount = gapEntries.filter(function (entry) {
+          return entry.gapValue > 1000000;
         }).length;
-        const midGapCount = gapRecords.filter(function (record) {
-          const gap = Number(record.coverageGap || 0);
-          return gap >= 500000 && gap <= 1000000;
+        const midGapCount = gapEntries.filter(function (entry) {
+          return entry.gapValue >= 500000 && entry.gapValue <= 1000000;
         }).length;
-        const lowGapCount = gapRecords.filter(function (record) {
-          const gap = Number(record.coverageGap || 0);
-          return gap > 0 && gap < 500000;
+        const lowGapCount = gapEntries.filter(function (entry) {
+          return entry.gapValue > 0 && entry.gapValue < 500000;
         }).length;
-        const gapValues = gapRecords.map(function (record) {
-          return Number(record.coverageGap || 0);
+        const gapValues = gapEntries.map(function (entry) {
+          return entry.gapValue;
         }).filter(function (value) {
           return value > 0;
         }).sort(function (first, second) {
           return first - second;
         });
         const largestGap = gapValues.length ? gapValues[gapValues.length - 1] : 0;
-        const topGapRecords = gapRecords.slice().sort(function (first, second) {
-          return Number(second.coverageGap || 0) - Number(first.coverageGap || 0);
+        const topGapEntries = gapEntries.slice().sort(function (first, second) {
+          return second.gapValue - first.gapValue;
         });
         const largestOpportunityEntries = scopedRecords.map(function (record) {
           return {
@@ -3216,7 +3401,7 @@
             actionLabel = "Finalize needs analysis";
             score += 475000 + (openDays * 4500);
             valueText = opportunityValue > 0 ? valueText : "Analysis";
-          } else if (Number(record.coverageGap || 0) > 0) {
+          } else if (getRecordUncoveredGapValue(record) > 0) {
             actionLabel = "Present recommendation";
             score += 325000 + (openDays * 2500);
           } else if (reviewDays > 180) {
@@ -3264,60 +3449,58 @@
           })
         });
 
+        // CODE NOTE: High-Probability Closers now reads from the shared Close Index engine.
+        // Rule: open pipeline case + Close Index above 70. Value uses uncovered gap only.
         const closerCandidates = pipelineRecords.map(function (record) {
-          const opportunityValue = getRecordOpenOpportunityValue(record);
-          const openDays = getDaysBetween(getRecordTimelineDate(record), now);
-          if (!hasDirectoryPmiCompleted(record) || opportunityValue <= 0) {
+          const closeIndex = getDirectoryOpportunityScoreResult(record);
+          const uncoveredGapValue = getRecordUncoveredGapValue(record);
+          if (closeIndex.score <= 70) {
             return null;
           }
 
-          const blocker = openDays > 21 ? "stalled underwriting" : !hasDirectoryAnalysisCompleted(record) ? "analysis pending" : "";
-          const stage = record.statusGroup === "in-review"
-            ? "Carrier review"
-            : hasDirectoryAnalysisCompleted(record)
-              ? "Recommendation ready"
-              : "Needs analysis";
-          let score = opportunityValue;
-          if (record.statusGroup === "in-review") {
-            score += 600000;
-          }
-          if (hasDirectoryAnalysisCompleted(record)) {
-            score += 350000;
-          }
-          if (openDays <= 30) {
-            score += 180000;
-          } else if (openDays <= 45) {
-            score += 90000;
-          } else {
-            score -= 120000;
-          }
-          if (normalizePriority(record.priority) === "high") {
-            score += 150000;
+          return {
+            label: `${getSummaryCardDisplayName(record)} • Close Index ${closeIndex.score}`,
+            score: closeIndex.score,
+            value: uncoveredGapValue
+          };
+        }).filter(Boolean).sort(function (first, second) {
+          if (second.score !== first.score) {
+            return second.score - first.score;
           }
 
-          return score >= 400000
-            ? {
-              label: `${getSummaryCardDisplayName(record)} • ${stage}${blocker ? `, ${blocker}` : ""}`,
-              score,
-              value: opportunityValue
-            }
-            : null;
-        }).filter(Boolean).sort(function (first, second) {
-          return second.score - first.score;
+          return second.value - first.value;
         });
+        const closerRows = closerCandidates.length > 3
+          ? closerCandidates.slice(0, 2).map(function (item) {
+            return {
+              label: item.label,
+              value: formatCurrencyCompact(item.value),
+              dotClass: "client-directory-summary-dot-closer"
+            };
+          }).concat([{
+            label: `+${formatSummaryCount(closerCandidates.length - 2)} opportunities in this view`,
+            value: "--",
+            dotClass: "client-directory-summary-dot-muted",
+            rowClass: "client-directory-summary-list-row-indicator"
+          }])
+          : closerCandidates.slice(0, 3).map(function (item) {
+            return {
+              label: item.label,
+              value: formatCurrencyCompact(item.value),
+              dotClass: "client-directory-summary-dot-closer"
+            };
+          });
         const totalCloserValue = closerCandidates.reduce(function (sum, item) {
           return sum + item.value;
         }, 0);
         setSummaryCardMetric("high-probability-closers", {
           total: formatCurrencyCompact(totalCloserValue),
           note: closerCandidates.length
-            ? `${formatSummaryCount(closerCandidates.length)} case${closerCandidates.length === 1 ? "" : "s"} likely to close in the next 14 to 30 days.`
-            : "No late-stage cases are lining up to close soon.",
-          badgeText: closerCandidates.length ? `${formatSummaryCount(closerCandidates.length)} likely soon` : "No late-stage momentum",
+            ? `${formatSummaryCount(closerCandidates.length)} case${closerCandidates.length === 1 ? "" : "s"} with Close Index above 70 in this view.`
+            : "No cases with Close Index above 70 are active in this view.",
+          badgeText: closerCandidates.length ? `${formatSummaryCount(closerCandidates.length)} above 70` : "No cases above 70",
           badgeTone: closerCandidates.length ? "positive" : "neutral",
-          rows: closerCandidates.slice(0, 3).map(function (item) {
-            return { label: item.label, value: formatCurrencyCompact(item.value), dotClass: "client-directory-summary-dot-closer" };
-          })
+          rows: closerRows
         });
 
         const atRiskCandidates = pipelineRecords.map(function (record) {
@@ -3357,21 +3540,51 @@
           })
         });
 
-        setSummaryCardMetric("largest-opportunities", {
-          total: formatCurrencyCompact(largestOpportunityTotal),
-          note: largestOpportunityEntries.length
-            ? `Net of current coverage across ${formatSummaryCount(largestOpportunityEntries.length)} client${largestOpportunityEntries.length === 1 ? "" : "s"} in the current view.`
-            : "No uncovered opportunity remains after current coverage in this view.",
-          badgeText: largestOpportunityEntries.length ? `${formatSummaryCount(largestOpportunityEntries.length)} uncovered` : "No modeled opportunities",
-          badgeTone: largestOpportunityValue >= 1000000 ? "warning" : largestOpportunityEntries.length ? "accent" : "neutral",
-          rows: largestOpportunityEntries.slice(0, 3).map(function (entry) {
+        const largestOpportunityRows = largestOpportunityEntries.length > 3
+          ? largestOpportunityEntries.slice(0, 2).map(function (entry) {
             const record = entry.record;
             return {
-              label: `${getSummaryCardDisplayName(record)} • ${getOpportunityBasis(record)} basis`,
+              label: getOpportunityRowLabel(record),
               value: formatCurrencyCompact(entry.opportunityValue),
               dotClass: "client-directory-summary-dot-opportunity"
             };
-          })
+          }).concat([{
+            label: `+${formatSummaryCount(largestOpportunityEntries.length - 2)} opportunit${largestOpportunityEntries.length - 2 === 1 ? "y" : "ies"} in this view`,
+            value: "",
+            hideValue: true,
+            rowClass: "client-directory-summary-list-row-indicator"
+          }])
+          : largestOpportunityEntries.slice(0, 3).map(function (entry) {
+            const record = entry.record;
+            return {
+              label: getOpportunityRowLabel(record),
+              value: formatCurrencyCompact(entry.opportunityValue),
+              dotClass: "client-directory-summary-dot-opportunity"
+            };
+          });
+
+        setSummaryCardMetric("largest-opportunities", {
+          total: formatCurrencyCompact(largestOpportunityTotal),
+          note: largestOpportunityEntries.length
+            ? `Net uncovered opportunity across ${formatSummaryCount(largestOpportunityEntries.length)} profile${largestOpportunityEntries.length === 1 ? "" : "s"} in this view.`
+            : "No uncovered opportunity remains after current coverage in this view.",
+          badgeText: largestOpportunityEntries.length ? `${formatSummaryCount(largestOpportunityEntries.length)} uncovered` : "No modeled opportunities",
+          badgeTone: largestOpportunityValue >= 1000000 ? "warning" : largestOpportunityEntries.length ? "accent" : "neutral",
+          rowOptions: {
+            emptyFallbackRow: {
+              label: "No uncovered opportunities in this view",
+              value: "--",
+              dotClass: "client-directory-summary-dot-muted",
+              isPlaceholder: true
+            },
+            partialFallbackRow: {
+              label: "No additional uncovered opportunities",
+              value: "--",
+              dotClass: "client-directory-summary-dot-muted",
+              isPlaceholder: true
+            }
+          },
+          rows: largestOpportunityRows
         });
 
         const missingProfileCount = activePipelineRecords.filter(function (record) {
@@ -3512,13 +3725,13 @@
 
         const householdRecords = scopedRecords.filter(isHouseholdExposureRecord);
         const householdsNeedingReview = householdRecords.filter(function (record) {
-          return Number(record.coverageGap || 0) > 0
+          return getRecordUncoveredGapValue(record) > 0
             || !hasDirectoryPmiCompleted(record)
             || !hasDirectoryAnalysisCompleted(record)
             || getDaysBetween(getRecordReviewDate(record), now) > 180;
         });
         const householdGapCount = householdsNeedingReview.filter(function (record) {
-          return Number(record.coverageGap || 0) > 0;
+          return getRecordUncoveredGapValue(record) > 0;
         }).length;
         const householdMissingInputCount = householdsNeedingReview.filter(function (record) {
           return !hasDirectoryPmiCompleted(record);
@@ -3587,7 +3800,7 @@
       }
 
       function getDirectoryOrderLabel() {
-        return sortOrder === "alphabetical" ? "Alphabetical" : "Date Created";
+        return sortOrder === "alphabetical" ? "Alphabetical" : "Close Index";
       }
 
       function syncDirectoryOrder() {
@@ -3635,26 +3848,30 @@
       }
 
       function sortDirectoryRecords(sourceRecords) {
-        return sourceRecords.slice().sort(function (firstRecord, secondRecord) {
-          if (sortOrder === "alphabetical") {
-            return compareDirectoryRecordsAlphabetically(firstRecord, secondRecord);
+        if (sortOrder === "alphabetical") {
+          return sourceRecords.slice().sort(compareDirectoryRecordsAlphabetically);
+        }
+
+        // CODE NOTE: Close Index sort is decorated here so each record score is calculated once per render.
+        return sourceRecords.map(function (record) {
+          return {
+            record,
+            scoreResult: getDirectoryOpportunityScoreResult(record)
+          };
+        }).sort(function (firstEntry, secondEntry) {
+          const scoreDifference = secondEntry.scoreResult.score - firstEntry.scoreResult.score;
+          if (scoreDifference !== 0) {
+            return scoreDifference;
           }
 
-          const firstDate = getRecordTimelineDate(firstRecord);
-          const secondDate = getRecordTimelineDate(secondRecord);
-
-          if (firstDate && secondDate) {
-            const timeDifference = secondDate.getTime() - firstDate.getTime();
-            if (timeDifference !== 0) {
-              return timeDifference;
-            }
-          } else if (secondDate) {
-            return 1;
-          } else if (firstDate) {
-            return -1;
+          const uncoveredGapDifference = (secondEntry.scoreResult.uncoveredGap || 0) - (firstEntry.scoreResult.uncoveredGap || 0);
+          if (uncoveredGapDifference !== 0) {
+            return uncoveredGapDifference;
           }
 
-          return compareDirectoryRecordsAlphabetically(firstRecord, secondRecord);
+          return compareDirectoryRecordsAlphabetically(firstEntry.record, secondEntry.record);
+        }).map(function (entry) {
+          return entry.record;
         });
       }
 
@@ -3806,6 +4023,9 @@
           dataSource: "Advisor Entered",
           statusGroup: "prospects",
           priority: "medium",
+          currentCoverage: 0,
+          modeledNeed: 0,
+          uncoveredGap: 0,
           coverageAmount: 0,
           coverageGap: 0,
           policyCount: 0
@@ -4146,6 +4366,7 @@
 
       function renderRow(record) {
         const priority = normalizePriority(record.priority);
+        const opportunityScore = getDirectoryOpportunityScoreResult(record);
         const isHouseholdAvatar = record.viewType === "households";
         const avatarClasses = `client-avatar${isHouseholdAvatar ? " client-avatar-household" : ""}`;
         const avatarPresentation = isHouseholdAvatar ? null : getAvatarPresentation(record.age, record.dateOfBirth);
@@ -4169,10 +4390,14 @@
               </button>
             </div>
             <div class="client-table-cell">${record.caseRef || "--"}</div>
-            <div class="client-table-cell client-table-cell-last-review">${formatDateForDirectory(getDirectoryCreatedDate(record))}</div>
+            <div class="client-table-cell client-table-cell-opportunity-score">
+              <span class="client-opportunity-score-pill ${opportunityScore.tier}" aria-label="Close index ${opportunityScore.score}" title="Close Index ${opportunityScore.score}">
+                ${opportunityScore.score}
+              </span>
+            </div>
             <div class="client-table-cell client-table-cell-next-action-value">${getDirectoryNextAction(record)}</div>
             <div class="client-table-cell client-table-cell-status-value">${getClientStatusDisplay(record.statusGroup)}</div>
-            <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(record.coverageGap)}</div>
+            <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(getRecordUncoveredGapValue(record))}</div>
             <div class="client-table-cell client-table-cell-value client-table-cell-priority-value">
               <div class="client-priority-dropdown" data-priority-dropdown="${record.id}">
                 <button class="client-priority-button ${priority ? `client-priority-button-${priority}` : "client-priority-button-unset"}" type="button" data-priority-trigger aria-expanded="false">
@@ -4414,7 +4639,7 @@
       orderOptions.forEach(function (button) {
         button.addEventListener("click", function () {
           const nextOrder = String(button.dataset.orderOption || "").trim();
-          if (nextOrder !== "alphabetical" && nextOrder !== "date-created") {
+          if (nextOrder !== "alphabetical" && nextOrder !== "opportunity-score") {
             return;
           }
 
@@ -4807,6 +5032,8 @@
       renderDirectory();
     })();
   </script>
+  <!-- CODE NOTE: Shared Close Index engine is loaded here for standalone Client Directory mode. -->
+  <script src="../opportunity-score.js"></script>
   <script>
     document.addEventListener("keydown", function (event) {
       if (event.key === "Tab") {

@@ -5023,6 +5023,11 @@ body.is-modal-open {
   mask-image: url("Images/uparrows.svg");
 }
 
+.client-directory-summary-icon-glyph-target {
+  -webkit-mask-image: url("Images/target.svg");
+  mask-image: url("Images/target.svg");
+}
+
 .client-directory-summary-card-recommended-actions .client-directory-summary-icon {
   color: #5f57ca;
   background: #eceafd;
@@ -5033,12 +5038,22 @@ body.is-modal-open {
 }
 
 .client-directory-summary-card-high-probability-closers .client-directory-summary-icon {
-  color: #16824d;
-  background: #e2f6ea;
+  color: #5b2b6f;
+  background: #f0e8f7;
 }
 
 .client-directory-summary-card-high-probability-closers {
-  border-bottom-color: #16824d;
+  border-bottom-color: #5b2b6f;
+}
+
+.client-directory-summary-card-high-probability-closers .client-directory-summary-badge[data-tone="positive"] {
+  background: #eadcf6;
+  color: #5b2b6f;
+}
+
+.client-directory-summary-card-high-probability-closers .client-directory-summary-badge[data-tone="neutral"] {
+  background: #f3eef8;
+  color: #7c6c92;
 }
 
 .client-directory-summary-card-revenue-at-risk .client-directory-summary-icon {
@@ -5229,6 +5244,28 @@ body.is-modal-open {
   font-weight: 650;
 }
 
+.client-directory-summary-list-row.is-placeholder .client-directory-summary-list-label,
+.client-directory-summary-list-row.is-placeholder strong {
+  color: #9ea5b6;
+}
+
+.client-directory-summary-list-row.client-directory-summary-list-row-indicator {
+  justify-content: flex-start;
+}
+
+.client-directory-summary-list-row.client-directory-summary-list-row-indicator .client-directory-summary-dot {
+  display: none;
+}
+
+.client-directory-summary-list-row.client-directory-summary-list-row-indicator .client-directory-summary-list-label {
+  color: #7c83a0;
+  font-weight: 600;
+}
+
+.client-directory-summary-card-largest-opportunities .client-directory-summary-list-row.client-directory-summary-list-row-indicator .client-directory-summary-list-label {
+  color: #0f766e;
+}
+
 .client-directory-summary-progress-head strong {
   font-size: 0.88rem;
 }
@@ -5289,7 +5326,7 @@ body.is-modal-open {
 }
 
 .client-directory-summary-dot-closer {
-  background: #16a34a;
+  background: #6b3290;
 }
 
 .client-directory-summary-dot-risk {
@@ -5716,8 +5753,8 @@ body.studio-embed-mode.clients-page .client-directory-summary-list-row strong {
     44px
     minmax(222px, 1.54fr)
     18px
-    minmax(112px, 0.74fr)
-    minmax(130px, 0.86fr)
+    minmax(128px, 0.82fr)
+    minmax(124px, 0.82fr)
     minmax(170px, 1.1fr)
     minmax(136px, 0.88fr)
     minmax(146px, 1fr)
@@ -5763,14 +5800,51 @@ body.studio-embed-mode.clients-page .client-directory-summary-list-row strong {
   font-size: 0.94rem;
 }
 
-.client-table-cell-last-review {
+/* CODE NOTE: Close Index column styles live here. */
+.client-table-cell-opportunity-score {
   transform: none;
   justify-self: center;
   text-align: center;
 }
 
-.client-table-header .client-table-cell-last-review {
+.client-table-header .client-table-cell-opportunity-score {
   transform: none;
+  line-height: 1.15;
+}
+
+.client-opportunity-score-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  padding: 0.34rem 0.7rem;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: #6b7a90;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.client-opportunity-score-pill.is-premium {
+  background: #dff0c8;
+  color: #506f25;
+}
+
+.client-opportunity-score-pill.is-building {
+  background: #e4edf7;
+  color: #556a85;
+}
+
+.client-opportunity-score-pill.is-caution {
+  background: #f8e8b4;
+  color: #7f5a12;
+}
+
+.client-opportunity-score-pill.is-risk {
+  background: #f6d1d0;
+  color: #8a2d2a;
 }
 
 .client-table-cell-status-title {
@@ -6097,8 +6171,8 @@ body.studio-embed-mode.clients-page .client-table {
     48px
     minmax(232px, 1.58fr)
     18px
-    minmax(116px, 0.74fr)
-    minmax(136px, 0.88fr)
+    minmax(132px, 0.82fr)
+    minmax(130px, 0.84fr)
     minmax(184px, 1.16fr)
     minmax(142px, 0.92fr)
     minmax(154px, 1.04fr)
@@ -7472,22 +7546,28 @@ body.client-detail-page .client-reminders-strip-item {
   padding: 0.96rem 0.9rem;
 }
 
-.client-detail-stat-card-coverageAmount {
+.client-detail-stat-card-coverageAmount,
+.client-detail-stat-card-currentCoverage {
   position: relative;
 }
 
 .client-detail-stat-card-coverageAmount .client-detail-stat-header span,
-.client-detail-stat-card-coverageGap .client-detail-stat-header span {
+.client-detail-stat-card-currentCoverage .client-detail-stat-header span,
+.client-detail-stat-card-coverageGap .client-detail-stat-header span,
+.client-detail-stat-card-modeledNeed .client-detail-stat-header span {
   font-size: 1.38rem;
   font-weight: 500;
 }
 
 .client-detail-stat-card-coverageAmount .client-detail-stat-header strong,
-.client-detail-stat-card-coverageGap .client-detail-stat-header strong {
+.client-detail-stat-card-currentCoverage .client-detail-stat-header strong,
+.client-detail-stat-card-coverageGap .client-detail-stat-header strong,
+.client-detail-stat-card-modeledNeed .client-detail-stat-header strong {
   font-size: 2.42rem;
   font-weight: 650;
 }
-.client-detail-stat-card-coverageAmount::after {
+.client-detail-stat-card-coverageAmount::after,
+.client-detail-stat-card-currentCoverage::after {
   content: "";
   position: absolute;
   left: 0;
@@ -16253,8 +16333,8 @@ body[data-step] .step-item:focus-visible .step-title {
       38px
       minmax(172px, 1.42fr)
       16px
-      minmax(92px, 0.7fr)
-      minmax(108px, 0.82fr)
+      minmax(108px, 0.76fr)
+      minmax(104px, 0.78fr)
       minmax(146px, 1fr)
       minmax(118px, 0.84fr)
       minmax(116px, 0.9fr)
@@ -16302,6 +16382,10 @@ body[data-step] .step-item:focus-visible .step-title {
 .client-directory-shell-layout.is-a11y-large-text .client-status-tab,
 .client-directory-shell-layout.is-a11y-large-text .client-table-header,
 .client-directory-shell-layout.is-a11y-large-text .client-table-cell {
+  font-size: 1rem !important;
+}
+
+.client-directory-shell-layout.is-a11y-large-text .client-opportunity-score-pill {
   font-size: 1rem !important;
 }
 
@@ -16359,6 +16443,10 @@ body[data-step] .step-item:focus-visible .step-title {
 .client-directory-shell-layout.is-a11y-high-contrast .client-directory-app-nav-button,
 .client-directory-shell-layout.is-a11y-high-contrast .client-directory-summary-value {
   color: #0f172a !important;
+}
+
+.client-directory-shell-layout.is-a11y-high-contrast .client-opportunity-score-pill {
+  border: 1px solid rgba(148, 163, 184, 0.95);
 }
 
 .client-directory-shell-layout.is-a11y-high-contrast .client-directory-title-block p,

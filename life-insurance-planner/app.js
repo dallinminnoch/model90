@@ -2205,6 +2205,25 @@
         const statusGroup = ["prospects", "in-review", "coverage-placed", "closed"].includes(String(record.statusGroup || ""))
           ? String(record.statusGroup)
           : "prospects";
+        const currentCoverage = Math.max(
+          0,
+          parseMoneyValue(record.currentCoverage),
+          parseMoneyValue(record.coverageAmount)
+        );
+        const modeledNeed = Math.max(
+          0,
+          parseMoneyValue(record.modeledNeed),
+          parseMoneyValue(record.coverageGap)
+        );
+        const hasExplicitCoverageFields = Object.prototype.hasOwnProperty.call(record, "currentCoverage")
+          || Object.prototype.hasOwnProperty.call(record, "modeledNeed");
+        const uncoveredGap = hasExplicitCoverageFields
+          ? Math.max(0, modeledNeed - currentCoverage)
+          : Math.max(
+            0,
+            parseMoneyValue(record.uncoveredGap),
+            modeledNeed - currentCoverage
+          );
 
         return {
           ...record,
@@ -2221,8 +2240,11 @@
           source: String(record.source || record.dataSource || "Advisor Entered"),
           statusGroup,
           priority: normalizePriority(record.priority),
-          coverageAmount: Number(record.coverageAmount || 0),
-          coverageGap: Number(record.coverageGap || 0),
+          currentCoverage,
+          modeledNeed,
+          uncoveredGap,
+          coverageAmount: currentCoverage,
+          coverageGap: modeledNeed,
           policyCount: Number(record.policyCount || 0)
         };
       });
@@ -2651,6 +2673,7 @@
         : [];
       nextRecord.protectionModelingEntries = [...existingEntries, sectionPayload];
       nextRecord.protectionModeling = sectionPayload;
+      delete nextRecord.modeledNeedSource;
       nextRecord.pmiCompleted = true;
     }
 
@@ -2904,7 +2927,7 @@
         <div class="client-table-cell client-table-cell-insured-value">${record.insured}</div>
         <div class="client-table-cell client-table-cell-source-value${record.viewType === "households" ? " is-households-view" : ""}">${record.viewType === "households" ? getDependentsDisplay(record) : record.source}</div>
         <div class="client-table-cell client-table-cell-status-value${record.viewType === "households" ? " is-households-view" : ""}">${record.viewType === "households" ? getPoliciesDisplay(record) : clientStatus}</div>
-        <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(record.viewType === "households" ? record.coverageGap : record.coverageAmount)}</div>
+        <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(record.uncoveredGap || 0)}</div>
         <div class="client-table-cell client-table-cell-value client-table-cell-priority-value">
           <div class="client-priority-dropdown" data-priority-dropdown="${record.id}">
             <button class="client-priority-button ${priority ? `client-priority-button-${priority}` : "client-priority-button-unset"}" type="button" data-priority-trigger aria-expanded="false">
