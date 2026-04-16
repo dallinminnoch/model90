@@ -1949,7 +1949,7 @@
           fields: [
             ["Client", currentRecord.displayName],
             ["Case Ref", currentRecord.caseRef],
-            ["Client Status", getClientStatusDisplay(currentRecord.statusGroup)],
+              ["Client Status", getClientStatusDisplay(currentRecord)],
             ["Priority", getPriorityDisplay(currentRecord.priority)],
             ["Source", currentRecord.source],
             ["Date Created", formatDateForDirectory(getDirectoryCreatedDate(currentRecord))],
@@ -2068,7 +2068,7 @@
     title.textContent = record.displayName || (isHousehold ? "Household Detail" : "Client Detail");
     subtitle.textContent = isHousehold
       ? `Household Profile | ${record.caseRef || "Case ref pending"}`
-      : `${getClientStatusDisplay(record.statusGroup)} | ${record.caseRef || "Case ref pending"}`;
+        : `${getClientStatusDisplay(record)} | ${record.caseRef || "Case ref pending"}`;
 
     const sections = isHousehold ? buildHouseholdSections(record) : buildIndividualSections(record);
 
@@ -2202,9 +2202,16 @@
         const viewType = ["individuals", "households", "companies"].includes(String(record.viewType || ""))
           ? String(record.viewType)
           : "individuals";
-        const statusGroup = ["prospects", "in-review", "coverage-placed", "closed"].includes(String(record.statusGroup || ""))
-          ? String(record.statusGroup)
-          : "prospects";
+        const normalizedStatusGroup = normalizeLifecycleStatusGroup(record.statusGroup);
+        const statusGroup = normalizedStatusGroup === "placed"
+          ? "coverage-placed"
+          : normalizedStatusGroup === "underwriting"
+            ? "in-review"
+            : normalizedStatusGroup === "prospecting" || normalizedStatusGroup === "in-progress"
+              ? "prospects"
+              : ["prospects", "in-review", "coverage-placed", "closed"].includes(normalizedStatusGroup)
+                ? normalizedStatusGroup
+                : "prospects";
         const currentCoverage = Math.max(
           0,
           parseMoneyValue(record.currentCoverage),
@@ -2782,14 +2789,75 @@
     return Math.max(age, 0);
   }
 
+  // CODE NOTE: Shared lifecycle status labels translate legacy stored groups into the advisor-facing status set.
+  function normalizeLifecycleStatusGroup(value) {
+    const normalized = String(value || "").trim().toLowerCase();
+    return [
+      "prospects",
+      "in-review",
+      "coverage-placed",
+      "closed",
+      "prospecting",
+      "in-progress",
+      "underwriting",
+      "placed"
+    ].includes(normalized)
+      ? normalized
+      : "prospects";
+  }
+
+  function getClientLifecycleStatus(recordOrStatusGroup) {
+    const isRecordObject = recordOrStatusGroup && typeof recordOrStatusGroup === "object";
+    const normalizedStatusGroup = normalizeLifecycleStatusGroup(
+      isRecordObject ? recordOrStatusGroup.statusGroup : recordOrStatusGroup
+    );
+
+    if (normalizedStatusGroup === "closed") {
+      return "closed";
+    }
+
+    if (
+      normalizedStatusGroup === "coverage-placed"
+      || normalizedStatusGroup === "placed"
+      || (isRecordObject
+        && Array.isArray(recordOrStatusGroup.coveragePolicies)
+        && recordOrStatusGroup.coveragePolicies.length > 0)
+    ) {
+      return "placed";
+    }
+
+    if (normalizedStatusGroup === "in-review" || normalizedStatusGroup === "underwriting") {
+      return "underwriting";
+    }
+
+    if (normalizedStatusGroup === "in-progress") {
+      return "in-progress";
+    }
+
+    if (isRecordObject) {
+      const hasActiveWorkflowProgress = Boolean(recordOrStatusGroup.preliminaryUnderwritingCompleted)
+        || Boolean(recordOrStatusGroup.pmiCompleted)
+        || Boolean(recordOrStatusGroup.analysisCompleted);
+      if (hasActiveWorkflowProgress) {
+        return "in-progress";
+      }
+    }
+
+    return "prospecting";
+  }
+
   function mapClientStageToStatusGroup(value) {
     const normalized = String(value || "").trim().toLowerCase();
-    if (normalized === "active client" || normalized === "coverage placed") {
+    if (normalized === "active client" || normalized === "coverage placed" || normalized === "placed") {
       return "coverage-placed";
     }
 
-    if (normalized === "review client" || normalized === "in review") {
+    if (normalized === "review client" || normalized === "in review" || normalized === "underwriting") {
       return "in-review";
+    }
+
+    if (normalized === "in progress" || normalized === "in-progress") {
+      return "prospects";
     }
 
     if (normalized === "closed") {
@@ -2876,25 +2944,28 @@
     return displayMap[normalized] || "Set Priority";
   }
 
-  function getClientStatusDisplay(statusGroup) {
+  function getClientStatusDisplay(statusSource) {
+    const lifecycleStatus = getClientLifecycleStatus(statusSource);
     const statusMap = {
-      prospects: "Prospect",
-      "in-review": "In Review",
-      "coverage-placed": "Coverage Placed",
+      prospecting: "Prospecting",
+      "in-progress": "In Progress",
+      underwriting: "Underwriting",
+      placed: "Placed",
       closed: "Closed"
     };
 
-    return statusMap[statusGroup] || "Prospect";
+    return statusMap[lifecycleStatus] || "Prospecting";
   }
 
   function buildStatusCounts(records, activeView) {
     return records
       .filter((record) => record.viewType === activeView)
       .reduce((counts, record) => {
+        const lifecycleStatus = getClientLifecycleStatus(record);
         counts.all += 1;
-        counts[record.statusGroup] = (counts[record.statusGroup] || 0) + 1;
+        counts[lifecycleStatus] = (counts[lifecycleStatus] || 0) + 1;
         return counts;
-      }, { all: 0, prospects: 0, "in-review": 0, "coverage-placed": 0, closed: 0 });
+      }, { all: 0, prospecting: 0, "in-progress": 0, underwriting: 0, placed: 0, closed: 0 });
   }
 
   function getLastInitial(lastName) {
@@ -2903,7 +2974,7 @@
   }
 
   function renderClientRow(record, isSelected) {
-    const clientStatus = getClientStatusDisplay(record.statusGroup);
+    const clientStatus = getClientStatusDisplay(record);
     const priority = normalizePriority(record.priority);
     const isHouseholdAvatar = record.viewType === "households";
     const avatarClasses = `client-avatar${isHouseholdAvatar ? " client-avatar-household" : ""}`;
@@ -2952,7 +3023,7 @@
       formatDateForDirectory(getDirectoryCreatedDate(record)),
       record.insured,
       record.source,
-      getClientStatusDisplay(record.statusGroup),
+        getClientStatusDisplay(record),
       formatCurrencyCompact(record.coverageAmount),
       getPriorityDisplay(record.priority)
     ]);
@@ -2984,7 +3055,7 @@
         <td>${escapeHtml(formatDateForDirectory(getDirectoryCreatedDate(record)))}</td>
         <td>${escapeHtml(record.insured)}</td>
         <td>${escapeHtml(record.source)}</td>
-        <td>${escapeHtml(getClientStatusDisplay(record.statusGroup))}</td>
+          <td>${escapeHtml(getClientStatusDisplay(record))}</td>
         <td>${escapeHtml(formatCurrencyCompact(record.coverageAmount))}</td>
         <td>${escapeHtml(getPriorityDisplay(record.priority))}</td>
       </tr>
@@ -3087,7 +3158,7 @@
 
   function buildClientShareSummary(records) {
     const lines = records.map((record) => (
-      `${record.displayName} | ${record.caseRef} | ${getClientStatusDisplay(record.statusGroup)} | ${formatCurrencyCompact(record.coverageAmount)} | ${getPriorityDisplay(record.priority)}`
+        `${record.displayName} | ${record.caseRef} | ${getClientStatusDisplay(record)} | ${formatCurrencyCompact(record.coverageAmount)} | ${getPriorityDisplay(record.priority)}`
     ));
 
     return [

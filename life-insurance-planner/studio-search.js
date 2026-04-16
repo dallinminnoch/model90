@@ -91,17 +91,78 @@
     return "Individual";
   }
 
-  function getStatusLabel(statusGroup) {
-    if (statusGroup === "in-review") {
-      return "In Review";
+  // CODE NOTE: Studio search mirrors the Client Directory lifecycle status labels, not the raw stored groups.
+  function normalizeLifecycleStatusGroup(value) {
+    const normalized = String(value || "").trim().toLowerCase();
+    return [
+      "prospects",
+      "in-review",
+      "coverage-placed",
+      "closed",
+      "prospecting",
+      "in-progress",
+      "underwriting",
+      "placed"
+    ].includes(normalized)
+      ? normalized
+      : "prospects";
+  }
+
+  function getLifecycleStatus(recordOrStatusGroup) {
+    const isRecordObject = recordOrStatusGroup && typeof recordOrStatusGroup === "object";
+    const normalizedStatusGroup = normalizeLifecycleStatusGroup(
+      isRecordObject ? recordOrStatusGroup.statusGroup : recordOrStatusGroup
+    );
+
+    if (normalizedStatusGroup === "closed") {
+      return "closed";
     }
-    if (statusGroup === "coverage-placed") {
-      return "Coverage Placed";
+
+    if (
+      normalizedStatusGroup === "coverage-placed"
+      || normalizedStatusGroup === "placed"
+      || (isRecordObject
+        && Array.isArray(recordOrStatusGroup.coveragePolicies)
+        && recordOrStatusGroup.coveragePolicies.length > 0)
+    ) {
+      return "placed";
     }
-    if (statusGroup === "closed") {
+
+    if (normalizedStatusGroup === "in-review" || normalizedStatusGroup === "underwriting") {
+      return "underwriting";
+    }
+
+    if (normalizedStatusGroup === "in-progress") {
+      return "in-progress";
+    }
+
+    if (isRecordObject) {
+      const hasActiveWorkflowProgress = Boolean(recordOrStatusGroup.preliminaryUnderwritingCompleted)
+        || Boolean(recordOrStatusGroup.pmiCompleted)
+        || Boolean(recordOrStatusGroup.analysisCompleted);
+      if (hasActiveWorkflowProgress) {
+        return "in-progress";
+      }
+    }
+
+    return "prospecting";
+  }
+
+  function getStatusLabel(recordOrStatusGroup) {
+    const lifecycleStatus = getLifecycleStatus(recordOrStatusGroup);
+    if (lifecycleStatus === "in-progress") {
+      return "In Progress";
+    }
+    if (lifecycleStatus === "underwriting") {
+      return "Underwriting";
+    }
+    if (lifecycleStatus === "placed") {
+      return "Placed";
+    }
+    if (lifecycleStatus === "closed") {
       return "Closed";
     }
-    return "Prospects";
+    return "Prospecting";
   }
 
   function getInitials(value) {
@@ -253,7 +314,7 @@
         }
 
         subtitleParts.push(getViewLabel(viewType));
-        subtitleParts.push(getStatusLabel(String(record.statusGroup || "").trim()));
+        subtitleParts.push(getStatusLabel(record));
 
         if (viewType === "individuals" && householdName) {
           subtitleParts.push(householdName);
@@ -282,7 +343,7 @@
             householdName,
             summary,
             getViewLabel(viewType),
-            getStatusLabel(String(record.statusGroup || "").trim())
+            getStatusLabel(record)
           ].join(" ").toLowerCase(),
           caseRef: caseRef,
           recency: Math.max(

@@ -286,7 +286,7 @@
 
   function getStudioEmbedViewportHeight() {
     const embedTop = embedShell.getBoundingClientRect().top;
-    return Math.max(0, Math.ceil(window.innerHeight - embedTop));
+    return Math.max(0, Math.floor(window.innerHeight - embedTop));
   }
 
   function getEmbeddedDocumentHeight(doc) {
@@ -316,7 +316,7 @@
     const viewportHeight = getStudioEmbedViewportHeight();
     const viewMeta = getViewMeta(currentView);
 
-    if (viewMeta.shellMode === "directory") {
+    if (viewMeta.shellMode === "directory" || viewMeta.shellMode === "client-detail") {
       const fixedHeight = Math.max(0, viewportHeight);
       embedShell.style.minHeight = `${fixedHeight}px`;
       embedShell.style.height = `${fixedHeight}px`;
@@ -434,6 +434,10 @@
         overflow-y: auto !important;
       }
 
+      body.studio-embed-mode.client-detail-page {
+        overflow-y: auto !important;
+      }
+
       body.studio-embed-mode .workspace-page-topbar,
       body.studio-embed-mode .workspace-side-nav-host,
       body.studio-embed-mode .site-header {
@@ -492,6 +496,28 @@
       body.studio-embed-mode .lens-start-rail {
         width: 100% !important;
         min-width: 0 !important;
+      }
+
+      /* CODE NOTE: Embedded client-detail pages must not keep viewport-based height floors,
+         or the iframe auto-height watcher will recursively grow the page and create infinite scroll. */
+      body.studio-embed-mode.client-detail-page,
+      body.studio-embed-mode.client-detail-page .home-shell,
+      body.studio-embed-mode.client-detail-page .app-home-shell,
+      body.studio-embed-mode.client-detail-page .prospect-shell,
+      body.studio-embed-mode.client-detail-page .prospect-stage,
+      body.studio-embed-mode.client-detail-page .prospect-empty-panel.client-detail-panel,
+      body.studio-embed-mode.client-detail-page .client-detail-sections,
+      body.studio-embed-mode.client-detail-page .client-profile-shell,
+      body.studio-embed-mode.client-detail-page .client-profile-main {
+        height: auto !important;
+        min-height: 0 !important;
+      }
+
+      body.studio-embed-mode.client-detail-page .client-profile-shell:not(.client-profile-shell-household),
+      body.studio-embed-mode.client-detail-page .client-profile-shell:not(.client-profile-shell-household) .client-profile-main {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        overflow: visible !important;
       }
     `;
 

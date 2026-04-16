@@ -5261,6 +5261,11 @@ body.is-modal-open {
   mask-image: url("Images/target.svg");
 }
 
+.client-directory-summary-icon-glyph-funnel {
+  -webkit-mask-image: url("Images/funnel.svg");
+  mask-image: url("Images/funnel.svg");
+}
+
 .client-directory-summary-card-recommended-actions .client-directory-summary-icon {
   color: #5f57ca;
   background: #eceafd;
@@ -5319,6 +5324,11 @@ body.is-modal-open {
 .client-directory-summary-card-pipeline-bottlenecks .client-directory-summary-icon {
   color: #2563eb;
   background: #e7efff;
+}
+
+.client-directory-summary-card-pipeline-bottlenecks .client-directory-summary-icon-glyph {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .client-directory-summary-card-pipeline-bottlenecks {
@@ -18108,6 +18118,8 @@ body.resources-page .workspace-page-topbar {
   height: auto;
   min-height: calc(100vh - var(--workspace-topbar-height));
   display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
   align-items: stretch;
   padding: 0;
   border-radius: 0;
@@ -18139,7 +18151,8 @@ body.resources-page .workspace-page-topbar {
   width: 100%;
   height: auto;
   min-height: inherit;
-  flex: 1 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
   border: 0;
   background: transparent;
 }
@@ -18174,6 +18187,8 @@ body.studio-page.is-native-directory .studio-shell,
 body.studio-page.is-embedded-tool .studio-shell {
   width: 100%;
   max-width: none;
+  display: flex;
+  flex-direction: column;
   padding-top: 0;
   padding-right: 0;
   padding-bottom: 0;

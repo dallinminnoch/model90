@@ -670,9 +670,7 @@
           <article class="client-directory-summary-card client-directory-summary-card-pipeline-bottlenecks" data-summary-card="pipeline-bottlenecks">
             <div class="client-directory-summary-top">
               <span class="client-directory-summary-icon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" fill="none">
-                  <path d="M4.25 5.05h11.5l-3.85 4.45v3.45l-3.8 2V9.5L4.25 5.05Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-                </svg>
+                <span class="client-directory-summary-icon-glyph client-directory-summary-icon-glyph-funnel"></span>
               </span>
               <span class="client-directory-summary-badge" data-summary-chip data-tone="neutral">No workflow pileup</span>
             </div>
@@ -910,13 +908,14 @@
             <input type="search" placeholder="Search for Clients">
           </form>
           <div class="client-directory-toolbar-search-spacer" aria-hidden="true"></div>
-          <nav class="client-status-tabs" aria-label="Client status filters">
-                <button class="client-status-tab is-active" type="button" data-client-status="all"><span class="client-status-tab-label">View All</span><span class="client-status-tab-count" data-status-count="all">0</span></button>
-            <button class="client-status-tab" type="button" data-client-status="prospects"><span class="client-status-tab-label">Prospects</span><span class="client-status-tab-count" data-status-count="prospects">0</span></button>
-            <button class="client-status-tab" type="button" data-client-status="in-review"><span class="client-status-tab-label">In Review</span><span class="client-status-tab-count" data-status-count="in-review">0</span></button>
-            <button class="client-status-tab" type="button" data-client-status="coverage-placed"><span class="client-status-tab-label">Coverage Placed</span><span class="client-status-tab-count" data-status-count="coverage-placed">0</span></button>
+            <nav class="client-status-tabs" aria-label="Client status filters">
+                <button class="client-status-tab is-active" type="button" data-client-status="all"><span class="client-status-tab-label">All Cases</span><span class="client-status-tab-count" data-status-count="all">0</span></button>
+            <button class="client-status-tab" type="button" data-client-status="prospecting"><span class="client-status-tab-label">Prospecting</span><span class="client-status-tab-count" data-status-count="prospecting">0</span></button>
+            <button class="client-status-tab" type="button" data-client-status="in-progress"><span class="client-status-tab-label">In Progress</span><span class="client-status-tab-count" data-status-count="in-progress">0</span></button>
+            <button class="client-status-tab" type="button" data-client-status="underwriting"><span class="client-status-tab-label">Underwriting</span><span class="client-status-tab-count" data-status-count="underwriting">0</span></button>
+            <button class="client-status-tab" type="button" data-client-status="placed"><span class="client-status-tab-label">Placed</span><span class="client-status-tab-count" data-status-count="placed">0</span></button>
             <button class="client-status-tab" type="button" data-client-status="closed"><span class="client-status-tab-label">Closed</span><span class="client-status-tab-count" data-status-count="closed">0</span></button>
-          </nav>
+            </nav>
           <div class="client-directory-filter-bar">
             <div class="client-directory-toolbar-actions">
               <!-- CODE NOTE: Directory sort controls now prioritize the shared Close Index engine. -->
@@ -1480,17 +1479,79 @@
         return "Select Priority";
       }
 
-      function getClientStatusDisplay(value) {
-        if (value === "in-review") {
-          return "In Review";
+      // CODE NOTE: Client Directory status tabs now use a lifecycle layer on top of legacy stored status groups.
+      function normalizeDirectoryStatusGroup(value) {
+        const normalized = String(value || "").trim().toLowerCase();
+        return [
+          "prospects",
+          "in-review",
+          "coverage-placed",
+          "closed",
+          "prospecting",
+          "in-progress",
+          "underwriting",
+          "placed"
+        ].includes(normalized)
+          ? normalized
+          : "prospects";
+      }
+
+      function getClientLifecycleStatus(recordOrStatusGroup) {
+        const isRecordObject = recordOrStatusGroup && typeof recordOrStatusGroup === "object";
+        const normalizedStatusGroup = normalizeDirectoryStatusGroup(
+          isRecordObject ? recordOrStatusGroup.statusGroup : recordOrStatusGroup
+        );
+
+        if (normalizedStatusGroup === "closed") {
+          return "closed";
         }
-        if (value === "coverage-placed") {
-          return "Coverage Placed";
+
+        if (
+          normalizedStatusGroup === "coverage-placed"
+          || normalizedStatusGroup === "placed"
+          || (isRecordObject
+            && Array.isArray(recordOrStatusGroup.coveragePolicies)
+            && recordOrStatusGroup.coveragePolicies.length > 0)
+        ) {
+          return "placed";
         }
-        if (value === "closed") {
+
+        if (normalizedStatusGroup === "in-review" || normalizedStatusGroup === "underwriting") {
+          return "underwriting";
+        }
+
+        if (normalizedStatusGroup === "in-progress") {
+          return "in-progress";
+        }
+
+        if (isRecordObject) {
+          const record = recordOrStatusGroup;
+          const hasActiveWorkflowProgress = Boolean(record?.preliminaryUnderwritingCompleted)
+            || Boolean(record?.pmiCompleted)
+            || Boolean(record?.analysisCompleted);
+          if (hasActiveWorkflowProgress) {
+            return "in-progress";
+          }
+        }
+
+        return "prospecting";
+      }
+
+      function getClientStatusDisplay(valueOrRecord) {
+        const lifecycleStatus = getClientLifecycleStatus(valueOrRecord);
+        if (lifecycleStatus === "in-progress") {
+          return "In Progress";
+        }
+        if (lifecycleStatus === "underwriting") {
+          return "Underwriting";
+        }
+        if (lifecycleStatus === "placed") {
+          return "Placed";
+        }
+        if (lifecycleStatus === "closed") {
           return "Closed";
         }
-        return "Prospects";
+        return "Prospecting";
       }
 
       function hasDirectoryProfileCreated(record) {
@@ -1754,7 +1815,21 @@
           dateProfileCreated: String(record.dateProfileCreated || record.lastReview || record.lastUpdatedDate || ""),
           insured: String(record.insured || "Yes"),
           source: String(record.source || record.dataSource || "Advisor Entered"),
-          statusGroup: ["prospects", "in-review", "coverage-placed", "closed"].includes(String(record.statusGroup || "")) ? String(record.statusGroup) : "prospects",
+          statusGroup: (function () {
+            const normalizedStatusGroup = normalizeDirectoryStatusGroup(record.statusGroup);
+            if (normalizedStatusGroup === "placed") {
+              return "coverage-placed";
+            }
+            if (normalizedStatusGroup === "underwriting") {
+              return "in-review";
+            }
+            if (normalizedStatusGroup === "prospecting" || normalizedStatusGroup === "in-progress") {
+              return "prospects";
+            }
+            return ["prospects", "in-review", "coverage-placed", "closed"].includes(normalizedStatusGroup)
+              ? normalizedStatusGroup
+              : "prospects";
+          })(),
           priority: normalizePriority(record.priority),
           isFlagged: Boolean(record.isFlagged),
           lastViewedAt: String(record.lastViewedAt || "").trim(),
@@ -1795,9 +1870,10 @@
           .filter(function (record) { return record.viewType === activeView; })
           .reduce(function (counts, record) {
             counts.all += 1;
-            counts[record.statusGroup] = (counts[record.statusGroup] || 0) + 1;
+            const lifecycleStatus = getClientLifecycleStatus(record);
+            counts[lifecycleStatus] = (counts[lifecycleStatus] || 0) + 1;
             return counts;
-          }, { all: 0, prospects: 0, "in-review": 0, "coverage-placed": 0, closed: 0 });
+          }, { all: 0, prospecting: 0, "in-progress": 0, underwriting: 0, placed: 0, closed: 0 });
       }
 
       function getLastInitial(lastName) {
@@ -1818,7 +1894,9 @@
         return records.filter(function (record) {
           const matchesView = record.viewType === activeView;
           const matchesLetter = activeLetter === "all" || getLastInitial(record.lastName) === activeLetter;
-          const matchesStatus = !includeStatus || activeStatus === "all" || record.statusGroup === activeStatus;
+          const matchesStatus = !includeStatus
+            || activeStatus === "all"
+            || getClientLifecycleStatus(record) === activeStatus;
           const matchesScope = matchesDirectoryScope(record);
           const matchesPriority = activePriority === "all" || String(record.priority || "").trim().toLowerCase() === activePriority;
           const matchesSearch = matchesDirectorySearch(record, query);
@@ -2219,6 +2297,24 @@
         }
 
         return "";
+      }
+
+      // CODE NOTE: Keep Pipeline Bottlenecks chip copy short so the top-right badge stays clean.
+      function getBottleneckBadgeLabel(stageLabel) {
+        const normalizedLabel = String(stageLabel || "").trim().toLowerCase();
+        if (normalizedLabel === "preliminary underwriting") {
+          return "Prelim UW queue";
+        }
+        if (normalizedLabel === "protection modeling inputs") {
+          return "PMI inputs queue";
+        }
+        if (normalizedLabel === "needs analysis") {
+          return "Analysis queue";
+        }
+        if (normalizedLabel === "carrier review") {
+          return "Carrier review queue";
+        }
+        return "Workflow queue";
       }
 
       function getOpportunityRowLabel(record) {
@@ -3651,7 +3747,7 @@
           note: topBottleneck && topBottleneck.count > 0
             ? `The heaviest buildup is in ${topBottleneck.label.toLowerCase()}.`
             : "The workflow is moving cleanly with no concentrated bottleneck.",
-          badgeText: topBottleneck && topBottleneck.count > 0 ? `Most stuck in ${topBottleneck.label.toLowerCase()}` : "No workflow pileup",
+          badgeText: topBottleneck && topBottleneck.count > 0 ? getBottleneckBadgeLabel(topBottleneck.label) : "No workflow pileup",
           badgeTone: topBottleneck && topBottleneck.count > 0 ? "accent" : "positive",
           rows: bottleneckStages.slice(0, 3).map(function (stage) {
             return { label: stage.label, value: formatSummaryCount(stage.count), dotClass: "client-directory-summary-dot-bottleneck" };
@@ -4396,7 +4492,7 @@
               </span>
             </div>
             <div class="client-table-cell client-table-cell-next-action-value">${getDirectoryNextAction(record)}</div>
-            <div class="client-table-cell client-table-cell-status-value">${getClientStatusDisplay(record.statusGroup)}</div>
+            <div class="client-table-cell client-table-cell-status-value">${getClientStatusDisplay(record)}</div>
             <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(getRecordUncoveredGapValue(record))}</div>
             <div class="client-table-cell client-table-cell-value client-table-cell-priority-value">
               <div class="client-priority-dropdown" data-priority-dropdown="${record.id}">
