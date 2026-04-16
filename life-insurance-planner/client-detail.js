@@ -1407,50 +1407,6 @@
         return Math.round((completed / milestones.length) * 100);
       }
 
-      function getProfileRingGroups(record) {
-        const milestones = getAccountMilestones(record);
-        const overallCompletion = calculateProfileCompletion(record) / 100;
-
-        return [
-          {
-            key: "overall",
-            label: milestones.map(function (milestone) {
-              return milestone.label;
-            }).join(" | "),
-            color: "#111111",
-            completion: overallCompletion
-          },
-          {
-            key: "accent",
-            label: "Profile Accent",
-            color: "#b8d8ff",
-            completion: 1
-          }
-        ];
-      }
-
-      function buildDonutGradient(milestones) {
-        const inactiveColors = {
-          "#2f5d46": "rgba(47, 93, 70, 0.24)",
-          "#9a7b5f": "rgba(154, 123, 95, 0.42)",
-          "#7c5cff": "rgba(124, 92, 255, 0.26)",
-          "#1f2937": "rgba(31, 41, 55, 0.2)",
-          "#d97f6f": "rgba(217, 127, 111, 0.42)"
-        };
-        const segmentSize = 100 / milestones.length;
-        const separator = 0.6;
-        const separatorColor = "#f8fbf9";
-
-        return milestones.map(function (milestone, index) {
-          const start = (segmentSize * index).toFixed(2);
-          const end = (segmentSize * (index + 1)).toFixed(2);
-          const innerStart = (segmentSize * index + separator).toFixed(2);
-          const innerEnd = (segmentSize * (index + 1) - separator).toFixed(2);
-          const color = milestone.complete ? milestone.color : (inactiveColors[milestone.color] || "rgba(148, 163, 184, 0.2)");
-          return `${separatorColor} ${start}% ${innerStart}%, ${color} ${innerStart}% ${innerEnd}%, ${separatorColor} ${innerEnd}% ${end}%`;
-        }).join(", ");
-      }
-
       function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
         const angleInRadians = (angleInDegrees - 90) * Math.PI / 180;
         return {
@@ -1466,171 +1422,180 @@
         return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
       }
 
-      function describeAnnularSector(centerX, centerY, outerRadius, innerRadius, startAngle, endAngle) {
-        const outerStart = polarToCartesian(centerX, centerY, outerRadius, startAngle);
-        const outerEnd = polarToCartesian(centerX, centerY, outerRadius, endAngle);
-        const innerEnd = polarToCartesian(centerX, centerY, innerRadius, endAngle);
-        const innerStart = polarToCartesian(centerX, centerY, innerRadius, startAngle);
-        const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+      const CLOSE_INDEX_GAUGE_SEGMENTS = [
+        {
+          start: 0,
+          end: 20,
+          color: "#f6d1d0",
+          borderColor: "#8a2d2a"
+        },
+        {
+          start: 20,
+          end: 40,
+          color: "#f8e8b4",
+          borderColor: "#7f5a12"
+        },
+        {
+          start: 40,
+          end: 70,
+          color: "#e4edf7",
+          borderColor: "#556a85"
+        },
+        {
+          start: 70,
+          end: 100,
+          color: "#dff0c8",
+          borderColor: "#506f25"
+        }
+      ];
+      const CLOSE_INDEX_GAUGE_TICK_COLOR = "#e7edf4";
 
-        return [
-          `M ${outerStart.x} ${outerStart.y}`,
-          `A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${outerEnd.x} ${outerEnd.y}`,
-          `L ${innerEnd.x} ${innerEnd.y}`,
-          `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${innerStart.x} ${innerStart.y}`,
-          "Z"
-        ].join(" ");
-      }
+      function renderCloseIndexGauge(closeIndex) {
+        const score = closeIndex && Number.isFinite(closeIndex.score)
+          ? Math.max(0, Math.min(100, closeIndex.score))
+          : null;
+        const centerX = 110;
+        const centerY = 118;
+        const radius = 74;
+        const strokeWidth = 16;
+        const segmentAccentStrokeWidth = 3.2;
+        const segmentAccentRadius = radius - (strokeWidth / 2) + (segmentAccentStrokeWidth / 2);
+        const tickInnerRadius = 86;
+        const tickOuterRadius = 93;
+        const needleLength = 58;
+        const needleTailLength = 13;
+        const segmentGap = 5;
+        const gaugeStartAngle = 240;
+        const gaugeSweep = 240;
+        const totalGap = segmentGap * (CLOSE_INDEX_GAUGE_SEGMENTS.length - 1);
+        const usableSweep = gaugeSweep - totalGap;
+        const tickCount = 7;
+        let currentAngle = gaugeStartAngle;
+        const segmentPaths = [];
+        let needleMarkup = "";
 
-      function buildDonutSvg(record) {
-        const center = 80;
-        const ringSweep = 300;
-        const startAngle = 210;
-        const trackColor = "#e7edf4";
-        const ringGroups = getProfileRingGroups(record);
-        const rings = [
-          { radius: 69, strokeWidth: 14, segmented: true },
-          { radius: 43, strokeWidth: 2.6, segmented: false }
-        ];
-        const outerTickCount = 78;
-        const outerTickSweep = 0.62;
-        const outerTickStep = ringSweep / outerTickCount;
-
-        function buildSegmentGroup(milestone, index, pathMarkup, hoverX, hoverY, suffix) {
-          const ringDelay = suffix === "ticks" ? `${index * 140}ms` : "0ms";
+        const tickMarkup = Array.from({ length: tickCount }, function (_, index) {
+          const angle = gaugeStartAngle + (gaugeSweep * (index / (tickCount - 1)));
+          const innerPoint = polarToCartesian(centerX, centerY, tickInnerRadius, angle);
+          const outerPoint = polarToCartesian(centerX, centerY, tickOuterRadius, angle);
           return `
-            <g
-              class="client-detail-donut-segment-group ${milestone.complete ? "is-complete" : "is-pending"}"
-              data-segment-id="segment-${index}${suffix ? `-${suffix}` : ""}"
-              data-segment-key="segment-${index}"
-              data-milestone-label="${escapeHtml(milestone.label)}"
-              data-hover-x="${hoverX}"
-              data-hover-y="${hoverY}"
-              style="--ring-delay: ${ringDelay};"
-            >
-              ${pathMarkup}
-            </g>
+            <line
+              x1="${innerPoint.x}"
+              y1="${innerPoint.y}"
+              x2="${outerPoint.x}"
+              y2="${outerPoint.y}"
+              stroke="${CLOSE_INDEX_GAUGE_TICK_COLOR}"
+              stroke-width="2.4"
+              stroke-linecap="round"
+            ></line>
           `;
-        }
-
-        function buildOuterTickRing(ring, geometry, index) {
-          const completedTicks = Math.round(outerTickCount * ring.completion);
-          const centerAngle = startAngle + (ringSweep / 2);
-          const hoverRadians = (centerAngle - 90) * Math.PI / 180;
-          const hoverX = (Math.cos(hoverRadians) * 4).toFixed(2);
-          const hoverY = (Math.sin(hoverRadians) * 4).toFixed(2);
-
-          const tickMarkup = Array.from({ length: outerTickCount }, function (_, tickIndex) {
-            const tickStart = startAngle + (tickIndex * outerTickStep);
-            const tickEnd = tickStart + outerTickSweep;
-            const tickPath = describeArc(center, center, geometry.radius, tickStart, tickEnd);
-            const tickColor = tickIndex < completedTicks ? ring.color : trackColor;
-            const tickClass = tickIndex < completedTicks
-              ? "client-detail-donut-ring-tick is-complete"
-              : "client-detail-donut-ring-tick is-track";
-
-            return `
-              <path
-                class="${tickClass}"
-                d="${tickPath}"
-                stroke="${tickColor}"
-                stroke-width="${geometry.strokeWidth + 0.9}"
-                fill="none"
-                stroke-linecap="butt"
-                style="--tick-delay: ${index * 140 + tickIndex * 16}ms;"
-              />
-            `;
-          }).join("");
-
-          return buildSegmentGroup(
-            {
-              complete: ring.completion >= 1,
-              label: ring.label
-            },
-            index,
-            tickMarkup,
-            hoverX,
-            hoverY,
-            "ticks"
-          );
-        }
-
-        const segments = ringGroups.map(function (ring, index) {
-          const geometry = rings[index];
-          if (geometry.segmented) {
-            return buildOuterTickRing(ring, geometry, index);
-          }
-          const ringStartAngle = ring.key === "accent" ? startAngle - 120 : startAngle;
-          const endAngle = ringStartAngle + ringSweep;
-          const progressEndAngle = ringStartAngle + (ringSweep * ring.completion);
-          const centerAngle = ringStartAngle + (ringSweep / 2);
-          const hoverRadians = (centerAngle - 90) * Math.PI / 180;
-          const hoverX = (Math.cos(hoverRadians) * 4).toFixed(2);
-          const hoverY = (Math.sin(hoverRadians) * 4).toFixed(2);
-          const trackPath = describeArc(center, center, geometry.radius, ringStartAngle, endAngle);
-          const progressPath = ring.completion > 0
-            ? describeArc(center, center, geometry.radius, ringStartAngle, progressEndAngle)
-            : "";
-          return buildSegmentGroup(
-            {
-              complete: ring.completion >= 1,
-              label: ring.label
-            },
-            index,
-            `
-              <path
-                class="client-detail-donut-ring-track${ring.key === "accent" ? " is-placement" : ""}"
-                d="${trackPath}"
-                stroke="${trackColor}"
-                stroke-width="${geometry.strokeWidth}"
-                fill="none"
-                pathLength="100"
-              />
-              ${progressPath ? `
-                <path
-                  class="client-detail-donut-ring-progress${ring.key === "accent" ? " is-placement" : ""}"
-                  d="${progressPath}"
-                  stroke="${ring.key === "accent" ? "url(#client-detail-placement-gradient)" : ring.color}"
-                  stroke-width="${geometry.strokeWidth}"
-                  fill="none"
-                  pathLength="100"
-                />
-                ${ring.key === "accent" ? `
-                  <path
-                    class="client-detail-donut-ring-progress-gloss is-placement"
-                    d="${progressPath}"
-                    stroke="url(#client-detail-placement-gloss)"
-                    stroke-width="${Math.max(1.5, geometry.strokeWidth * 0.42)}"
-                    fill="none"
-                    pathLength="100"
-                  />
-                ` : ""}
-              ` : ""}
-            `,
-            hoverX,
-            hoverY,
-            ""
-          );
         }).join("");
 
+        CLOSE_INDEX_GAUGE_SEGMENTS.forEach(function (segment) {
+          const span = segment.end - segment.start;
+          const sweep = usableSweep * (span / 100);
+          const segmentStartAngle = currentAngle;
+          const segmentEndAngle = segmentStartAngle + sweep;
+          const containsScore = score !== null && (
+            (score >= segment.start && score < segment.end)
+            || (segment.end === 100 && score === 100)
+          );
+
+          segmentPaths.push(`
+            <path
+              d="${describeArc(centerX, centerY, radius, segmentStartAngle, segmentEndAngle)}"
+              fill="none"
+              stroke="${segment.color}"
+              stroke-width="${strokeWidth}"
+              stroke-linecap="butt"
+            ></path>
+            <path
+              d="${describeArc(centerX, centerY, segmentAccentRadius, segmentStartAngle, segmentEndAngle)}"
+              fill="none"
+              stroke="${segment.borderColor}"
+              stroke-width="${segmentAccentStrokeWidth}"
+              stroke-linecap="butt"
+            ></path>
+          `);
+
+          if (containsScore) {
+            const scoreRatio = span > 0 ? (Math.max(segment.start, Math.min(score, segment.end)) - segment.start) / span : 0;
+            const needleAngle = segmentStartAngle + (sweep * scoreRatio);
+            const needleTip = polarToCartesian(centerX, centerY, needleLength, needleAngle);
+            const needleTail = polarToCartesian(centerX, centerY, needleTailLength, needleAngle + 180);
+            needleMarkup = `
+              <line
+                x1="${needleTail.x}"
+                y1="${needleTail.y}"
+                x2="${needleTip.x}"
+                y2="${needleTip.y}"
+                stroke="#1f2937"
+                stroke-width="4.4"
+                stroke-linecap="round"
+              ></line>
+              <circle cx="${centerX}" cy="${centerY}" r="7.5" fill="#1f2937" stroke="#ffffff" stroke-width="3"></circle>
+            `;
+          }
+
+          currentAngle = segmentEndAngle + segmentGap;
+        });
+
         return `
-          <svg class="client-detail-donut-svg" viewBox="0 0 160 160" aria-hidden="true" focusable="false">
-            <defs>
-              <linearGradient id="client-detail-placement-gradient" x1="24" y1="24" x2="136" y2="136" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#4120e8"></stop>
-                <stop offset="22%" stop-color="#6a3dff"></stop>
-                <stop offset="48%" stop-color="#2f8f5b"></stop>
-                <stop offset="70%" stop-color="#8dd4a8"></stop>
-                <stop offset="100%" stop-color="#0d3fe6"></stop>
-              </linearGradient>
-              <linearGradient id="client-detail-placement-gloss" x1="36" y1="32" x2="124" y2="128" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.38"></stop>
-                <stop offset="30%" stop-color="#ffffff" stop-opacity="0.14"></stop>
-                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"></stop>
-              </linearGradient>
-            </defs>
-            ${segments}
-          </svg>
+          <div class="client-overview-close-index-visual" aria-label="Close Index ${score === null ? "not available" : score}">
+            <svg class="client-overview-close-index-svg" viewBox="0 18 220 152" role="img" aria-hidden="true" focusable="false">
+              ${tickMarkup}
+              ${segmentPaths.join("")}
+              ${needleMarkup}
+            </svg>
+            <div class="client-overview-close-index-center">
+              <span class="client-overview-close-index-number">${score === null ? "--" : escapeHtml(String(score))}</span>
+              <span class="client-overview-close-index-label">Close Index</span>
+            </div>
+            <div class="client-overview-close-index-scale" aria-hidden="true">
+              <span>0</span>
+              <span>100</span>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderOverviewAccountCompletionPanel(record) {
+        const completion = calculateProfileCompletion(record);
+
+        return `
+          <section class="client-overview-account-completion-panel" aria-label="Planning Workflow Adequacy">
+            <div class="client-overview-account-completion-header">
+              <span>Planning Workflow Adequacy</span>
+              <strong>${completion}%</strong>
+            </div>
+            <div class="client-coverage-adequacy-track client-overview-account-completion-track" aria-hidden="true">
+              <div class="client-coverage-adequacy-fill client-overview-account-completion-fill" style="width: ${completion}%;"></div>
+            </div>
+          </section>
+        `;
+      }
+
+      function getOverviewCloseProbabilityPrediction(workflowState) {
+        const currentKey = String(workflowState?.currentKey || "").trim();
+        return OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS[currentKey]
+          || OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default;
+      }
+
+      function renderOverviewCloseProbabilityPrediction(prediction) {
+        const current = Number.isFinite(prediction?.current) ? prediction.current : OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.current;
+        const projected = Number.isFinite(prediction?.projected) ? prediction.projected : OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.projected;
+        const qualifier = String(prediction?.qualifier || OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.qualifier).trim();
+
+        return `
+          <section class="client-overview-probability-prediction" aria-label="Close Probability Prediction">
+            <span class="client-summary-label">Close Probability</span>
+            <div class="client-overview-probability-prediction-row">
+              <strong class="client-overview-probability-current">${escapeHtml(`${current}%`)}</strong>
+              <span class="client-overview-probability-arrow" aria-hidden="true"></span>
+              <strong class="client-overview-probability-projected">${escapeHtml(`${projected}%`)}</strong>
+              <span class="client-overview-probability-qualifier">${escapeHtml(qualifier)}</span>
+            </div>
+          </section>
         `;
       }
 
@@ -2127,6 +2092,42 @@
         { key: "underwriting", label: "Underwriting", tab: "planning", target: "underwriting" },
         { key: "placement", label: "Placement", tab: "overview", target: "placement" }
       ];
+
+      // CODE NOTE: Overview close-probability forecast copy is intentionally
+      // centralized here so product/design can tune the numbers or the
+      // milestone language later without editing the overview card markup.
+      const OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS = Object.freeze({
+        default: Object.freeze({
+          current: 49,
+          projected: 72,
+          qualifier: "if inputs completed"
+        }),
+        "modeling-inputs": Object.freeze({
+          current: 49,
+          projected: 72,
+          qualifier: "if inputs completed"
+        }),
+        "needs-analysis": Object.freeze({
+          current: 58,
+          projected: 76,
+          qualifier: "if analysis completed"
+        }),
+        recommendation: Object.freeze({
+          current: 67,
+          projected: 83,
+          qualifier: "if recommendation finalized"
+        }),
+        underwriting: Object.freeze({
+          current: 74,
+          projected: 88,
+          qualifier: "if underwriting started"
+        }),
+        placement: Object.freeze({
+          current: 82,
+          projected: 94,
+          qualifier: "if placement secured"
+        })
+      });
       const CLIENT_PROFILE_ANALYSIS_CHILD_KEYS = ["modeling-inputs", "needs-analysis", "recommendation"];
 
       function renderClientProfileSideTabs() {
@@ -2142,7 +2143,7 @@
         return displayName || preferredFullName || "Client Workspace";
       }
 
-      function renderClientProfileSidebar(record, completion, hasCoveragePlaced, subtitleParts) {
+      function renderClientProfileSidebar(record, hasCoveragePlaced, subtitleParts) {
         return `
           <aside class="client-profile-sidebar">
             <div class="client-profile-sidebar-sticky">
@@ -2165,23 +2166,19 @@
                   </div>
                 </details>
                 <div class="client-profile-avatar-wrap">
-                  <div class="client-profile-donut-map">
-                    <div class="client-detail-avatar client-detail-avatar-progress">
-                      ${buildDonutSvg(record)}
-                      <div class="client-detail-avatar-core">
-                        <div class="client-detail-avatar-core-inner">
-                          <div class="client-detail-avatar-core-face client-detail-avatar-core-front">${escapeHtml(getInitials(record.displayName))}</div>
-                          <div class="client-detail-avatar-core-face client-detail-avatar-core-back">
-                            <span class="client-detail-avatar-core-back-label">Created</span>
-                            <span class="client-detail-avatar-core-back-date">${escapeHtml(formatDate(record.dateProfileCreated || record.lastUpdatedDate))}</span>
-                          </div>
+                  <div class="client-detail-avatar">
+                    <div class="client-detail-avatar-core">
+                      <div class="client-detail-avatar-core-inner">
+                        <div class="client-detail-avatar-core-face client-detail-avatar-core-front">${escapeHtml(getInitials(record.displayName))}</div>
+                        <div class="client-detail-avatar-core-face client-detail-avatar-core-back">
+                          <span class="client-detail-avatar-core-back-label">Created</span>
+                          <span class="client-detail-avatar-core-back-date">${escapeHtml(formatDate(record.dateProfileCreated || record.lastUpdatedDate))}</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div class="client-profile-sidebar-copy">
-                  <p class="client-profile-completion-copy">${escapeHtml(`${completion}% Account Complete`)}</p>
                   <h2>
                     <span>${escapeHtml(formatValue(record.displayName))}</span>
                     <span class="client-profile-name-badge${hasCoveragePlaced ? " is-complete" : ""}" aria-hidden="true"></span>
@@ -2757,6 +2754,49 @@
         ], "client-planning-card-wide", { sectionTargets: "needs-analysis" });
       }
 
+      function renderOverviewSummaryCard(record) {
+        const workflowState = getClientWorkflowProgressState(record);
+        const currentStepLabel = workflowState.currentStep ? workflowState.currentStep.label : "Placement Complete";
+        const closeIndex = window.LipOpportunityScore && typeof window.LipOpportunityScore.calculate === "function"
+          ? window.LipOpportunityScore.calculate(record, { now: new Date() })
+          : null;
+        const closeProbabilityPrediction = getOverviewCloseProbabilityPrediction(workflowState);
+        const priorityLever = getPriorityDisplay(normalizePriority(record.priority));
+        const overviewItems = [
+          { label: "Priority Lever", value: priorityLever },
+          { label: "Planning Status", value: getPlanningStatus(record) },
+          { label: "Current Focus", value: currentStepLabel }
+        ];
+
+        return `
+          <section class="client-detail-card client-detail-card-compact client-planning-card client-planning-card-wide client-overview-summary-card" data-client-nav-section="overview">
+            <div class="client-overview-summary-tab">Overview</div>
+            <div class="client-overview-summary-body">
+              <div class="client-overview-top-row">
+                <div class="client-overview-secondary-panels">
+                  ${renderCoverageAdequacyBar(record, { className: "client-overview-coverage-adequacy" })}
+                  ${renderOverviewAccountCompletionPanel(record)}
+                </div>
+                <div class="client-overview-close-index-panel">
+                  ${renderCloseIndexGauge(closeIndex)}
+                </div>
+              </div>
+              ${renderOverviewCloseProbabilityPrediction(closeProbabilityPrediction)}
+              <div class="client-overview-summary-grid">
+                ${overviewItems.map(function (item) {
+                  return `
+                    <div class="client-overview-summary-item">
+                      <span class="client-summary-label">${escapeHtml(item.label)}</span>
+                      <span class="client-summary-value">${escapeHtml(item.value)}</span>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
       function renderPmiEntryCard(record) {
         const modelingEntries = Array.isArray(record.protectionModelingEntries) && record.protectionModelingEntries.length
           ? record.protectionModelingEntries
@@ -3036,75 +3076,17 @@
         return "Continue";
       }
 
-      function getPrimaryActionSupportCopy(nextItem, hasCoverageView) {
-        if (!nextItem) {
-          return hasCoverageView
-            ? "Core workflow steps are complete. Review placed coverage and confirm the next client move."
-            : "Core workflow steps are complete. Log the next client touchpoint to keep the case moving.";
-        }
-
-        if (nextItem.key === "overview") {
-          return "Review the profile overview to confirm the case is framed correctly before moving deeper into the workflow.";
-        }
-
-        if (nextItem.key === "modeling-inputs") {
-          return "Finish Modeling Inputs so the profile has the financial inputs needed to support the recommendation.";
-        }
-
-        if (nextItem.key === "needs-analysis") {
-          return "Use the saved inputs to pressure-test the protection need and confirm the modeled amount.";
-        }
-
-        if (nextItem.key === "recommendation") {
-          return "Finalize the recommendation so the advisor can move this case into underwriting with confidence.";
-        }
-
-        if (nextItem.key === "underwriting") {
-          return "Work through underwriting readiness so the case can move cleanly toward placement.";
-        }
-
-        if (nextItem.key === "placement") {
-          return "Review placed policies, confirm documents, and close the loop on the recommendation.";
-        }
-
-        return "Advance the next workflow step to keep the case moving forward.";
-      }
-
-      function getPrimaryActionPanelStorageKey() {
-        return `clientPrimaryActionCollapsed:${getStorageIdentity()}`;
-      }
-
-      function getPrimaryActionPanelCollapsed() {
-        try {
-          return window.localStorage.getItem(getPrimaryActionPanelStorageKey()) === "1";
-        } catch (error) {
-          return false;
-        }
-      }
-
-      function setPrimaryActionPanelCollapsed(isCollapsed) {
-        try {
-          window.localStorage.setItem(getPrimaryActionPanelStorageKey(), isCollapsed ? "1" : "0");
-        } catch (error) {
-          // Ignore storage issues and keep the in-memory render path working.
-        }
-      }
-
       function renderPrimaryActionPanel(record, checklistItems) {
         const items = Array.isArray(checklistItems) ? checklistItems : [];
         const nextItem = items.find(function (item) { return !item.complete; }) || null;
         const nextAction = nextItem ? getChecklistAction(record, nextItem) : null;
         const toolAction = nextItem ? getClientWorkflowToolAction(record, nextItem) : null;
-        const isCollapsed = getPrimaryActionPanelCollapsed();
         const coverageFields = synchronizeRecordCoverageFields(record);
         const coverageGap = coverageFields.uncoveredGap;
         const coverageAmount = coverageFields.currentCoverage;
         const adequacy = getCoverageAdequacy(record);
         const policies = Array.isArray(record?.coveragePolicies) ? record.coveragePolicies : [];
         const hasCoverageView = policies.length > 0 || coverageAmount > 0 || coverageFields.modeledNeed > 0;
-        const gapDisplay = coverageGap > 0 ? formatCompactCoverageCardCurrency(coverageGap) : "No uncovered need";
-        const coverageDisplay = coverageAmount > 0 ? formatCompactCoverageCardCurrency(coverageAmount) : "$0";
-        const adequacyDisplay = `${adequacy}%`;
         const nextStepDisplay = nextItem ? nextItem.label : "Protection Review";
         let headline = "";
         let problemText = "";
@@ -3129,70 +3111,41 @@
         }
 
         return `
-          <section class="client-primary-action-panel${isCollapsed ? " is-collapsed" : ""}" data-primary-action-panel>
-            ${isCollapsed ? `
-              <div class="client-primary-action-collapsed-copy">Primary Advisor Action</div>
-            ` : `
-              <div class="client-primary-action-shell">
-                <div class="client-primary-action-copy">
-                  <span class="client-primary-action-eyebrow">Primary Advisor Action</span>
-                  <h2>${escapeHtml(headline)}</h2>
-                  <p class="client-primary-action-problem">${escapeHtml(problemText)}</p>
-                </div>
-                <div class="client-primary-action-recommendation">
-                  <span class="client-primary-action-recommendation-label">Next step</span>
-                  <strong>${escapeHtml(nextStepDisplay)}</strong>
-                  <p>${escapeHtml(getPrimaryActionSupportCopy(nextItem, hasCoverageView))}</p>
-                  <div class="client-primary-action-actions">
-                    ${nextAction && nextAction.type === "nav" ? `
-                      <button
-                        class="client-primary-action-button is-primary"
-                        type="button"
-                        data-client-workflow-nav="${escapeHtml(nextAction.navKey)}"
-                      >${escapeHtml(getPrimaryActionButtonLabel(nextItem))}</button>
-                    ` : hasCoverageView ? `
-                      <button class="client-primary-action-button is-primary" type="button" data-scroll-to-coverage>View Coverage</button>
-                    ` : `
-                      <button class="client-primary-action-button is-primary" type="button" data-coverage-add-open>Add Policy</button>
-                    `}
-                    ${toolAction ? `
-                      <a
-                        class="client-primary-action-button is-secondary"
-                        href="${escapeHtml(toolAction.href)}"
-                        data-linked-case-ref="${escapeHtml(String(record?.caseRef || "").trim())}"
-                        data-linked-record-id="${escapeHtml(String(record?.id || "").trim())}"
-                      >${escapeHtml(toolAction.label)}</a>
-                    ` : nextAction && nextAction.type === "nav" && hasCoverageView ? `
-                      <button class="client-primary-action-button is-secondary" type="button" data-scroll-to-coverage>View Coverage</button>
-                    ` : ""}
-                  </div>
+          <section class="client-primary-action-panel" data-primary-action-panel>
+            <div class="client-primary-action-shell">
+              <div class="client-primary-action-copy">
+                <span class="client-primary-action-eyebrow">Primary Advisor Action</span>
+                <h2>${escapeHtml(headline)}</h2>
+                <p class="client-primary-action-problem">${escapeHtml(problemText)}</p>
+              </div>
+              <div class="client-primary-action-recommendation">
+                <span class="client-primary-action-recommendation-label">Next step</span>
+                <strong>${escapeHtml(nextStepDisplay)}</strong>
+                <div class="client-primary-action-actions">
+                  ${nextAction && nextAction.type === "nav" ? `
+                    <button
+                      class="client-primary-action-button is-primary"
+                      type="button"
+                      data-client-workflow-nav="${escapeHtml(nextAction.navKey)}"
+                    >${escapeHtml(getPrimaryActionButtonLabel(nextItem))}</button>
+                  ` : hasCoverageView ? `
+                    <button class="client-primary-action-button is-primary" type="button" data-scroll-to-coverage>View Coverage</button>
+                  ` : `
+                    <button class="client-primary-action-button is-primary" type="button" data-coverage-add-open>Add Policy</button>
+                  `}
+                  ${toolAction ? `
+                    <a
+                      class="client-primary-action-button is-secondary"
+                      href="${escapeHtml(toolAction.href)}"
+                      data-linked-case-ref="${escapeHtml(String(record?.caseRef || "").trim())}"
+                      data-linked-record-id="${escapeHtml(String(record?.id || "").trim())}"
+                    >${escapeHtml(toolAction.label)}</a>
+                  ` : nextAction && nextAction.type === "nav" && hasCoverageView ? `
+                    <button class="client-primary-action-button is-secondary" type="button" data-scroll-to-coverage>View Coverage</button>
+                  ` : ""}
                 </div>
               </div>
-              <div class="client-primary-action-facts">
-                <div class="client-primary-action-fact">
-                  <span>Uncovered Need</span>
-                  <strong>${escapeHtml(gapDisplay)}</strong>
-                </div>
-                <div class="client-primary-action-fact">
-                  <span>Current Coverage</span>
-                  <strong>${escapeHtml(coverageDisplay)}</strong>
-                </div>
-                <div class="client-primary-action-fact">
-                  <span>Adequacy</span>
-                  <strong>${escapeHtml(adequacyDisplay)}</strong>
-                </div>
-              </div>
-            `}
-            <button
-              class="client-primary-action-toggle"
-              type="button"
-              data-primary-action-toggle
-              aria-expanded="${isCollapsed ? "false" : "true"}"
-              aria-label="${isCollapsed ? "Expand primary advisor action" : "Collapse primary advisor action"}"
-              title="${isCollapsed ? "Expand primary advisor action" : "Collapse primary advisor action"}"
-            >
-              <span class="client-primary-action-toggle-glyph" aria-hidden="true">&#8249;</span>
-            </button>
+            </div>
           </section>
         `;
       }
@@ -3519,49 +3472,24 @@
             ? "In review"
             : "Not started";
         const riskData = record.preliminaryUnderwriting?.data || {};
-        const overviewCards = [
-          renderSidebarInsightCard("Case Snapshot", [
-            { label: "Workflow Progress", value: `${workflowState.completedCount} of ${workflowState.steps.length} complete` },
-            { label: "Current Step", value: currentStepLabel },
-            { label: "Coverage Adequacy", value: `${adequacy}%` },
-            { label: "Policies on File", value: String(policies.length || 0) },
-            { label: "Last Updated", value: formatDate(record.lastUpdatedDate || record.dateProfileCreated) }
-          ], { eyebrow: "Current Focus" }),
-          renderFooterBar(record)
-        ];
-
-        if (normalizedNavKey === "overview") {
-          return overviewCards.join("");
-        }
 
         if (normalizedNavKey === "analysis") {
-          return [
-            renderSidebarInsightCard("Analysis Progress", [
-              { label: "Modeling Inputs", value: workflowStepMap.get("modeling-inputs")?.detail || "Pending" },
-              { label: "Needs Analysis", value: workflowStepMap.get("needs-analysis")?.detail || "Pending" },
-              { label: "Recommendation", value: workflowStepMap.get("recommendation")?.detail || "Pending" },
-              { label: "Current Focus", value: currentStepLabel }
-            ], { eyebrow: "Case Progression" }),
-            renderSidebarInsightCard("Financial Snapshot", [
-              { label: "Household Income", value: formatCoverageCardCurrency(financialSummary.annualIncome) },
-              { label: "Monthly Spending", value: formatCoverageCardCurrency(financialSummary.monthlySpending) },
-              { label: "Debt on File", value: formatCoverageCardCurrency(financialSummary.totalDebt) },
-              { label: "Latest Inputs Saved", value: financialSummary.latestSavedAt }
-            ], { eyebrow: "Analysis Support" })
-          ].join("");
+          return renderSidebarInsightCard("Analysis Progress", [
+            { label: "Modeling Inputs", value: workflowStepMap.get("modeling-inputs")?.detail || "Pending" },
+            { label: "Needs Analysis", value: workflowStepMap.get("needs-analysis")?.detail || "Pending" },
+            { label: "Recommendation", value: workflowStepMap.get("recommendation")?.detail || "Pending" },
+            { label: "Current Focus", value: currentStepLabel }
+          ], { eyebrow: "Case Progression" });
         }
 
         if (normalizedNavKey === "modeling-inputs") {
-          return [
-            renderSidebarInsightCard("Input Readiness", [
-              { label: "PMI Status", value: record.pmiCompleted ? "Completed" : "Pending" },
-              { label: "Latest Inputs Saved", value: financialSummary.latestSavedAt },
-              { label: "Household Income", value: formatCoverageCardCurrency(financialSummary.annualIncome) },
-              { label: "Monthly Spending", value: formatCoverageCardCurrency(financialSummary.monthlySpending) },
-              { label: "Debt on File", value: formatCoverageCardCurrency(financialSummary.totalDebt) }
-            ], { eyebrow: "Analysis" }),
-            renderFooterBar(record)
-          ].join("");
+          return renderSidebarInsightCard("Input Readiness", [
+            { label: "PMI Status", value: record.pmiCompleted ? "Completed" : "Pending" },
+            { label: "Latest Inputs Saved", value: financialSummary.latestSavedAt },
+            { label: "Household Income", value: formatCoverageCardCurrency(financialSummary.annualIncome) },
+            { label: "Monthly Spending", value: formatCoverageCardCurrency(financialSummary.monthlySpending) },
+            { label: "Debt on File", value: formatCoverageCardCurrency(financialSummary.totalDebt) }
+          ], { eyebrow: "Analysis" });
         }
 
         if (normalizedNavKey === "needs-analysis") {
@@ -3580,50 +3508,37 @@
             { label: "Basis", value: recommendationBasis },
             { label: "Modeled Need", value: formatCoverageCardCurrency(coverageFields.modeledNeed) },
             { label: "Uncovered Need", value: formatCoverageCardCurrency(coverageFields.uncoveredGap) },
-            { label: "Next Workflow Step", value: workflowState.currentStep ? workflowState.currentStep.label : "Placement Complete" }
+            { label: "Next Workflow Step", value: currentStepLabel }
           ], { eyebrow: "Analysis" });
         }
 
         if (normalizedNavKey === "underwriting") {
-          return [
-            renderSidebarInsightCard("Underwriting Snapshot", [
-              { label: "Status", value: underwritingStatus },
-              { label: "Risk View", value: getRiskSummary(record) },
-              { label: "Nicotine Use", value: formatValue(riskData.nicotineUseStatus) },
-              { label: "Major Conditions", value: formatListValue(riskData.majorMedicalConditions) },
-              { label: "Saved At", value: record.preliminaryUnderwritingCompleted ? formatDate(record.preliminaryUnderwriting?.savedAt) : "Not provided" }
-            ], { eyebrow: "Case Progression" }),
-            renderFooterBar(record)
-          ].join("");
+          return renderSidebarInsightCard("Underwriting Snapshot", [
+            { label: "Status", value: underwritingStatus },
+            { label: "Risk View", value: getRiskSummary(record) },
+            { label: "Nicotine Use", value: formatValue(riskData.nicotineUseStatus) },
+            { label: "Major Conditions", value: formatListValue(riskData.majorMedicalConditions) },
+            { label: "Saved At", value: record.preliminaryUnderwritingCompleted ? formatDate(record.preliminaryUnderwriting?.savedAt) : "Not provided" }
+          ], { eyebrow: "Case Progression" });
         }
 
         if (normalizedNavKey === "placement" || normalizedNavKey === "policies") {
-          return [
-            renderSidebarInsightCard("Placement Snapshot", [
-              { label: "Policies on File", value: String(policies.length || 0) },
-              { label: "Total Face Amount", value: formatCompactCurrencyTotal(totalFaceAmount) },
-              { label: "Annual Premium", value: annualPremiumSummary.hasAnnualizedAmount ? formatCurrencyTotal(annualPremiumSummary.total) : "Not available" },
-              { label: "Policies with Docs", value: `${policyDocumentSummary.withDocuments} of ${policies.length || 0}` }
-            ], { eyebrow: normalizedNavKey === "placement" ? "Case Progression" : "Client Data" }),
-            renderSidebarInsightCard("Documents", [
-              { label: "Saved Policy Files", value: String(policyDocumentSummary.totalDocuments || 0) },
-              { label: "Policies Missing Files", value: String(policyDocumentSummary.missingDocuments || 0) },
-              { label: "Illustrations Queued", value: String(getIllustrationEntries(record).length || 0) }
-            ], { eyebrow: "Support" })
-          ].join("");
+          return renderSidebarInsightCard("Placement Snapshot", [
+            { label: "Policies on File", value: String(policies.length || 0) },
+            { label: "Total Face Amount", value: formatCompactCurrencyTotal(totalFaceAmount) },
+            { label: "Annual Premium", value: annualPremiumSummary.hasAnnualizedAmount ? formatCurrencyTotal(annualPremiumSummary.total) : "Not available" },
+            { label: "Policies with Docs", value: `${policyDocumentSummary.withDocuments} of ${policies.length || 0}` }
+          ], { eyebrow: normalizedNavKey === "placement" ? "Case Progression" : "Client Data" });
         }
 
         if (normalizedNavKey === "household") {
-          return [
-            renderSidebarInsightCard("Household Insight", [
-              { label: "Household Name", value: formatValue(record.householdName) },
-              { label: "Household Role", value: formatValue(record.householdRole) },
-              { label: "Marital Status", value: formatValue(record.maritalStatus) },
-              { label: "Preferred Contact", value: formatValue(record.preferredContactMethod) },
-              { label: "Advisor", value: formatValue(record.advisorName) }
-            ], { eyebrow: "Client Data" }),
-            renderFooterBar(record)
-          ].join("");
+          return renderSidebarInsightCard("Household Insight", [
+            { label: "Household Name", value: formatValue(record.householdName) },
+            { label: "Household Role", value: formatValue(record.householdRole) },
+            { label: "Marital Status", value: formatValue(record.maritalStatus) },
+            { label: "Preferred Contact", value: formatValue(record.preferredContactMethod) },
+            { label: "Advisor", value: formatValue(record.advisorName) }
+          ], { eyebrow: "Client Data" });
         }
 
         if (normalizedNavKey === "financial-snapshot") {
@@ -3637,49 +3552,38 @@
         }
 
         if (normalizedNavKey === "activity") {
-          return [
-            renderSidebarInsightCard("Activity Snapshot", [
-              { label: "Status", value: activitySummary.status },
-              { label: "Last Contact", value: activitySummary.relativeContact },
-              { label: "Response Rate", value: activitySummary.responseRate },
-              { label: "Suggested Activity", value: activitySummary.nextAction }
-            ], { eyebrow: "Activity / Support" }),
-            renderFooterBar(record)
-          ].join("");
+          return renderSidebarInsightCard("Activity Snapshot", [
+            { label: "Status", value: activitySummary.status },
+            { label: "Last Contact", value: activitySummary.relativeContact },
+            { label: "Response Rate", value: activitySummary.responseRate },
+            { label: "Suggested Activity", value: activitySummary.nextAction }
+          ], { eyebrow: "Activity / Support" });
         }
 
         if (normalizedNavKey === "notes") {
-          return [
-            renderSidebarInsightCard("Notes Snapshot", [
-              { label: "Advisor Note", value: notePreview || "No notes saved yet" },
-              { label: "Last Review", value: formatDate(record.lastReview || record.lastUpdatedDate || record.dateProfileCreated) },
-              { label: "Last Updated", value: formatDate(record.lastUpdatedDate || record.dateProfileCreated) }
-            ], { eyebrow: "Activity / Support" }),
-            renderSidebarInsightCard("Activity Snapshot", [
-              { label: "Last Contact", value: activitySummary.relativeContact },
-              { label: "Response Rate", value: activitySummary.responseRate },
-              { label: "Suggested Activity", value: activitySummary.nextAction }
-            ], { eyebrow: "Activity" })
-          ].join("");
+          return renderSidebarInsightCard("Notes Snapshot", [
+            { label: "Advisor Note", value: notePreview || "No notes saved yet" },
+            { label: "Last Review", value: formatDate(record.lastReview || record.lastUpdatedDate || record.dateProfileCreated) },
+            { label: "Last Updated", value: formatDate(record.lastUpdatedDate || record.dateProfileCreated) }
+          ], { eyebrow: "Activity / Support" });
         }
 
         if (normalizedNavKey === "documents") {
-          return [
-            renderSidebarInsightCard("Documents Snapshot", [
-              { label: "Saved Policy Files", value: String(policyDocumentSummary.totalDocuments || 0) },
-              { label: "Policies with Files", value: `${policyDocumentSummary.withDocuments} of ${policies.length || 0}` },
-              { label: "Policies Missing Files", value: String(policyDocumentSummary.missingDocuments || 0) },
-              { label: "Illustrations Queued", value: String(getIllustrationEntries(record).length || 0) }
-            ], { eyebrow: "Activity / Support" }),
-            renderSidebarInsightCard("Placement Snapshot", [
-              { label: "Policies on File", value: String(policies.length || 0) },
-              { label: "Total Face Amount", value: formatCompactCurrencyTotal(totalFaceAmount) },
-              { label: "Annual Premium", value: annualPremiumSummary.hasAnnualizedAmount ? formatCurrencyTotal(annualPremiumSummary.total) : "Not available" }
-            ], { eyebrow: "Case Progression" })
-          ].join("");
+          return renderSidebarInsightCard("Documents Snapshot", [
+            { label: "Saved Policy Files", value: String(policyDocumentSummary.totalDocuments || 0) },
+            { label: "Policies with Files", value: `${policyDocumentSummary.withDocuments} of ${policies.length || 0}` },
+            { label: "Policies Missing Files", value: String(policyDocumentSummary.missingDocuments || 0) },
+            { label: "Illustrations Queued", value: String(getIllustrationEntries(record).length || 0) }
+          ], { eyebrow: "Activity / Support" });
         }
 
-        return overviewCards.join("");
+        return renderSidebarInsightCard("Case Snapshot", [
+          { label: "Workflow Progress", value: `${workflowState.completedCount} of ${workflowState.steps.length} complete` },
+          { label: "Current Step", value: currentStepLabel },
+          { label: "Coverage Adequacy", value: `${adequacy}%` },
+          { label: "Policies on File", value: String(policies.length || 0) },
+          { label: "Last Updated", value: formatDate(record.lastUpdatedDate || record.dateProfileCreated) }
+        ], { eyebrow: "Current Focus" });
       }
 
       function getUpcomingReminderItems(record) {
@@ -4272,11 +4176,12 @@
         return { label, subject: normalized, detail: "" };
       }
 
-      function renderNotesWidget(record, title) {
+      function renderNotesWidget(record, title, sectionTargets) {
         const widgetTitle = String(title || "Activity Tracker");
+        const widgetTargets = String(sectionTargets || "activity-log").trim();
 
         return `
-          <section class="client-detail-card client-detail-card-compact client-notes-widget-card" data-client-nav-section="activity-log">
+          <section class="client-detail-card client-detail-card-compact client-notes-widget-card"${widgetTargets ? ` data-client-nav-section="${escapeHtml(widgetTargets)}"` : ""}>
             <div class="client-notes-widget-topline">
               <h2>${escapeHtml(widgetTitle)}</h2>
             </div>
@@ -4697,16 +4602,39 @@
         return Math.max(0, Math.min(100, Math.round((coverageFields.currentCoverage / totalNeed) * 100)));
       }
 
-      function renderCoverageAdequacyBar(record) {
+      function getCoverageAdequacyTone(adequacy) {
+        const value = Number(adequacy);
+        if (!Number.isFinite(value)) {
+          return "risk";
+        }
+
+        if (value > 90) {
+          return "premium";
+        }
+
+        if (value >= 70) {
+          return "building";
+        }
+
+        if (value >= 40) {
+          return "caution";
+        }
+
+        return "risk";
+      }
+
+      function renderCoverageAdequacyBar(record, options) {
         const adequacy = getCoverageAdequacy(record);
+        const tone = getCoverageAdequacyTone(adequacy);
+        const className = String(options?.className || "").trim();
         return `
-          <section class="client-coverage-adequacy" data-coverage-adequacy>
+          <section class="client-coverage-adequacy${className ? ` ${escapeHtml(className)}` : ""}" data-coverage-adequacy data-coverage-adequacy-tone="${escapeHtml(tone)}">
             <div class="client-coverage-adequacy-header">
               <span>Coverage Adequacy</span>
-              <strong data-coverage-adequacy-percent>${adequacy}%</strong>
+              <strong data-coverage-adequacy-percent data-coverage-adequacy-tone="${escapeHtml(tone)}">${adequacy}%</strong>
             </div>
             <div class="client-coverage-adequacy-track" aria-hidden="true">
-              <div class="client-coverage-adequacy-fill" data-coverage-adequacy-fill style="width: ${adequacy}%;"></div>
+              <div class="client-coverage-adequacy-fill" data-coverage-adequacy-fill data-coverage-adequacy-tone="${escapeHtml(tone)}" style="width: ${adequacy}%;"></div>
             </div>
           </section>
         `;
@@ -5027,7 +4955,10 @@
           <div class="client-profile-shell${document.body.classList.contains("workspace-side-nav-collapsed") ? " is-collapsed" : ""}" data-client-sidebar-layout>
             <section class="client-profile-main">
               <div class="client-profile-workspace-shell">
-                ${renderClientProfileSidebar(record, completion, hasCoveragePlaced, subtitleParts)}
+                <div class="client-profile-workspace-action-row" data-primary-action-panel-host data-client-nav-section="overview">
+                  ${renderPrimaryActionPanel(record, checklistItems)}
+                </div>
+                ${renderClientProfileSidebar(record, hasCoveragePlaced, subtitleParts)}
                 <div class="client-profile-workspace-main">
                   <div class="client-profile-workspace" data-client-profile-workspace>
                     ${renderProfileWorkspaceSection({
@@ -5041,9 +4972,6 @@
                       description: "",
                       body: `
                         <div class="client-profile-overview-stack">
-                          <div data-primary-action-panel-host>
-                            ${renderPrimaryActionPanel(record, checklistItems)}
-                          </div>
                           <div class="client-profile-stats">
                             ${renderStatCard("Current Coverage", formatCoverageCardCurrency(coverageFields.currentCoverage), "", {
                               editable: true,
@@ -5057,10 +4985,11 @@
                               displayStateClass: coverageFields.uncoveredGap > 0 ? "has-gap" : "is-zero"
                             })}
                           </div>
-                          ${renderCoverageAdequacyBar(record)}
                           <div class="client-profile-dashboard client-profile-dashboard--overview">
                             <div class="client-profile-dashboard-main">
+                              ${renderOverviewSummaryCard(record)}
                               ${renderChecklistCard("Planning Workflow", checklistItems, record)}
+                              ${renderNotesWidget(record, "Activity Tracker", "activity activity-log")}
                             </div>
                           </div>
                         </div>
@@ -5140,15 +5069,6 @@
                       title: "Policies",
                       description: "Review the live policy inventory, premium view, and coverage details on file.",
                       body: renderCoverageCard(record)
-                    })}
-
-                    ${renderProfileWorkspaceSection({
-                      sectionTargets: "activity",
-                      sectionClassName: "client-profile-workspace-section--support",
-                      eyebrow: "Activity / Support",
-                      title: "Activity",
-                      description: "Track recent touchpoints, response cadence, and the next advisor action from one running activity surface.",
-                      body: renderNotesWidget(record, "Activity Tracker")
                     })}
 
                     ${renderProfileWorkspaceSection({
@@ -5531,9 +5451,6 @@
         return formatCoverageCardCurrency(safeNumber);
       }
 
-      const donutMap = host.querySelector(".client-profile-donut-map");
-      const donutRing = host.querySelector(".client-detail-avatar-progress");
-      const donutSegments = host.querySelectorAll(".client-detail-donut-segment-group");
       const profileNavButtons = document.querySelectorAll("[data-client-nav-tab]");
       const profileNavAnalysisToggle = document.querySelector('[data-client-nav-branch-toggle="analysis"]');
       const profileNavAnalysisPanel = document.querySelector('[data-client-nav-branch-panel="analysis"]');
@@ -7518,6 +7435,14 @@
         const adequacy = getCoverageAdequacy(record);
         if (!coverageAdequacyPercent || !coverageAdequacyFill) {
           return;
+        }
+        const tone = getCoverageAdequacyTone(adequacy);
+        const adequacySection = coverageAdequacyFill.closest("[data-coverage-adequacy]");
+
+        coverageAdequacyPercent.setAttribute("data-coverage-adequacy-tone", tone);
+        coverageAdequacyFill.setAttribute("data-coverage-adequacy-tone", tone);
+        if (adequacySection instanceof HTMLElement) {
+          adequacySection.setAttribute("data-coverage-adequacy-tone", tone);
         }
 
         if (coverageAdequacyAnimationFrame) {
@@ -9632,14 +9557,6 @@
             return;
           }
           openCoverageWidget(-1, false);
-          return;
-        }
-
-        const primaryActionToggle = event.target.closest("[data-primary-action-toggle]");
-        if (primaryActionToggle && host.contains(primaryActionToggle)) {
-          const nextCollapsed = !getPrimaryActionPanelCollapsed();
-          setPrimaryActionPanelCollapsed(nextCollapsed);
-          refreshPrimaryActionPanel();
           return;
         }
 

@@ -81,6 +81,28 @@
     return bannerCurrencyFormatter.format(Number.isFinite(numericValue) ? numericValue : 0);
   }
 
+  function getBannerInitials(value) {
+    const words = String(value || "").trim().split(/\s+/).filter(Boolean);
+    if (!words.length) {
+      return "CL";
+    }
+
+    if (words.length === 1) {
+      return words[0].slice(0, 2).toUpperCase();
+    }
+
+    return `${words[0][0] || ""}${words[words.length - 1][0] || ""}`.toUpperCase();
+  }
+
+  function renderProfileBannerIdentity() {
+    return `
+      <div class="studio-native-client-detail-banner-identity" aria-label="Client profile identity">
+        <span class="studio-native-client-detail-banner-avatar" data-studio-native-client-detail-avatar aria-hidden="true">CL</span>
+        <strong class="studio-native-client-detail-banner-name" data-studio-native-client-detail-name>Client Profile</strong>
+      </div>
+    `;
+  }
+
   function loadClientDetailDocument() {
     return new Promise(function (resolve, reject) {
       const loader = document.createElement("iframe");
@@ -146,16 +168,10 @@
     const banner = document.createElement("header");
     banner.className = "studio-native-client-detail-banner";
     banner.setAttribute("data-studio-native-client-detail-banner", "");
-    // CODE NOTE: The sticky profile micro header stays title-first, and it
-    // only docks the key coverage stats once those top stat cards scroll past.
+    // CODE NOTE: The sticky native banner only docks the key coverage stats
+    // once those top stat cards scroll past.
     banner.innerHTML = `
-      <div class="studio-native-client-detail-banner-copy">
-        <span class="studio-native-client-detail-banner-kicker">Client Profile</span>
-        <div class="studio-native-client-detail-banner-title-row">
-          <strong data-studio-native-client-detail-title>Client Profile</strong>
-          <span data-studio-native-client-detail-case-ref hidden></span>
-        </div>
-      </div>
+      ${renderProfileBannerIdentity()}
       <div class="studio-native-client-detail-banner-summary" data-studio-native-client-detail-summary aria-hidden="true">
         <div class="studio-native-client-detail-banner-metric">
           <span>Current Coverage</span>
@@ -214,20 +230,19 @@
       ? window.ClientDetailShellApi.getState()
       : null;
 
-    const titleNode = banner.querySelector("[data-studio-native-client-detail-title]");
-    const caseRefNode = banner.querySelector("[data-studio-native-client-detail-case-ref]");
+    const identityNameNode = banner.querySelector("[data-studio-native-client-detail-name]");
+    const identityAvatarNode = banner.querySelector("[data-studio-native-client-detail-avatar]");
     const summaryNode = banner.querySelector("[data-studio-native-client-detail-summary]");
     const currentCoverageNode = banner.querySelector("[data-studio-native-client-detail-current-coverage]");
     const modeledNeedNode = banner.querySelector("[data-studio-native-client-detail-modeled-need]");
+    const title = String(state?.title || "Client Profile").trim() || "Client Profile";
 
-    if (titleNode instanceof HTMLElement) {
-      titleNode.textContent = String(state?.title || "Client Profile").trim() || "Client Profile";
+    if (identityNameNode instanceof HTMLElement) {
+      identityNameNode.textContent = title;
     }
 
-    if (caseRefNode instanceof HTMLElement) {
-      const caseRef = String(state?.caseRef || "").trim();
-      caseRefNode.textContent = caseRef ? `Case ${caseRef}` : "";
-      caseRefNode.hidden = !caseRef;
+    if (identityAvatarNode instanceof HTMLElement) {
+      identityAvatarNode.textContent = getBannerInitials(title);
     }
 
     if (currentCoverageNode instanceof HTMLElement) {
