@@ -256,6 +256,16 @@
   }
 
   function getClientDetailIcon(key) {
+    if (key === "analysis") {
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M3.15 15.8h13.7" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+          <path d="M4.75 12.75 7.85 9.65l2.1 2.1 4.75-5.45" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="14.9" cy="6.3" r="1.25" stroke="currentColor" stroke-width="1.55"/>
+        </svg>
+      `;
+    }
+
     if (key === "overview") {
       return `
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -288,7 +298,7 @@
       `;
     }
 
-    if (key === "modeling-inputs" || key === "financials") {
+    if (key === "modeling-inputs" || key === "financials" || key === "financial-snapshot") {
       return `
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <rect x="3.4" y="2.9" width="13.2" height="14.2" rx="1.75" stroke="currentColor" stroke-width="1.55"/>
@@ -335,11 +345,31 @@
       `;
     }
 
-    if (key === "activity-log") {
+    if (key === "policies") {
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M4.1 6.1h11.8v8.65a1.35 1.35 0 0 1-1.35 1.35H5.45A1.35 1.35 0 0 1 4.1 14.75V6.1Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+          <path d="M7 6.1V4.95A1.95 1.95 0 0 1 8.95 3h2.1A1.95 1.95 0 0 1 13 4.95V6.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+          <path d="M6.35 10.1h7.3M6.35 12.9h4.15" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+        </svg>
+      `;
+    }
+
+    if (key === "activity-log" || key === "activity") {
       return `
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <circle cx="10" cy="10" r="6.15" stroke="currentColor" stroke-width="1.55"/>
           <path d="M10 6.45v3.8l2.55 1.7" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+    }
+
+    if (key === "notes" || key === "documents") {
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M5.1 3.15h7.65l2.15 2.2v10.1a1.55 1.55 0 0 1-1.55 1.55H5.1a1.55 1.55 0 0 1-1.55-1.55V4.7A1.55 1.55 0 0 1 5.1 3.15Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+          <path d="M12.75 3.3v2.55h2.4" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6.4 9.2h6.85M6.4 12.15h5.05" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
         </svg>
       `;
     }
@@ -443,40 +473,77 @@
     const sidebarTitle = String(options?.title || "").trim() || "Client Workspace";
     const returnHref = options?.shell ? "studio.html?view=clients.html" : "clients.html";
     // CODE NOTE: Keep the profile workflow nav grouped by advisor intent.
-    // "Financials" and "Documents" currently jump to the closest live surfaces
-    // until dedicated profile sections exist for them.
-    const navGroups = [
-      {
-        label: "Action Workflow",
-        ariaLabel: "Profile action workflow",
-        items: [
-          { key: "overview", tab: "overview", target: "overview", label: "Overview" },
-          { key: "modeling-inputs", tab: "planning", target: "modeling-inputs", label: "Modeling Inputs" },
-          { key: "needs-analysis", tab: "planning", target: "needs-analysis", label: "Needs Analysis" },
-          { key: "recommendation", tab: "overview", target: "recommendation", label: "Recommendation" },
-          { key: "underwriting", tab: "planning", target: "underwriting", label: "Underwriting" },
-          { key: "placement", tab: "overview", target: "placement", label: "Placement" }
-        ]
-      },
-      {
-        label: "Client Data",
-        ariaLabel: "Profile client data",
-        items: [
-          { key: "household", tab: "household", target: "household", label: "Household" },
-          { key: "financials", tab: "planning", target: "financials", label: "Financials" },
-          { key: "policies", tab: "overview", target: "policies", label: "Policies" }
-        ]
-      },
-      {
-        label: "Activity & CRM",
-        ariaLabel: "Profile activity and CRM",
-        items: [
-          { key: "notes", tab: "notes", target: "notes", label: "Notes" },
-          { key: "activity-log", tab: "overview", target: "activity-log", label: "Activity Log" },
-          { key: "documents", tab: "overview", target: "documents", label: "Documents" }
-        ]
-      }
+    // These targets land on the long-form workspace sections inside client detail
+    // so the profile feels like one guided case flow instead of page switching.
+    const workflowOverviewItem = { key: "overview", tab: "overview", target: "overview", label: "Overview" };
+    const workflowAnalysisItems = [
+      { key: "modeling-inputs", tab: "planning", target: "modeling-inputs", label: "Modeling Inputs" },
+      { key: "needs-analysis", tab: "planning", target: "needs-analysis", label: "Needs Analysis" },
+      { key: "recommendation", tab: "overview", target: "recommendation", label: "Recommendation" }
     ];
+    const workflowTrailingItems = [
+      { key: "underwriting", tab: "planning", target: "underwriting", label: "Underwriting" },
+      { key: "placement", tab: "overview", target: "placement", label: "Placement" }
+    ];
+    const clientDataItems = [
+      { key: "household", tab: "household", target: "household", label: "Household" },
+      { key: "financial-snapshot", tab: "planning", target: "financial-snapshot", label: "Financial Snapshot" },
+      { key: "policies", tab: "overview", target: "policies", label: "Policies" }
+    ];
+    const activityItems = [
+      { key: "activity", tab: "overview", target: "activity", label: "Activity" },
+      { key: "notes", tab: "notes", target: "notes", label: "Notes" },
+      { key: "documents", tab: "overview", target: "documents", label: "Documents" }
+    ];
+
+    function renderClientDetailNavButton(item, options) {
+      const config = options && typeof options === "object" ? options : {};
+      const isWorkflow = Boolean(config.workflow);
+      const isChild = Boolean(config.child);
+      const isQuiet = Boolean(config.quiet);
+      const isDefaultActive = Boolean(config.defaultActive);
+      const buttonClasses = [
+        "workspace-side-nav-button",
+        "workspace-side-nav-context-button",
+        "client-profile-workflow-button"
+      ];
+
+      if (isWorkflow) {
+        buttonClasses.push("client-profile-workflow-button--workflow");
+      }
+      if (isChild) {
+        buttonClasses.push("client-profile-workflow-button--child");
+      }
+      if (isQuiet) {
+        buttonClasses.push("client-profile-workflow-button--quiet");
+      }
+      if (isDefaultActive) {
+        buttonClasses.push("is-active");
+      }
+
+      return `
+        <button
+          class="${buttonClasses.join(" ")}"
+          type="button"
+          data-client-nav-key="${escapeHtml(item.key)}"
+          data-client-nav-tab="${escapeHtml(item.tab)}"
+          data-client-nav-target="${escapeHtml(item.target)}"
+          data-client-nav-kind="${isWorkflow ? "workflow" : "support"}"
+          aria-selected="${isDefaultActive ? "true" : "false"}"
+          aria-label="${escapeHtml(item.label)}"
+          title="${escapeHtml(item.label)}"
+        >
+          <span class="client-profile-workflow-button-main">
+            <span class="workspace-side-nav-icon workspace-side-nav-context-icon client-profile-workflow-button-icon" aria-hidden="true">${getClientDetailIcon(item.key)}</span>
+            <span class="workspace-side-nav-label workspace-side-nav-context-label client-profile-workflow-button-label">${escapeHtml(item.label)}</span>
+          </span>
+          ${isWorkflow ? `
+            <span class="client-profile-workflow-button-meta">
+            </span>
+          ` : ""}
+        </button>
+      `;
+    }
 
     return renderWorkspaceShell({
       ariaLabel: "Client detail sections",
@@ -501,33 +568,54 @@
             Return to Client Directory
           </a>
         </div>
-        ${navGroups.map(function (group, groupIndex) {
-          return `
-            <div class="workspace-side-nav-context-group client-profile-side-tabs-section">
-              <span class="workspace-side-nav-context-section-label client-profile-side-tabs-section-label">${escapeHtml(group.label)}</span>
-              <nav class="workspace-side-nav-items workspace-side-nav-context-items" aria-label="${escapeHtml(group.ariaLabel)}">
-                ${group.items.map(function (item, itemIndex) {
-                  const isDefaultActive = groupIndex === 0 && itemIndex === 0;
-                  return `
-                    <button
-                      class="workspace-side-nav-button workspace-side-nav-context-button${isDefaultActive ? " is-active" : ""}"
-                      type="button"
-                      data-client-nav-key="${escapeHtml(item.key)}"
-                      data-client-nav-tab="${escapeHtml(item.tab)}"
-                      data-client-nav-target="${escapeHtml(item.target)}"
-                      aria-selected="${isDefaultActive ? "true" : "false"}"
-                      aria-label="${escapeHtml(item.label)}"
-                      title="${escapeHtml(item.label)}"
-                    >
-                      <span class="workspace-side-nav-icon workspace-side-nav-context-icon" aria-hidden="true">${getClientDetailIcon(item.key)}</span>
-                      <span class="workspace-side-nav-label workspace-side-nav-context-label">${escapeHtml(item.label)}</span>
-                    </button>
-                  `;
+        <div class="workspace-side-nav-context-group client-profile-side-tabs-section client-profile-side-tabs-section-primary">
+          <span class="workspace-side-nav-context-section-label client-profile-side-tabs-section-label">Case Progression</span>
+          <nav class="workspace-side-nav-items workspace-side-nav-context-items client-profile-workflow-nav" aria-label="Case progression">
+            ${renderClientDetailNavButton(workflowOverviewItem, { workflow: true, defaultActive: true })}
+            <div class="client-profile-nav-branch" data-client-nav-branch="analysis">
+              <button
+                class="workspace-side-nav-button workspace-side-nav-context-button client-profile-workflow-button client-profile-workflow-button--workflow client-profile-workflow-branch-toggle"
+                type="button"
+                data-client-nav-branch-toggle="analysis"
+                aria-expanded="false"
+                aria-label="Toggle Analysis steps"
+                title="Toggle Analysis steps"
+              >
+                <span class="client-profile-workflow-button-main">
+                  <span class="workspace-side-nav-icon workspace-side-nav-context-icon client-profile-workflow-button-icon" aria-hidden="true">${getClientDetailIcon("analysis")}</span>
+                  <span class="workspace-side-nav-label workspace-side-nav-context-label client-profile-workflow-button-label">Analysis</span>
+                </span>
+                <span class="client-profile-workflow-button-meta client-profile-workflow-button-meta--branch">
+                  <span class="client-profile-workflow-branch-chevron" aria-hidden="true"></span>
+                </span>
+              </button>
+              <div class="client-profile-nav-branch-panel" data-client-nav-branch-panel="analysis" hidden>
+                ${workflowAnalysisItems.map(function (item) {
+                  return renderClientDetailNavButton(item, { workflow: true, child: true });
                 }).join("")}
-              </nav>
+              </div>
             </div>
-          `;
-        }).join("")}
+            ${workflowTrailingItems.map(function (item) {
+              return renderClientDetailNavButton(item, { workflow: true });
+            }).join("")}
+          </nav>
+        </div>
+        <div class="workspace-side-nav-context-group client-profile-side-tabs-section client-profile-side-tabs-section-secondary">
+          <span class="workspace-side-nav-context-section-label client-profile-side-tabs-section-label">Client Data</span>
+          <nav class="workspace-side-nav-items workspace-side-nav-context-items client-profile-workflow-nav client-profile-workflow-nav--quiet" aria-label="Client data">
+            ${clientDataItems.map(function (item) {
+              return renderClientDetailNavButton(item, { quiet: true });
+            }).join("")}
+          </nav>
+        </div>
+        <div class="workspace-side-nav-context-group client-profile-side-tabs-section client-profile-side-tabs-section-tertiary">
+          <span class="workspace-side-nav-context-section-label client-profile-side-tabs-section-label">Activity / Support</span>
+          <nav class="workspace-side-nav-items workspace-side-nav-context-items client-profile-workflow-nav client-profile-workflow-nav--quiet" aria-label="Activity and support">
+            ${activityItems.map(function (item) {
+              return renderClientDetailNavButton(item, { quiet: true });
+            }).join("")}
+          </nav>
+        </div>
       `
     });
   }

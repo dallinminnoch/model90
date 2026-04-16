@@ -6684,14 +6684,70 @@ body.client-detail-page .client-reminders-strip-item {
   display: grid;
   align-content: start;
   gap: 1rem;
+  min-height: 100%;
+  align-self: stretch;
   padding: 1.15rem;
+  width: var(--client-profile-sidebar-width, 21.25rem);
+  box-sizing: border-box;
   font-family: "Inter", sans-serif;
-  background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+  /* CODE NOTE: Keep the profile sidebar surface flat and clean in Studio.
+     The subtle gradient here made the main profile panel read like a nested
+     shaded card instead of one continuous sidebar surface. */
+  background: #ffffff;
   border-right: 1px solid rgba(229, 235, 242, 0.95);
 }
 
+.client-profile-sidebar-sticky {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-sizing: border-box;
+  min-height: 100%;
+}
+
+body.studio-page.is-native-client-detail .client-profile-sidebar-sticky {
+  position: relative;
+  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body.studio-page.is-native-client-detail .client-profile-sidebar {
+  /* CODE NOTE: Native Studio detail uses a truly fixed inner profile rail so
+     the rail never "settles" at the top of scroll or starts scrolling at the
+     bottom. Only viewport resizing should move it. */
+  position: fixed;
+  top: calc(
+    var(--workspace-topbar-height, 0px)
+    + var(--studio-native-client-detail-shell-top-pad, 0.85rem)
+    + var(--studio-native-client-detail-banner-outer-height, 0px)
+    + var(--client-profile-sidebar-fixed-start-offset, 1.05rem)
+  );
+  left: calc(
+    var(--app-side-nav-width, 0px)
+    + var(--studio-native-client-detail-content-pad-x, 0px)
+  );
+  bottom: var(--studio-native-client-detail-bottom-inset, 0px);
+  width: var(--client-profile-sidebar-width, 21.25rem);
+  padding: 0;
+  z-index: 7;
+  overflow: hidden;
+}
+
+body.studio-page.is-native-client-detail .client-profile-sidebar-sticky {
+  padding: 1.15rem;
+}
+
+body.studio-page.is-native-client-detail.workspace-side-nav-collapsed .client-profile-sidebar,
+body.studio-page.is-native-client-detail .workspace-side-nav-host.is-collapsed[data-workspace-side-nav="client-detail"] ~ .home-shell .client-profile-sidebar {
+  left: calc(
+    var(--app-side-nav-collapsed-width, 0px)
+    + var(--studio-native-client-detail-content-pad-x, 0px)
+  );
+}
+
 .client-profile-shell:not(.client-profile-shell-household) .client-profile-sidebar {
-  grid-template-rows: repeat(4, auto);
+  grid-template-rows: auto;
   align-content: start;
 }
 
@@ -6727,8 +6783,67 @@ body.client-detail-page .client-reminders-strip-item {
   position: relative;
   display: grid;
   gap: 0.95rem;
-  padding: 0.9rem 0.55rem 0.3rem;
-  border-radius: 0.35rem;
+  /* CODE NOTE: The sidebar column itself is now the single profile surface, so
+     this inner wrapper should behave like content layout only, not a second
+     nested card inside the sidebar card. */
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.client-profile-sidebar-context {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  min-height: 0;
+  overflow: visible;
+}
+
+.client-profile-sidebar-context-card {
+  border-color: rgba(226, 232, 240, 0.92);
+  box-shadow: 0 14px 32px rgba(16, 33, 52, 0.05);
+}
+
+.client-profile-sidebar-context-card-header {
+  padding-bottom: 0.45rem;
+}
+
+.client-profile-sidebar-context-card-copy {
+  display: grid;
+  gap: 0.16rem;
+}
+
+.client-profile-sidebar-context-card-eyebrow {
+  color: #98a3b4;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.client-profile-sidebar-context-card .client-detail-card-header h2 {
+  font-size: 0.95rem;
+  font-weight: 550;
+}
+
+.client-profile-sidebar-context-list .client-summary-item {
+  gap: 0.7rem;
+}
+
+.client-profile-sidebar-context-list .client-summary-label {
+  font-size: 0.72rem;
+}
+
+.client-profile-sidebar-context-list .client-summary-value {
+  font-size: 0.9rem;
+}
+
+.client-profile-sidebar-context-empty {
+  color: #8b97aa;
+  font-size: 0.84rem;
+  line-height: 1.55;
 }
 
 
@@ -7072,18 +7187,11 @@ body.client-detail-page .client-reminders-strip-item {
   position: relative;
   display: grid;
   gap: 0.7rem;
-  margin-top: 1.35rem;
-  padding-top: 1.15rem;
-}
-
-.client-profile-contact-list::before {
-  content: "";
-  position: absolute;
-  top: -0.1rem;
-  left: 0.15rem;
-  right: 0.15rem;
-  height: 1px;
-  background: rgba(213, 221, 232, 0.8);
+  /* CODE NOTE: Keep the profile sidebar reading as one continuous surface in
+     Studio. The old divider above contact details made it look like a nested
+     card inside the sidebar card. */
+  margin-top: 1.05rem;
+  padding-top: 0;
 }
 
 .client-profile-contact-item {
@@ -7200,6 +7308,125 @@ body.client-detail-page .client-reminders-strip-item {
   gap: 0;
   min-width: 0;
   padding: 1rem 1.15rem 1.15rem 1.05rem;
+}
+
+.client-profile-workspace-shell {
+  display: grid;
+  grid-template-columns: 21.25rem minmax(0, 1fr);
+  gap: 0.28rem;
+  min-width: 0;
+  align-items: stretch;
+}
+
+.client-profile-workspace-main {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+}
+
+body.studio-page.is-native-client-detail .client-profile-workspace-main {
+  padding-top: var(--client-profile-workspace-top-gap, 0.9rem);
+}
+
+body.studio-page.is-native-client-detail .client-profile-workspace-shell {
+  display: block;
+  padding-left: calc(
+    var(--client-profile-sidebar-width, 21.25rem)
+    + var(--client-profile-sidebar-gap, 0.28rem)
+  );
+}
+
+.client-profile-workspace {
+  display: grid;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+.client-profile-workspace-section {
+  display: grid;
+  gap: 0.82rem;
+  min-width: 0;
+}
+
+.client-profile-workspace-section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.client-profile-workspace-section-copy {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.client-profile-workspace-section-eyebrow {
+  color: #98a3b4;
+  font-size: 0.69rem;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.client-profile-workspace-section-copy h2 {
+  margin: 0;
+  color: #17202c;
+  font-size: 1.02rem;
+  font-weight: 500;
+  line-height: 1.12;
+}
+
+.client-profile-workspace-section-copy p {
+  margin: 0;
+  color: #6d7788;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  max-width: 45rem;
+}
+
+.client-profile-workspace-section-body {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.client-profile-analysis-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+
+.client-profile-analysis-subsection,
+.client-profile-section-grid-main,
+.client-profile-section-grid-side {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  align-content: start;
+}
+
+.client-profile-section-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  gap: 1rem;
+  min-width: 0;
+  align-items: start;
+}
+
+.client-profile-dashboard--overview {
+  /* CODE NOTE: Overview now keeps the advisor activity summary inside the
+     dedicated Activity section, so the top workflow area should read as one
+     full-width planning lane instead of a split checklist/activity grid. */
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+.client-profile-dashboard--overview .client-profile-dashboard-main,
+.client-profile-dashboard--overview .client-detail-card-checklist {
+  width: 100%;
+  max-width: none;
 }
 
 .client-profile-side-tabs {
@@ -7328,6 +7555,39 @@ body.client-detail-page .client-reminders-strip-item {
   align-content: start;
   gap: 1rem;
   min-width: 0;
+}
+
+@media (max-width: 1360px) {
+  .client-profile-analysis-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1120px) {
+  .client-profile-workspace-shell,
+  .client-profile-analysis-grid,
+  .client-profile-section-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.studio-page.is-native-client-detail .client-profile-workspace-shell {
+    display: grid;
+    padding-left: 0;
+  }
+
+  body.studio-page.is-native-client-detail .client-profile-sidebar {
+    position: static;
+    top: auto;
+    left: auto;
+    bottom: auto;
+    width: auto;
+    overflow: visible;
+  }
+
+  body.studio-page.is-native-client-detail .client-profile-sidebar-sticky {
+    position: static;
+    height: auto;
+  }
 }
 
 .client-profile-tabs {
@@ -7804,14 +8064,16 @@ body.client-detail-page .client-reminders-strip-item {
 .client-detail-stat-card-coverageAmount,
 .client-detail-stat-card-currentCoverage {
   position: relative;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .client-detail-stat-card-coverageAmount .client-detail-stat-header span,
 .client-detail-stat-card-currentCoverage .client-detail-stat-header span,
 .client-detail-stat-card-coverageGap .client-detail-stat-header span,
 .client-detail-stat-card-modeledNeed .client-detail-stat-header span {
-  font-size: 1.38rem;
-  font-weight: 500;
+  font-size: 1.2rem;
+  font-weight: 650;
 }
 
 .client-detail-stat-card-coverageAmount .client-detail-stat-header strong,
@@ -7830,6 +8092,7 @@ body.client-detail-page .client-reminders-strip-item {
   bottom: 0;
   height: 3px;
   background: #4f46e5;
+  border-radius: 0;
   pointer-events: none;
 }
 
@@ -8015,6 +8278,13 @@ body.client-detail-page .client-reminders-strip-item {
   padding: 0 1.3rem 1.3rem;
 }
 
+.client-profile-dashboard.client-profile-dashboard--overview {
+  /* CODE NOTE: Keep the overview workflow area truly single-column after the
+     generic dashboard grid rule so the Planning Workflow card can span the
+     full available lane once the duplicate activity column is removed. */
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .client-profile-dashboard-main,
 .client-profile-dashboard-side {
   display: grid;
@@ -8086,8 +8356,11 @@ body.client-detail-page .client-reminders-strip-item {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 0.54rem;
-  height: 28.35rem;
-  min-height: 28.35rem;
+  /* CODE NOTE: The profile workflow card now carries the full overview lane,
+     so let it grow naturally and keep a taller minimum so all workflow rows
+     fit without crowding or clipping. */
+  height: auto;
+  min-height: 31rem;
   padding: 0.92rem 1rem 0.95rem;
 }
 
@@ -16399,7 +16672,8 @@ body[data-step] .step-item:focus-visible .step-title {
      the native Client Directory wrapper. */
   body.studio-page.is-native-client-detail .workspace-side-nav-host[data-workspace-side-nav="client-detail"] .workspace-side-nav-context-header {
     box-sizing: border-box;
-    min-height: var(--studio-native-client-detail-header-band-height);
+    height: var(--studio-native-client-detail-header-band-height);
+    min-height: 0;
     padding: 0.48rem 2.55rem 0.4rem 1rem;
   }
 
@@ -16435,6 +16709,10 @@ body.studio-page.is-native-client-detail .studio-native-client-detail-host {
   min-height: 100%;
 }
 
+body.studio-page.is-native-client-detail .studio-native-client-detail-shell {
+  --studio-native-client-detail-content-pad-x: clamp(1rem, 1.6vw, 1.38rem);
+}
+
 body.studio-page.is-native-client-detail .studio-native-client-detail-host > .client-profile-shell {
   flex: 1 0 auto;
   width: 100%;
@@ -16455,8 +16733,12 @@ body.studio-page.is-native-client-detail .studio-native-client-detail-host > .cl
 
 body.studio-page.is-native-client-detail .studio-native-client-detail-host > .client-profile-shell:not(.client-profile-shell-household) .client-profile-main {
   min-height: 100%;
-  padding-left: 0.12rem;
-  padding-right: 0.02rem;
+  /* CODE NOTE: Native Studio profile uses a continuous long-form workspace,
+     so keep a real content lane inset instead of letting the section cards
+     run edge-to-edge against the framed wrapper. */
+  padding-top: 0;
+  padding-left: var(--studio-native-client-detail-content-pad-x);
+  padding-right: var(--studio-native-client-detail-content-pad-x);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -18258,6 +18540,19 @@ body.resources-page .workspace-page-topbar {
   width: 100%;
 }
 
+body.studio-page.is-native-client-detail {
+  --studio-native-client-detail-shell-top-pad: 0.85rem;
+  --client-profile-workspace-top-gap: 0.9rem;
+  --client-profile-sidebar-fixed-start-offset: 1.05rem;
+  --studio-native-client-detail-banner-outer-height: var(--studio-native-client-detail-header-band-height, 3.35rem);
+  --client-profile-anchor-offset: calc(
+    var(--workspace-topbar-height)
+    + var(--studio-native-client-detail-shell-top-pad, 0.85rem)
+    + var(--studio-native-client-detail-banner-outer-height, 3.35rem)
+    + 1rem
+  );
+}
+
 .studio-native-client-detail-shell {
   /* CODE NOTE: Native Studio profile uses a wrapper-level header band so the
      detail view frames like the native directory instead of starting directly
@@ -18274,24 +18569,38 @@ body.resources-page .workspace-page-topbar {
 }
 
 .studio-native-client-detail-banner {
+  --client-profile-overview-sidebar-width: 21.25rem;
+  --client-profile-overview-sidebar-gap: 0.28rem;
+  --client-profile-stat-lane-pad-x: 1.3rem;
+  --studio-native-client-detail-banner-summary-start: calc(
+    var(--studio-native-client-detail-content-pad-x)
+    + var(--client-profile-overview-sidebar-width)
+    + var(--client-profile-overview-sidebar-gap)
+    + var(--client-profile-stat-lane-pad-x)
+  );
   position: sticky;
   top: var(--workspace-topbar-height);
-  z-index: 9;
+  z-index: 12;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: 1rem;
-  min-height: var(--studio-native-client-detail-header-band-height, 3.35rem);
-  padding: 0.54rem 1.28rem 0.5rem;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  height: var(--studio-native-client-detail-banner-outer-height, 3.35rem);
+  min-height: 0;
+  padding: 0.42rem var(--studio-native-client-detail-content-pad-x) 0.34rem;
   background: #ffffff;
   border-top: 1px solid rgba(213, 221, 232, 0.78);
   border-bottom: 1px solid rgba(223, 229, 238, 0.92);
+  overflow: hidden;
 }
 
 .studio-native-client-detail-banner-copy {
   display: grid;
-  gap: 0.14rem;
+  gap: 0.08rem;
   min-width: 0;
+  justify-self: start;
+  width: 100%;
 }
 
 .studio-native-client-detail-banner-kicker {
@@ -18326,42 +18635,93 @@ body.resources-page .workspace-page-topbar {
   white-space: nowrap;
 }
 
-.studio-native-client-detail-banner-tabs {
+.studio-native-client-detail-banner-summary {
+  position: absolute;
+  left: var(--studio-native-client-detail-banner-summary-start);
+  right: calc(
+    var(--studio-native-client-detail-content-pad-x)
+    + var(--client-profile-stat-lane-pad-x)
+  );
+  top: 50%;
+  /* CODE NOTE: Anchor the docked coverage stats to the same content lane as
+     the real overview stat cards so the handoff feels like a smooth lift into
+     the sticky banner instead of a recentered jump. */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(calc(-50% + 0.42rem));
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 220ms ease, visibility 220ms ease;
+}
+
+.studio-native-client-detail-banner-summary.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%);
+}
+
+.studio-native-client-detail-banner-metric {
+  position: relative;
   display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.45rem;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
   min-width: 0;
+  min-height: 2.45rem;
+  padding: 0.5rem 0.78rem 0.54rem;
+  border: 1px solid rgba(213, 221, 232, 0.95);
+  border-radius: 0.38rem;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+  box-shadow: 0 6px 18px rgba(16, 33, 52, 0.04);
 }
 
-.studio-native-client-detail-banner-tab {
-  appearance: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2rem;
-  padding: 0 0.78rem;
-  border: 1px solid transparent;
-  border-radius: 0.42rem;
-  background: transparent;
-  color: #526074;
+.studio-native-client-detail-banner-metric span {
+  color: #1a2435;
   font-size: 0.84rem;
-  font-weight: 500;
-  line-height: 1;
-  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  font-weight: 700;
+  line-height: 1.05;
+  white-space: nowrap;
 }
 
-.studio-native-client-detail-banner-tab:hover,
-.studio-native-client-detail-banner-tab:focus-visible {
-  background: #f1f3f6;
+.studio-native-client-detail-banner-metric strong {
   color: #17202c;
-  outline: none;
+  font-size: 1.08rem;
+  line-height: 1;
+  font-weight: 800;
+  white-space: nowrap;
+  margin-left: 0.32rem;
 }
 
-.studio-native-client-detail-banner-tab.is-active {
-  color: #4c2fd1;
-  border-color: rgba(79, 70, 229, 0.12);
-  background: rgba(79, 70, 229, 0.08);
+.studio-native-client-detail-banner-metric::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: transparent;
+  border-radius: 0 0 0.38rem 0.38rem;
+  pointer-events: none;
+}
+
+.studio-native-client-detail-banner-metric:not(.is-modeled-need)::after {
+  background: #4f46e5;
+}
+
+.studio-native-client-detail-banner-metric:not(.is-modeled-need) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.studio-native-client-detail-banner-metric:not(.is-modeled-need)::after {
+  border-radius: 0;
+}
+
+.studio-native-client-detail-banner-metric.is-modeled-need strong {
+  color: #b42318;
 }
 
 .studio-native-clients-placeholder {
@@ -18689,7 +19049,7 @@ body.studio-page.is-embedded-tool .studio-shell {
 /* CODE NOTE: Profile workflow nav items jump to these section anchors inside
    client detail, so keep a small scroll margin for cleaner landings. */
 [data-client-nav-section] {
-  scroll-margin-top: 0.85rem;
+  scroll-margin-top: var(--client-profile-anchor-offset, 0.85rem);
 }
 
 .workspace-side-nav-shell .workspace-side-nav-context-button {
@@ -18721,6 +19081,133 @@ body.studio-page.is-embedded-tool .studio-shell {
 .workspace-side-nav-shell .workspace-side-nav-context-button.is-active {
   background: #f2f5f9;
   color: #17202c;
+}
+
+/* CODE NOTE: Hybrid client-profile nav styles live here so the workflow
+   progress states and nested Analysis branch can be tuned in one place. */
+.workspace-side-nav-shell .client-profile-side-tabs-section {
+  gap: 0.42rem;
+}
+
+.workspace-side-nav-shell .client-profile-side-tabs-section-primary {
+  gap: 0.5rem;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-nav {
+  gap: 0.28rem;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button {
+  justify-content: space-between;
+  min-height: 2.48rem;
+  padding: 0.48rem 0.7rem;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.68rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button-meta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.38rem;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--workflow.is-current,
+.workspace-side-nav-shell .client-profile-workflow-button--workflow.is-active {
+  background: #f2f5f9;
+  color: #17202c;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--workflow.is-complete:not(.is-active):not(.is-current) {
+  color: #435063;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--workflow.is-future {
+  color: #95a0b1;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--workflow.is-future .client-profile-workflow-button-icon {
+  opacity: 0.62;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--quiet {
+  min-height: 2.34rem;
+  color: #6f7c8f;
+  font-size: 0.89rem;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--quiet .client-profile-workflow-button-icon {
+  opacity: 0.8;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--quiet:not(.is-active):hover,
+.workspace-side-nav-shell .client-profile-workflow-button--quiet:not(.is-active):focus-visible {
+  color: #334155;
+}
+
+.workspace-side-nav-shell .client-profile-nav-branch {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-branch-toggle {
+  justify-content: space-between;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-branch-toggle.is-current,
+.workspace-side-nav-shell .client-profile-workflow-branch-toggle.is-active {
+  background: #f2f5f9;
+  color: #17202c;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-branch-toggle.is-complete:not(.is-active):not(.is-current) {
+  color: #435063;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-branch-toggle.is-future {
+  color: #95a0b1;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-branch-chevron {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-8%);
+  transition: transform 0.18s ease;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-branch-toggle.is-expanded .client-profile-workflow-branch-chevron {
+  transform: rotate(225deg) translateY(-8%);
+}
+
+.workspace-side-nav-shell .client-profile-nav-branch-panel {
+  display: grid;
+  gap: 0.18rem;
+  margin-left: 0.62rem;
+  padding-left: 0.78rem;
+  border-left: 1px solid rgba(223, 229, 236, 0.96);
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--child {
+  min-height: 2.18rem;
+  padding-top: 0.38rem;
+  padding-bottom: 0.38rem;
+  font-size: 0.88rem;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--child .client-profile-workflow-button-icon {
+  width: 0.98rem;
+  height: 0.98rem;
+  opacity: 0.88;
 }
 
 .workspace-side-nav-shell .workspace-side-nav-submenu {

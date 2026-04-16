@@ -10,13 +10,11 @@
   let mountSequence = 0;
   let sourceDocumentPromise = null;
   let linksBound = false;
-  const DETAIL_NAV_TABS = [
-    { key: "overview", label: "Dashboard" },
-    { key: "planning", label: "Planning" },
-    { key: "household", label: "Household" },
-    { key: "notes", label: "Notes" }
-  ];
-
+  const bannerCurrencyFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0
+  });
   function getBaseName(pathname) {
     return String(pathname || "").split("/").pop() || "";
   }
@@ -76,6 +74,11 @@
     } catch (_error) {
       return "";
     }
+  }
+
+  function formatBannerCoverageCurrency(rawValue) {
+    const numericValue = Number(rawValue);
+    return bannerCurrencyFormatter.format(Number.isFinite(numericValue) ? numericValue : 0);
   }
 
   function loadClientDetailDocument() {
@@ -143,6 +146,8 @@
     const banner = document.createElement("header");
     banner.className = "studio-native-client-detail-banner";
     banner.setAttribute("data-studio-native-client-detail-banner", "");
+    // CODE NOTE: The sticky profile micro header stays title-first, and it
+    // only docks the key coverage stats once those top stat cards scroll past.
     banner.innerHTML = `
       <div class="studio-native-client-detail-banner-copy">
         <span class="studio-native-client-detail-banner-kicker">Client Profile</span>
@@ -151,19 +156,16 @@
           <span data-studio-native-client-detail-case-ref hidden></span>
         </div>
       </div>
-      <nav class="studio-native-client-detail-banner-tabs" aria-label="Profile sections">
-        ${DETAIL_NAV_TABS.map(function (tab) {
-          return `
-            <button
-              class="studio-native-client-detail-banner-tab"
-              type="button"
-              data-studio-native-client-detail-tab="${tab.key}"
-            >
-              ${tab.label}
-            </button>
-          `;
-        }).join("")}
-      </nav>
+      <div class="studio-native-client-detail-banner-summary" data-studio-native-client-detail-summary aria-hidden="true">
+        <div class="studio-native-client-detail-banner-metric">
+          <span>Current Coverage</span>
+          <strong data-studio-native-client-detail-current-coverage>$0</strong>
+        </div>
+        <div class="studio-native-client-detail-banner-metric is-modeled-need">
+          <span>Modeled Need</span>
+          <strong data-studio-native-client-detail-modeled-need>$0</strong>
+        </div>
+      </div>
     `;
 
     return banner;
@@ -214,6 +216,9 @@
 
     const titleNode = banner.querySelector("[data-studio-native-client-detail-title]");
     const caseRefNode = banner.querySelector("[data-studio-native-client-detail-case-ref]");
+    const summaryNode = banner.querySelector("[data-studio-native-client-detail-summary]");
+    const currentCoverageNode = banner.querySelector("[data-studio-native-client-detail-current-coverage]");
+    const modeledNeedNode = banner.querySelector("[data-studio-native-client-detail-modeled-need]");
 
     if (titleNode instanceof HTMLElement) {
       titleNode.textContent = String(state?.title || "Client Profile").trim() || "Client Profile";
@@ -225,16 +230,19 @@
       caseRefNode.hidden = !caseRef;
     }
 
-    const activeTab = String(state?.activeTab || "overview").trim() || "overview";
-    banner.querySelectorAll("[data-studio-native-client-detail-tab]").forEach(function (button) {
-      if (!(button instanceof HTMLButtonElement)) {
-        return;
-      }
+    if (currentCoverageNode instanceof HTMLElement) {
+      currentCoverageNode.textContent = formatBannerCoverageCurrency(state?.currentCoverage);
+    }
 
-      const isActive = button.dataset.studioNativeClientDetailTab === activeTab;
-      button.classList.toggle("is-active", isActive);
-      button.setAttribute("aria-pressed", isActive ? "true" : "false");
-    });
+    if (modeledNeedNode instanceof HTMLElement) {
+      modeledNeedNode.textContent = formatBannerCoverageCurrency(state?.modeledNeed);
+    }
+
+    if (summaryNode instanceof HTMLElement) {
+      const isVisible = Boolean(state?.showCoverageSummaryInBanner);
+      summaryNode.classList.toggle("is-visible", isVisible);
+      summaryNode.setAttribute("aria-hidden", isVisible ? "false" : "true");
+    }
   }
 
   function loadClientDetailScript(mountId) {
@@ -266,18 +274,9 @@
     }
 
     nativeDetailView.addEventListener("click", function (event) {
-      const bannerTab = event.target.closest("[data-studio-native-client-detail-tab]");
-      if (bannerTab instanceof HTMLButtonElement) {
-        const tabKey = String(bannerTab.dataset.studioNativeClientDetailTab || "").trim();
-        if (tabKey && window.ClientDetailShellApi?.setTab?.(tabKey)) {
-          window.requestAnimationFrame(syncNativeDetailBanner);
-        }
-        return;
-      }
-
       const link = event.target.closest("a[href]");
       if (!(link instanceof HTMLAnchorElement)) {
-        if (event.target.closest("[data-client-nav-tab]")) {
+        if (event.target.closest("[data-client-nav-tab]") || event.target.closest("[data-client-workflow-nav]")) {
           window.requestAnimationFrame(syncNativeDetailBanner);
         }
         return;
@@ -291,6 +290,10 @@
       if (navigateThroughStudio(href)) {
         event.preventDefault();
       }
+    });
+
+    window.addEventListener("client-detail-shell-statechange", function () {
+      window.requestAnimationFrame(syncNativeDetailBanner);
     });
 
     linksBound = true;

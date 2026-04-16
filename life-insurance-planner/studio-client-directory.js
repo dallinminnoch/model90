@@ -2,6 +2,7 @@
   const nativeClientsView = document.querySelector("[data-studio-native-clients-view]");
   const NATIVE_CLIENTS_FLAG = "__STUDIO_NATIVE_CLIENTS__";
   const NATIVE_CLIENTS_NAVIGATE = "__StudioNativeClientNavigate";
+  const PENDING_ADD_CLIENT_MODAL_FLAG = "__STUDIO_PENDING_ADD_CLIENT_MODAL__";
 
   if (!nativeClientsView) {
     return;
@@ -141,10 +142,6 @@
           'window.location.href = "profile-only-form.html";',
           'if (!window.__StudioNativeClientNavigate || !window.__StudioNativeClientNavigate("profile-only-form.html")) {\n          window.location.href = "profile-only-form.html";\n          }'
         )
-        .replace(
-          'window.ClientDirectoryShellApi = {\n        triggerAction: handleDirectoryNavAction,\n        setView: setDirectoryView,\n        getState: getDirectorySidebarState\n      };',
-          'window.ClientDirectoryShellApi = {\n        triggerAction: handleDirectoryNavAction,\n        setView: setDirectoryView,\n        getState: getDirectorySidebarState,\n        refresh: renderDirectory\n      };'
-        )
         .replaceAll(
           'window.location.href = `client-detail.html?id=${encodeURIComponent(row.dataset.clientOpen)}`;',
           'if (!window.__StudioNativeClientNavigate || !window.__StudioNativeClientNavigate(`client-detail.html?id=${encodeURIComponent(row.dataset.clientOpen)}`)) {\n            window.location.href = `client-detail.html?id=${encodeURIComponent(row.dataset.clientOpen)}`;\n            }'
@@ -176,6 +173,22 @@
     });
 
     linksBound = true;
+  }
+
+  function openPendingAddClientModalIfNeeded() {
+    if (!window[PENDING_ADD_CLIENT_MODAL_FLAG]) {
+      return;
+    }
+
+    const openAddClientModal = window.ClientDirectoryShellApi?.openAddClientModal;
+    if (typeof openAddClientModal !== "function") {
+      return;
+    }
+
+    window[PENDING_ADD_CLIENT_MODAL_FLAG] = false;
+    window.requestAnimationFrame(function () {
+      openAddClientModal();
+    });
   }
 
   function mountClientsContent(sourceDocument) {
@@ -238,6 +251,7 @@
 
   function ensureMounted() {
     if (isMounted) {
+      openPendingAddClientModalIfNeeded();
       return Promise.resolve(nativeClientsView);
     }
 
@@ -249,6 +263,7 @@
       .then(function (sourceDocument) {
         mountClientsContent(sourceDocument);
         isMounted = true;
+        openPendingAddClientModalIfNeeded();
         return nativeClientsView;
       })
       .catch(function (error) {

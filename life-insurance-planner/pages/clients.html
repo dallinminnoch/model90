@@ -1025,6 +1025,13 @@
         document.body.classList.remove("is-modal-open");
       }
 
+      // CODE NOTE: Studio profile banner actions reuse this same add-client
+      // chooser, so expose a tiny modal API instead of duplicating the flow.
+      window.ClientDirectoryAddModalApi = {
+        open: openModal,
+        close: closeModal
+      };
+
       addButton.addEventListener("click", (event) => {
         event.preventDefault();
         openModal();
@@ -5069,7 +5076,11 @@
       window.ClientDirectoryShellApi = {
         triggerAction: handleDirectoryNavAction,
         setView: setDirectoryView,
-        getState: getDirectorySidebarState
+        getState: getDirectorySidebarState,
+        refresh: renderDirectory,
+        openAddClientModal: function () {
+          window.ClientDirectoryAddModalApi?.open?.();
+        }
       };
 
       prevPageButton?.addEventListener("click", function () {

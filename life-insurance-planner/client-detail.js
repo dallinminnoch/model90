@@ -2116,6 +2116,19 @@
         notes: "notes"
       };
 
+      // CODE NOTE: The hybrid sidebar + progress system is driven from this
+      // shared workflow sequence so the left nav, checklist card, and primary
+      // Continue CTA all stay aligned to the same case progression model.
+      const CLIENT_PROFILE_WORKFLOW_SEQUENCE = [
+        { key: "overview", label: "Overview", tab: "overview", target: "overview" },
+        { key: "modeling-inputs", label: "Modeling Inputs", tab: "planning", target: "modeling-inputs", parent: "analysis" },
+        { key: "needs-analysis", label: "Needs Analysis", tab: "planning", target: "needs-analysis", parent: "analysis" },
+        { key: "recommendation", label: "Recommendation", tab: "overview", target: "recommendation", parent: "analysis" },
+        { key: "underwriting", label: "Underwriting", tab: "planning", target: "underwriting" },
+        { key: "placement", label: "Placement", tab: "overview", target: "placement" }
+      ];
+      const CLIENT_PROFILE_ANALYSIS_CHILD_KEYS = ["modeling-inputs", "needs-analysis", "recommendation"];
+
       function renderClientProfileSideTabs() {
         return "";
       }
@@ -2132,91 +2145,82 @@
       function renderClientProfileSidebar(record, completion, hasCoveragePlaced, subtitleParts) {
         return `
           <aside class="client-profile-sidebar">
-            <section class="client-profile-sidebar-card">
-              <details class="workspace-page-menu client-profile-sidebar-menu">
-                <summary class="workspace-page-menu-trigger client-profile-sidebar-menu-trigger" aria-label="Open profile actions" title="Profile actions">
-                  <span class="client-profile-sidebar-menu-dots" aria-hidden="true">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </span>
-                </summary>
-                <div class="workspace-page-menu-panel client-profile-sidebar-menu-panel">
-                  <button class="workspace-page-menu-link client-profile-sidebar-menu-action" type="button" data-profile-delete-toggle>
-                    <span class="workspace-page-menu-link-icon client-profile-sidebar-menu-action-icon" aria-hidden="true">
-                      <span class="client-profile-delete-icon-image"></span>
+            <div class="client-profile-sidebar-sticky">
+              <section class="client-profile-sidebar-card">
+                <details class="workspace-page-menu client-profile-sidebar-menu">
+                  <summary class="workspace-page-menu-trigger client-profile-sidebar-menu-trigger" aria-label="Open profile actions" title="Profile actions">
+                    <span class="client-profile-sidebar-menu-dots" aria-hidden="true">
+                      <span></span>
+                      <span></span>
+                      <span></span>
                     </span>
-                    <span class="workspace-page-menu-link-label">Delete Profile</span>
-                  </button>
-                </div>
-              </details>
-              <div class="client-profile-avatar-wrap">
-                <div class="client-profile-donut-map">
-                  <div class="client-detail-avatar client-detail-avatar-progress">
-                    ${buildDonutSvg(record)}
-                    <div class="client-detail-avatar-core">
-                      <div class="client-detail-avatar-core-inner">
-                        <div class="client-detail-avatar-core-face client-detail-avatar-core-front">${escapeHtml(getInitials(record.displayName))}</div>
-                        <div class="client-detail-avatar-core-face client-detail-avatar-core-back">
-                          <span class="client-detail-avatar-core-back-label">Created</span>
-                          <span class="client-detail-avatar-core-back-date">${escapeHtml(formatDate(record.dateProfileCreated || record.lastUpdatedDate))}</span>
+                  </summary>
+                  <div class="workspace-page-menu-panel client-profile-sidebar-menu-panel">
+                    <button class="workspace-page-menu-link client-profile-sidebar-menu-action" type="button" data-profile-delete-toggle>
+                      <span class="workspace-page-menu-link-icon client-profile-sidebar-menu-action-icon" aria-hidden="true">
+                        <span class="client-profile-delete-icon-image"></span>
+                      </span>
+                      <span class="workspace-page-menu-link-label">Delete Profile</span>
+                    </button>
+                  </div>
+                </details>
+                <div class="client-profile-avatar-wrap">
+                  <div class="client-profile-donut-map">
+                    <div class="client-detail-avatar client-detail-avatar-progress">
+                      ${buildDonutSvg(record)}
+                      <div class="client-detail-avatar-core">
+                        <div class="client-detail-avatar-core-inner">
+                          <div class="client-detail-avatar-core-face client-detail-avatar-core-front">${escapeHtml(getInitials(record.displayName))}</div>
+                          <div class="client-detail-avatar-core-face client-detail-avatar-core-back">
+                            <span class="client-detail-avatar-core-back-label">Created</span>
+                            <span class="client-detail-avatar-core-back-date">${escapeHtml(formatDate(record.dateProfileCreated || record.lastUpdatedDate))}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div class="client-profile-sidebar-copy">
-                <p class="client-profile-completion-copy">${escapeHtml(`${completion}% Account Complete`)}</p>
-                <h2>
-                  <span>${escapeHtml(formatValue(record.displayName))}</span>
-                  <span class="client-profile-name-badge${hasCoveragePlaced ? " is-complete" : ""}" aria-hidden="true"></span>
-                </h2>
-                <p>${escapeHtml([
-                  formatValue(record.age),
-                  formatValue(record.insuranceRatingSex),
-                  formatValue(record.city),
-                  formatValue(record.state)
-                ].filter(function (value) { return value !== "Not provided"; }).join(" | ") || subtitleParts.join(" | "))}</p>
-              </div>
-              <div class="client-profile-contact-list">
-                <div class="client-profile-contact-item">
-                  <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M5.1 2.9 3.9 4.1a1.25 1.25 0 0 0-.29 1.4c.63 1.42 1.57 2.76 2.82 4.01 1.25 1.25 2.59 2.19 4.01 2.82a1.25 1.25 0 0 0 1.4-.29l1.2-1.2a.88.88 0 0 0-.08-1.31L11.6 8.47a.9.9 0 0 0-1.02-.08l-.7.42a.6.6 0 0 1-.63.03 7.2 7.2 0 0 1-1.38-1.12 7.2 7.2 0 0 1-1.12-1.38.6.6 0 0 1 .03-.63l.42-.7a.9.9 0 0 0-.08-1.02L6.35 2.97a.88.88 0 0 0-1.25-.07Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
-                  <strong>${escapeHtml(formatValue(record.phoneNumber))}</strong>
+                <div class="client-profile-sidebar-copy">
+                  <p class="client-profile-completion-copy">${escapeHtml(`${completion}% Account Complete`)}</p>
+                  <h2>
+                    <span>${escapeHtml(formatValue(record.displayName))}</span>
+                    <span class="client-profile-name-badge${hasCoveragePlaced ? " is-complete" : ""}" aria-hidden="true"></span>
+                  </h2>
+                  <p>${escapeHtml([
+                    formatValue(record.age),
+                    formatValue(record.insuranceRatingSex),
+                    formatValue(record.city),
+                    formatValue(record.state)
+                  ].filter(function (value) { return value !== "Not provided"; }).join(" | ") || subtitleParts.join(" | "))}</p>
                 </div>
-                <div class="client-profile-contact-item">
-                  <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><rect x="2.4" y="3.4" width="11.2" height="9.2" rx="1.7" stroke="currentColor" stroke-width="1.2"/><path d="M3.4 4.8 8 8.1l4.6-3.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
-                  <strong>${escapeHtml(formatValue(record.emailAddress))}</strong>
-                </div>
-                <div class="client-profile-contact-item">
-                  <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.2" r="2.15" stroke="currentColor" stroke-width="1.2"/><path d="M4.15 12.45a3.85 3.85 0 0 1 7.7 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
-                  <strong>${escapeHtml(formatValue(record.advisorName))}</strong>
-                </div>
-                <div class="client-profile-contact-item">
-                  <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M6.15 2.55 5 13.45M10.95 2.55 9.8 13.45M2.95 6.15h10.1M2.2 9.85H12.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
-                  <div class="client-profile-contact-value-shell">
-                    <strong>${escapeHtml(formatValue(record.caseRef))}</strong>
-                    <button class="client-profile-copy-button" type="button" data-case-ref-copy="${escapeHtml(formatValue(record.caseRef))}" aria-label="Copy case ref">
-                      <span class="client-profile-copy-icon" aria-hidden="true"></span>
-                    </button>
+                <div class="client-profile-contact-list">
+                  <div class="client-profile-contact-item">
+                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M5.1 2.9 3.9 4.1a1.25 1.25 0 0 0-.29 1.4c.63 1.42 1.57 2.76 2.82 4.01 1.25 1.25 2.59 2.19 4.01 2.82a1.25 1.25 0 0 0 1.4-.29l1.2-1.2a.88.88 0 0 0-.08-1.31L11.6 8.47a.9.9 0 0 0-1.02-.08l-.7.42a.6.6 0 0 1-.63.03 7.2 7.2 0 0 1-1.38-1.12 7.2 7.2 0 0 1-1.12-1.38.6.6 0 0 1 .03-.63l.42-.7a.9.9 0 0 0-.08-1.02L6.35 2.97a.88.88 0 0 0-1.25-.07Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+                    <strong>${escapeHtml(formatValue(record.phoneNumber))}</strong>
+                  </div>
+                  <div class="client-profile-contact-item">
+                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><rect x="2.4" y="3.4" width="11.2" height="9.2" rx="1.7" stroke="currentColor" stroke-width="1.2"/><path d="M3.4 4.8 8 8.1l4.6-3.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+                    <strong>${escapeHtml(formatValue(record.emailAddress))}</strong>
+                  </div>
+                  <div class="client-profile-contact-item">
+                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.2" r="2.15" stroke="currentColor" stroke-width="1.2"/><path d="M4.15 12.45a3.85 3.85 0 0 1 7.7 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
+                    <strong>${escapeHtml(formatValue(record.advisorName))}</strong>
+                  </div>
+                  <div class="client-profile-contact-item">
+                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M6.15 2.55 5 13.45M10.95 2.55 9.8 13.45M2.95 6.15h10.1M2.2 9.85H12.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
+                    <div class="client-profile-contact-value-shell">
+                      <strong>${escapeHtml(formatValue(record.caseRef))}</strong>
+                      <button class="client-profile-copy-button" type="button" data-case-ref-copy="${escapeHtml(formatValue(record.caseRef))}" aria-label="Copy case ref">
+                        <span class="client-profile-copy-icon" aria-hidden="true"></span>
+                      </button>
+                    </div>
                   </div>
                 </div>
+              </section>
+              <div class="client-profile-sidebar-context" data-client-sidebar-context data-client-sidebar-context-key="${escapeHtml(getRequestedProfileNavKey())}">
+                ${renderClientProfileSidebarContextPanels(record, getRequestedProfileNavKey())}
               </div>
-            </section>
-            ${renderSplitSummaryCard("Profile Snapshot", filterSnapshotItems([
-              { label: "Date of Birth", value: formatDate(record.dateOfBirth) },
-              { label: "Age", value: formatValue(record.age) },
-              { label: "Insurance Rating Sex", value: formatValue(record.insuranceRatingSex) }
-            ]), filterSnapshotItems([
-              { label: "Health Rating", value: getProfileHealthRating(record) },
-              { label: "Smoker Status", value: getProfileSmokerStatus(record) },
-              { label: "Est. Annual Premium Capacity", value: getEstimatedAnnualPremiumCapacity(record) }
-            ]), {
-              cardClassName: "client-profile-snapshot-card",
-              collapsible: true
-            })}
-            ${renderResourceCalendarPreviewCard()}
-            ${renderFooterBar(record)}
+            </div>
           </aside>
         `;
       }
@@ -2859,8 +2863,108 @@
         }).join('<div class="client-policy-modal-divider"></div>');
       }
 
+      function getClientWorkflowProgressState(record) {
+        const coverageFields = synchronizeRecordCoverageFields(record);
+        const policies = Array.isArray(record?.coveragePolicies) ? record.coveragePolicies : [];
+        const activityEntries = Array.isArray(record?.activityLog) ? record.activityLog : [];
+        const statusGroup = String(record?.statusGroup || "").trim().toLowerCase();
+        const deliveredIndex = getLatestActivityIndexByType(activityEntries, "policy-delivered");
+        const hasProfileCreated = Boolean(String(record?.id || "").trim());
+        const hasPlacementComplete = policies.length > 0
+          || deliveredIndex !== -1
+          || statusGroup === "coverage-placed"
+          || statusGroup === "closed";
+        const hasRecommendationReady = Boolean(record?.analysisCompleted)
+          || statusGroup === "in-review"
+          || statusGroup === "coverage-placed"
+          || statusGroup === "closed"
+          || hasPlacementComplete;
+        const hasNeedsAnalysis = coverageFields.modeledNeed > 0
+          || Boolean(record?.analysisCompleted)
+          || hasRecommendationReady;
+        const hasUnderwritingReady = Boolean(record?.preliminaryUnderwritingCompleted)
+          || statusGroup === "in-review"
+          || statusGroup === "coverage-placed"
+          || statusGroup === "closed"
+          || hasPlacementComplete;
+        const overviewDetail = hasProfileCreated
+          ? `Saved ${formatDate(record?.dateProfileCreated || record?.lastUpdatedDate)}`
+          : "Profile not started";
+        const modelingDetail = record?.pmiCompleted
+          ? `Saved ${formatDate(record?.protectionModeling?.savedAt)}`
+          : "PMI inputs pending";
+        const needsDetail = hasNeedsAnalysis
+          ? (coverageFields.modeledNeed > 0
+              ? `${formatCoverageCardCurrency(coverageFields.modeledNeed)} modeled need on file`
+              : "Needs analysis saved")
+          : "Modeled need not ready";
+        const recommendationDetail = hasRecommendationReady
+          ? `Updated ${formatDate(record?.analysisCompletedDate || record?.lastUpdatedDate)}`
+          : "Recommendation not finalized";
+        const underwritingDetail = hasUnderwritingReady
+          ? (record?.preliminaryUnderwritingCompleted
+              ? `Saved ${formatDate(record?.preliminaryUnderwriting?.savedAt)}`
+              : (statusGroup === "in-review" ? "In underwriting review" : "Ready for underwriting"))
+          : "Underwriting not started";
+        const placementDetail = hasPlacementComplete
+          ? (policies.length
+              ? `${policies.length} ${policies.length === 1 ? "policy" : "policies"} placed`
+              : "Placement recorded")
+          : "No placed policy on file";
+
+        const steps = CLIENT_PROFILE_WORKFLOW_SEQUENCE.map(function (step) {
+          if (step.key === "overview") {
+            return { ...step, complete: hasProfileCreated, detail: overviewDetail };
+          }
+          if (step.key === "modeling-inputs") {
+            return { ...step, complete: Boolean(record?.pmiCompleted), detail: modelingDetail };
+          }
+          if (step.key === "needs-analysis") {
+            return { ...step, complete: hasNeedsAnalysis, detail: needsDetail };
+          }
+          if (step.key === "recommendation") {
+            return { ...step, complete: hasRecommendationReady, detail: recommendationDetail };
+          }
+          if (step.key === "underwriting") {
+            return { ...step, complete: hasUnderwritingReady, detail: underwritingDetail };
+          }
+          if (step.key === "placement") {
+            return { ...step, complete: hasPlacementComplete, detail: placementDetail };
+          }
+          return { ...step, complete: false, detail: "Pending" };
+        });
+
+        const currentStep = steps.find(function (step) {
+          return !step.complete;
+        }) || null;
+
+        return {
+          steps,
+          currentStep,
+          currentKey: currentStep ? currentStep.key : "",
+          completedCount: steps.filter(function (step) { return step.complete; }).length
+        };
+      }
+
       function getChecklistAction(record, item) {
         if (!record || !item || item.complete) {
+          return null;
+        }
+
+        const navKey = String(item.navKey || item.key || "").trim();
+        if (navKey) {
+          return {
+            type: "nav",
+            navKey,
+            label: item.actionLabel || "Continue"
+          };
+        }
+
+        return null;
+      }
+
+      function getClientWorkflowToolAction(record, item) {
+        if (!record || !item) {
           return null;
         }
 
@@ -2868,32 +2972,30 @@
         const encodedCaseRef = encodeURIComponent(caseRef);
         const recordId = String(record.id || "").trim();
         const encodedRecordId = encodeURIComponent(recordId);
+        const navKey = String(item.navKey || item.key || "").trim();
 
-        if (item.label === "Preliminary Underwriting" && caseRef) {
-          return {
-            href: `preliminary-linked.html?caseRef=${encodedCaseRef}&id=${encodedRecordId}`,
-            label: "Continue"
-          };
+        if (!caseRef) {
+          return null;
         }
 
-        if (item.label === "Protection Modeling Inputs" && caseRef) {
+        if (navKey === "modeling-inputs") {
           return {
             href: `protection-modeling-inputs.html?caseRef=${encodedCaseRef}`,
-            label: "Continue"
+            label: "Open Inputs"
           };
         }
 
-        if (item.label === "Complete Analysis" && caseRef) {
+        if (navKey === "needs-analysis" || navKey === "recommendation") {
           return {
             href: `analysis-estimate.html?caseRef=${encodedCaseRef}`,
-            label: "Complete Step"
+            label: navKey === "recommendation" ? "Open Recommendation" : "Open Analysis"
           };
         }
 
-        if (item.label === "Create Profile") {
+        if (navKey === "underwriting") {
           return {
-            href: "profile-only-form.html",
-            label: "Start Step"
+            href: `preliminary-linked.html?caseRef=${encodedCaseRef}&id=${encodedRecordId}`,
+            label: "Open Underwriting"
           };
         }
 
@@ -2901,56 +3003,37 @@
       }
 
       function getDashboardChecklistItems(record) {
-        const hasProfileCreated = Boolean(String(record?.id || "").trim());
-        const hasAnalysisCompleted = Boolean(record?.analysisCompleted)
-          || record?.statusGroup === "coverage-placed"
-          || record?.statusGroup === "closed";
-        const activityEntries = Array.isArray(record?.activityLog) ? record.activityLog : [];
-        const deliveredIndex = getLatestActivityIndexByType(activityEntries, "policy-delivered");
-        const hasPolicyDelivered = deliveredIndex !== -1;
-        const profileStatus = hasProfileCreated
-          ? `Saved ${formatDate(record?.dateProfileCreated || record?.lastUpdatedDate)}`
-          : "Incomplete";
-        const preliminaryStatus = record?.preliminaryUnderwritingCompleted
-          ? `Saved ${formatDate(record?.preliminaryUnderwriting?.savedAt)}`
-          : "Incomplete";
-        const pmiStatus = record?.pmiCompleted
-          ? `Saved ${formatDate(record?.protectionModeling?.savedAt)}`
-          : "Incomplete";
-        const analysisStatus = hasAnalysisCompleted
-          ? `Saved ${formatDate(record?.analysisCompletedDate || record?.lastUpdatedDate)}`
-          : "Incomplete";
-        const deliveredStatus = hasPolicyDelivered
-          ? `Saved ${formatDate(activityEntries[deliveredIndex]?.date || activityEntries[deliveredIndex]?.savedAt || record?.lastUpdatedDate)}`
-          : "Incomplete";
-
-        return [
-          { label: "Create Profile", complete: hasProfileCreated, detail: profileStatus },
-          { label: "Preliminary Underwriting", complete: Boolean(record?.preliminaryUnderwritingCompleted), detail: preliminaryStatus },
-          { label: "Protection Modeling Inputs", complete: Boolean(record?.pmiCompleted), detail: pmiStatus },
-          { label: "Complete Analysis", complete: hasAnalysisCompleted, detail: analysisStatus },
-          { label: "Policy Delivered", complete: hasPolicyDelivered, detail: deliveredStatus }
-        ];
+        const workflowState = getClientWorkflowProgressState(record);
+        return workflowState.steps.map(function (step) {
+          return {
+            key: step.key,
+            navKey: step.key,
+            label: step.label,
+            complete: step.complete,
+            detail: step.detail,
+            actionLabel: step.key === "placement" ? "Review Step" : "Continue"
+          };
+        });
       }
 
-      function getPrimaryActionButtonLabel(nextItem, action) {
-        if (!nextItem || !action) {
+      function getPrimaryActionButtonLabel(nextItem) {
+        if (!nextItem) {
           return "";
         }
 
-        if (nextItem.label === "Protection Modeling Inputs" || nextItem.label === "Complete Analysis") {
+        if (nextItem.key === "modeling-inputs" || nextItem.key === "needs-analysis" || nextItem.key === "recommendation") {
           return "Continue Analysis";
         }
 
-        if (nextItem.label === "Preliminary Underwriting") {
-          return "Open Underwriting";
+        if (nextItem.key === "underwriting") {
+          return "Continue Underwriting";
         }
 
-        if (nextItem.label === "Create Profile") {
-          return "Complete Profile";
+        if (nextItem.key === "placement") {
+          return "Review Placement";
         }
 
-        return action.label || "Continue";
+        return "Continue";
       }
 
       function getPrimaryActionSupportCopy(nextItem, hasCoverageView) {
@@ -2960,24 +3043,28 @@
             : "Core workflow steps are complete. Log the next client touchpoint to keep the case moving.";
         }
 
-        if (nextItem.label === "Create Profile") {
-          return "Complete the client profile so the rest of the planning workflow can move forward cleanly.";
+        if (nextItem.key === "overview") {
+          return "Review the profile overview to confirm the case is framed correctly before moving deeper into the workflow.";
         }
 
-        if (nextItem.label === "Preliminary Underwriting") {
-          return "Complete Preliminary Underwriting to confirm health assumptions before the recommendation is finalized.";
+        if (nextItem.key === "modeling-inputs") {
+          return "Finish Modeling Inputs so the profile has the financial inputs needed to support the recommendation.";
         }
 
-        if (nextItem.label === "Protection Modeling Inputs") {
-          return "Complete Protection Modeling Inputs to refine the recommendation.";
+        if (nextItem.key === "needs-analysis") {
+          return "Use the saved inputs to pressure-test the protection need and confirm the modeled amount.";
         }
 
-        if (nextItem.label === "Complete Analysis") {
-          return "Complete Analysis to finalize the recommendation and pressure-test the coverage need.";
+        if (nextItem.key === "recommendation") {
+          return "Finalize the recommendation so the advisor can move this case into underwriting with confidence.";
         }
 
-        if (nextItem.label === "Policy Delivered") {
-          return "Log Policy Delivered once placement is complete so the case record reflects the final outcome.";
+        if (nextItem.key === "underwriting") {
+          return "Work through underwriting readiness so the case can move cleanly toward placement.";
+        }
+
+        if (nextItem.key === "placement") {
+          return "Review placed policies, confirm documents, and close the loop on the recommendation.";
         }
 
         return "Advance the next workflow step to keep the case moving forward.";
@@ -3007,6 +3094,7 @@
         const items = Array.isArray(checklistItems) ? checklistItems : [];
         const nextItem = items.find(function (item) { return !item.complete; }) || null;
         const nextAction = nextItem ? getChecklistAction(record, nextItem) : null;
+        const toolAction = nextItem ? getClientWorkflowToolAction(record, nextItem) : null;
         const isCollapsed = getPrimaryActionPanelCollapsed();
         const coverageFields = synchronizeRecordCoverageFields(record);
         const coverageGap = coverageFields.uncoveredGap;
@@ -3056,19 +3144,25 @@
                   <strong>${escapeHtml(nextStepDisplay)}</strong>
                   <p>${escapeHtml(getPrimaryActionSupportCopy(nextItem, hasCoverageView))}</p>
                   <div class="client-primary-action-actions">
-                    ${nextAction ? `
-                      <a
+                    ${nextAction && nextAction.type === "nav" ? `
+                      <button
                         class="client-primary-action-button is-primary"
-                        href="${escapeHtml(nextAction.href)}"
-                        data-linked-case-ref="${escapeHtml(String(record?.caseRef || "").trim())}"
-                        data-linked-record-id="${escapeHtml(String(record?.id || "").trim())}"
-                      >${escapeHtml(getPrimaryActionButtonLabel(nextItem, nextAction))}</a>
+                        type="button"
+                        data-client-workflow-nav="${escapeHtml(nextAction.navKey)}"
+                      >${escapeHtml(getPrimaryActionButtonLabel(nextItem))}</button>
                     ` : hasCoverageView ? `
                       <button class="client-primary-action-button is-primary" type="button" data-scroll-to-coverage>View Coverage</button>
                     ` : `
                       <button class="client-primary-action-button is-primary" type="button" data-coverage-add-open>Add Policy</button>
                     `}
-                    ${nextAction && hasCoverageView ? `
+                    ${toolAction ? `
+                      <a
+                        class="client-primary-action-button is-secondary"
+                        href="${escapeHtml(toolAction.href)}"
+                        data-linked-case-ref="${escapeHtml(String(record?.caseRef || "").trim())}"
+                        data-linked-record-id="${escapeHtml(String(record?.id || "").trim())}"
+                      >${escapeHtml(toolAction.label)}</a>
+                    ` : nextAction && nextAction.type === "nav" && hasCoverageView ? `
                       <button class="client-primary-action-button is-secondary" type="button" data-scroll-to-coverage>View Coverage</button>
                     ` : ""}
                   </div>
@@ -3135,6 +3229,457 @@
           { label: "BMI", value: formatValue(data.bodyMassIndex) },
           { label: "Treatment Categories", value: formatListValue(treatmentCategories) }
         ]);
+      }
+
+      function renderProfileWorkspaceSection(options) {
+        const config = options && typeof options === "object" ? options : {};
+        const sectionTargets = String(config.sectionTargets || "").trim();
+        const sectionClassName = String(config.sectionClassName || "").trim();
+        const bodyClassName = String(config.bodyClassName || "").trim();
+        const eyebrow = String(config.eyebrow || "").trim();
+        const title = String(config.title || "").trim();
+        const description = String(config.description || "").trim();
+        const hasHeaderCopy = Boolean(eyebrow || title || description);
+
+        return `
+          <section class="client-profile-workspace-section${sectionClassName ? ` ${escapeHtml(sectionClassName)}` : ""}"${sectionTargets ? ` data-client-nav-section="${escapeHtml(sectionTargets)}"` : ""}>
+            ${hasHeaderCopy ? `
+              <div class="client-profile-workspace-section-header">
+                <div class="client-profile-workspace-section-copy">
+                  ${eyebrow ? `<span class="client-profile-workspace-section-eyebrow">${escapeHtml(eyebrow)}</span>` : ""}
+                  ${title ? `<h2>${escapeHtml(title)}</h2>` : ""}
+                  ${description ? `<p>${escapeHtml(description)}</p>` : ""}
+                </div>
+              </div>
+            ` : ""}
+            <div class="client-profile-workspace-section-body${bodyClassName ? ` ${escapeHtml(bodyClassName)}` : ""}">
+              ${String(config.body || "")}
+            </div>
+          </section>
+        `;
+      }
+
+      function filterSidebarInsightItems(items) {
+        return (Array.isArray(items) ? items : []).filter(function (item) {
+          const value = String(item?.value ?? "").trim();
+          return Boolean(value) && value !== "Not provided";
+        });
+      }
+
+      function renderSidebarInsightCard(title, items, options) {
+        const config = options && typeof options === "object" ? options : {};
+        const eyebrow = String(config.eyebrow || "").trim();
+        const emptyCopy = String(config.emptyCopy || "No saved details yet.").trim();
+        const rows = filterSidebarInsightItems(items);
+
+        return `
+          <section class="client-detail-card client-detail-card-compact client-profile-sidebar-context-card">
+            <div class="client-detail-card-header client-profile-sidebar-context-card-header">
+              <div class="client-profile-sidebar-context-card-copy">
+                ${eyebrow ? `<span class="client-profile-sidebar-context-card-eyebrow">${escapeHtml(eyebrow)}</span>` : ""}
+                <h2>${escapeHtml(title)}</h2>
+              </div>
+            </div>
+            ${rows.length ? `
+              <div class="client-summary-list client-profile-sidebar-context-list">
+                ${rows.map(function (item) {
+                  return `
+                    <div class="client-summary-item">
+                      <span class="client-summary-label">${escapeHtml(item.label)}</span>
+                      <span class="client-summary-value">${escapeHtml(item.value)}</span>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            ` : `
+              <div class="client-profile-sidebar-context-empty">${escapeHtml(emptyCopy)}</div>
+            `}
+          </section>
+        `;
+      }
+
+      function getRecommendationBasisLabel(record) {
+        const modeledNeedSource = String(record?.modeledNeedSource || "").trim().toLowerCase();
+        if (modeledNeedSource === "custom-amount") {
+          return "Custom Amount";
+        }
+
+        const modelingPayload = getLatestProtectionModelingPayload(record);
+        const modelingData = modelingPayload && modelingPayload.data && typeof modelingPayload.data === "object"
+          ? modelingPayload.data
+          : {};
+        const rawMethod = String(
+          modelingPayload?.method
+          || modelingPayload?.variant
+          || modelingData.recommendationMethod
+          || modelingData.analysisMethod
+          || modelingData.modelType
+          || modelingData.coverageMethod
+          || ""
+        ).trim().toLowerCase();
+
+        if (rawMethod.includes("lens")) {
+          return "LENS Modeled";
+        }
+        if (rawMethod.includes("dime")) {
+          return "DIME Modeled";
+        }
+        if (rawMethod.includes("hlv")) {
+          return "HLV Modeled";
+        }
+        if (rawMethod.includes("need")) {
+          return "Needs Modeled";
+        }
+
+        return modelingPayload ? "Protection Modeled" : "Not modeled";
+      }
+
+      function renderRecommendationSummaryCard(record) {
+        const coverageFields = synchronizeRecordCoverageFields(record);
+        const workflowState = getClientWorkflowProgressState(record);
+        const nextStep = workflowState.currentStep ? workflowState.currentStep.label : "Placement";
+        const recommendationStatus = record.analysisCompleted
+          ? "Ready for advisor review"
+          : coverageFields.modeledNeed > 0
+            ? "Modeled amount available"
+            : "Recommendation pending";
+
+        return renderPlanningCard("Recommendation", [
+          { label: "Status", value: recommendationStatus },
+          { label: "Recommendation Basis", value: getRecommendationBasisLabel(record) },
+          { label: "Modeled Need", value: formatCoverageCardCurrency(coverageFields.modeledNeed) },
+          { label: "Current Coverage", value: formatCoverageCardCurrency(coverageFields.currentCoverage) },
+          { label: "Uncovered Need", value: formatCoverageCardCurrency(coverageFields.uncoveredGap) },
+          { label: "Next Workflow Step", value: nextStep }
+        ], "", { sectionTargets: "recommendation" });
+      }
+
+      function getFinancialSnapshotSummary(record) {
+        const modelingPayload = getLatestProtectionModelingPayload(record);
+        const modelingData = modelingPayload && modelingPayload.data && typeof modelingPayload.data === "object"
+          ? modelingPayload.data
+          : {};
+        const annualIncome = parseCurrencyNumber(modelingData.netAnnualIncome)
+          || parseCurrencyNumber(modelingData.annualIncome)
+          || parseCurrencyNumber(modelingData.householdIncome)
+          || parseCurrencyNumber(modelingData.grossAnnualIncome);
+        const spouseIncome = parseCurrencyNumber(modelingData.spouseIncome);
+        const monthlySpending = parseCurrencyNumber(modelingData.currentTotalMonthlySpending)
+          || parseCurrencyNumber(modelingData.monthlySpending)
+          || parseCurrencyNumber(modelingData.householdMonthlySpending);
+        const totalDebt = parseCurrencyNumber(modelingData.totalDebtBalance)
+          || parseCurrencyNumber(modelingData.totalDebts)
+          || (
+            parseCurrencyNumber(modelingData.mortgageBalance)
+            + parseCurrencyNumber(modelingData.consumerDebtBalance)
+            + parseCurrencyNumber(modelingData.studentLoanBalance)
+          );
+        const survivorIncome = parseCurrencyNumber(modelingData.survivorNetAnnualIncome)
+          || parseCurrencyNumber(modelingData.survivorIncome);
+
+        return {
+          annualIncome,
+          spouseIncome,
+          monthlySpending,
+          totalDebt,
+          survivorIncome,
+          latestSavedAt: record.pmiCompleted ? formatDate(modelingPayload?.savedAt) : "Not provided"
+        };
+      }
+
+      function renderFinancialSnapshotCard(record) {
+        const financialSummary = getFinancialSnapshotSummary(record);
+
+        return renderPlanningCard("Financial Snapshot", [
+          { label: "Household Income", value: formatCoverageCardCurrency(financialSummary.annualIncome) },
+          { label: "Spouse / Partner Income", value: formatCoverageCardCurrency(financialSummary.spouseIncome) },
+          { label: "Monthly Spending", value: formatCoverageCardCurrency(financialSummary.monthlySpending) },
+          { label: "Debt on File", value: formatCoverageCardCurrency(financialSummary.totalDebt) },
+          { label: "Survivor Income", value: formatCoverageCardCurrency(financialSummary.survivorIncome) },
+          { label: "Latest Inputs Saved", value: financialSummary.latestSavedAt }
+        ], "client-planning-card-wide", { sectionTargets: "financial-snapshot financials" });
+      }
+
+      function renderHouseholdInsightCard(record, householdDisplay, priority) {
+        return renderSummaryCard("Household Insight", [
+          { label: "Household Name", value: householdDisplay },
+          { label: "Household Role", value: formatValue(record.householdRole) },
+          { label: "Marital Status", value: formatValue(record.maritalStatus) },
+          { label: "Assignment Type", value: formatTitleCaseValue(record.profileGroupType) },
+          { label: "Preferred Contact", value: formatValue(record.preferredContactMethod) },
+          { label: "Priority", value: priority }
+        ]);
+      }
+
+      function renderPlacementSummaryCard(record) {
+        const policies = Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
+        const totalFaceAmount = policies.reduce(function (sum, policy) {
+          return sum + parseCurrencyNumber(policy.faceAmount);
+        }, 0);
+        const policiesWithDocuments = policies.reduce(function (count, policy) {
+          return count + (getPolicyDocumentEntries(policy).length ? 1 : 0);
+        }, 0);
+        const annualPremiumSummary = getCoverageAnnualPremiumSummary(policies);
+        const placementStatus = policies.length
+          ? `${policies.length} placed ${policies.length === 1 ? "policy" : "policies"}`
+          : "No placed coverage yet";
+
+        return renderPlanningCard("Placement Snapshot", [
+          { label: "Status", value: placementStatus },
+          { label: "Policies on File", value: String(policies.length || 0) },
+          { label: "Total Face Amount", value: formatCompactCurrencyTotal(totalFaceAmount) },
+          { label: "Annual Premium", value: annualPremiumSummary.hasAnnualizedAmount ? formatCurrencyTotal(annualPremiumSummary.total) : "Not available" },
+          { label: "Policies with Docs", value: `${policiesWithDocuments} of ${policies.length || 0}` },
+          { label: "Next Placement Move", value: policies.length ? "Review coverage and confirm delivery details" : "Add the first placed policy" }
+        ], "", { sectionTargets: "placement" });
+      }
+
+      function renderNotesSummaryCard(record) {
+        return renderSummaryCard("Notes", [
+          { label: "Client Notes", value: formatValue(record.clientNotes) },
+          { label: "Last Review", value: formatDate(record.lastReview || record.lastUpdatedDate || record.dateProfileCreated) },
+          { label: "Last Updated", value: formatDate(record.lastUpdatedDate || record.dateProfileCreated) }
+        ]);
+      }
+
+      function renderDocumentsSummaryCard(record) {
+        const policies = Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
+        const illustrations = getIllustrationEntries(record);
+        const documentCounts = policies.reduce(function (summary, policy) {
+          const documentTotal = getPolicyDocumentEntries(policy).length;
+          if (documentTotal > 0) {
+            summary.withDocuments += 1;
+            summary.totalDocuments += documentTotal;
+          } else {
+            summary.missingDocuments += 1;
+          }
+          return summary;
+        }, {
+          withDocuments: 0,
+          missingDocuments: 0,
+          totalDocuments: 0
+        });
+
+        return renderSummaryCard("Documents", [
+          { label: "Saved Policy Files", value: String(documentCounts.totalDocuments || 0) },
+          { label: "Policies with Files", value: `${documentCounts.withDocuments} of ${policies.length || 0}` },
+          { label: "Policies Missing Files", value: String(documentCounts.missingDocuments || 0) },
+          { label: "Illustrations Queued", value: String(illustrations.length || 0) }
+        ]);
+      }
+
+      function truncateSidebarPreview(value, maxLength) {
+        const text = String(value || "").trim();
+        const limit = Number(maxLength) || 96;
+        if (!text) {
+          return "";
+        }
+        if (text.length <= limit) {
+          return text;
+        }
+        return `${text.slice(0, Math.max(0, limit - 1)).trimEnd()}…`;
+      }
+
+      function renderClientProfileSidebarContextPanels(record, activeNavKey) {
+        const normalizedNavKey = String(activeNavKey || "overview").trim().toLowerCase() || "overview";
+        const workflowState = getClientWorkflowProgressState(record);
+        const workflowStepMap = new Map(workflowState.steps.map(function (step) {
+          return [String(step.key || "").trim(), step];
+        }));
+        const coverageFields = synchronizeRecordCoverageFields(record);
+        const policies = Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
+        const policyDocumentSummary = policies.reduce(function (summary, policy) {
+          const documentCount = getPolicyDocumentEntries(policy).length;
+          summary.totalDocuments += documentCount;
+          if (documentCount > 0) {
+            summary.withDocuments += 1;
+          } else {
+            summary.missingDocuments += 1;
+          }
+          return summary;
+        }, {
+          totalDocuments: 0,
+          withDocuments: 0,
+          missingDocuments: 0
+        });
+        const annualPremiumSummary = getCoverageAnnualPremiumSummary(policies);
+        const totalFaceAmount = policies.reduce(function (sum, policy) {
+          return sum + parseCurrencyNumber(policy.faceAmount);
+        }, 0);
+        const adequacy = getCoverageAdequacy(record);
+        const financialSummary = getFinancialSnapshotSummary(record);
+        const activitySummary = getActivityTrackerSummary(record);
+        const notePreview = truncateSidebarPreview(record.clientNotes, 110);
+        const recommendationBasis = getRecommendationBasisLabel(record);
+        const currentStepLabel = workflowState.currentStep ? workflowState.currentStep.label : "Placement Complete";
+        const statusGroup = String(record.statusGroup || "").trim().toLowerCase();
+        const underwritingStatus = record.preliminaryUnderwritingCompleted
+          ? "Completed"
+          : statusGroup === "in-review"
+            ? "In review"
+            : "Not started";
+        const riskData = record.preliminaryUnderwriting?.data || {};
+        const overviewCards = [
+          renderSidebarInsightCard("Case Snapshot", [
+            { label: "Workflow Progress", value: `${workflowState.completedCount} of ${workflowState.steps.length} complete` },
+            { label: "Current Step", value: currentStepLabel },
+            { label: "Coverage Adequacy", value: `${adequacy}%` },
+            { label: "Policies on File", value: String(policies.length || 0) },
+            { label: "Last Updated", value: formatDate(record.lastUpdatedDate || record.dateProfileCreated) }
+          ], { eyebrow: "Current Focus" }),
+          renderFooterBar(record)
+        ];
+
+        if (normalizedNavKey === "overview") {
+          return overviewCards.join("");
+        }
+
+        if (normalizedNavKey === "analysis") {
+          return [
+            renderSidebarInsightCard("Analysis Progress", [
+              { label: "Modeling Inputs", value: workflowStepMap.get("modeling-inputs")?.detail || "Pending" },
+              { label: "Needs Analysis", value: workflowStepMap.get("needs-analysis")?.detail || "Pending" },
+              { label: "Recommendation", value: workflowStepMap.get("recommendation")?.detail || "Pending" },
+              { label: "Current Focus", value: currentStepLabel }
+            ], { eyebrow: "Case Progression" }),
+            renderSidebarInsightCard("Financial Snapshot", [
+              { label: "Household Income", value: formatCoverageCardCurrency(financialSummary.annualIncome) },
+              { label: "Monthly Spending", value: formatCoverageCardCurrency(financialSummary.monthlySpending) },
+              { label: "Debt on File", value: formatCoverageCardCurrency(financialSummary.totalDebt) },
+              { label: "Latest Inputs Saved", value: financialSummary.latestSavedAt }
+            ], { eyebrow: "Analysis Support" })
+          ].join("");
+        }
+
+        if (normalizedNavKey === "modeling-inputs") {
+          return [
+            renderSidebarInsightCard("Input Readiness", [
+              { label: "PMI Status", value: record.pmiCompleted ? "Completed" : "Pending" },
+              { label: "Latest Inputs Saved", value: financialSummary.latestSavedAt },
+              { label: "Household Income", value: formatCoverageCardCurrency(financialSummary.annualIncome) },
+              { label: "Monthly Spending", value: formatCoverageCardCurrency(financialSummary.monthlySpending) },
+              { label: "Debt on File", value: formatCoverageCardCurrency(financialSummary.totalDebt) }
+            ], { eyebrow: "Analysis" }),
+            renderFooterBar(record)
+          ].join("");
+        }
+
+        if (normalizedNavKey === "needs-analysis") {
+          return renderSidebarInsightCard("Needs Snapshot", [
+            { label: "Recommendation Basis", value: recommendationBasis },
+            { label: "Modeled Need", value: formatCoverageCardCurrency(coverageFields.modeledNeed) },
+            { label: "Current Coverage", value: formatCoverageCardCurrency(coverageFields.currentCoverage) },
+            { label: "Uncovered Need", value: formatCoverageCardCurrency(coverageFields.uncoveredGap) },
+            { label: "Coverage Adequacy", value: `${adequacy}%` }
+          ], { eyebrow: "Analysis" });
+        }
+
+        if (normalizedNavKey === "recommendation") {
+          return renderSidebarInsightCard("Recommendation Snapshot", [
+            { label: "Status", value: record.analysisCompleted ? "Ready for advisor review" : "Recommendation pending" },
+            { label: "Basis", value: recommendationBasis },
+            { label: "Modeled Need", value: formatCoverageCardCurrency(coverageFields.modeledNeed) },
+            { label: "Uncovered Need", value: formatCoverageCardCurrency(coverageFields.uncoveredGap) },
+            { label: "Next Workflow Step", value: workflowState.currentStep ? workflowState.currentStep.label : "Placement Complete" }
+          ], { eyebrow: "Analysis" });
+        }
+
+        if (normalizedNavKey === "underwriting") {
+          return [
+            renderSidebarInsightCard("Underwriting Snapshot", [
+              { label: "Status", value: underwritingStatus },
+              { label: "Risk View", value: getRiskSummary(record) },
+              { label: "Nicotine Use", value: formatValue(riskData.nicotineUseStatus) },
+              { label: "Major Conditions", value: formatListValue(riskData.majorMedicalConditions) },
+              { label: "Saved At", value: record.preliminaryUnderwritingCompleted ? formatDate(record.preliminaryUnderwriting?.savedAt) : "Not provided" }
+            ], { eyebrow: "Case Progression" }),
+            renderFooterBar(record)
+          ].join("");
+        }
+
+        if (normalizedNavKey === "placement" || normalizedNavKey === "policies") {
+          return [
+            renderSidebarInsightCard("Placement Snapshot", [
+              { label: "Policies on File", value: String(policies.length || 0) },
+              { label: "Total Face Amount", value: formatCompactCurrencyTotal(totalFaceAmount) },
+              { label: "Annual Premium", value: annualPremiumSummary.hasAnnualizedAmount ? formatCurrencyTotal(annualPremiumSummary.total) : "Not available" },
+              { label: "Policies with Docs", value: `${policyDocumentSummary.withDocuments} of ${policies.length || 0}` }
+            ], { eyebrow: normalizedNavKey === "placement" ? "Case Progression" : "Client Data" }),
+            renderSidebarInsightCard("Documents", [
+              { label: "Saved Policy Files", value: String(policyDocumentSummary.totalDocuments || 0) },
+              { label: "Policies Missing Files", value: String(policyDocumentSummary.missingDocuments || 0) },
+              { label: "Illustrations Queued", value: String(getIllustrationEntries(record).length || 0) }
+            ], { eyebrow: "Support" })
+          ].join("");
+        }
+
+        if (normalizedNavKey === "household") {
+          return [
+            renderSidebarInsightCard("Household Insight", [
+              { label: "Household Name", value: formatValue(record.householdName) },
+              { label: "Household Role", value: formatValue(record.householdRole) },
+              { label: "Marital Status", value: formatValue(record.maritalStatus) },
+              { label: "Preferred Contact", value: formatValue(record.preferredContactMethod) },
+              { label: "Advisor", value: formatValue(record.advisorName) }
+            ], { eyebrow: "Client Data" }),
+            renderFooterBar(record)
+          ].join("");
+        }
+
+        if (normalizedNavKey === "financial-snapshot") {
+          return renderSidebarInsightCard("Financial Snapshot", [
+            { label: "Household Income", value: formatCoverageCardCurrency(financialSummary.annualIncome) },
+            { label: "Spouse Income", value: formatCoverageCardCurrency(financialSummary.spouseIncome) },
+            { label: "Monthly Spending", value: formatCoverageCardCurrency(financialSummary.monthlySpending) },
+            { label: "Debt on File", value: formatCoverageCardCurrency(financialSummary.totalDebt) },
+            { label: "Survivor Income", value: formatCoverageCardCurrency(financialSummary.survivorIncome) }
+          ], { eyebrow: "Client Data" });
+        }
+
+        if (normalizedNavKey === "activity") {
+          return [
+            renderSidebarInsightCard("Activity Snapshot", [
+              { label: "Status", value: activitySummary.status },
+              { label: "Last Contact", value: activitySummary.relativeContact },
+              { label: "Response Rate", value: activitySummary.responseRate },
+              { label: "Suggested Activity", value: activitySummary.nextAction }
+            ], { eyebrow: "Activity / Support" }),
+            renderFooterBar(record)
+          ].join("");
+        }
+
+        if (normalizedNavKey === "notes") {
+          return [
+            renderSidebarInsightCard("Notes Snapshot", [
+              { label: "Advisor Note", value: notePreview || "No notes saved yet" },
+              { label: "Last Review", value: formatDate(record.lastReview || record.lastUpdatedDate || record.dateProfileCreated) },
+              { label: "Last Updated", value: formatDate(record.lastUpdatedDate || record.dateProfileCreated) }
+            ], { eyebrow: "Activity / Support" }),
+            renderSidebarInsightCard("Activity Snapshot", [
+              { label: "Last Contact", value: activitySummary.relativeContact },
+              { label: "Response Rate", value: activitySummary.responseRate },
+              { label: "Suggested Activity", value: activitySummary.nextAction }
+            ], { eyebrow: "Activity" })
+          ].join("");
+        }
+
+        if (normalizedNavKey === "documents") {
+          return [
+            renderSidebarInsightCard("Documents Snapshot", [
+              { label: "Saved Policy Files", value: String(policyDocumentSummary.totalDocuments || 0) },
+              { label: "Policies with Files", value: `${policyDocumentSummary.withDocuments} of ${policies.length || 0}` },
+              { label: "Policies Missing Files", value: String(policyDocumentSummary.missingDocuments || 0) },
+              { label: "Illustrations Queued", value: String(getIllustrationEntries(record).length || 0) }
+            ], { eyebrow: "Activity / Support" }),
+            renderSidebarInsightCard("Placement Snapshot", [
+              { label: "Policies on File", value: String(policies.length || 0) },
+              { label: "Total Face Amount", value: formatCompactCurrencyTotal(totalFaceAmount) },
+              { label: "Annual Premium", value: annualPremiumSummary.hasAnnualizedAmount ? formatCurrencyTotal(annualPremiumSummary.total) : "Not available" }
+            ], { eyebrow: "Case Progression" })
+          ].join("");
+        }
+
+        return overviewCards.join("");
       }
 
       function getUpcomingReminderItems(record) {
@@ -3909,10 +4454,10 @@
                     </div>
                     ${item.complete ? `
                       <span class="client-checklist-status">Completed</span>
-                    ` : index === activeIndex && action ? `
-                      <a class="client-checklist-action" href="${escapeHtml(action.href)}" data-linked-case-ref="${escapeHtml(String(record?.caseRef || "").trim())}" data-linked-record-id="${escapeHtml(String(record?.id || "").trim())}">
+                    ` : index === activeIndex && action && action.type === "nav" ? `
+                      <button class="client-checklist-action" type="button" data-client-workflow-nav="${escapeHtml(action.navKey)}">
                         ${escapeHtml(action.label)}
-                      </a>
+                      </button>
                     ` : `
                       <span class="client-checklist-status">${escapeHtml(stateLabel)}</span>
                     `}
@@ -3960,7 +4505,7 @@
         ].filter(Boolean);
 
           return `
-            <section class="client-detail-card client-detail-card-compact client-coverage-card" data-coverage-card data-client-nav-section="policies placement documents">
+            <section class="client-detail-card client-detail-card-compact client-coverage-card" data-coverage-card>
               <div class="client-coverage-card-header">
                 <div class="client-coverage-card-heading">
                   <h2>Policies</h2>
@@ -4481,95 +5026,150 @@
         return `
           <div class="client-profile-shell${document.body.classList.contains("workspace-side-nav-collapsed") ? " is-collapsed" : ""}" data-client-sidebar-layout>
             <section class="client-profile-main">
-              <div class="client-profile-tab-panels">
-                <section class="client-profile-tab-panel is-active" data-client-panel="overview" data-client-nav-section="overview">
-                  <div class="client-profile-overview-stack">
-                    <div data-primary-action-panel-host data-client-nav-section="recommendation">
-                      ${renderPrimaryActionPanel(record, checklistItems)}
-                    </div>
-                    <div class="client-profile-overview-layout">
-                      ${renderClientProfileSidebar(record, completion, hasCoveragePlaced, subtitleParts)}
-                      <div class="client-profile-overview-main">
-                      <div class="client-profile-stats">
-                        ${renderStatCard("Current Coverage", formatCoverageCardCurrency(coverageFields.currentCoverage), "", {
-                          editable: true,
-                          fieldName: "currentCoverage",
-                          rawValue: String(coverageFields.currentCoverage || "0")
-                        })}
-                        ${renderStatCard("Modeled Need", formatCoverageCardCurrency(coverageFields.modeledNeed), "", {
-                          editable: true,
-                          fieldName: "modeledNeed",
-                          rawValue: String(coverageFields.modeledNeed || "0"),
-                          displayStateClass: coverageFields.uncoveredGap > 0 ? "has-gap" : "is-zero"
-                        })}
-                      </div>
-                      ${renderCoverageAdequacyBar(record)}
-
-                      <div class="client-profile-dashboard">
-                        <div class="client-profile-dashboard-main">
-                          ${renderChecklistCard("Planning Workflow", checklistItems, record)}
-                          ${renderNotesWidget(record)}
+              <div class="client-profile-workspace-shell">
+                ${renderClientProfileSidebar(record, completion, hasCoveragePlaced, subtitleParts)}
+                <div class="client-profile-workspace-main">
+                  <div class="client-profile-workspace" data-client-profile-workspace>
+                    ${renderProfileWorkspaceSection({
+                      sectionTargets: "overview",
+                      sectionClassName: "client-profile-workspace-section--overview",
+                      // CODE NOTE: The overview section intentionally starts right
+                      // on the live workspace content without repeating the section
+                      // heading copy shown elsewhere in the guided profile flow.
+                      eyebrow: "",
+                      title: "",
+                      description: "",
+                      body: `
+                        <div class="client-profile-overview-stack">
+                          <div data-primary-action-panel-host>
+                            ${renderPrimaryActionPanel(record, checklistItems)}
+                          </div>
+                          <div class="client-profile-stats">
+                            ${renderStatCard("Current Coverage", formatCoverageCardCurrency(coverageFields.currentCoverage), "", {
+                              editable: true,
+                              fieldName: "currentCoverage",
+                              rawValue: String(coverageFields.currentCoverage || "0")
+                            })}
+                            ${renderStatCard("Modeled Need", formatCoverageCardCurrency(coverageFields.modeledNeed), "", {
+                              editable: true,
+                              fieldName: "modeledNeed",
+                              rawValue: String(coverageFields.modeledNeed || "0"),
+                              displayStateClass: coverageFields.uncoveredGap > 0 ? "has-gap" : "is-zero"
+                            })}
+                          </div>
+                          ${renderCoverageAdequacyBar(record)}
+                          <div class="client-profile-dashboard client-profile-dashboard--overview">
+                            <div class="client-profile-dashboard-main">
+                              ${renderChecklistCard("Planning Workflow", checklistItems, record)}
+                            </div>
+                          </div>
                         </div>
-                        <div class="client-profile-dashboard-side client-profile-dashboard-side--dashboard client-profile-dashboard-side--coverage-merged">
-                          ${renderCoverageCard(record)}
+                      `
+                    })}
+
+                    ${renderProfileWorkspaceSection({
+                      sectionTargets: "analysis",
+                      sectionClassName: "client-profile-workspace-section--analysis",
+                      eyebrow: "Case Progression",
+                      title: "Analysis",
+                      description: "Use this as the main planning workspace for inputs, modeled need, and advisor recommendation.",
+                      body: `
+                        <div class="client-profile-analysis-grid">
+                          <div class="client-profile-analysis-subsection" data-client-nav-section="modeling-inputs">
+                            ${renderPmiEntryCard(record)}
+                          </div>
+                          <div class="client-profile-analysis-subsection" data-client-nav-section="needs-analysis">
+                            ${renderAnalysisPreviewCard(record)}
+                          </div>
+                          <div class="client-profile-analysis-subsection" data-client-nav-section="recommendation">
+                            ${renderRecommendationSummaryCard(record)}
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    </div>
-                  </div>
-                </section>
+                      `
+                    })}
 
-                <section class="client-profile-tab-panel" data-client-panel="planning" data-client-nav-section="planning" hidden>
-                  <div class="client-profile-dashboard">
-                    ${renderAnalysisPreviewCard(record)}
-                    <div class="client-profile-dashboard-main">
-                      ${renderPmiEntryCard(record)}
-                      ${renderPreliminaryResultsCard(record)}
-                    </div>
-                    <div class="client-profile-dashboard-side">
-                      ${renderRiskAnalysisCard(record)}
-                    </div>
-                  </div>
-                </section>
+                    ${renderProfileWorkspaceSection({
+                      sectionTargets: "underwriting",
+                      sectionClassName: "client-profile-workspace-section--underwriting",
+                      eyebrow: "Case Progression",
+                      title: "Underwriting",
+                      description: "Track risk inputs and preliminary underwriting details without leaving the case workspace.",
+                      body: `
+                        <div class="client-profile-section-grid">
+                          <div class="client-profile-section-grid-main">
+                            ${renderRiskAnalysisCard(record)}
+                          </div>
+                          <div class="client-profile-section-grid-side">
+                            ${renderPreliminaryResultsCard(record)}
+                          </div>
+                        </div>
+                      `
+                    })}
 
-                <section class="client-profile-tab-panel" data-client-panel="household" data-client-nav-section="household" hidden>
-                  <section class="client-profile-banner">
-                    <p>Case ${escapeHtml(formatValue(record.caseRef))} is currently marked as ${escapeHtml(status)}. Household assignment is ${escapeHtml(householdDisplay)}.</p>
-                  </section>
-                  <div class="client-profile-dashboard">
-                    <div class="client-profile-dashboard-main">
-                      ${renderSummaryCard("Household Insight", [
-                        { label: "Household Name", value: householdDisplay },
-                        { label: "Household Role", value: formatValue(record.householdRole) },
-                        { label: "Marital Status", value: formatValue(record.maritalStatus) },
-                        { label: "Assignment Type", value: formatTitleCaseValue(record.profileGroupType) },
-                        { label: "Preferred Contact", value: formatValue(record.preferredContactMethod) },
-                        { label: "Firm Name", value: formatValue(record.firmName) }
-                      ])}
-                    </div>
-                    <div class="client-profile-dashboard-side">
-                      ${renderSummaryCard("Household and Advisory", [
-                        { label: "Assignment Name", value: householdDisplay },
-                        { label: "Household / Company Role", value: formatValue(record.householdRole) },
-                        { label: "Assignment Type", value: formatValue(record.profileGroupType) },
-                        { label: "Advisor Name", value: formatValue(record.advisorName) },
-                        { label: "Source", value: formatValue(record.source) },
-                        { label: "Priority", value: priority }
-                      ])}
-                    </div>
-                  </div>
-                </section>
+                    ${renderProfileWorkspaceSection({
+                      sectionTargets: "placement",
+                      sectionClassName: "client-profile-workspace-section--placement",
+                      eyebrow: "Case Progression",
+                      title: "Placement",
+                      description: "Keep delivery moving by reviewing placed coverage, premium detail, and missing final records.",
+                      body: `<div data-placement-summary-card>${renderPlacementSummaryCard(record)}</div>`
+                    })}
 
-                <section class="client-profile-tab-panel" data-client-panel="notes" data-client-nav-section="notes" hidden>
-                  <div class="client-profile-dashboard">
-                    <div class="client-profile-dashboard-main">
-                      ${renderSummaryCard("Notes", [
-                        { label: "Client Notes", value: formatValue(record.clientNotes) },
-                        { label: "Last Review", value: formatDate(record.lastReview || record.lastUpdatedDate || record.dateProfileCreated) }
-                      ])}
-                    </div>
+                    ${renderProfileWorkspaceSection({
+                      sectionTargets: "household",
+                      sectionClassName: "client-profile-workspace-section--client-data",
+                      eyebrow: "Client Data",
+                      title: "Household",
+                      description: "Reference the household context, assignment, and advisory positioning behind the case.",
+                      body: renderHouseholdInsightCard(record, householdDisplay, priority)
+                    })}
+
+                    ${renderProfileWorkspaceSection({
+                      sectionTargets: "financial-snapshot",
+                      sectionClassName: "client-profile-workspace-section--client-data",
+                      eyebrow: "Client Data",
+                      title: "Financial Snapshot",
+                      description: "Review the latest saved income, spending, and debt inputs supporting the analysis.",
+                      body: renderFinancialSnapshotCard(record)
+                    })}
+
+                    ${renderProfileWorkspaceSection({
+                      sectionTargets: "policies",
+                      sectionClassName: "client-profile-workspace-section--client-data",
+                      eyebrow: "Client Data",
+                      title: "Policies",
+                      description: "Review the live policy inventory, premium view, and coverage details on file.",
+                      body: renderCoverageCard(record)
+                    })}
+
+                    ${renderProfileWorkspaceSection({
+                      sectionTargets: "activity",
+                      sectionClassName: "client-profile-workspace-section--support",
+                      eyebrow: "Activity / Support",
+                      title: "Activity",
+                      description: "Track recent touchpoints, response cadence, and the next advisor action from one running activity surface.",
+                      body: renderNotesWidget(record, "Activity Tracker")
+                    })}
+
+                    ${renderProfileWorkspaceSection({
+                      sectionTargets: "notes",
+                      sectionClassName: "client-profile-workspace-section--support",
+                      eyebrow: "Activity / Support",
+                      title: "Notes",
+                      description: "Keep advisor notes visible as part of the case workspace instead of hiding them on a separate page.",
+                      body: `<div data-notes-summary-card>${renderNotesSummaryCard(record)}</div>`
+                    })}
+
+                    ${renderProfileWorkspaceSection({
+                      sectionTargets: "documents",
+                      sectionClassName: "client-profile-workspace-section--support",
+                      eyebrow: "Activity / Support",
+                      title: "Documents",
+                      description: "Review document coverage and illustration support without leaving the profile workspace.",
+                      body: `<div data-documents-summary-card>${renderDocumentsSummaryCard(record)}</div>`
+                    })}
                   </div>
-                </section>
+                </div>
               </div>
 
               <div class="client-detail-stat-modal" data-stat-modal hidden>
@@ -4935,9 +5535,13 @@
       const donutRing = host.querySelector(".client-detail-avatar-progress");
       const donutSegments = host.querySelectorAll(".client-detail-donut-segment-group");
       const profileNavButtons = document.querySelectorAll("[data-client-nav-tab]");
+      const profileNavAnalysisToggle = document.querySelector('[data-client-nav-branch-toggle="analysis"]');
+      const profileNavAnalysisPanel = document.querySelector('[data-client-nav-branch-panel="analysis"]');
       const profilePanels = host.querySelectorAll("[data-client-panel]");
+      const isContinuousProfileWorkspace = Boolean(host.querySelector("[data-client-profile-workspace]"));
       const profileSidebarHost = document.querySelector('[data-workspace-side-nav="client-detail"]');
       const profileSidebarLayout = host.querySelector("[data-client-sidebar-layout]");
+      const profileSidebarContextHost = host.querySelector("[data-client-sidebar-context]");
       const profileSidebarToggle = document.querySelector("[data-client-side-tabs-toggle]");
       const policyModal = host.querySelector("[data-policy-modal]");
       const policyModalPanel = host.querySelector(".client-policy-detail-modal-panel");
@@ -5151,6 +5755,10 @@
       let activePolicyDocumentIndex = -1;
       let coverageWidgetFeedbackTimeout = null;
       let coverageWidgetFeedbackFadeTimeout = null;
+      let profileNavAnalysisExpanded = false;
+      let activeProfileNavKey = "";
+      let profileScrollSpyFrame = 0;
+      let bannerCoverageSummaryVisible = false;
 
       function syncModalLock() {
         const anyModalOpen = policyModal?.hidden === false || policyDocumentRenameModal?.hidden === false || policyDocumentDeleteModal?.hidden === false || policyListModal?.hidden === false || premiumTimelineModal?.hidden === false || policyDeleteModal?.hidden === false || coverageWidgetModal?.hidden === false || profileDeleteModal?.hidden === false || activityDetailModal?.hidden === false || activityDeleteModal?.hidden === false || pmiDetailModal?.hidden === false || statModal?.hidden === false || activityWidgetModal?.hidden === false;
@@ -6518,11 +7126,23 @@
         if (currentCoverageCard) {
           currentCoverageCard.outerHTML = renderCoverageCard(record);
         }
+
+        const needsAnalysisSection = host.querySelector('.client-profile-analysis-subsection[data-client-nav-section="needs-analysis"]');
+        if (needsAnalysisSection) {
+          needsAnalysisSection.innerHTML = renderAnalysisPreviewCard(record);
+        }
+
+        const recommendationSection = host.querySelector('.client-profile-analysis-subsection[data-client-nav-section="recommendation"]');
+        if (recommendationSection) {
+          recommendationSection.innerHTML = renderRecommendationSummaryCard(record);
+        }
+
         refreshCoverageStatDisplays();
 
         scheduleResponsiveCoverageStatDisplaySync();
         refreshCoverageAdequacy();
         refreshActivityTracker();
+        dispatchClientDetailShellStateChange();
       }
 
       function buildActivityEntry(type, formData) {
@@ -6808,6 +7428,38 @@
         primaryActionPanelHosts.forEach(function (container) {
           container.innerHTML = renderPrimaryActionPanel(record, checklistItems);
         });
+
+        const currentChecklistCard = host.querySelector("[data-checklist-card]");
+        if (currentChecklistCard) {
+          currentChecklistCard.outerHTML = renderChecklistCard("Planning Workflow", checklistItems, record);
+        }
+
+        const activeNavKey = getActiveProfileNavKey() || getRequestedProfileNavKey();
+        setActiveProfileNavState(activeNavKey);
+        scheduleProfileScrollspySync();
+      }
+
+      // CODE NOTE: The continuous profile workspace now includes section-level
+      // summary cards outside the old tab panels, so refresh these in place
+      // whenever activity or coverage changes instead of leaving stale content
+      // behind the new sticky/scrolling workflow shell.
+      function refreshProfileWorkspaceSupportCards() {
+        const placementSummaryCard = host.querySelector("[data-placement-summary-card]");
+        if (placementSummaryCard) {
+          placementSummaryCard.innerHTML = renderPlacementSummaryCard(record);
+        }
+
+        const notesSummaryCard = host.querySelector("[data-notes-summary-card]");
+        if (notesSummaryCard) {
+          notesSummaryCard.innerHTML = renderNotesSummaryCard(record);
+        }
+
+        const documentsSummaryCard = host.querySelector("[data-documents-summary-card]");
+        if (documentsSummaryCard) {
+          documentsSummaryCard.innerHTML = renderDocumentsSummaryCard(record);
+        }
+
+        refreshClientProfileSidebarContext();
       }
 
       function refreshActivityTracker() {
@@ -6836,6 +7488,8 @@
           currentCoverageCard.outerHTML = renderCoverageCard(record);
         }
 
+        refreshProfileWorkspaceSupportCards();
+
         const latestActivityDate = Array.isArray(record.activityLog) && record.activityLog.length
           ? String(record.activityLog[0]?.date || "").trim()
           : String(record.lastContactDate || record.lastUpdatedDate || record.dateProfileCreated || "").trim();
@@ -6856,6 +7510,8 @@
             activityDetailBody.innerHTML = renderActivityDetailModalBody(activeEntry);
           }
         }
+
+        scheduleProfileScrollspySync();
       }
 
       function refreshCoverageAdequacy(animateFromZero) {
@@ -6956,6 +7612,7 @@
 
       const handleWindowResize = function () {
         scheduleResponsiveCoverageStatDisplaySync();
+        scheduleProfileScrollspySync();
       };
       window.addEventListener("resize", handleWindowResize);
 
@@ -6967,40 +7624,206 @@
         }) || null;
       }
 
+      function getRequestedProfileNavKey() {
+        return String(CLIENT_PROFILE_DEFAULT_NAV_BY_TAB[getRequestedTab()] || "overview").trim() || "overview";
+      }
+
+      function getActiveProfileNavKey() {
+        return String(activeProfileNavKey || Array.from(profileNavButtons).find(function (button) {
+          return button.classList.contains("is-active");
+        })?.dataset.clientNavKey || "").trim();
+      }
+
+      function getClientDetailBannerGroupFromNavKey(navKey) {
+        const normalizedNavKey = String(navKey || "").trim();
+        if (!normalizedNavKey) {
+          return "overview";
+        }
+
+        if (["household", "financial-snapshot", "policies"].includes(normalizedNavKey)) {
+          return "client-data";
+        }
+
+        if (["activity", "notes", "documents"].includes(normalizedNavKey)) {
+          return "activity";
+        }
+
+        if (["modeling-inputs", "needs-analysis", "recommendation", "underwriting", "placement", "analysis"].includes(normalizedNavKey)) {
+          return "workflow";
+        }
+
+        return "overview";
+      }
+
+      function getClientDetailBannerNavTarget(tabKey) {
+        const normalizedTabKey = String(tabKey || "").trim();
+        if (normalizedTabKey === "workflow") {
+          return "analysis";
+        }
+        if (normalizedTabKey === "client-data") {
+          return "household";
+        }
+        if (normalizedTabKey === "activity") {
+          return "activity";
+        }
+        return "overview";
+      }
+
+      function shouldShowBannerCoverageSummary() {
+        const statsRow = host.querySelector(".client-profile-stats");
+        if (!(statsRow instanceof HTMLElement)) {
+          return false;
+        }
+
+        // CODE NOTE: Once the top coverage stat row has moved above the sticky
+        // Studio header stack, mirror those values into the native banner so
+        // current coverage and modeled need stay visible while scrolling.
+        return statsRow.getBoundingClientRect().bottom <= (getProfileScrollOffset() + 8);
+      }
+
+      function getClientDetailShellState() {
+        const activeNav = getActiveProfileNavKey() || getRequestedProfileNavKey();
+        const coverageFields = synchronizeRecordCoverageFields(record);
+        return {
+          title: clientWorkspaceSidebarTitle,
+          activeTab: getClientDetailBannerGroupFromNavKey(activeNav),
+          activeNav: activeNav,
+          recordId: String(record?.id || "").trim(),
+          caseRef: String(record?.caseRef || "").trim(),
+          currentCoverage: coverageFields.currentCoverage,
+          modeledNeed: coverageFields.modeledNeed,
+          showCoverageSummaryInBanner: bannerCoverageSummaryVisible
+        };
+      }
+
+      function refreshClientProfileSidebarContext(forcedNavKey) {
+        if (!(profileSidebarContextHost instanceof HTMLElement)) {
+          return;
+        }
+
+        const contextNavKey = String(forcedNavKey || getActiveProfileNavKey() || getRequestedProfileNavKey() || "overview").trim() || "overview";
+        const nextMarkup = renderClientProfileSidebarContextPanels(record, contextNavKey);
+        if (profileSidebarContextHost.dataset.clientSidebarContextKey === contextNavKey
+          && profileSidebarContextHost.__clientSidebarContextMarkup === nextMarkup) {
+          return;
+        }
+
+        // CODE NOTE: The persistent left profile panel now changes with the
+        // active workflow section so the sidebar feels like a live case
+        // companion instead of a static profile card.
+        profileSidebarContextHost.dataset.clientSidebarContextKey = contextNavKey;
+        profileSidebarContextHost.__clientSidebarContextMarkup = nextMarkup;
+        profileSidebarContextHost.innerHTML = nextMarkup;
+      }
+
+      function dispatchClientDetailShellStateChange() {
+        refreshClientProfileSidebarContext();
+        window.dispatchEvent(new CustomEvent("client-detail-shell-statechange", {
+          detail: getClientDetailShellState()
+        }));
+      }
+
+      function getAnalysisWorkflowBranchState(workflowState) {
+        const analysisSteps = Array.isArray(workflowState?.steps)
+          ? workflowState.steps.filter(function (step) {
+              return CLIENT_PROFILE_ANALYSIS_CHILD_KEYS.includes(String(step?.key || "").trim());
+            })
+          : [];
+        const currentKey = String(workflowState?.currentKey || "").trim();
+        return {
+          isComplete: analysisSteps.length > 0 && analysisSteps.every(function (step) { return Boolean(step.complete); }),
+          isCurrent: CLIENT_PROFILE_ANALYSIS_CHILD_KEYS.includes(currentKey),
+          hasAnyComplete: analysisSteps.some(function (step) { return Boolean(step.complete); })
+        };
+      }
+
       function setActiveProfileNavState(navKey) {
         const normalizedNavKey = String(navKey || "").trim();
         if (!normalizedNavKey) {
           return false;
         }
 
+        activeProfileNavKey = normalizedNavKey;
+
+        const workflowState = getClientWorkflowProgressState(record);
+        const workflowStepMap = new Map(workflowState.steps.map(function (step) {
+          return [String(step.key || "").trim(), step];
+        }));
         let foundMatch = false;
 
         profileNavButtons.forEach(function (button) {
-          const isActive = String(button.dataset.clientNavKey || "").trim() === normalizedNavKey;
+          const buttonNavKey = String(button.dataset.clientNavKey || "").trim();
+          const navKind = String(button.dataset.clientNavKind || "").trim();
+          const workflowStep = workflowStepMap.get(buttonNavKey);
+          const isActive = buttonNavKey === normalizedNavKey;
+          const isWorkflow = navKind === "workflow" && Boolean(workflowStep);
+          const isCurrent = isWorkflow && !workflowStep.complete && workflowState.currentKey === buttonNavKey;
+          const isComplete = isWorkflow && Boolean(workflowStep.complete);
+          const isFuture = isWorkflow && !workflowStep.complete && workflowState.currentKey !== buttonNavKey;
           button.classList.toggle("is-active", isActive);
+          button.classList.toggle("is-current", isCurrent);
+          button.classList.toggle("is-complete", isComplete);
+          button.classList.toggle("is-future", isFuture);
+          button.classList.toggle("is-muted", navKind !== "workflow" && !isActive);
           button.setAttribute("aria-selected", isActive ? "true" : "false");
+          button.setAttribute("data-client-nav-status", isComplete ? "complete" : isCurrent ? "current" : isFuture ? "future" : (navKind === "workflow" ? "active" : "support"));
+
           if (isActive) {
             foundMatch = true;
           }
         });
 
+        if (profileNavAnalysisToggle instanceof HTMLButtonElement && profileNavAnalysisPanel instanceof HTMLElement) {
+          const branchState = getAnalysisWorkflowBranchState(workflowState);
+          const isAnalysisActive = normalizedNavKey === "analysis" || CLIENT_PROFILE_ANALYSIS_CHILD_KEYS.includes(normalizedNavKey);
+          const isAnalysisForcedOpen = isAnalysisActive || branchState.isCurrent;
+          const isAnalysisExpanded = isAnalysisForcedOpen || profileNavAnalysisExpanded;
+          profileNavAnalysisPanel.hidden = !isAnalysisExpanded;
+          profileNavAnalysisToggle.classList.toggle("is-active", isAnalysisActive);
+          profileNavAnalysisToggle.classList.toggle("is-current", branchState.isCurrent);
+          profileNavAnalysisToggle.classList.toggle("is-complete", branchState.isComplete);
+          profileNavAnalysisToggle.classList.toggle("is-future", !branchState.isComplete && !branchState.isCurrent && !branchState.hasAnyComplete);
+          profileNavAnalysisToggle.classList.toggle("is-expanded", isAnalysisExpanded);
+          profileNavAnalysisToggle.setAttribute("aria-expanded", isAnalysisExpanded ? "true" : "false");
+
+          if (isAnalysisActive) {
+            foundMatch = true;
+          }
+        }
+
+        refreshClientProfileSidebarContext(normalizedNavKey);
+        dispatchClientDetailShellStateChange();
         return foundMatch;
       }
 
-      function findProfileNavSection(panel, targetKey) {
+      function findProfileNavSection(targetKey) {
         const normalizedTarget = String(targetKey || "").trim();
-        if (!(panel instanceof HTMLElement) || !normalizedTarget) {
+        if (!normalizedTarget) {
           return null;
         }
 
-        const panelTargets = String(panel.getAttribute("data-client-nav-section") || "")
-          .split(/\s+/)
-          .filter(Boolean);
-        if (panelTargets.includes(normalizedTarget)) {
-          return panel;
+        if (!isContinuousProfileWorkspace) {
+          const activePanel = getActiveProfilePanel();
+          if (!(activePanel instanceof HTMLElement)) {
+            return null;
+          }
+
+          const panelTargets = String(activePanel.getAttribute("data-client-nav-section") || "")
+            .split(/\s+/)
+            .filter(Boolean);
+          if (panelTargets.includes(normalizedTarget)) {
+            return activePanel;
+          }
+
+          return Array.from(activePanel.querySelectorAll("[data-client-nav-section]")).find(function (section) {
+            return String(section.getAttribute("data-client-nav-section") || "")
+              .split(/\s+/)
+              .filter(Boolean)
+              .includes(normalizedTarget);
+          }) || null;
         }
 
-        return Array.from(panel.querySelectorAll("[data-client-nav-section]")).find(function (section) {
+        return Array.from(host.querySelectorAll("[data-client-nav-section]")).find(function (section) {
           return String(section.getAttribute("data-client-nav-section") || "")
             .split(/\s+/)
             .filter(Boolean)
@@ -7008,21 +7831,128 @@
         }) || null;
       }
 
-      // CODE NOTE: Sidebar workflow items can jump to anchored sections inside
-      // a panel, not just switch the broader top-level profile tab.
-      function scrollToProfileNavTarget(targetKey) {
+      function getProfileScrollOffset() {
+        let offset = 18;
+        const topbar = document.querySelector(".workspace-page-topbar");
+        if (topbar instanceof HTMLElement) {
+          offset += topbar.getBoundingClientRect().height;
+        }
+
+        const detailBanner = document.querySelector("[data-studio-native-client-detail-banner]");
+        if (detailBanner instanceof HTMLElement) {
+          offset += detailBanner.getBoundingClientRect().height;
+        }
+
+        return offset;
+      }
+
+      // CODE NOTE: Sidebar workflow items now scroll within one continuous
+      // profile workspace, so the landing offset must account for the sticky
+      // Studio topbar and sticky native profile banner.
+      function scrollToProfileNavTarget(targetKey, options) {
         const normalizedTarget = String(targetKey || "").trim();
         if (!normalizedTarget) {
+          return false;
+        }
+
+        const targetSection = findProfileNavSection(normalizedTarget);
+        if (!(targetSection instanceof HTMLElement)) {
+          return false;
+        }
+
+        const absoluteTop = window.scrollY + targetSection.getBoundingClientRect().top - getProfileScrollOffset();
+        window.scrollTo({
+          top: Math.max(0, absoluteTop),
+          behavior: String(options?.behavior || "smooth")
+        });
+        return true;
+      }
+
+      function getProfileScrollspySections() {
+        const seen = new Set();
+        const sections = [];
+
+        const analysisSection = findProfileNavSection("analysis");
+        if (analysisSection instanceof HTMLElement) {
+          sections.push({
+            navKey: "analysis",
+            targetKey: "analysis",
+            element: analysisSection
+          });
+          seen.add("analysis");
+        }
+
+        Array.from(profileNavButtons).forEach(function (button) {
+          const navKey = String(button.dataset.clientNavKey || "").trim();
+          const targetKey = String(button.dataset.clientNavTarget || navKey).trim();
+          const section = findProfileNavSection(targetKey);
+          if (!navKey || !(section instanceof HTMLElement) || seen.has(navKey)) {
+            return;
+          }
+
+          seen.add(navKey);
+          sections.push({
+            navKey,
+            targetKey,
+            element: section
+          });
+        });
+
+        return sections.sort(function (left, right) {
+          return left.element.getBoundingClientRect().top - right.element.getBoundingClientRect().top;
+        });
+      }
+
+      function resolveActiveProfileNavFromScroll() {
+        const sections = getProfileScrollspySections();
+        if (!sections.length) {
+          return getRequestedProfileNavKey();
+        }
+
+        const activationLine = getProfileScrollOffset() + 42;
+        let activeNav = sections[0].navKey;
+
+        sections.forEach(function (section) {
+          const rect = section.element.getBoundingClientRect();
+          if (rect.top <= activationLine) {
+            activeNav = section.navKey;
+          }
+        });
+
+        if ((window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 8)) {
+          return sections[sections.length - 1].navKey;
+        }
+
+        return activeNav;
+      }
+
+      function syncProfileScrollspy(force) {
+        const nextNavKey = resolveActiveProfileNavFromScroll();
+        const nextBannerCoverageSummaryVisible = shouldShowBannerCoverageSummary();
+        const navChanged = Boolean(nextNavKey) && (force || nextNavKey !== getActiveProfileNavKey());
+        const bannerVisibilityChanged = force || nextBannerCoverageSummaryVisible !== bannerCoverageSummaryVisible;
+
+        if (navChanged) {
+          bannerCoverageSummaryVisible = nextBannerCoverageSummaryVisible;
+          setActiveProfileNavState(nextNavKey);
           return;
         }
 
-        const activePanel = getActiveProfilePanel();
-        if (!(activePanel instanceof HTMLElement)) {
+        if (bannerVisibilityChanged) {
+          bannerCoverageSummaryVisible = nextBannerCoverageSummaryVisible;
+          dispatchClientDetailShellStateChange();
+        }
+      }
+
+      function scheduleProfileScrollspySync() {
+        if (profileScrollSpyFrame) {
           return;
         }
 
-        const targetSection = findProfileNavSection(activePanel, normalizedTarget) || activePanel;
-        targetSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        profileScrollSpyFrame = window.requestAnimationFrame(function () {
+          profileScrollSpyFrame = 0;
+          syncProfileScrollspy();
+        });
       }
 
       function setActiveProfileTab(tabKey, options) {
@@ -7031,35 +7961,37 @@
           return false;
         }
 
-        const matchingPanel = Array.from(profilePanels).find(function (panel) {
-          return String(panel.dataset.clientPanel || "").trim() === normalizedTabKey;
-        });
+        if (!isContinuousProfileWorkspace) {
+          const matchingPanel = Array.from(profilePanels).find(function (panel) {
+            return String(panel.dataset.clientPanel || "").trim() === normalizedTabKey;
+          });
 
-        if (!(matchingPanel instanceof HTMLElement)) {
-          return false;
+          if (!(matchingPanel instanceof HTMLElement)) {
+            return false;
+          }
+
+          profilePanels.forEach(function (panel) {
+            const isActive = String(panel.dataset.clientPanel || "").trim() === normalizedTabKey;
+            panel.classList.toggle("is-active", isActive);
+            panel.hidden = !isActive;
+          });
         }
 
-        profilePanels.forEach(function (panel) {
-          const isActive = String(panel.dataset.clientPanel || "").trim() === normalizedTabKey;
-          panel.classList.toggle("is-active", isActive);
-          panel.hidden = !isActive;
-        });
-
-        const defaultNavKey = String(options?.navKey || CLIENT_PROFILE_DEFAULT_NAV_BY_TAB[normalizedTabKey] || normalizedTabKey).trim();
+        const defaultNavKey = String(options?.navKey || CLIENT_PROFILE_DEFAULT_NAV_BY_TAB[normalizedTabKey] || getClientDetailBannerNavTarget(normalizedTabKey) || normalizedTabKey).trim();
         setActiveProfileNavState(defaultNavKey);
         scheduleResponsiveCoverageStatDisplaySync();
 
-        if (options?.scroll) {
+        if (options?.scroll && isContinuousProfileWorkspace) {
           const targetKey = String(options?.targetKey || defaultNavKey).trim();
           window.requestAnimationFrame(function () {
-            scrollToProfileNavTarget(targetKey);
+            scrollToProfileNavTarget(targetKey, { behavior: options?.behavior || "smooth" });
           });
         }
 
         return true;
       }
 
-      function setActiveProfileNav(navKey) {
+      function setActiveProfileNav(navKey, options) {
         const normalizedNavKey = String(navKey || "").trim();
         if (!normalizedNavKey) {
           return false;
@@ -7068,26 +8000,42 @@
         const navButton = Array.from(profileNavButtons).find(function (button) {
           return String(button.dataset.clientNavKey || "").trim() === normalizedNavKey;
         });
+        const targetKey = String(options?.targetKey || navButton?.dataset.clientNavTarget || normalizedNavKey).trim();
+        const tabKey = String(options?.tabKey || navButton?.dataset.clientNavTab || "").trim();
 
-        if (!(navButton instanceof HTMLButtonElement)) {
+        if (tabKey && !isContinuousProfileWorkspace) {
+          return setActiveProfileTab(tabKey, {
+            navKey: normalizedNavKey,
+            targetKey: targetKey,
+            scroll: true,
+            behavior: options?.behavior || "smooth"
+          });
+        }
+
+        if (!findProfileNavSection(targetKey) && normalizedNavKey !== "analysis") {
           return false;
         }
 
-        const tabKey = String(navButton.dataset.clientNavTab || "").trim();
-        const targetKey = String(navButton.dataset.clientNavTarget || "").trim();
-        if (!tabKey) {
-          return false;
+        setActiveProfileNavState(normalizedNavKey);
+        if (options?.scroll !== false) {
+          window.requestAnimationFrame(function () {
+            scrollToProfileNavTarget(targetKey, { behavior: options?.behavior || "smooth" });
+          });
         }
-
-        return setActiveProfileTab(tabKey, {
-          navKey: normalizedNavKey,
-          targetKey: targetKey,
-          scroll: true
-        });
+        return true;
       }
 
       const requestedTab = getRequestedTab();
-      setActiveProfileTab(requestedTab);
+      const requestedNavKey = getRequestedProfileNavKey();
+      setActiveProfileNavState(requestedNavKey);
+      if (requestedTab !== "overview") {
+        window.requestAnimationFrame(function () {
+          scrollToProfileNavTarget(requestedNavKey, { behavior: "auto" });
+          scheduleProfileScrollspySync();
+        });
+      } else {
+        scheduleProfileScrollspySync();
+      }
 
       profileNavButtons.forEach(function (tab) {
         tab.addEventListener("click", function () {
@@ -7098,6 +8046,39 @@
 
           setActiveProfileNav(nextNavKey);
         });
+      });
+
+      if (profileNavAnalysisToggle instanceof HTMLButtonElement) {
+        profileNavAnalysisToggle.addEventListener("click", function () {
+          const activeNavKey = getActiveProfileNavKey();
+          const workflowState = getClientWorkflowProgressState(record);
+          if (CLIENT_PROFILE_ANALYSIS_CHILD_KEYS.includes(activeNavKey) || CLIENT_PROFILE_ANALYSIS_CHILD_KEYS.includes(workflowState.currentKey)) {
+            return;
+          }
+
+          profileNavAnalysisExpanded = !profileNavAnalysisExpanded;
+          setActiveProfileNavState(activeNavKey || getRequestedProfileNavKey());
+        });
+      }
+
+      const handleWindowScroll = function () {
+        scheduleProfileScrollspySync();
+      };
+      window.addEventListener("scroll", handleWindowScroll, { passive: true });
+
+      host.addEventListener("click", function (event) {
+        const workflowButton = event.target.closest("[data-client-workflow-nav]");
+        if (!(workflowButton instanceof HTMLButtonElement)) {
+          return;
+        }
+
+        const nextNavKey = String(workflowButton.getAttribute("data-client-workflow-nav") || "").trim();
+        if (!nextNavKey) {
+          return;
+        }
+
+        event.preventDefault();
+        setActiveProfileNav(nextNavKey);
       });
 
       function getCoveragePolicies() {
@@ -8076,6 +9057,7 @@
           if (activeStatField === "currentCoverage" || activeStatField === "modeledNeed") {
             refreshCoverageAdequacy();
             refreshPrimaryActionPanel();
+            refreshClientProfileSidebarContext();
           }
           statModalInput.value = formatEditableCurrency(clamped);
           closeStatEditor();
@@ -8663,10 +9645,7 @@
 
         const scrollToCoverage = event.target.closest("[data-scroll-to-coverage]");
         if (scrollToCoverage && host.contains(scrollToCoverage)) {
-          const coverageCard = host.querySelector("[data-coverage-card]");
-          if (coverageCard) {
-            coverageCard.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
+          scrollToProfileNavTarget("policies", { behavior: "smooth" });
           return;
         }
 
@@ -8840,22 +9819,10 @@
       // CODE NOTE: Studio native detail mount reads this API to keep the
       // outer Studio shell in sync without relying on the iframe path.
       window.ClientDetailShellApi = {
-        getState: function () {
-          const activePanel = getActiveProfilePanel();
-          const activeNavButton = Array.from(profileNavButtons).find(function (button) {
-            return button.classList.contains("is-active");
-          });
-
-          return {
-            title: clientWorkspaceSidebarTitle,
-            activeTab: String(activePanel?.getAttribute("data-client-panel") || "overview").trim() || "overview",
-            activeNav: String(activeNavButton?.getAttribute("data-client-nav-key") || CLIENT_PROFILE_DEFAULT_NAV_BY_TAB[String(activePanel?.getAttribute("data-client-panel") || "overview").trim() || "overview"] || "overview").trim() || "overview",
-            recordId: String(record?.id || "").trim(),
-            caseRef: String(record?.caseRef || "").trim()
-          };
-        },
+        getState: getClientDetailShellState,
         setTab: function (tabKey) {
-          return setActiveProfileTab(tabKey, { scroll: true });
+          const targetNavKey = getClientDetailBannerNavTarget(tabKey);
+          return setActiveProfileNav(targetNavKey, { scroll: true });
         },
         setNav: function (navKey) {
           return setActiveProfileNav(navKey);
@@ -8884,6 +9851,11 @@
           window.cancelAnimationFrame(coverageAdequacyAnimationFrame);
           coverageAdequacyAnimationFrame = 0;
         }
+        if (profileScrollSpyFrame) {
+          window.cancelAnimationFrame(profileScrollSpyFrame);
+          profileScrollSpyFrame = 0;
+        }
+        window.removeEventListener("scroll", handleWindowScroll);
         if (window.ClientDetailShellApi && window.ClientDetailShellApi.getState?.().recordId === String(record?.id || "").trim()) {
           delete window.ClientDetailShellApi;
         }
