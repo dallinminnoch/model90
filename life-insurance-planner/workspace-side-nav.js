@@ -288,6 +288,62 @@
       `;
     }
 
+    if (key === "modeling-inputs" || key === "financials") {
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <rect x="3.4" y="2.9" width="13.2" height="14.2" rx="1.75" stroke="currentColor" stroke-width="1.55"/>
+          <path d="M6.35 6.45h7.3M6.35 9.65h7.3M6.35 12.85h4.35" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+          <path d="M13.15 12.2v3.1M11.6 13.75h3.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+        </svg>
+      `;
+    }
+
+    if (key === "needs-analysis") {
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M4 15.7h12" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+          <path d="M5.35 12.75 8.4 9.7l2.2 2.2 4.2-5.05" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="14.95" cy="5.55" r="1.35" stroke="currentColor" stroke-width="1.55"/>
+        </svg>
+      `;
+    }
+
+    if (key === "recommendation") {
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M10 3.2 11.8 6.85l4.05.6-2.9 2.8.7 4-3.65-1.95-3.65 1.95.7-4-2.9-2.8 4.05-.6L10 3.2Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+        </svg>
+      `;
+    }
+
+    if (key === "underwriting") {
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M10 2.95 15.85 5v4.25c0 3.45-2.1 5.9-5.85 7.8-3.75-1.9-5.85-4.35-5.85-7.8V5L10 2.95Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+          <path d="m7.4 9.75 1.65 1.7 3.55-3.7" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+    }
+
+    if (key === "placement") {
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M4.1 6.1h11.8v8.65a1.35 1.35 0 0 1-1.35 1.35H5.45A1.35 1.35 0 0 1 4.1 14.75V6.1Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+          <path d="M7 6.1V4.95A1.95 1.95 0 0 1 8.95 3h2.1A1.95 1.95 0 0 1 13 4.95V6.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+          <path d="m8 10.35 1.35 1.35 2.65-2.7" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+    }
+
+    if (key === "activity-log") {
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="10" cy="10" r="6.15" stroke="currentColor" stroke-width="1.55"/>
+          <path d="M10 6.45v3.8l2.55 1.7" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+    }
+
     return `
       <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
         <path d="M5.1 3.15h7.65l2.15 2.2v10.1a1.55 1.55 0 0 1-1.55 1.55H5.1a1.55 1.55 0 0 1-1.55-1.55V4.7A1.55 1.55 0 0 1 5.1 3.15Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
@@ -386,11 +442,40 @@
     const pages = getWorkspacePages("client-detail", options);
     const sidebarTitle = String(options?.title || "").trim() || "Client Workspace";
     const returnHref = options?.shell ? "studio.html?view=clients.html" : "clients.html";
-    const tabs = [
-      { key: "overview", label: "Dashboard" },
-      { key: "planning", label: "Planning" },
-      { key: "household", label: "Household" },
-      { key: "notes", label: "Notes" }
+    // CODE NOTE: Keep the profile workflow nav grouped by advisor intent.
+    // "Financials" and "Documents" currently jump to the closest live surfaces
+    // until dedicated profile sections exist for them.
+    const navGroups = [
+      {
+        label: "Action Workflow",
+        ariaLabel: "Profile action workflow",
+        items: [
+          { key: "overview", tab: "overview", target: "overview", label: "Overview" },
+          { key: "modeling-inputs", tab: "planning", target: "modeling-inputs", label: "Modeling Inputs" },
+          { key: "needs-analysis", tab: "planning", target: "needs-analysis", label: "Needs Analysis" },
+          { key: "recommendation", tab: "overview", target: "recommendation", label: "Recommendation" },
+          { key: "underwriting", tab: "planning", target: "underwriting", label: "Underwriting" },
+          { key: "placement", tab: "overview", target: "placement", label: "Placement" }
+        ]
+      },
+      {
+        label: "Client Data",
+        ariaLabel: "Profile client data",
+        items: [
+          { key: "household", tab: "household", target: "household", label: "Household" },
+          { key: "financials", tab: "planning", target: "financials", label: "Financials" },
+          { key: "policies", tab: "overview", target: "policies", label: "Policies" }
+        ]
+      },
+      {
+        label: "Activity & CRM",
+        ariaLabel: "Profile activity and CRM",
+        items: [
+          { key: "notes", tab: "notes", target: "notes", label: "Notes" },
+          { key: "activity-log", tab: "overview", target: "activity-log", label: "Activity Log" },
+          { key: "documents", tab: "overview", target: "documents", label: "Documents" }
+        ]
+      }
     ];
 
     return renderWorkspaceShell({
@@ -398,39 +483,51 @@
       pages: pages,
       title: sidebarTitle,
       sectionLabel: "Sections",
-      headerActionMarkup: `
-        <a
-          class="workspace-side-nav-button workspace-side-nav-context-button workspace-side-nav-context-button-return"
-          href="${escapeHtml(returnHref)}"
-          data-client-directory-return
-          data-client-directory-return-href="${escapeHtml(returnHref)}"
-          title="Return to Client Directory"
-        >
-          Return to Client Directory
-        </a>
-      `,
       toggleClass: "client-profile-side-tabs-toggle",
       toggleGlyphClass: "client-profile-side-tabs-toggle-glyph",
       toggleDataAttr: "data-client-side-tabs-toggle",
       toggleLabel: "Collapse section navigation",
       contextMarkup: `
-        <nav class="workspace-side-nav-items workspace-side-nav-context-items" aria-label="Client detail tabs">
-          ${tabs.map(function (tab, index) {
-            return `
-              <button
-                class="workspace-side-nav-button workspace-side-nav-context-button${index === 0 ? " is-active" : ""}"
-                type="button"
-                data-client-tab="${escapeHtml(tab.key)}"
-                aria-selected="${index === 0 ? "true" : "false"}"
-                aria-label="${escapeHtml(tab.label)}"
-                title="${escapeHtml(tab.label)}"
-              >
-                <span class="workspace-side-nav-icon workspace-side-nav-context-icon" aria-hidden="true">${getClientDetailIcon(tab.key)}</span>
-                <span class="workspace-side-nav-label workspace-side-nav-context-label">${escapeHtml(tab.label)}</span>
-              </button>
-            `;
-          }).join("")}
-        </nav>
+        <!-- CODE NOTE: Keep the profile return action below the Current Page
+             header so the header border can align with the native top banner. -->
+        <div class="workspace-side-nav-context-group">
+          <a
+            class="workspace-side-nav-button workspace-side-nav-context-button workspace-side-nav-context-button-return"
+            href="${escapeHtml(returnHref)}"
+            data-client-directory-return
+            data-client-directory-return-href="${escapeHtml(returnHref)}"
+            title="Return to Client Directory"
+          >
+            Return to Client Directory
+          </a>
+        </div>
+        ${navGroups.map(function (group, groupIndex) {
+          return `
+            <div class="workspace-side-nav-context-group client-profile-side-tabs-section">
+              <span class="workspace-side-nav-context-section-label client-profile-side-tabs-section-label">${escapeHtml(group.label)}</span>
+              <nav class="workspace-side-nav-items workspace-side-nav-context-items" aria-label="${escapeHtml(group.ariaLabel)}">
+                ${group.items.map(function (item, itemIndex) {
+                  const isDefaultActive = groupIndex === 0 && itemIndex === 0;
+                  return `
+                    <button
+                      class="workspace-side-nav-button workspace-side-nav-context-button${isDefaultActive ? " is-active" : ""}"
+                      type="button"
+                      data-client-nav-key="${escapeHtml(item.key)}"
+                      data-client-nav-tab="${escapeHtml(item.tab)}"
+                      data-client-nav-target="${escapeHtml(item.target)}"
+                      aria-selected="${isDefaultActive ? "true" : "false"}"
+                      aria-label="${escapeHtml(item.label)}"
+                      title="${escapeHtml(item.label)}"
+                    >
+                      <span class="workspace-side-nav-icon workspace-side-nav-context-icon" aria-hidden="true">${getClientDetailIcon(item.key)}</span>
+                      <span class="workspace-side-nav-label workspace-side-nav-context-label">${escapeHtml(item.label)}</span>
+                    </button>
+                  `;
+                }).join("")}
+              </nav>
+            </div>
+          `;
+        }).join("")}
       `
     });
   }

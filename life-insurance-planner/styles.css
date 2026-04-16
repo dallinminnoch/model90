@@ -109,6 +109,18 @@ body.clients-page .home-shell.app-home-shell {
   padding: 0;
 }
 
+/* CODE NOTE: Studio uses a real topbar in normal document flow, so the shared
+   100vh app shell and generic home-shell vertical padding make the main workspace
+   taller than the visible screen. Keep the Studio main wrapper sized to the
+   remaining viewport instead so embedded tools do not leave a bottom strip. */
+
+body.studio-page .home-shell.app-home-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--workspace-topbar-height));
+  padding: 0;
+}
+
 .workspace-page-topbar {
   display: none;
 }
@@ -10432,8 +10444,11 @@ body.client-detail-page .client-reminders-strip-item {
 }
 
 .client-coverage-card-summary {
+  /* CODE NOTE: Native Studio detail uses a narrower policies card, so stack the
+     summary metrics vertically here to keep Total Face Amount above Total Annual
+     Premium without text collisions. */
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   margin: 0 -1.05rem;
   border-top: 1px solid rgba(223, 229, 238, 0.92);
   border-bottom: 1px solid rgba(223, 229, 238, 0.92);
@@ -10468,7 +10483,7 @@ body.client-detail-page .client-reminders-strip-item {
 }
 
 .client-coverage-card-stat + .client-coverage-card-stat {
-  border-left: 1px solid rgba(223, 229, 238, 0.92);
+  border-top: 1px solid rgba(223, 229, 238, 0.92);
 }
 
 .client-coverage-card-stat-label {
@@ -16219,7 +16234,8 @@ body[data-step] .step-item:focus-visible .step-title {
   }
 
   body.studio-page.is-embedded-tool:not(.workspace-side-nav-collapsed) .studio-shell,
-  body.studio-page.is-native-directory:not(.workspace-side-nav-collapsed) .studio-shell {
+  body.studio-page.is-native-directory:not(.workspace-side-nav-collapsed) .studio-shell,
+  body.studio-page.is-native-client-detail:not(.workspace-side-nav-collapsed) .studio-shell {
     padding-left: var(--app-side-nav-width);
   }
 
@@ -16229,7 +16245,9 @@ body[data-step] .step-item:focus-visible .step-title {
   }
 
   body.studio-page.is-native-directory.workspace-side-nav-collapsed .studio-shell,
-  body.studio-page .workspace-side-nav-host.is-collapsed[data-workspace-side-nav="directory"] ~ .home-shell .studio-shell {
+  body.studio-page.is-native-client-detail.workspace-side-nav-collapsed .studio-shell,
+  body.studio-page .workspace-side-nav-host.is-collapsed[data-workspace-side-nav="directory"] ~ .home-shell .studio-shell,
+  body.studio-page .workspace-side-nav-host.is-collapsed[data-workspace-side-nav="client-detail"] ~ .home-shell .studio-shell {
     padding-left: var(--app-side-nav-collapsed-width);
   }
 
@@ -16294,12 +16312,28 @@ body[data-step] .step-item:focus-visible .step-title {
     --studio-native-directory-header-band-height: 3.35rem;
   }
 
+  body.studio-page.is-native-client-detail {
+    --studio-native-client-detail-bottom-inset: clamp(0.08rem, 0.28vw, 0.16rem);
+    --studio-native-client-detail-header-band-height: 3.35rem;
+  }
+
   body.studio-page.is-native-directory .studio-shell {
     display: flex;
     flex-direction: column;
   }
 
+  body.studio-page.is-native-client-detail .studio-shell {
+    display: flex;
+    flex-direction: column;
+  }
+
   body.studio-page.is-native-directory .studio-native-clients-view {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+  }
+
+  body.studio-page.is-native-client-detail .studio-native-client-detail-view {
     display: flex;
     flex: 1 0 auto;
     flex-direction: column;
@@ -16340,6 +16374,95 @@ body[data-step] .step-item:focus-visible .step-title {
   body.studio-page.is-native-directory .workspace-side-nav-host[data-workspace-side-nav] {
     bottom: var(--studio-native-directory-bottom-inset);
   }
+
+  body.studio-page.is-native-client-detail .workspace-side-nav-host[data-workspace-side-nav] {
+    bottom: var(--studio-native-client-detail-bottom-inset);
+  }
+
+  /* CODE NOTE: Native Studio client detail uses the same wrapper-owns-the-frame
+     model as the native Client Directory, but keeps the profile card internals
+     on their normal standalone sizing. */
+  body.studio-page.is-native-client-detail .studio-native-client-detail-shell {
+    position: relative;
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    min-height: 100%;
+    padding: 0 0 var(--studio-native-client-detail-bottom-inset);
+  }
+
+  /* CODE NOTE: Keep the native Studio profile banner and the left Current Page
+     context header on the same height model so their bottom borders align like
+     the native Client Directory wrapper. */
+  body.studio-page.is-native-client-detail .workspace-side-nav-host[data-workspace-side-nav="client-detail"] .workspace-side-nav-context-header {
+    box-sizing: border-box;
+    min-height: var(--studio-native-client-detail-header-band-height);
+    padding: 0.48rem 2.55rem 0.4rem 1rem;
+  }
+
+  body.studio-page.is-native-client-detail .workspace-side-nav-host[data-workspace-side-nav="client-detail"] .workspace-side-nav-copy {
+    gap: 0.22rem;
+  }
+
+  body.studio-page.is-native-client-detail .studio-native-client-detail-stage {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100%;
+    gap: 0;
+  }
+
+  body.studio-page.is-native-client-detail .studio-native-client-detail-panel {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    min-height: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+body.studio-page.is-native-client-detail .studio-native-client-detail-host {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+body.studio-page.is-native-client-detail .studio-native-client-detail-host > .client-profile-shell {
+  flex: 1 0 auto;
+  width: 100%;
+  min-width: 0;
+}
+
+body.studio-page.is-native-client-detail .studio-native-client-detail-host > .client-profile-shell:not(.client-profile-shell-household) {
+  display: block;
+  width: 100%;
+  min-height: 100%;
+  padding-left: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+body.studio-page.is-native-client-detail .studio-native-client-detail-host > .client-profile-shell:not(.client-profile-shell-household) .client-profile-main {
+  min-height: 100%;
+  padding-left: 0.12rem;
+  padding-right: 0.02rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
 
   body.studio-page.is-native-directory .workspace-side-nav-host[data-workspace-side-nav="directory"] .workspace-side-nav-context-header {
     box-sizing: border-box;
@@ -18131,6 +18254,116 @@ body.resources-page .workspace-page-topbar {
   width: 100%;
 }
 
+.studio-native-client-detail-view {
+  width: 100%;
+}
+
+.studio-native-client-detail-shell {
+  /* CODE NOTE: Native Studio profile uses a wrapper-level header band so the
+     detail view frames like the native directory instead of starting directly
+     with the first content card. */
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: calc(100vh - var(--workspace-topbar-height));
+}
+
+.studio-native-client-detail-stage {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.studio-native-client-detail-banner {
+  position: sticky;
+  top: var(--workspace-topbar-height);
+  z-index: 9;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  min-height: var(--studio-native-client-detail-header-band-height, 3.35rem);
+  padding: 0.54rem 1.28rem 0.5rem;
+  background: #ffffff;
+  border-top: 1px solid rgba(213, 221, 232, 0.78);
+  border-bottom: 1px solid rgba(223, 229, 238, 0.92);
+}
+
+.studio-native-client-detail-banner-copy {
+  display: grid;
+  gap: 0.14rem;
+  min-width: 0;
+}
+
+.studio-native-client-detail-banner-kicker {
+  color: #98a3b4;
+  font-size: 0.69rem;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.studio-native-client-detail-banner-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.studio-native-client-detail-banner-title-row strong {
+  min-width: 0;
+  color: #17202c;
+  font-size: 1.02rem;
+  line-height: 1.15;
+  font-weight: 420;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.studio-native-client-detail-banner-title-row span {
+  color: #7f8ba1;
+  font-size: 0.83rem;
+  white-space: nowrap;
+}
+
+.studio-native-client-detail-banner-tabs {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.studio-native-client-detail-banner-tab {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0 0.78rem;
+  border: 1px solid transparent;
+  border-radius: 0.42rem;
+  background: transparent;
+  color: #526074;
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.studio-native-client-detail-banner-tab:hover,
+.studio-native-client-detail-banner-tab:focus-visible {
+  background: #f1f3f6;
+  color: #17202c;
+  outline: none;
+}
+
+.studio-native-client-detail-banner-tab.is-active {
+  color: #4c2fd1;
+  border-color: rgba(79, 70, 229, 0.12);
+  background: rgba(79, 70, 229, 0.08);
+}
+
 .studio-native-clients-placeholder {
   width: 100%;
   min-height: calc(100vh - var(--workspace-topbar-height));
@@ -18169,11 +18402,19 @@ body.studio-page.is-native-directory .studio-workspace {
   display: none;
 }
 
+body.studio-page.is-native-client-detail .studio-workspace {
+  display: none;
+}
+
 body.studio-page:not(.is-embedded-tool) .studio-embed-shell {
   display: none;
 }
 
 body.studio-page:not(.is-native-directory) .studio-native-clients-view {
+  display: none;
+}
+
+body.studio-page:not(.is-native-client-detail) .studio-native-client-detail-view {
   display: none;
 }
 
@@ -18183,7 +18424,19 @@ body.studio-page.is-embedded-tool:not(.workspace-side-nav-collapsed) .studio-emb
   box-shadow: none;
 }
 
+/* CODE NOTE: Let the embedded client-profile shell own the visible frame in
+   Studio, the same way the directory shell owns its own frame. Keeping the
+   outer embed shell transparent avoids a double-wrapper look. */
+body.studio-page.is-client-detail-tool .studio-embed-shell,
+body.studio-page.is-client-detail-tool:not(.workspace-side-nav-collapsed) .studio-embed-shell {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 body.studio-page.is-native-directory .studio-shell,
+body.studio-page.is-native-client-detail .studio-shell,
 body.studio-page.is-embedded-tool .studio-shell {
   width: 100%;
   max-width: none;
@@ -18431,6 +18684,12 @@ body.studio-page.is-embedded-tool .studio-shell {
 .workspace-side-nav-shell .workspace-side-nav-context-group {
   display: grid;
   gap: 0.22rem;
+}
+
+/* CODE NOTE: Profile workflow nav items jump to these section anchors inside
+   client detail, so keep a small scroll margin for cleaner landings. */
+[data-client-nav-section] {
+  scroll-margin-top: 0.85rem;
 }
 
 .workspace-side-nav-shell .workspace-side-nav-context-button {

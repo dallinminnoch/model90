@@ -34,6 +34,7 @@
   const sidebarHost = document.querySelector("[data-workspace-side-nav-host]");
   const startView = document.querySelector("[data-studio-start-view]");
   const nativeClientsView = document.querySelector("[data-studio-native-clients-view]");
+  const nativeClientDetailView = document.querySelector("[data-studio-native-client-detail-view]");
   const embedShell = document.querySelector("[data-studio-embed-shell]");
   const embedFrame = document.querySelector("[data-studio-embed-frame]");
   const topbarLinks = Array.from(document.querySelectorAll("[data-studio-page]"));
@@ -43,7 +44,7 @@
   const studioSearchInput = document.querySelector("[data-studio-search-input]");
   const studioSearchResults = document.querySelector("[data-studio-search-results]");
 
-  if (!sidebarHost || !startView || !nativeClientsView || !embedShell || !embedFrame || !window.WorkspaceSideNav) {
+  if (!sidebarHost || !startView || !nativeClientsView || !nativeClientDetailView || !embedShell || !embedFrame || !window.WorkspaceSideNav) {
     return;
   }
 
@@ -223,15 +224,21 @@
 
   function syncShellVisibility() {
     const isToolView = Boolean(currentView);
-    const isNativeDirectory = isNativeDirectoryView(currentView);
+    const viewMeta = getViewMeta(currentView);
+    const isNativeDirectory = viewMeta.shellMode === "directory";
+    const isNativeClientDetail = isToolView && viewMeta.shellMode === "client-detail";
+    const isClientDetailTool = isNativeClientDetail;
 
-    document.body.classList.toggle("is-embedded-tool", isToolView && !isNativeDirectory);
+    document.body.classList.toggle("is-embedded-tool", isToolView && !isNativeDirectory && !isNativeClientDetail);
     document.body.classList.toggle("is-native-directory", isToolView && isNativeDirectory);
+    document.body.classList.toggle("is-native-client-detail", isNativeClientDetail);
+    document.body.classList.toggle("is-client-detail-tool", isClientDetailTool);
     startView.hidden = isToolView;
     nativeClientsView.hidden = !(isToolView && isNativeDirectory);
-    embedShell.hidden = !isToolView || isNativeDirectory;
+    nativeClientDetailView.hidden = !isNativeClientDetail;
+    embedShell.hidden = !isToolView || isNativeDirectory || isNativeClientDetail;
 
-    if (!isToolView || isNativeDirectory) {
+    if (!isToolView || isNativeDirectory || isNativeClientDetail) {
       resetEmbedAutoHeight();
     }
   }
@@ -398,12 +405,18 @@
     }
 
     doc.body.classList.add("studio-embed-mode");
-    if (doc.getElementById("studio-shell-embed-style")) {
-      return;
+    if (doc.documentElement) {
+      doc.documentElement.classList.add("studio-embed-root");
+      if (doc.body.classList.contains("client-detail-page")) {
+        doc.documentElement.classList.add("studio-embed-client-detail-root");
+      }
     }
-
-    const style = doc.createElement("style");
-    style.id = "studio-shell-embed-style";
+    let style = doc.getElementById("studio-shell-embed-style");
+    const isNewStyle = !style;
+    if (!style) {
+      style = doc.createElement("style");
+      style.id = "studio-shell-embed-style";
+    }
     style.textContent = `
       :root {
         --app-side-nav-width: 0px !important;
@@ -435,6 +448,7 @@
       }
 
       body.studio-embed-mode.client-detail-page {
+        background: transparent !important;
         overflow-y: auto !important;
       }
 
@@ -498,30 +512,84 @@
         min-width: 0 !important;
       }
 
-      /* CODE NOTE: Embedded client-detail pages must not keep viewport-based height floors,
-         or the iframe auto-height watcher will recursively grow the page and create infinite scroll. */
-      body.studio-embed-mode.client-detail-page,
-      body.studio-embed-mode.client-detail-page .home-shell,
-      body.studio-embed-mode.client-detail-page .app-home-shell,
+      /* CODE NOTE: Match client detail to the directory framing model by
+         neutralizing the standalone prospect panel and letting the actual
+         .client-profile-shell become the one visible framed wrapper inside
+         Studio. This avoids the "page inside a page" feel and keeps the
+         profile shell responsible for its own border/background just like the
+         directory shell does. */
       body.studio-embed-mode.client-detail-page .prospect-shell,
       body.studio-embed-mode.client-detail-page .prospect-stage,
-      body.studio-embed-mode.client-detail-page .prospect-empty-panel.client-detail-panel,
-      body.studio-embed-mode.client-detail-page .client-detail-sections,
-      body.studio-embed-mode.client-detail-page .client-profile-shell,
-      body.studio-embed-mode.client-detail-page .client-profile-main {
-        height: auto !important;
-        min-height: 0 !important;
+      body.studio-embed-mode.client-detail-page .client-detail-sections {
+        min-height: 100% !important;
       }
 
-      body.studio-embed-mode.client-detail-page .client-profile-shell:not(.client-profile-shell-household),
-      body.studio-embed-mode.client-detail-page .client-profile-shell:not(.client-profile-shell-household) .client-profile-main {
+      body.studio-embed-mode.client-detail-page .prospect-empty-panel.client-detail-panel {
+        min-height: 100% !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+
+      body.studio-embed-mode.client-detail-page .client-detail-sections {
+        gap: 0 !important;
+      }
+
+      body.studio-embed-mode.client-detail-page .client-profile-shell:not(.client-profile-shell-household) {
+        min-height: 100% !important;
         padding-left: 0 !important;
         padding-right: 0 !important;
+        border: 1px solid rgba(213, 221, 232, 0.78) !important;
+        border-radius: 0.35rem !important;
+        background: rgba(255, 255, 255, 0.97) !important;
+        box-shadow: 0 22px 48px rgba(16, 33, 52, 0.08) !important;
+        overflow: hidden !important;
+      }
+
+      body.studio-embed-mode.client-detail-page .client-profile-sidebar {
+        background: #E8EDF5 !important;
+      }
+
+      body.studio-embed-mode.client-detail-page .client-profile-main {
+        min-height: 100% !important;
+        height: auto !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        background:
+          radial-gradient(circle at top right, rgba(92, 63, 214, 0.06), transparent 22%),
+          linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%) !important;
         overflow: visible !important;
+      }
+
+      /* CODE NOTE: The standalone merged Policies card is intentionally fixed
+         to a tall dashboard height, but inside the Studio iframe that reads
+         like the page is ending early and leaves a large white block under the
+         real content. Let the embedded card collapse to its actual content. */
+      body.studio-embed-mode.client-detail-page .client-profile-dashboard-side--coverage-merged {
+        align-self: start !important;
+        height: auto !important;
+      }
+
+      body.studio-embed-mode.client-detail-page .client-coverage-card {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+      }
+
+      body.studio-embed-mode.client-detail-page .client-coverage-card-sections {
+        grid-template-rows: auto auto auto auto !important;
+      }
+
+      body.studio-embed-mode.client-detail-page .client-coverage-card-empty-illustrations {
+        min-height: 4.1rem !important;
       }
     `;
 
-    doc.head.appendChild(style);
+    if (isNewStyle) {
+      doc.head.appendChild(style);
+    }
   }
 
   function getActiveInnerValue(selector, datasetKey) {
@@ -682,8 +750,13 @@
     }
 
     if (mode === "client-detail") {
-      const activeKey = getActiveInnerValue("[data-client-tab]", "clientTab") || "overview";
-      setCurrentPageState(Array.from(sidebarHost.querySelectorAll("[data-client-tab]")), activeKey, "data-client-tab");
+      const nativeDetailState = window.StudioClientDetail && typeof window.StudioClientDetail.getState === "function"
+        ? window.StudioClientDetail.getState()
+        : null;
+      const activeKey = String(nativeDetailState?.activeNav || "").trim()
+        || getActiveInnerValue("[data-client-nav-key]", "clientNavKey")
+        || "overview";
+      setCurrentPageState(Array.from(sidebarHost.querySelectorAll("[data-client-nav-key]")), activeKey, "data-client-nav-key");
       return;
     }
 
@@ -741,9 +814,11 @@
       shell: true,
       activePage: meta.pageKey
     };
-    const embeddedTitle = getEmbeddedCurrentPageTitle(meta);
-    if (embeddedTitle) {
-      renderOptions.title = embeddedTitle;
+    const resolvedTitle = meta.shellMode === "client-detail" && window.StudioClientDetail && typeof window.StudioClientDetail.getState === "function"
+      ? String(window.StudioClientDetail.getState()?.title || "").trim()
+      : getEmbeddedCurrentPageTitle(meta);
+    if (resolvedTitle) {
+      renderOptions.title = resolvedTitle;
     }
     sidebarHost.setAttribute("data-workspace-side-nav", meta.shellMode);
     sidebarHost.innerHTML = window.WorkspaceSideNav.render(meta.shellMode, renderOptions);
@@ -796,19 +871,20 @@
     return true;
   }
 
-  function setEmbeddedClientDetailTab(tabKey) {
+  function setEmbeddedClientDetailTab(tabKey, navKey) {
     const doc = getIframeDocument();
     if (!doc) {
       return false;
     }
 
-    const buttons = Array.from(doc.querySelectorAll("[data-client-tab]"));
+    const buttons = Array.from(doc.querySelectorAll("[data-client-nav-key]"));
     const panels = Array.from(doc.querySelectorAll("[data-client-panel]"));
     if (!buttons.length || !panels.length) {
       return false;
     }
 
     const normalizedTabKey = String(tabKey || "").trim();
+    const normalizedNavKey = String(navKey || "").trim();
     if (!normalizedTabKey) {
       return false;
     }
@@ -816,7 +892,9 @@
     let foundMatch = false;
 
     buttons.forEach(function (button) {
-      const isActive = String(button.getAttribute("data-client-tab") || "").trim() === normalizedTabKey;
+      const isActive = normalizedNavKey
+        ? String(button.getAttribute("data-client-nav-key") || "").trim() === normalizedNavKey
+        : String(button.getAttribute("data-client-nav-tab") || "").trim() === normalizedTabKey;
       button.classList.toggle("is-active", isActive);
       button.setAttribute("aria-selected", isActive ? "true" : "false");
       if (isActive) {
@@ -926,6 +1004,7 @@
   function navigateToView(viewValue, historyMode) {
     const nextView = normalizeViewValue(viewValue);
     const currentMode = historyMode || "push";
+    const previousMeta = getViewMeta(currentView);
     const nextMeta = getViewMeta(nextView);
 
     if (nextView === currentView && currentMode !== "none") {
@@ -938,10 +1017,29 @@
           }
           syncCurrentPageControls("directory", nextMeta);
         }).catch(function () {});
+      } else if (nextMeta.shellMode === "client-detail" && window.StudioClientDetail && typeof window.StudioClientDetail.ensureMounted === "function") {
+        window.StudioClientDetail.ensureMounted(nextView).then(function () {
+          syncSidebarCurrentTitle(window.StudioClientDetail.getState?.()?.title || "");
+          syncCurrentPageControls("client-detail", nextMeta);
+        }).catch(function () {});
       } else {
         scheduleEmbedAutoHeightSync();
       }
       return;
+    }
+
+    if (
+      previousMeta.shellMode === "client-detail"
+      && nextMeta.shellMode !== "client-detail"
+      && typeof window.__StudioNativeClientDetailCleanup === "function"
+    ) {
+      try {
+        window.__StudioNativeClientDetailCleanup();
+      } catch (_error) {
+        // Ignore cleanup issues and continue navigating.
+      }
+      window.__StudioNativeClientDetailCleanup = null;
+      delete window.ClientDetailShellApi;
     }
 
     currentView = nextView;
@@ -969,6 +1067,17 @@
             window.ClientDirectoryShellApi.refresh();
           }
           syncCurrentPageControls("directory", nextMeta);
+        }).catch(function () {});
+      }
+      return;
+    }
+
+    if (nextMeta.shellMode === "client-detail") {
+      embedFrame.classList.remove("is-pending");
+      if (window.StudioClientDetail && typeof window.StudioClientDetail.ensureMounted === "function") {
+        window.StudioClientDetail.ensureMounted(nextView).then(function () {
+          syncSidebarCurrentTitle(window.StudioClientDetail.getState?.()?.title || "");
+          syncCurrentPageControls("client-detail", nextMeta);
         }).catch(function () {});
       }
       return;
@@ -1007,20 +1116,17 @@
 
     if (actualView === currentView) {
       const meta = getViewMeta(currentView);
-      syncSidebarCurrentTitle(getEmbeddedCurrentPageTitle(meta));
+      if (meta.shellMode === "client-detail" && window.StudioClientDetail && typeof window.StudioClientDetail.getState === "function") {
+        syncSidebarCurrentTitle(window.StudioClientDetail.getState()?.title || "");
+      } else {
+        syncSidebarCurrentTitle(getEmbeddedCurrentPageTitle(meta));
+      }
       syncCurrentPageControls(meta.shellMode, meta);
       scheduleEmbedAutoHeightSync();
       return;
     }
 
-    currentView = actualView;
-    syncShellVisibility();
-    renderSidebarForCurrentView();
-    if (historyMode === "replace") {
-      window.history.replaceState({ view: actualView }, "", buildStudioUrl(actualView));
-    } else {
-      window.history.pushState({ view: actualView }, "", buildStudioUrl(actualView));
-    }
+    navigateToView(actualView, historyMode === "replace" ? "replace" : "push");
   }
 
   function bindSidebarInteractions(meta) {
@@ -1104,14 +1210,21 @@
     }
 
     if (meta.shellMode === "client-detail") {
-      sidebarHost.querySelectorAll("[data-client-tab]").forEach(function (button) {
+      sidebarHost.querySelectorAll("[data-client-nav-key]").forEach(function (button) {
         button.addEventListener("click", function () {
-          const tabKey = String(button.getAttribute("data-client-tab") || "").trim();
-          if (!tabKey) {
+          const navKey = String(button.getAttribute("data-client-nav-key") || "").trim();
+          const tabKey = String(button.getAttribute("data-client-nav-tab") || "").trim();
+          if (!navKey && !tabKey) {
             return;
           }
 
-          if (setEmbeddedClientDetailTab(tabKey) || clickEmbeddedControl(`[data-client-tab="${tabKey}"]`)) {
+          if (
+            (window.StudioClientDetail && typeof window.StudioClientDetail.setNav === "function" && window.StudioClientDetail.setNav(navKey))
+            || (window.StudioClientDetail && typeof window.StudioClientDetail.setTab === "function" && window.StudioClientDetail.setTab(tabKey))
+            || setEmbeddedClientDetailTab(tabKey, navKey)
+            || clickEmbeddedControl(`[data-client-nav-key="${navKey}"]`)
+            || clickEmbeddedControl(`[data-client-nav-tab="${tabKey}"]`)
+          ) {
             window.setTimeout(function () {
               syncCurrentPageControls("client-detail", meta);
             }, 60);

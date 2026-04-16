@@ -5,6 +5,20 @@
         return;
       }
 
+      // CODE NOTE: Studio native mounting re-runs client-detail.js when the
+      // active profile changes. Clean up the prior native instance first so
+      // global listeners do not stack up across profile switches.
+      if (typeof window.__StudioNativeClientDetailCleanup === "function") {
+        try {
+          window.__StudioNativeClientDetailCleanup();
+        } catch (_error) {
+          // Ignore cleanup issues and let the new mount continue.
+        }
+        window.__StudioNativeClientDetailCleanup = null;
+      }
+
+      const isStudioNativeClientDetail = Boolean(host.closest("[data-studio-native-client-detail-view]"));
+
       const STORAGE_KEYS = {
         authSession: "lipPlannerAuthSession",
         clientRecords: "lensClientRecords",
@@ -30,6 +44,28 @@
 
       function getAccessibilitySettingsStorageKey() {
         return `${STORAGE_KEYS.accessibility}:${getStorageIdentity()}`;
+      }
+
+      // CODE NOTE: Native Studio detail view provides the requested record via
+      // the Studio view string instead of window.location.search.
+      function getClientDetailRequestUrl() {
+        const studioNativeView = isStudioNativeClientDetail
+          ? String(window.__STUDIO_NATIVE_CLIENT_DETAIL_VIEW__ || "").trim()
+          : "";
+
+        if (studioNativeView) {
+          try {
+            return new URL(studioNativeView, window.location.href);
+          } catch (_error) {
+            // Fall back to the real page URL below.
+          }
+        }
+
+        return new URL(window.location.href);
+      }
+
+      function getClientDetailRequestParams() {
+        return getClientDetailRequestUrl().searchParams;
       }
 
       function escapeHtml(value) {
@@ -1599,7 +1635,7 @@
       }
 
       function getRecord() {
-        const params = new URLSearchParams(window.location.search);
+        const params = getClientDetailRequestParams();
         const recordId = String(params.get("id") || "").trim();
         const caseRef = String(params.get("caseRef") || "").trim().toUpperCase();
         const records = loadJson(localStorage, getRecordsStorageKey());
@@ -2064,12 +2100,21 @@
       }
 
       function getRequestedTab() {
-        const params = new URLSearchParams(window.location.search);
+        const params = getClientDetailRequestParams();
         const requestedTab = String(params.get("tab") || "").trim().toLowerCase();
         return ["overview", "planning", "household", "notes"].includes(requestedTab)
           ? requestedTab
           : "overview";
       }
+
+      // CODE NOTE: These defaults keep the grouped profile sidebar aligned with
+      // the broader profile tabs and the native Studio top banner.
+      const CLIENT_PROFILE_DEFAULT_NAV_BY_TAB = {
+        overview: "overview",
+        planning: "modeling-inputs",
+        household: "household",
+        notes: "notes"
+      };
 
       function renderClientProfileSideTabs() {
         return "";
@@ -2665,9 +2710,10 @@
         `;
       }
 
-      function renderPlanningCard(title, items, className) {
+      function renderPlanningCard(title, items, className, options) {
+        const sectionTargets = String(options?.sectionTargets || "").trim();
         return `
-          <section class="client-detail-card client-detail-card-compact client-planning-card${className ? ` ${className}` : ""}">
+          <section class="client-detail-card client-detail-card-compact client-planning-card${className ? ` ${className}` : ""}"${sectionTargets ? ` data-client-nav-section="${escapeHtml(sectionTargets)}"` : ""}>
             <div class="client-detail-card-header">
               <h2>${escapeHtml(title)}</h2>
             </div>
@@ -2704,7 +2750,7 @@
           { label: "Modeled Need", value: formatCoverageCardCurrency(coverageFields.modeledNeed) },
           { label: "Last Planning Update", value: latestPlanningDate },
           { label: "Next Planning Move", value: nextStep }
-        ], "client-planning-card-wide");
+        ], "client-planning-card-wide", { sectionTargets: "needs-analysis" });
       }
 
       function renderPmiEntryCard(record) {
@@ -2714,10 +2760,10 @@
         const latestModeling = modelingEntries[modelingEntries.length - 1] || {};
         const modelingData = latestModeling.data || {};
         return `
-          <section class="client-detail-card client-detail-card-compact client-planning-card client-planning-card-pmi">
-            <div class="client-detail-card-header">
-              <h2>Protection Modeling Inputs</h2>
-            </div>
+            <section class="client-detail-card client-detail-card-compact client-planning-card client-planning-card-pmi" data-client-nav-section="modeling-inputs financials">
+              <div class="client-detail-card-header">
+                <h2>Protection Modeling Inputs</h2>
+              </div>
             <div class="client-summary-list">
               ${[
                 { label: "Status", value: record.pmiCompleted ? "Completed" : "Not started" },
@@ -3067,7 +3113,7 @@
           { label: "Major Conditions", value: conditions },
           { label: "Occupation Risk", value: formatValue(data.occupationRiskLevel) },
           { label: "Travel Outside US", value: formatValue(data.plannedTravelOutsideUs) }
-        ]);
+        ], "", { sectionTargets: "underwriting" });
       }
 
       function renderPreliminaryResultsCard(record) {
@@ -3685,7 +3731,7 @@
         const widgetTitle = String(title || "Activity Tracker");
 
         return `
-          <section class="client-detail-card client-detail-card-compact client-notes-widget-card">
+          <section class="client-detail-card client-detail-card-compact client-notes-widget-card" data-client-nav-section="activity-log">
             <div class="client-notes-widget-topline">
               <h2>${escapeHtml(widgetTitle)}</h2>
             </div>
@@ -3913,11 +3959,11 @@
           policies.length ? (hasDocumentsForEveryPolicy ? "Docs Complete" : "Docs Missing") : ""
         ].filter(Boolean);
 
-        return `
-          <section class="client-detail-card client-detail-card-compact client-coverage-card" data-coverage-card>
-            <div class="client-coverage-card-header">
-              <div class="client-coverage-card-heading">
-                <h2>Policies</h2>
+          return `
+            <section class="client-detail-card client-detail-card-compact client-coverage-card" data-coverage-card data-client-nav-section="policies placement documents">
+              <div class="client-coverage-card-header">
+                <div class="client-coverage-card-heading">
+                  <h2>Policies</h2>
               </div>
               <div class="client-coverage-card-actions">
                 <button
@@ -4436,9 +4482,9 @@
           <div class="client-profile-shell${document.body.classList.contains("workspace-side-nav-collapsed") ? " is-collapsed" : ""}" data-client-sidebar-layout>
             <section class="client-profile-main">
               <div class="client-profile-tab-panels">
-                <section class="client-profile-tab-panel is-active" data-client-panel="overview">
+                <section class="client-profile-tab-panel is-active" data-client-panel="overview" data-client-nav-section="overview">
                   <div class="client-profile-overview-stack">
-                    <div data-primary-action-panel-host>
+                    <div data-primary-action-panel-host data-client-nav-section="recommendation">
                       ${renderPrimaryActionPanel(record, checklistItems)}
                     </div>
                     <div class="client-profile-overview-layout">
@@ -4473,7 +4519,7 @@
                   </div>
                 </section>
 
-                <section class="client-profile-tab-panel" data-client-panel="planning" hidden>
+                <section class="client-profile-tab-panel" data-client-panel="planning" data-client-nav-section="planning" hidden>
                   <div class="client-profile-dashboard">
                     ${renderAnalysisPreviewCard(record)}
                     <div class="client-profile-dashboard-main">
@@ -4486,7 +4532,7 @@
                   </div>
                 </section>
 
-                <section class="client-profile-tab-panel" data-client-panel="household" hidden>
+                <section class="client-profile-tab-panel" data-client-panel="household" data-client-nav-section="household" hidden>
                   <section class="client-profile-banner">
                     <p>Case ${escapeHtml(formatValue(record.caseRef))} is currently marked as ${escapeHtml(status)}. Household assignment is ${escapeHtml(householdDisplay)}.</p>
                   </section>
@@ -4514,7 +4560,7 @@
                   </div>
                 </section>
 
-                <section class="client-profile-tab-panel" data-client-panel="notes" hidden>
+                <section class="client-profile-tab-panel" data-client-panel="notes" data-client-nav-section="notes" hidden>
                   <div class="client-profile-dashboard">
                     <div class="client-profile-dashboard-main">
                       ${renderSummaryCard("Notes", [
@@ -4888,7 +4934,7 @@
       const donutMap = host.querySelector(".client-profile-donut-map");
       const donutRing = host.querySelector(".client-detail-avatar-progress");
       const donutSegments = host.querySelectorAll(".client-detail-donut-segment-group");
-      const profileTabs = document.querySelectorAll("[data-client-tab]");
+      const profileNavButtons = document.querySelectorAll("[data-client-nav-tab]");
       const profilePanels = host.querySelectorAll("[data-client-panel]");
       const profileSidebarHost = document.querySelector('[data-workspace-side-nav="client-detail"]');
       const profileSidebarLayout = host.querySelector("[data-client-sidebar-layout]");
@@ -4937,6 +4983,7 @@
       const coverageWidgetCloseButtons = host.querySelectorAll("[data-coverage-widget-close]");
       const coverageWidgetFeedback = host.querySelector("[data-coverage-widget-feedback]");
       let coverageStatSyncFrame = 0;
+      let coverageStatResizeObserver = null;
 
       function syncResponsiveCoverageStatDisplays() {
         host.querySelectorAll('[data-stat-display="currentCoverage"], [data-stat-display="modeledNeed"]').forEach(function (display) {
@@ -5023,7 +5070,7 @@
       }
 
       if (typeof window.ResizeObserver === "function") {
-        const coverageStatResizeObserver = new window.ResizeObserver(function () {
+        coverageStatResizeObserver = new window.ResizeObserver(function () {
           scheduleResponsiveCoverageStatDisplaySync();
         });
 
@@ -5032,12 +5079,18 @@
         });
       }
 
+      const handleProfileSidebarHostTransitionEnd = function () {
+        scheduleResponsiveCoverageStatDisplaySync();
+      };
       if (profileSidebarHost) {
-        profileSidebarHost.addEventListener("transitionend", scheduleResponsiveCoverageStatDisplaySync);
+        profileSidebarHost.addEventListener("transitionend", handleProfileSidebarHostTransitionEnd);
       }
 
+      const handleProfileSidebarLayoutTransitionEnd = function () {
+        scheduleResponsiveCoverageStatDisplaySync();
+      };
       if (profileSidebarLayout) {
-        profileSidebarLayout.addEventListener("transitionend", scheduleResponsiveCoverageStatDisplaySync);
+        profileSidebarLayout.addEventListener("transitionend", handleProfileSidebarLayoutTransitionEnd);
       }
 
       const profileDeleteToggle = host.querySelector("[data-profile-delete-toggle]");
@@ -6901,43 +6954,149 @@
         });
       }
 
-      window.addEventListener("resize", scheduleResponsiveCoverageStatDisplaySync);
+      const handleWindowResize = function () {
+        scheduleResponsiveCoverageStatDisplaySync();
+      };
+      window.addEventListener("resize", handleWindowResize);
 
-      const requestedTab = getRequestedTab();
-      if (requestedTab !== "overview") {
-        profileTabs.forEach(function (button) {
-          const isActive = String(button.dataset.clientTab || "").trim() === requestedTab;
+      function getActiveProfilePanel() {
+        return Array.from(profilePanels).find(function (panel) {
+          return panel.classList.contains("is-active") && !panel.hidden;
+        }) || Array.from(profilePanels).find(function (panel) {
+          return !panel.hidden;
+        }) || null;
+      }
+
+      function setActiveProfileNavState(navKey) {
+        const normalizedNavKey = String(navKey || "").trim();
+        if (!normalizedNavKey) {
+          return false;
+        }
+
+        let foundMatch = false;
+
+        profileNavButtons.forEach(function (button) {
+          const isActive = String(button.dataset.clientNavKey || "").trim() === normalizedNavKey;
           button.classList.toggle("is-active", isActive);
           button.setAttribute("aria-selected", isActive ? "true" : "false");
+          if (isActive) {
+            foundMatch = true;
+          }
         });
 
+        return foundMatch;
+      }
+
+      function findProfileNavSection(panel, targetKey) {
+        const normalizedTarget = String(targetKey || "").trim();
+        if (!(panel instanceof HTMLElement) || !normalizedTarget) {
+          return null;
+        }
+
+        const panelTargets = String(panel.getAttribute("data-client-nav-section") || "")
+          .split(/\s+/)
+          .filter(Boolean);
+        if (panelTargets.includes(normalizedTarget)) {
+          return panel;
+        }
+
+        return Array.from(panel.querySelectorAll("[data-client-nav-section]")).find(function (section) {
+          return String(section.getAttribute("data-client-nav-section") || "")
+            .split(/\s+/)
+            .filter(Boolean)
+            .includes(normalizedTarget);
+        }) || null;
+      }
+
+      // CODE NOTE: Sidebar workflow items can jump to anchored sections inside
+      // a panel, not just switch the broader top-level profile tab.
+      function scrollToProfileNavTarget(targetKey) {
+        const normalizedTarget = String(targetKey || "").trim();
+        if (!normalizedTarget) {
+          return;
+        }
+
+        const activePanel = getActiveProfilePanel();
+        if (!(activePanel instanceof HTMLElement)) {
+          return;
+        }
+
+        const targetSection = findProfileNavSection(activePanel, normalizedTarget) || activePanel;
+        targetSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function setActiveProfileTab(tabKey, options) {
+        const normalizedTabKey = String(tabKey || "").trim();
+        if (!normalizedTabKey) {
+          return false;
+        }
+
+        const matchingPanel = Array.from(profilePanels).find(function (panel) {
+          return String(panel.dataset.clientPanel || "").trim() === normalizedTabKey;
+        });
+
+        if (!(matchingPanel instanceof HTMLElement)) {
+          return false;
+        }
+
         profilePanels.forEach(function (panel) {
-          const isActive = String(panel.dataset.clientPanel || "").trim() === requestedTab;
+          const isActive = String(panel.dataset.clientPanel || "").trim() === normalizedTabKey;
           panel.classList.toggle("is-active", isActive);
           panel.hidden = !isActive;
         });
+
+        const defaultNavKey = String(options?.navKey || CLIENT_PROFILE_DEFAULT_NAV_BY_TAB[normalizedTabKey] || normalizedTabKey).trim();
+        setActiveProfileNavState(defaultNavKey);
+        scheduleResponsiveCoverageStatDisplaySync();
+
+        if (options?.scroll) {
+          const targetKey = String(options?.targetKey || defaultNavKey).trim();
+          window.requestAnimationFrame(function () {
+            scrollToProfileNavTarget(targetKey);
+          });
+        }
+
+        return true;
       }
 
-      profileTabs.forEach(function (tab) {
+      function setActiveProfileNav(navKey) {
+        const normalizedNavKey = String(navKey || "").trim();
+        if (!normalizedNavKey) {
+          return false;
+        }
+
+        const navButton = Array.from(profileNavButtons).find(function (button) {
+          return String(button.dataset.clientNavKey || "").trim() === normalizedNavKey;
+        });
+
+        if (!(navButton instanceof HTMLButtonElement)) {
+          return false;
+        }
+
+        const tabKey = String(navButton.dataset.clientNavTab || "").trim();
+        const targetKey = String(navButton.dataset.clientNavTarget || "").trim();
+        if (!tabKey) {
+          return false;
+        }
+
+        return setActiveProfileTab(tabKey, {
+          navKey: normalizedNavKey,
+          targetKey: targetKey,
+          scroll: true
+        });
+      }
+
+      const requestedTab = getRequestedTab();
+      setActiveProfileTab(requestedTab);
+
+      profileNavButtons.forEach(function (tab) {
         tab.addEventListener("click", function () {
-          const nextPanel = String(tab.dataset.clientTab || "").trim();
-          if (!nextPanel) {
+          const nextNavKey = String(tab.dataset.clientNavKey || "").trim();
+          if (!nextNavKey) {
             return;
           }
 
-          profileTabs.forEach(function (button) {
-            const isActive = button === tab;
-            button.classList.toggle("is-active", isActive);
-            button.setAttribute("aria-selected", isActive ? "true" : "false");
-          });
-
-          profilePanels.forEach(function (panel) {
-            const isActive = String(panel.dataset.clientPanel || "").trim() === nextPanel;
-            panel.classList.toggle("is-active", isActive);
-            panel.hidden = !isActive;
-          });
-
-          scheduleResponsiveCoverageStatDisplaySync();
+          setActiveProfileNav(nextNavKey);
         });
       });
 
@@ -8344,6 +8503,10 @@
           if (!wasDeleted) {
             return;
           }
+          if (window.StudioShellApi && typeof window.StudioShellApi.navigateToView === "function") {
+            window.StudioShellApi.navigateToView("clients.html", "push");
+            return;
+          }
           window.location.href = "clients.html";
         });
       }
@@ -8628,7 +8791,7 @@
         }
       });
 
-      document.addEventListener("click", function (event) {
+      const handleDocumentClick = function (event) {
         if (!event.target.closest(".workspace-page-menu")) {
           document.querySelectorAll(".workspace-page-menu[open]").forEach(function (menu) {
             menu.removeAttribute("open");
@@ -8649,9 +8812,10 @@
         if (!clickedInsideDrawer && !clickedTrigger) {
           closeActivityModal();
         }
-      });
+      };
+      document.addEventListener("click", handleDocumentClick);
 
-      document.addEventListener("keydown", function (event) {
+      const handleDocumentKeydown = function (event) {
         if (event.key === "Escape") {
           document.querySelectorAll(".workspace-page-menu[open]").forEach(function (menu) {
             menu.removeAttribute("open");
@@ -8670,7 +8834,60 @@
           closeActivityWidget();
           closeCoverageWidget();
         }
-      });
+      };
+      document.addEventListener("keydown", handleDocumentKeydown);
+
+      // CODE NOTE: Studio native detail mount reads this API to keep the
+      // outer Studio shell in sync without relying on the iframe path.
+      window.ClientDetailShellApi = {
+        getState: function () {
+          const activePanel = getActiveProfilePanel();
+          const activeNavButton = Array.from(profileNavButtons).find(function (button) {
+            return button.classList.contains("is-active");
+          });
+
+          return {
+            title: clientWorkspaceSidebarTitle,
+            activeTab: String(activePanel?.getAttribute("data-client-panel") || "overview").trim() || "overview",
+            activeNav: String(activeNavButton?.getAttribute("data-client-nav-key") || CLIENT_PROFILE_DEFAULT_NAV_BY_TAB[String(activePanel?.getAttribute("data-client-panel") || "overview").trim() || "overview"] || "overview").trim() || "overview",
+            recordId: String(record?.id || "").trim(),
+            caseRef: String(record?.caseRef || "").trim()
+          };
+        },
+        setTab: function (tabKey) {
+          return setActiveProfileTab(tabKey, { scroll: true });
+        },
+        setNav: function (navKey) {
+          return setActiveProfileNav(navKey);
+        }
+      };
+
+      window.__StudioNativeClientDetailCleanup = function () {
+        window.removeEventListener("resize", handleWindowResize);
+        document.removeEventListener("click", handleDocumentClick);
+        document.removeEventListener("keydown", handleDocumentKeydown);
+        if (profileSidebarHost) {
+          profileSidebarHost.removeEventListener("transitionend", handleProfileSidebarHostTransitionEnd);
+        }
+        if (profileSidebarLayout) {
+          profileSidebarLayout.removeEventListener("transitionend", handleProfileSidebarLayoutTransitionEnd);
+        }
+        if (coverageStatResizeObserver) {
+          coverageStatResizeObserver.disconnect();
+          coverageStatResizeObserver = null;
+        }
+        if (coverageStatSyncFrame) {
+          window.cancelAnimationFrame(coverageStatSyncFrame);
+          coverageStatSyncFrame = 0;
+        }
+        if (coverageAdequacyAnimationFrame) {
+          window.cancelAnimationFrame(coverageAdequacyAnimationFrame);
+          coverageAdequacyAnimationFrame = 0;
+        }
+        if (window.ClientDetailShellApi && window.ClientDetailShellApi.getState?.().recordId === String(record?.id || "").trim()) {
+          delete window.ClientDetailShellApi;
+        }
+      };
 
       if (activityDetailModal) {
         activityDetailModal.addEventListener("submit", function (event) {
