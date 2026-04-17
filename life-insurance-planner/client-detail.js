@@ -1575,22 +1575,6 @@
         `;
       }
 
-      function renderOverviewAccountCompletionPanel(record) {
-        const completion = calculateProfileCompletion(record);
-
-        return `
-          <section class="client-overview-account-completion-panel" aria-label="Planning Workflow Adequacy">
-            <div class="client-overview-account-completion-header">
-              <span>Planning Workflow Adequacy</span>
-              <strong>${completion}%</strong>
-            </div>
-            <div class="client-coverage-adequacy-track client-overview-account-completion-track" aria-hidden="true">
-              <div class="client-coverage-adequacy-fill client-overview-account-completion-fill" style="width: ${completion}%;"></div>
-            </div>
-          </section>
-        `;
-      }
-
       function getOverviewCloseProbabilityPrediction(workflowState) {
         const currentKey = String(workflowState?.currentKey || "").trim();
         return OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS[currentKey]
@@ -2142,7 +2126,7 @@
         default: Object.freeze({
           current: 49,
           projected: 72,
-          qualifier: "if inputs completed",
+          qualifier: "If Primary Advisor Action Completed",
           boosters: Object.freeze([
             Object.freeze({ stepKey: "modeling-inputs", label: "Complete Modeling Inputs", gain: 7 }),
             Object.freeze({ stepKey: "needs-analysis", label: "Save Needs Analysis", gain: 8 }),
@@ -2152,7 +2136,7 @@
         "modeling-inputs": Object.freeze({
           current: 49,
           projected: 72,
-          qualifier: "if inputs completed",
+          qualifier: "If Primary Advisor Action Completed",
           boosters: Object.freeze([
             Object.freeze({ stepKey: "modeling-inputs", label: "Complete Modeling Inputs", gain: 7 }),
             Object.freeze({ stepKey: "needs-analysis", label: "Save Needs Analysis", gain: 8 }),
@@ -2216,10 +2200,20 @@
       }
 
       function renderClientProfileSidebar(record, subtitleParts) {
+        const clientName = getClientWorkspaceSidebarTitle(record);
+        const householdAssignment = formatValue(record.householdName);
+        const householdAssignmentValue = householdAssignment === "Not provided"
+          ? "No household linked"
+          : householdAssignment;
+        const dependentsCountRaw = String(record.dependentsCount ?? "").trim();
+        const dependentsCount = dependentsCountRaw ? Number(dependentsCountRaw) : null;
+        const dependentsValue = dependentsCount !== null && Number.isFinite(dependentsCount)
+          ? `${dependentsCount} dependent${dependentsCount === 1 ? "" : "s"}`
+          : formatValue(record.hasDependents);
         return `
           <aside class="client-profile-sidebar">
             <div class="client-profile-sidebar-sticky">
-              <section class="client-profile-sidebar-card">
+              <section class="client-detail-card client-detail-card-compact client-profile-sidebar-card">
                 <details class="workspace-page-menu client-profile-sidebar-menu">
                   <summary class="workspace-page-menu-trigger client-profile-sidebar-menu-trigger" aria-label="Open profile actions" title="Profile actions">
                     <span class="client-profile-sidebar-menu-dots" aria-hidden="true">
@@ -2239,6 +2233,7 @@
                 </details>
                 <div class="client-profile-sidebar-copy">
                   <span class="client-profile-sidebar-overline">Client Details</span>
+                  <strong class="client-profile-sidebar-name">${escapeHtml(clientName)}</strong>
                   <p>${escapeHtml([
                     formatValue(record.age),
                     formatValue(record.insuranceRatingSex),
@@ -2280,11 +2275,29 @@
                       </div>
                     </div>
                   </div>
+                  <div class="client-profile-contact-item client-profile-contact-item--assignment">
+                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M8 2.4 2.9 5.25V13.1h10.2V5.25L8 2.4Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6.2 13.1V9.2h3.6v3.9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+                    <div class="client-profile-contact-copy">
+                      <span class="client-profile-contact-key">Household Assignment</span>
+                      <strong>${escapeHtml(householdAssignmentValue)}</strong>
+                    </div>
+                  </div>
+                  <div class="client-profile-contact-item">
+                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M8 12.6 3.4 8.45a2.55 2.55 0 0 1 3.56-3.66L8 5.8l1.04-1.01a2.55 2.55 0 1 1 3.56 3.66L8 12.6Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+                    <div class="client-profile-contact-copy">
+                      <span class="client-profile-contact-key">Marital Status</span>
+                      <strong>${escapeHtml(formatValue(record.maritalStatus))}</strong>
+                    </div>
+                  </div>
+                  <div class="client-profile-contact-item">
+                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><circle cx="5.3" cy="5.45" r="1.65" stroke="currentColor" stroke-width="1.2"/><circle cx="10.9" cy="6.1" r="1.45" stroke="currentColor" stroke-width="1.2"/><path d="M2.95 12.35a2.85 2.85 0 0 1 4.7-2.15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M8.55 12.35a2.4 2.4 0 0 1 3.95-1.82" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
+                    <div class="client-profile-contact-copy">
+                      <span class="client-profile-contact-key">Dependents</span>
+                      <strong>${escapeHtml(dependentsValue)}</strong>
+                    </div>
+                  </div>
                 </div>
               </section>
-              <div class="client-profile-sidebar-context" data-client-sidebar-context data-client-sidebar-context-key="${escapeHtml(getRequestedProfileNavKey())}">
-                ${renderClientProfileSidebarContextPanels(record, getRequestedProfileNavKey())}
-              </div>
             </div>
           </aside>
         `;
@@ -2824,17 +2837,13 @@
 
       function renderOverviewSummaryCard(record) {
         const coverageFields = synchronizeRecordCoverageFields(record);
-        const workflowState = getClientWorkflowProgressState(record);
-        const currentStepLabel = workflowState.currentStep ? workflowState.currentStep.label : "Placement Complete";
+        const priorityLever = getPriorityDisplay(normalizePriority(record.priority));
         const closeIndex = window.LipOpportunityScore && typeof window.LipOpportunityScore.calculate === "function"
           ? window.LipOpportunityScore.calculate(record, { now: new Date() })
           : null;
-        const closeProbabilityPrediction = getOverviewCloseProbabilityPrediction(workflowState);
-        const priorityLever = getPriorityDisplay(normalizePriority(record.priority));
         const overviewItems = [
           { label: "Priority Lever", value: priorityLever },
-          { label: "Planning Status", value: getPlanningStatus(record) },
-          { label: "Current Focus", value: currentStepLabel }
+          { label: "Planning Status", value: getPlanningStatus(record) }
         ];
 
         return `
@@ -2858,12 +2867,10 @@
                 <div class="client-overview-close-index-panel">
                   ${renderCloseIndexGauge(closeIndex)}
                 </div>
-                ${renderOverviewCloseProbabilityPrediction(closeProbabilityPrediction, workflowState)}
               </div>
               <div class="client-overview-support-grid">
                 <div class="client-overview-secondary-panels">
-                  ${renderCoverageAdequacyBar(record, { className: "client-overview-coverage-adequacy" })}
-                  ${renderOverviewAccountCompletionPanel(record)}
+                  ${renderCoverageAdequacyBar(record, { className: "client-overview-coverage-adequacy", showIncomeGap: false })}
                 </div>
               </div>
               <div class="client-overview-summary-grid">
@@ -3296,45 +3303,6 @@
         `;
       }
 
-      function filterSidebarInsightItems(items) {
-        return (Array.isArray(items) ? items : []).filter(function (item) {
-          const value = String(item?.value ?? "").trim();
-          return Boolean(value) && value !== "Not provided";
-        });
-      }
-
-      function renderSidebarInsightCard(title, items, options) {
-        const config = options && typeof options === "object" ? options : {};
-        const eyebrow = String(config.eyebrow || "").trim();
-        const emptyCopy = String(config.emptyCopy || "No saved details yet.").trim();
-        const rows = filterSidebarInsightItems(items);
-
-        return `
-          <section class="client-detail-card client-detail-card-compact client-profile-sidebar-context-card">
-            <div class="client-detail-card-header client-profile-sidebar-context-card-header">
-              <div class="client-profile-sidebar-context-card-copy">
-                ${eyebrow ? `<span class="client-profile-sidebar-context-card-eyebrow">${escapeHtml(eyebrow)}</span>` : ""}
-                <h2>${escapeHtml(title)}</h2>
-              </div>
-            </div>
-            ${rows.length ? `
-              <div class="client-summary-list client-profile-sidebar-context-list">
-                ${rows.map(function (item) {
-                  return `
-                    <div class="client-summary-item">
-                      <span class="client-summary-label">${escapeHtml(item.label)}</span>
-                      <span class="client-summary-value">${escapeHtml(item.value)}</span>
-                    </div>
-                  `;
-                }).join("")}
-              </div>
-            ` : `
-              <div class="client-profile-sidebar-context-empty">${escapeHtml(emptyCopy)}</div>
-            `}
-          </section>
-        `;
-      }
-
       function getRecommendationBasisLabel(record) {
         const modeledNeedSource = String(record?.modeledNeedSource || "").trim().toLowerCase();
         if (modeledNeedSource === "custom-amount") {
@@ -3515,159 +3483,6 @@
           return text;
         }
         return `${text.slice(0, Math.max(0, limit - 1)).trimEnd()}…`;
-      }
-
-      function renderClientProfileSidebarContextPanels(record, activeNavKey) {
-        const normalizedNavKey = String(activeNavKey || "overview").trim().toLowerCase() || "overview";
-        const workflowState = getClientWorkflowProgressState(record);
-        const workflowStepMap = new Map(workflowState.steps.map(function (step) {
-          return [String(step.key || "").trim(), step];
-        }));
-        const coverageFields = synchronizeRecordCoverageFields(record);
-        const policies = Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
-        const policyDocumentSummary = policies.reduce(function (summary, policy) {
-          const documentCount = getPolicyDocumentEntries(policy).length;
-          summary.totalDocuments += documentCount;
-          if (documentCount > 0) {
-            summary.withDocuments += 1;
-          } else {
-            summary.missingDocuments += 1;
-          }
-          return summary;
-        }, {
-          totalDocuments: 0,
-          withDocuments: 0,
-          missingDocuments: 0
-        });
-        const annualPremiumSummary = getCoverageAnnualPremiumSummary(policies);
-        const totalFaceAmount = policies.reduce(function (sum, policy) {
-          return sum + parseCurrencyNumber(policy.faceAmount);
-        }, 0);
-        const adequacy = getCoverageAdequacy(record);
-        const financialSummary = getFinancialSnapshotSummary(record);
-        const activitySummary = getActivityTrackerSummary(record);
-        const notePreview = truncateSidebarPreview(record.clientNotes, 110);
-        const recommendationBasis = getRecommendationBasisLabel(record);
-        const currentStepLabel = workflowState.currentStep ? workflowState.currentStep.label : "Placement Complete";
-        const statusGroup = String(record.statusGroup || "").trim().toLowerCase();
-        const underwritingStatus = record.preliminaryUnderwritingCompleted
-          ? "Completed"
-          : statusGroup === "in-review"
-            ? "In review"
-            : "Not started";
-        const riskData = record.preliminaryUnderwriting?.data || {};
-
-        if (normalizedNavKey === "analysis") {
-          return renderSidebarInsightCard("Analysis Progress", [
-            { label: "Modeling Inputs", value: workflowStepMap.get("modeling-inputs")?.detail || "Pending" },
-            { label: "Needs Analysis", value: workflowStepMap.get("needs-analysis")?.detail || "Pending" },
-            { label: "Recommendation", value: workflowStepMap.get("recommendation")?.detail || "Pending" },
-            { label: "Current Focus", value: currentStepLabel }
-          ], { eyebrow: "Case Progression" });
-        }
-
-        if (normalizedNavKey === "modeling-inputs") {
-          return renderSidebarInsightCard("Input Readiness", [
-            { label: "PMI Status", value: record.pmiCompleted ? "Completed" : "Pending" },
-            { label: "Latest Inputs Saved", value: financialSummary.latestSavedAt },
-            { label: "Household Income", value: formatCoverageCardCurrency(financialSummary.annualIncome) },
-            { label: "Monthly Spending", value: formatCoverageCardCurrency(financialSummary.monthlySpending) },
-            { label: "Debt on File", value: formatCoverageCardCurrency(financialSummary.totalDebt) }
-          ], { eyebrow: "Analysis" });
-        }
-
-        if (normalizedNavKey === "needs-analysis") {
-          return renderSidebarInsightCard("Needs Snapshot", [
-            { label: "Recommendation Basis", value: recommendationBasis },
-            { label: "Modeled Need", value: formatCoverageCardCurrency(coverageFields.modeledNeed) },
-            { label: "Current Coverage", value: formatCoverageCardCurrency(coverageFields.currentCoverage) },
-            { label: "Uncovered Need", value: formatCoverageCardCurrency(coverageFields.uncoveredGap) },
-            { label: "Coverage Adequacy", value: `${adequacy}%` }
-          ], { eyebrow: "Analysis" });
-        }
-
-        if (normalizedNavKey === "recommendation") {
-          return renderSidebarInsightCard("Recommendation Snapshot", [
-            { label: "Status", value: record.analysisCompleted ? "Ready for advisor review" : "Recommendation pending" },
-            { label: "Basis", value: recommendationBasis },
-            { label: "Modeled Need", value: formatCoverageCardCurrency(coverageFields.modeledNeed) },
-            { label: "Uncovered Need", value: formatCoverageCardCurrency(coverageFields.uncoveredGap) },
-            { label: "Next Workflow Step", value: currentStepLabel }
-          ], { eyebrow: "Analysis" });
-        }
-
-        if (normalizedNavKey === "underwriting") {
-          return renderSidebarInsightCard("Underwriting Snapshot", [
-            { label: "Status", value: underwritingStatus },
-            { label: "Risk View", value: getRiskSummary(record) },
-            { label: "Nicotine Use", value: formatValue(riskData.nicotineUseStatus) },
-            { label: "Major Conditions", value: formatListValue(riskData.majorMedicalConditions) },
-            { label: "Saved At", value: record.preliminaryUnderwritingCompleted ? formatDate(record.preliminaryUnderwriting?.savedAt) : "Not provided" }
-          ], { eyebrow: "Case Progression" });
-        }
-
-        if (normalizedNavKey === "placement" || normalizedNavKey === "policies") {
-          return renderSidebarInsightCard("Placement Snapshot", [
-            { label: "Policies on File", value: String(policies.length || 0) },
-            { label: "Total Face Amount", value: formatCompactCurrencyTotal(totalFaceAmount) },
-            { label: "Annual Premium", value: annualPremiumSummary.hasAnnualizedAmount ? formatCurrencyTotal(annualPremiumSummary.total) : "Not available" },
-            { label: "Policies with Docs", value: `${policyDocumentSummary.withDocuments} of ${policies.length || 0}` }
-          ], { eyebrow: normalizedNavKey === "placement" ? "Case Progression" : "Client Data" });
-        }
-
-        if (normalizedNavKey === "household") {
-          return renderSidebarInsightCard("Household Insight", [
-            { label: "Household Name", value: formatValue(record.householdName) },
-            { label: "Household Role", value: formatValue(record.householdRole) },
-            { label: "Marital Status", value: formatValue(record.maritalStatus) },
-            { label: "Preferred Contact", value: formatValue(record.preferredContactMethod) },
-            { label: "Advisor", value: formatValue(record.advisorName) }
-          ], { eyebrow: "Client Data" });
-        }
-
-        if (normalizedNavKey === "financial-snapshot") {
-          return renderSidebarInsightCard("Financial Snapshot", [
-            { label: "Household Income", value: formatCoverageCardCurrency(financialSummary.annualIncome) },
-            { label: "Spouse Income", value: formatCoverageCardCurrency(financialSummary.spouseIncome) },
-            { label: "Monthly Spending", value: formatCoverageCardCurrency(financialSummary.monthlySpending) },
-            { label: "Debt on File", value: formatCoverageCardCurrency(financialSummary.totalDebt) },
-            { label: "Survivor Income", value: formatCoverageCardCurrency(financialSummary.survivorIncome) }
-          ], { eyebrow: "Client Data" });
-        }
-
-        if (normalizedNavKey === "activity") {
-          return renderSidebarInsightCard("Activity Snapshot", [
-            { label: "Status", value: activitySummary.status },
-            { label: "Last Contact", value: activitySummary.relativeContact },
-            { label: "Response Rate", value: activitySummary.responseRate },
-            { label: "Suggested Activity", value: activitySummary.nextAction }
-          ], { eyebrow: "Activity / Support" });
-        }
-
-        if (normalizedNavKey === "notes") {
-          return renderSidebarInsightCard("Notes Snapshot", [
-            { label: "Advisor Note", value: notePreview || "No notes saved yet" },
-            { label: "Last Review", value: formatDate(record.lastReview || record.lastUpdatedDate || record.dateProfileCreated) },
-            { label: "Last Updated", value: formatDate(record.lastUpdatedDate || record.dateProfileCreated) }
-          ], { eyebrow: "Activity / Support" });
-        }
-
-        if (normalizedNavKey === "documents") {
-          return renderSidebarInsightCard("Documents Snapshot", [
-            { label: "Saved Policy Files", value: String(policyDocumentSummary.totalDocuments || 0) },
-            { label: "Policies with Files", value: `${policyDocumentSummary.withDocuments} of ${policies.length || 0}` },
-            { label: "Policies Missing Files", value: String(policyDocumentSummary.missingDocuments || 0) },
-            { label: "Illustrations Queued", value: String(getIllustrationEntries(record).length || 0) }
-          ], { eyebrow: "Activity / Support" });
-        }
-
-        return renderSidebarInsightCard("Case Snapshot", [
-          { label: "Workflow Progress", value: `${workflowState.completedCount} of ${workflowState.steps.length} complete` },
-          { label: "Current Step", value: currentStepLabel },
-          { label: "Coverage Adequacy", value: `${adequacy}%` },
-          { label: "Policies on File", value: String(policies.length || 0) },
-          { label: "Last Updated", value: formatDate(record.lastUpdatedDate || record.dateProfileCreated) }
-        ], { eyebrow: "Current Focus" });
       }
 
       function getUpcomingReminderItems(record) {
@@ -4265,9 +4080,10 @@
         const widgetTargets = String(sectionTargets || "activity-log").trim();
 
         return `
-          <section class="client-detail-card client-detail-card-compact client-notes-widget-card"${widgetTargets ? ` data-client-nav-section="${escapeHtml(widgetTargets)}"` : ""}>
+          <section class="client-detail-card client-detail-card-compact client-notes-widget-card client-detail-card-tabbed"${widgetTargets ? ` data-client-nav-section="${escapeHtml(widgetTargets)}"` : ""}>
+            <div class="client-detail-card-tab">${escapeHtml(widgetTitle)}</div>
             <div class="client-notes-widget-topline">
-              <h2>${escapeHtml(widgetTitle)}</h2>
+              <h2 class="sr-only">${escapeHtml(widgetTitle)}</h2>
             </div>
             <div class="client-notes-widget-body">
               <div data-activity-overview>
@@ -4399,14 +4215,20 @@
         const completedCount = items.filter(function (item) { return item.complete; }).length;
         const activeIndex = items.findIndex(function (item) { return !item.complete; });
         const progressRatio = items.length ? (completedCount / items.length) : 0;
+        const workflowState = getClientWorkflowProgressState(record);
+        const closeProbabilityPrediction = getOverviewCloseProbabilityPrediction(workflowState);
 
         return `
-          <section class="client-detail-card client-detail-card-compact client-detail-card-checklist" data-checklist-card>
+          <section class="client-detail-card client-detail-card-compact client-detail-card-checklist client-detail-card-tabbed" data-checklist-card>
+            <div class="client-detail-card-tab">${escapeHtml(title)}</div>
             <div class="client-detail-card-header client-detail-card-header-checklist">
               <div class="client-checklist-heading-copy">
-                <h2>${escapeHtml(title)}</h2>
+                <h2 class="sr-only">${escapeHtml(title)}</h2>
               </div>
               <span class="client-checklist-progress-pill">${completedCount} of ${items.length} complete</span>
+            </div>
+            <div class="client-checklist-probability-shell">
+              ${renderOverviewCloseProbabilityPrediction(closeProbabilityPrediction, workflowState)}
             </div>
             <div
               class="client-checklist-progress"
@@ -4735,6 +4557,7 @@
         const tone = getCoverageAdequacyTone(adequacy);
         const gapDetails = getCoverageAdequacyGapDetails(record, adequacy);
         const className = String(options?.className || "").trim();
+        const showIncomeGap = options?.showIncomeGap !== false;
         return `
           <section class="client-coverage-adequacy${className ? ` ${escapeHtml(className)}` : ""}" data-coverage-adequacy data-coverage-adequacy-tone="${escapeHtml(tone)}" data-coverage-has-gap="${gapDetails.hasCoverageGap ? "true" : "false"}">
             <div class="client-coverage-adequacy-header">
@@ -4753,10 +4576,12 @@
                 <span class="client-coverage-adequacy-gap-label">Coverage Gap</span>
                 <strong class="client-coverage-adequacy-gap-value" data-coverage-gap-value>${escapeHtml(formatCoverageCardCurrency(gapDetails.coverageGap))}</strong>
               </div>
-              <div class="client-coverage-adequacy-income-row">
-                <span class="client-coverage-adequacy-income-label">Income Gap</span>
-                <strong class="client-coverage-adequacy-income-value" data-income-gap-value>${escapeHtml(formatCoverageCardCurrency(gapDetails.incomeGap))}</strong>
-              </div>
+              ${showIncomeGap ? `
+                <div class="client-coverage-adequacy-income-row">
+                  <span class="client-coverage-adequacy-income-label">Income Gap</span>
+                  <strong class="client-coverage-adequacy-income-value" data-income-gap-value>${escapeHtml(formatCoverageCardCurrency(gapDetails.incomeGap))}</strong>
+                </div>
+              ` : ""}
             </div>
           </section>
         `;
@@ -5078,7 +4903,7 @@
                   ${renderPrimaryActionPanel(record, checklistItems)}
                 </div>
                 ${renderClientProfileSidebar(record, subtitleParts)}
-                <div class="client-profile-workspace-main">
+                <div class="client-profile-workspace-main client-profile-workspace-main--overview">
                   <div class="client-profile-workspace" data-client-profile-workspace>
                     ${renderProfileWorkspaceSection({
                       sectionTargets: "overview",
@@ -5094,13 +4919,25 @@
                           <div class="client-profile-dashboard client-profile-dashboard--overview">
                             <div class="client-profile-dashboard-main">
                               ${renderOverviewSummaryCard(record)}
-                              ${renderChecklistCard("Planning Workflow", checklistItems, record)}
-                              ${renderNotesWidget(record, "Activity Tracker", "activity activity-log")}
                             </div>
                           </div>
                         </div>
                       `
                     })}
+                  </div>
+                </div>
+                <div class="client-profile-workspace-wide-row client-profile-workspace-wide-row--overview">
+                  <div class="client-profile-overview-workflow-grid">
+                    <div class="client-profile-overview-workflow-grid-activity">
+                      ${renderNotesWidget(record, "Activity Tracker", "activity activity-log")}
+                    </div>
+                    <div class="client-profile-overview-workflow-grid-checklist">
+                      ${renderChecklistCard("Planning Workflow", checklistItems, record)}
+                    </div>
+                  </div>
+                </div>
+                <div class="client-profile-workspace-main client-profile-workspace-main--sections">
+                  <div class="client-profile-workspace">
 
                     ${renderProfileWorkspaceSection({
                       sectionTargets: "analysis",
@@ -5565,7 +5402,6 @@
       const isContinuousProfileWorkspace = Boolean(host.querySelector("[data-client-profile-workspace]"));
       const profileSidebarHost = document.querySelector('[data-workspace-side-nav="client-detail"]');
       const profileSidebarLayout = host.querySelector("[data-client-sidebar-layout]");
-      const profileSidebarContextHost = host.querySelector("[data-client-sidebar-context]");
       const profileSidebarToggle = document.querySelector("[data-client-side-tabs-toggle]");
       const policyModal = host.querySelector("[data-policy-modal]");
       const policyModalPanel = host.querySelector(".client-policy-detail-modal-panel");
@@ -7487,7 +7323,6 @@
           documentsSummaryCard.innerHTML = renderDocumentsSummaryCard(record);
         }
 
-        refreshClientProfileSidebarContext();
       }
 
       function refreshActivityTracker() {
@@ -7764,28 +7599,7 @@
         };
       }
 
-      function refreshClientProfileSidebarContext(forcedNavKey) {
-        if (!(profileSidebarContextHost instanceof HTMLElement)) {
-          return;
-        }
-
-        const contextNavKey = String(forcedNavKey || getActiveProfileNavKey() || getRequestedProfileNavKey() || "overview").trim() || "overview";
-        const nextMarkup = renderClientProfileSidebarContextPanels(record, contextNavKey);
-        if (profileSidebarContextHost.dataset.clientSidebarContextKey === contextNavKey
-          && profileSidebarContextHost.__clientSidebarContextMarkup === nextMarkup) {
-          return;
-        }
-
-        // CODE NOTE: The persistent left profile panel now changes with the
-        // active workflow section so the sidebar feels like a live case
-        // companion instead of a static profile card.
-        profileSidebarContextHost.dataset.clientSidebarContextKey = contextNavKey;
-        profileSidebarContextHost.__clientSidebarContextMarkup = nextMarkup;
-        profileSidebarContextHost.innerHTML = nextMarkup;
-      }
-
       function dispatchClientDetailShellStateChange() {
-        refreshClientProfileSidebarContext();
         window.dispatchEvent(new CustomEvent("client-detail-shell-statechange", {
           detail: getClientDetailShellState()
         }));
@@ -7859,7 +7673,6 @@
           }
         }
 
-        refreshClientProfileSidebarContext(normalizedNavKey);
         dispatchClientDetailShellStateChange();
         return foundMatch;
       }
@@ -9125,7 +8938,6 @@
           if (activeStatField === "currentCoverage" || activeStatField === "modeledNeed") {
             refreshCoverageAdequacy();
             refreshPrimaryActionPanel();
-            refreshClientProfileSidebarContext();
           }
           statModalInput.value = formatEditableCurrency(clamped);
           closeStatEditor();

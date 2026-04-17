@@ -6724,21 +6724,26 @@ body.studio-page.is-native-client-detail .client-profile-sidebar {
   padding: 0;
   z-index: auto;
   overflow: visible;
-  align-self: start;
+  align-self: stretch;
 }
 
 body.studio-page.is-native-client-detail .client-profile-sidebar-sticky {
   position: static;
   top: auto;
-  min-height: 0;
-  height: auto;
+  min-height: 100%;
+  height: 100%;
   overflow: visible;
-  padding: 0 0.72rem 1rem;
+  padding: 0 var(--client-profile-banner-pad-right) 1rem var(--client-profile-banner-pad-left);
 }
 
 body.studio-page.is-native-client-detail.workspace-side-nav-collapsed .client-profile-sidebar,
 body.studio-page.is-native-client-detail .workspace-side-nav-host.is-collapsed[data-workspace-side-nav="client-detail"] ~ .home-shell .client-profile-sidebar {
   left: auto;
+}
+
+body.studio-page.is-native-client-detail.workspace-side-nav-collapsed,
+body.studio-page.is-native-client-detail .workspace-side-nav-host.is-collapsed[data-workspace-side-nav="client-detail"] ~ .home-shell {
+  --client-profile-sidebar-width: clamp(22rem, 27vw, 26rem);
 }
 
 .client-profile-shell:not(.client-profile-shell-household) .client-profile-sidebar {
@@ -6778,84 +6783,13 @@ body.studio-page.is-native-client-detail .workspace-side-nav-host.is-collapsed[d
   position: relative;
   display: grid;
   gap: 0.95rem;
-  padding: 1rem 0.45rem;
-  border: 1px solid rgba(213, 221, 232, 0.95);
-  border-radius: 0.35rem;
-  background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
-  box-shadow: 0 10px 24px rgba(16, 33, 52, 0.05);
+  align-content: start;
 }
 
 body.studio-page.is-native-client-detail .client-profile-sidebar-card {
   gap: 0.78rem;
-  padding: 0.92rem 0.68rem 0.78rem;
-  border: 1px solid rgba(210, 218, 232, 0.96);
-  border-radius: 0.95rem;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 253, 0.98) 100%);
-  box-shadow: none;
+  padding: 1rem 1.05rem;
 }
-
-.client-profile-sidebar-context {
-  display: grid;
-  align-content: start;
-  gap: 1rem;
-  min-height: 0;
-  overflow: visible;
-}
-
-.client-profile-sidebar-context-card {
-  border-color: rgba(226, 232, 240, 0.92);
-  box-shadow: 0 14px 32px rgba(16, 33, 52, 0.05);
-}
-
-.client-profile-sidebar-context-card.client-detail-card-compact {
-  padding: 0.82rem 0.94rem;
-}
-
-.client-profile-sidebar-context-card-header {
-  padding-bottom: 0.3rem;
-}
-
-.client-profile-sidebar-context-card-copy {
-  display: grid;
-  gap: 0.16rem;
-}
-
-.client-profile-sidebar-context-card-eyebrow {
-  color: #98a3b4;
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.client-profile-sidebar-context-card .client-detail-card-header h2 {
-  font-size: 0.95rem;
-  font-weight: 550;
-}
-
-.client-profile-sidebar-context-list {
-  gap: 0.58rem;
-}
-
-.client-profile-sidebar-context-list .client-summary-item {
-  gap: 0.14rem;
-}
-
-.client-profile-sidebar-context-list .client-summary-label {
-  font-size: 0.72rem;
-}
-
-.client-profile-sidebar-context-list .client-summary-value {
-  font-size: 0.9rem;
-}
-
-.client-profile-sidebar-context-empty {
-  color: #8b97aa;
-  font-size: 0.84rem;
-  line-height: 1.55;
-}
-
 
 .client-profile-sidebar-menu {
   position: absolute;
@@ -7049,8 +6983,15 @@ body.studio-page.is-native-client-detail .client-profile-sidebar-copy h2 {
   text-transform: uppercase;
 }
 
+.client-profile-sidebar-name {
+  color: #17212e;
+  font-size: 1.14rem;
+  font-weight: 700;
+  line-height: 1.18;
+}
+
 .client-profile-sidebar-copy p {
-  margin: 0.4rem 0 0;
+  margin: 0;
   color: #667084;
   font-size: 0.92rem;
   font-weight: 400;
@@ -7160,6 +7101,11 @@ body.studio-page.is-native-client-detail .client-profile-sidebar-copy h2 {
   word-break: normal;
   overflow-wrap: normal;
   white-space: nowrap;
+}
+
+.client-profile-contact-item--assignment strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 body.studio-page.is-native-client-detail .client-profile-contact-list {
@@ -7319,7 +7265,7 @@ body.studio-page.is-native-client-detail .client-profile-copy-button.is-copied {
 
 .client-profile-workspace-shell {
   display: grid;
-  grid-template-columns: 21.25rem minmax(0, 1fr);
+  grid-template-columns: var(--client-profile-sidebar-width, 21.25rem) minmax(0, 1fr);
   column-gap: 0.28rem;
   row-gap: 0.82rem;
   min-width: 0;
@@ -7333,18 +7279,48 @@ body.studio-page.is-native-client-detail .client-profile-copy-button.is-copied {
 
 body.studio-page.is-native-client-detail .client-profile-workspace-action-row {
   margin-top: 0.7rem;
-  padding-left: 0.72rem;
-  padding-right: 0.92rem;
+  padding-left: var(--client-profile-banner-pad-left);
+  padding-right: var(--client-profile-banner-pad-right);
 }
 
 .client-profile-workspace-main {
   display: grid;
   align-content: start;
   min-width: 0;
+  grid-column: 2;
 }
 
 body.studio-page.is-native-client-detail .client-profile-workspace-main {
   padding-top: var(--client-profile-workspace-top-gap, 0.9rem);
+}
+
+body.studio-page.is-native-client-detail .client-profile-workspace-main--overview,
+body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-workspace,
+body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-workspace-section--overview,
+body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-workspace-section--overview .client-profile-workspace-section-body,
+body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-overview-stack,
+body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-dashboard--overview,
+body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-dashboard-main {
+  min-height: 100%;
+}
+
+body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-overview-summary-card {
+  display: grid;
+  align-content: start;
+  box-sizing: border-box;
+  min-height: calc(100% - var(--client-overview-summary-top-gap, 1.6rem));
+}
+
+.client-profile-workspace-wide-row {
+  grid-column: 1 / -1;
+  display: grid;
+  min-width: 0;
+  align-content: start;
+}
+
+body.studio-page.is-native-client-detail .client-profile-workspace-wide-row {
+  padding-left: var(--client-profile-banner-pad-left);
+  padding-right: var(--client-profile-banner-pad-right);
 }
 
 body.studio-page.is-native-client-detail .client-profile-workspace-action-row + .client-profile-sidebar .client-profile-sidebar-sticky {
@@ -7360,8 +7336,13 @@ body.studio-page.is-native-client-detail .client-profile-workspace-shell {
   grid-template-columns: var(--client-profile-sidebar-width, 21.25rem) minmax(0, 1fr);
   column-gap: 0.14rem;
   row-gap: 0.68rem;
-  align-items: start;
+  align-items: stretch;
   padding-left: 0;
+}
+
+body.studio-page.is-native-client-detail .client-profile-sidebar-card {
+  min-height: 100%;
+  align-content: start;
 }
 
 .client-profile-workspace {
@@ -7377,7 +7358,7 @@ body.studio-page.is-native-client-detail .client-profile-workspace-shell {
 }
 
 body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.client-profile-workspace-section--overview) {
-  padding: 0 1.3rem;
+  padding: 0 var(--client-profile-banner-pad-right) 0 var(--client-profile-banner-pad-left);
 }
 
 .client-profile-workspace-section-header {
@@ -7577,6 +7558,39 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
   gap: 0.92rem;
 }
 
+.client-profile-overview-workflow-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 1rem;
+  min-width: 0;
+  align-items: stretch;
+}
+
+.client-profile-overview-workflow-grid-activity,
+.client-profile-overview-workflow-grid-checklist {
+  display: flex;
+  gap: 1rem;
+  min-width: 0;
+  align-items: stretch;
+}
+
+.client-profile-overview-workflow-grid-activity .client-notes-widget-card {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 31rem;
+}
+
+.client-profile-overview-workflow-grid-checklist .client-detail-card-checklist {
+  flex: 1 1 auto;
+  height: 100%;
+}
+
+.client-profile-overview-workflow-grid-activity .client-notes-widget-paper {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+
 .client-profile-overview-main {
   display: grid;
   align-content: start;
@@ -7593,8 +7607,39 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
 @media (max-width: 1120px) {
   .client-profile-workspace-shell,
   .client-profile-analysis-grid,
-  .client-profile-section-grid {
+  .client-profile-section-grid,
+  .client-profile-overview-workflow-grid {
     grid-template-columns: 1fr;
+  }
+
+  .client-profile-workspace-main,
+  .client-profile-workspace-wide-row {
+    grid-column: auto;
+  }
+
+  .client-profile-overview-workflow-grid-activity,
+  .client-profile-overview-workflow-grid-checklist,
+  .client-profile-overview-workflow-grid-activity .client-notes-widget-card,
+  .client-profile-overview-workflow-grid-checklist .client-detail-card-checklist {
+    height: auto;
+    min-height: 0;
+  }
+
+  .client-profile-overview-workflow-grid-activity .client-notes-widget-paper {
+    flex: 0 0 auto;
+    max-height: 14.15rem;
+  }
+
+  body.studio-page.is-native-client-detail .client-profile-workspace-main--overview,
+  body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-workspace,
+  body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-workspace-section--overview,
+  body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-workspace-section--overview .client-profile-workspace-section-body,
+  body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-overview-stack,
+  body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-dashboard--overview,
+  body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-dashboard-main,
+  body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-overview-summary-card {
+    height: auto;
+    min-height: 0;
   }
 
   body.studio-page.is-native-client-detail .client-profile-workspace-shell {
@@ -7609,11 +7654,17 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
     bottom: auto;
     width: auto;
     overflow: visible;
+    align-self: start;
   }
 
   body.studio-page.is-native-client-detail .client-profile-sidebar-sticky {
     position: static;
+    min-height: 0;
     height: auto;
+  }
+
+  body.studio-page.is-native-client-detail .client-profile-sidebar-card {
+    min-height: 0;
   }
 }
 
@@ -8440,14 +8491,23 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
 }
 
 .client-overview-summary-card {
+  --client-overview-summary-top-gap: 1.6rem;
   position: relative;
   gap: 0.95rem;
+  margin-top: var(--client-overview-summary-top-gap);
+  padding-top: 1.08rem;
+  overflow: visible;
+}
+
+.client-detail-card-tabbed {
+  position: relative;
   margin-top: 0.9rem;
   padding-top: 1.08rem;
   overflow: visible;
 }
 
-.client-overview-summary-tab {
+.client-overview-summary-tab,
+.client-detail-card-tab {
   position: absolute;
   top: 0;
   left: 0.95rem;
@@ -8484,10 +8544,10 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
 .client-overview-close-index-hero {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(10.5rem, 12rem) minmax(0, 1fr);
-  gap: 1rem;
+  grid-template-columns: minmax(10.5rem, 12rem);
+  gap: 0;
   align-items: center;
-  justify-items: stretch;
+  justify-items: start;
   padding: 0.05rem 0 0.12rem;
 }
 
@@ -8577,39 +8637,6 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
   pointer-events: none;
 }
 
-.client-overview-account-completion-panel {
-  display: grid;
-  gap: 0.55rem;
-  padding: 0;
-  min-width: 0;
-  align-content: center;
-}
-
-.client-overview-account-completion-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.client-overview-account-completion-header span {
-  color: #526074;
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.client-overview-account-completion-header strong {
-  color: #244a36;
-  font-size: 1rem;
-  font-weight: 800;
-}
-
-.client-overview-account-completion-track {
-  height: 0.96rem;
-}
-
 .client-overview-coverage-adequacy {
   width: 100%;
   padding: 0;
@@ -8649,6 +8676,30 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
   min-height: 100%;
 }
 
+.client-checklist-probability-shell {
+  padding: 0.1rem 0 0.92rem;
+}
+
+.client-detail-card-checklist .client-overview-close-index-hero {
+  grid-template-columns: minmax(10.5rem, 12rem) minmax(0, 1fr);
+  gap: 1rem;
+  justify-items: stretch;
+}
+
+.client-detail-card-checklist .client-overview-probability-prediction {
+  width: 100%;
+  max-width: none;
+  gap: 0.42rem;
+}
+
+.client-detail-card-checklist .client-overview-probability-prediction .client-summary-label {
+  padding-top: 0;
+}
+
+.client-detail-card-checklist .client-overview-probability-content {
+  gap: 1.35rem;
+}
+
 .client-overview-probability-prediction .client-summary-label {
   color: #17202c;
   font-size: 0.92rem;
@@ -8656,12 +8707,12 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
   letter-spacing: 0.08em;
   line-height: 1.1;
   text-transform: uppercase;
-  padding-top: 0.28rem;
+  padding-top: 0.68rem;
 }
 
 .client-overview-probability-content {
   display: grid;
-  grid-template-columns: 11.3rem minmax(0, 1fr);
+  grid-template-columns: 14.6rem minmax(0, 1fr);
   align-items: center;
   gap: 1.9rem;
 }
@@ -8716,6 +8767,7 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
   font-size: 0.88rem;
   font-weight: 600;
   line-height: 1.25;
+  white-space: nowrap;
 }
 
 .client-overview-probability-boosters {
@@ -8724,7 +8776,9 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
   min-width: 0;
   margin-top: 0;
   align-content: center;
-  padding-left: 0.46rem;
+  justify-self: end;
+  justify-items: end;
+  padding-left: 0;
 }
 
 .client-overview-probability-booster {
@@ -8732,6 +8786,7 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
   grid-template-columns: 0.6rem minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.4rem;
+  width: min(100%, 12.8rem);
   min-height: 1.72rem;
   padding: 0.32rem 0.44rem;
   border: 1px solid rgba(221, 227, 236, 0.96);
@@ -8873,6 +8928,11 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
     justify-items: center;
   }
 
+  .client-detail-card-checklist .client-overview-close-index-hero {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+
   .client-overview-support-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -8896,8 +8956,22 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
     gap: 0.55rem;
   }
 
+  .client-detail-card-checklist .client-overview-probability-content {
+    gap: 0.55rem;
+  }
+
+  .client-overview-probability-qualifier {
+    white-space: normal;
+  }
+
   .client-overview-probability-boosters {
+    justify-self: stretch;
+    justify-items: stretch;
     padding-left: 0;
+  }
+
+  .client-overview-probability-booster {
+    width: 100%;
   }
 
   .client-overview-probability-prediction-row {
@@ -8909,10 +8983,6 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
   .client-overview-close-index-visual {
     width: min(100%, 10.6rem);
     margin-top: 0;
-  }
-
-  .client-overview-account-completion-panel {
-    justify-items: stretch;
   }
 
   .client-overview-summary-grid {
@@ -11166,7 +11236,7 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
 
 .client-detail-card {
   padding: 1.15rem 1.2rem;
-  border: 1px solid rgba(213, 221, 232, 0.95);
+  border: 1.5px solid rgba(213, 221, 232, 0.95);
   border-radius: 0.35rem;
   background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
   box-shadow: 0 10px 24px rgba(16, 33, 52, 0.05);
@@ -19117,7 +19187,9 @@ body.studio-page.is-native-client-detail {
   --studio-native-client-detail-shell-top-pad: 0.85rem;
   --client-profile-workspace-top-gap: 0.9rem;
   --client-profile-sidebar-fixed-start-offset: 1.05rem;
-  --client-profile-sidebar-width: 20rem;
+  --client-profile-banner-pad-left: 0.72rem;
+  --client-profile-banner-pad-right: 0.92rem;
+  --client-profile-sidebar-width: clamp(20rem, 24vw, 24rem);
   --studio-native-client-detail-banner-outer-height: var(--studio-native-client-detail-header-band-height, 3.35rem);
   --client-profile-anchor-offset: calc(
     var(--workspace-topbar-height)
@@ -19225,8 +19297,8 @@ body.studio-page.is-native-client-detail {
 body.studio-page.is-native-client-detail .client-profile-stats,
 body.studio-page.is-native-client-detail .client-profile-dashboard,
 body.studio-page.is-native-client-detail .client-profile-dashboard.client-profile-dashboard--overview {
-  padding-left: 0.92rem;
-  padding-right: 0.92rem;
+  padding-left: var(--client-profile-banner-pad-left);
+  padding-right: var(--client-profile-banner-pad-right);
 }
 
 .studio-native-client-detail-banner-summary {
