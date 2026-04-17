@@ -12,55 +12,62 @@
 <body class="home-page prospect-page profile-creation-page" data-page="protection-modeling-linked">
   <main class="home-shell app-home-shell prospect-shell">
     <section class="prospect-stage">
-      <section class="prospect-empty-panel">
-        <div class="prospect-panel-header">
-          <a class="prospect-return-button" href="clients.html" data-loading-link>Return to Client Directory</a>
-          <h1>PMI Entry</h1>
-        </div>
-        <section class="profile-form-section protection-modeling-link-section">
-          <div class="profile-form-section-heading">
-            <h2>Client Link</h2>
+      <div class="entry-page-viewport">
+        <section class="prospect-empty-panel">
+          <div class="prospect-panel-header">
+            <h1>PMI Entry</h1>
           </div>
-          <div class="form-grid preliminary-link-grid">
-            <div class="field-group preliminary-link-button-group">
-              <label for="protection-modeling-link-button">Search Client Directory</label>
-              <button id="protection-modeling-link-button" class="btn btn-secondary preliminary-link-search-button" type="button" data-protection-modeling-link-open>Search Client Directory</button>
-            </div>
-            <div class="field-group">
-              <label for="protection-modeling-case-ref">Case Ref Number</label>
-              <input id="protection-modeling-case-ref" name="protectionModelingCaseRef" type="text" placeholder="CL/00000" data-protection-modeling-case-ref autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" readonly>
-            </div>
-          </div>
-          <p class="underwriting-helper-text preliminary-link-helper">Use either the search button or the case reference number to link this protection modeling form to a client profile.</p>
-        </section>
-        <p class="profile-section-note entry-mode-heading-note">Choose Entry Mode</p>
-        <section class="entry-mode-panel">
-            <div class="entry-mode-actions">
-              <div class="entry-mode-option">
-              <a class="btn btn-primary btn-prelim-continue entry-mode-button" href="next-step.html" data-loading-link>Advisor Assisted</a>
-              <span class="entry-mode-icon entry-mode-icon-unlocked" aria-hidden="true"></span>
+          <div class="entry-page-layout">
+            <section class="profile-form-section protection-modeling-link-section entry-page-link-card">
+              <div class="profile-form-section-heading">
+                <h2>Client Link</h2>
               </div>
-              <div class="entry-mode-option">
-              <button class="btn btn-primary btn-prelim-continue entry-mode-button entry-mode-button-confidential" type="button" data-confidential-trigger>Confidential Entry Mode</button>
-              <span class="entry-mode-icon entry-mode-icon-locked" aria-hidden="true"></span>
+              <div class="form-grid preliminary-link-grid">
+                <div class="field-group preliminary-link-button-group">
+                  <label for="protection-modeling-link-button">Search Client Directory</label>
+                  <button id="protection-modeling-link-button" class="btn btn-secondary preliminary-link-search-button" type="button" data-protection-modeling-link-open>Search Client Directory</button>
+                </div>
+                <div class="field-group">
+                  <label for="protection-modeling-case-ref">Case Ref Number</label>
+                  <input id="protection-modeling-case-ref" name="protectionModelingCaseRef" type="text" placeholder="CL/00000" data-protection-modeling-case-ref autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" readonly>
+                </div>
               </div>
-            </div>
-          <p class="entry-mode-note">The client may enter sensitive financial details privately. This information will still be used for analysis but should remain hidden during discussion unless the client chooses to share it.</p>
-          <div class="entry-mode-pin-shell is-disabled" data-pin-shell>
-            <label class="entry-mode-pin-label" for="confidential-pin-1">
-              <span>Create 4-Digit PIN</span>
-              <span class="entry-mode-help" aria-hidden="true" data-entry-mode-help="The client should create this PIN privately. Confidential financial details should not be viewable anywhere in this flow without entering that PIN.">?</span>
-            </label>
-            <div class="entry-mode-pin-grid" data-pin-grid>
-              <input id="confidential-pin-1" class="entry-mode-pin-input" type="password" inputmode="numeric" maxlength="1" data-pin-input>
-              <input class="entry-mode-pin-input" type="password" inputmode="numeric" maxlength="1" data-pin-input>
-              <input class="entry-mode-pin-input" type="password" inputmode="numeric" maxlength="1" data-pin-input>
-              <input class="entry-mode-pin-input" type="password" inputmode="numeric" maxlength="1" data-pin-input>
-            </div>
-            <a class="btn btn-primary btn-prelim-continue entry-mode-button entry-mode-button-confidential-continue" href="confidential-inputs.html" data-loading-link data-confidential-continue aria-disabled="true" tabindex="-1">Continue in Confidential Mode</a>
+              <p class="underwriting-helper-text preliminary-link-helper">Use either the search button or the case reference number to link this protection modeling form to a client profile.</p>
+            </section>
+            <section class="entry-mode-panel entry-page-action-card">
+              <div class="entry-page-action-heading">
+                <p class="entry-page-action-eyebrow">Next Step</p>
+                <h2>Choose Entry Mode</h2>
+                <p>Select how this case should be entered, then continue without leaving the flow or losing context.</p>
+              </div>
+              <div class="entry-mode-actions">
+                <div class="entry-mode-option">
+                  <a class="btn btn-primary btn-prelim-continue entry-mode-button" href="next-step.html" data-loading-link>Advisor Assisted</a>
+                  <span class="entry-mode-icon entry-mode-icon-unlocked" aria-hidden="true"></span>
+                </div>
+                <div class="entry-mode-option">
+                  <button class="btn btn-primary btn-prelim-continue entry-mode-button entry-mode-button-confidential" type="button" data-confidential-trigger>Confidential Entry Mode</button>
+                  <span class="entry-mode-icon entry-mode-icon-locked" aria-hidden="true"></span>
+                </div>
+              </div>
+              <p class="entry-mode-note">The client may enter sensitive financial details privately. This information will still be used for analysis but should remain hidden during discussion unless the client chooses to share it.</p>
+              <div class="entry-mode-pin-shell is-disabled" data-pin-shell>
+                <label class="entry-mode-pin-label" for="confidential-pin-1">
+                  <span>Create 4-Digit PIN</span>
+                  <span class="entry-mode-help" aria-hidden="true" data-entry-mode-help="The client should create this PIN privately. Confidential financial details should not be viewable anywhere in this flow without entering that PIN.">?</span>
+                </label>
+                <div class="entry-mode-pin-grid" data-pin-grid>
+                  <input id="confidential-pin-1" class="entry-mode-pin-input" type="password" inputmode="numeric" maxlength="1" data-pin-input>
+                  <input class="entry-mode-pin-input" type="password" inputmode="numeric" maxlength="1" data-pin-input>
+                  <input class="entry-mode-pin-input" type="password" inputmode="numeric" maxlength="1" data-pin-input>
+                  <input class="entry-mode-pin-input" type="password" inputmode="numeric" maxlength="1" data-pin-input>
+                </div>
+                <a class="btn btn-primary btn-prelim-continue entry-mode-button entry-mode-button-confidential-continue" href="confidential-inputs.html" data-loading-link data-confidential-continue aria-disabled="true" tabindex="-1">Continue in Confidential Mode</a>
+              </div>
+            </section>
           </div>
         </section>
-      </section>
+      </div>
     </section>
   </main>
 

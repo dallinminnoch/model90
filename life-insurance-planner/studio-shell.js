@@ -14,6 +14,11 @@
     "planner.html",
     "summary.html"
   ]);
+  const FIXED_VIEWPORT_TOOL_PAGES = new Set([
+    "preliminary-linked.html",
+    "protection-modeling-linked.html",
+    "protection-modeling-inputs.html"
+  ]);
   const STUDIO_SCROLL_TARGETS = {
     overview: "#studio-overview",
     planning: "#studio-planning-tools",
@@ -146,6 +151,16 @@
       pageKey: pageKey,
       shellMode: shellMode
     };
+  }
+
+  function shouldUseFixedViewportEmbed(viewMeta) {
+    if (!viewMeta) {
+      return false;
+    }
+
+    return viewMeta.shellMode === "directory"
+      || viewMeta.shellMode === "client-detail"
+      || FIXED_VIEWPORT_TOOL_PAGES.has(viewMeta.fileName);
   }
 
   function buildStudioUrl(viewValue) {
@@ -312,14 +327,23 @@
 
     const html = doc.documentElement;
     const body = doc.body;
+    const bodyRectTop = body ? body.getBoundingClientRect().top : 0;
+    const childExtent = body
+      ? Array.from(body.children).reduce(function (maxHeight, child) {
+          if (!child || child.nodeType !== 1 || typeof child.getBoundingClientRect !== "function") {
+            return maxHeight;
+          }
+          const childRect = child.getBoundingClientRect();
+          return Math.max(maxHeight, Math.ceil(childRect.bottom - bodyRectTop));
+        }, 0)
+      : 0;
 
     return Math.max(
       html ? html.scrollHeight : 0,
       html ? html.offsetHeight : 0,
-      html ? Math.ceil(html.getBoundingClientRect().height) : 0,
       body ? body.scrollHeight : 0,
       body ? body.offsetHeight : 0,
-      body ? Math.ceil(body.getBoundingClientRect().height) : 0
+      childExtent
     );
   }
 
@@ -332,7 +356,7 @@
     const viewportHeight = getStudioEmbedViewportHeight();
     const viewMeta = getViewMeta(currentView);
 
-    if (viewMeta.shellMode === "directory" || viewMeta.shellMode === "client-detail") {
+    if (shouldUseFixedViewportEmbed(viewMeta)) {
       const fixedHeight = Math.max(0, viewportHeight);
       embedShell.style.minHeight = `${fixedHeight}px`;
       embedShell.style.height = `${fixedHeight}px`;
@@ -343,7 +367,7 @@
 
     const contentHeight = getEmbeddedDocumentHeight(doc);
     const measuredHeight = contentHeight > 0 ? contentHeight : viewportHeight;
-    const nextHeight = Math.max(0, Math.ceil(measuredHeight) + 2);
+    const nextHeight = Math.max(0, Math.ceil(measuredHeight));
     const nextMinHeight = contentHeight > 0 ? 0 : viewportHeight;
 
     embedShell.style.minHeight = `${nextMinHeight}px`;
@@ -414,10 +438,22 @@
     }
 
     doc.body.classList.add("studio-embed-mode");
+    const embeddedPageKey = String(doc.body.getAttribute("data-page") || "").trim().toLowerCase();
+    const isFixedViewportToolPage = FIXED_VIEWPORT_TOOL_PAGES.has(embeddedPageKey);
     if (doc.documentElement) {
       doc.documentElement.classList.add("studio-embed-root");
       if (doc.body.classList.contains("client-detail-page")) {
         doc.documentElement.classList.add("studio-embed-client-detail-root");
+      } else {
+        doc.documentElement.classList.remove("studio-embed-client-detail-root");
+      }
+
+      if (isFixedViewportToolPage) {
+        doc.documentElement.style.setProperty("height", "100%", "important");
+        doc.documentElement.style.setProperty("min-height", "100%", "important");
+      } else {
+        doc.documentElement.style.removeProperty("height");
+        doc.documentElement.style.removeProperty("min-height");
       }
     }
     let style = doc.getElementById("studio-shell-embed-style");
@@ -461,6 +497,14 @@
         overflow-y: auto !important;
       }
 
+      body.studio-embed-mode[data-page="preliminary-linked"],
+      body.studio-embed-mode[data-page="protection-modeling-linked"],
+      body.studio-embed-mode[data-page="protection-modeling-inputs"] {
+        height: 100% !important;
+        min-height: 100% !important;
+        overflow: hidden !important;
+      }
+
       body.studio-embed-mode .workspace-page-topbar,
       body.studio-embed-mode .workspace-side-nav-host,
       body.studio-embed-mode .site-header {
@@ -472,6 +516,7 @@
       body.studio-embed-mode .workflow-shell {
         width: 100% !important;
         max-width: none !important;
+        height: auto !important;
         min-height: auto !important;
         margin: 0 !important;
         padding-top: 0 !important;
@@ -492,12 +537,19 @@
       body.studio-embed-mode .resources-shell,
       body.studio-embed-mode .resources-workspace,
       body.studio-embed-mode .resources-calendar-board,
+      body.studio-embed-mode .settings-shell,
+      body.studio-embed-mode .settings-workspace,
+      body.studio-embed-mode .settings-grid,
+      body.studio-embed-mode .lens-landing,
+      body.studio-embed-mode .lens-hero-shell,
       body.studio-embed-mode .lens-start-layout,
       body.studio-embed-mode .lens-start-main,
       body.studio-embed-mode .prospect-stage {
         width: 100% !important;
         max-width: none !important;
         min-width: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
         margin: 0 !important;
         padding-top: 0 !important;
         padding-left: 0 !important;
@@ -514,6 +566,32 @@
       body.studio-embed-mode .lens-start-layout,
       body.studio-embed-mode .resources-workspace {
         grid-template-columns: minmax(0, 1fr) !important;
+      }
+
+      body.studio-embed-mode[data-page="preliminary-linked"] .home-shell,
+      body.studio-embed-mode[data-page="preliminary-linked"] .app-home-shell,
+      body.studio-embed-mode[data-page="preliminary-linked"] .prospect-shell,
+      body.studio-embed-mode[data-page="preliminary-linked"] .prospect-stage,
+      body.studio-embed-mode[data-page="preliminary-linked"] .entry-page-viewport,
+      body.studio-embed-mode[data-page="protection-modeling-linked"] .home-shell,
+      body.studio-embed-mode[data-page="protection-modeling-linked"] .app-home-shell,
+      body.studio-embed-mode[data-page="protection-modeling-linked"] .prospect-shell,
+      body.studio-embed-mode[data-page="protection-modeling-linked"] .prospect-stage,
+      body.studio-embed-mode[data-page="protection-modeling-linked"] .entry-page-viewport,
+      body.studio-embed-mode[data-page="protection-modeling-inputs"] .home-shell,
+      body.studio-embed-mode[data-page="protection-modeling-inputs"] .app-home-shell,
+      body.studio-embed-mode[data-page="protection-modeling-inputs"] .prospect-shell,
+      body.studio-embed-mode[data-page="protection-modeling-inputs"] .prospect-stage,
+      body.studio-embed-mode[data-page="protection-modeling-inputs"] .entry-page-viewport {
+        height: 100% !important;
+        min-height: 100% !important;
+      }
+
+      body.studio-embed-mode[data-page="preliminary-linked"] .entry-page-viewport,
+      body.studio-embed-mode[data-page="protection-modeling-linked"] .entry-page-viewport,
+      body.studio-embed-mode[data-page="protection-modeling-inputs"] .entry-page-viewport {
+        height: 100vh !important;
+        min-height: 100vh !important;
       }
 
       body.studio-embed-mode .lens-start-rail {

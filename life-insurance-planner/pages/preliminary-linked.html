@@ -12,35 +12,43 @@
 <body class="home-page prospect-page profile-creation-page" data-page="preliminary-linked">
   <main class="home-shell app-home-shell prospect-shell">
     <section class="prospect-stage">
-      <section class="prospect-empty-panel">
-        <div class="prospect-panel-header">
-          <a class="prospect-return-button" href="clients.html" data-loading-link>Return to Client Directory</a>
-          <h1>Preliminary Underwriting</h1>
-        </div>
-        <section class="profile-form-section protection-modeling-link-section">
-          <div class="profile-form-section-heading">
-            <h2>Client Link</h2>
+      <div class="entry-page-viewport">
+        <section class="prospect-empty-panel">
+          <div class="prospect-panel-header">
+            <h1>Preliminary Underwriting</h1>
           </div>
-          <div class="form-grid preliminary-link-grid">
-            <div class="field-group preliminary-link-button-group">
-              <label for="preliminary-link-button">Search Client Directory</label>
-              <button id="preliminary-link-button" class="btn btn-secondary preliminary-link-search-button" type="button" data-preliminary-link-open>Search Client Directory</button>
-            </div>
-            <div class="field-group">
-              <label for="preliminary-case-ref">Case Ref Number</label>
-              <input id="preliminary-case-ref" name="preliminaryCaseRef" type="text" placeholder="CL/00000" data-preliminary-case-ref autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" readonly>
-            </div>
+          <div class="entry-page-layout">
+            <section class="profile-form-section protection-modeling-link-section entry-page-link-card">
+              <div class="profile-form-section-heading">
+                <h2>Client Link</h2>
+              </div>
+              <div class="form-grid preliminary-link-grid">
+                <div class="field-group preliminary-link-button-group">
+                  <label for="preliminary-link-button">Search Client Directory</label>
+                  <button id="preliminary-link-button" class="btn btn-secondary preliminary-link-search-button" type="button" data-preliminary-link-open>Search Client Directory</button>
+                </div>
+                <div class="field-group">
+                  <label for="preliminary-case-ref">Case Ref Number</label>
+                  <input id="preliminary-case-ref" name="preliminaryCaseRef" type="text" placeholder="CL/00000" data-preliminary-case-ref autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" readonly>
+                </div>
+              </div>
+              <p class="underwriting-helper-text preliminary-link-helper">Use either the search button or the case reference number to link this preliminary form to a client profile.</p>
+            </section>
+            <section class="entry-mode-panel entry-page-action-card entry-page-action-card--single">
+              <div class="entry-page-action-heading">
+                <p class="entry-page-action-eyebrow">Next Step</p>
+                <h2>Continue to Preliminary Form</h2>
+                <p>Link the case once, then move directly into the underwriting screen without an extra handoff step.</p>
+              </div>
+              <div class="entry-mode-actions">
+                <div class="entry-mode-option">
+                  <a class="btn btn-primary btn-prelim-continue entry-mode-button" href="preliminary-only-form.html" data-loading-link data-preliminary-continue aria-disabled="true" tabindex="-1">Continue to Preliminary Form</a>
+                </div>
+              </div>
+            </section>
           </div>
-          <p class="underwriting-helper-text preliminary-link-helper">Use either the search button or the case reference number to link this preliminary form to a client profile.</p>
         </section>
-        <section class="entry-mode-panel">
-          <div class="entry-mode-actions">
-            <div class="entry-mode-option">
-              <a class="btn btn-primary btn-prelim-continue entry-mode-button" href="preliminary-only-form.html" data-loading-link data-preliminary-continue aria-disabled="true" tabindex="-1">Continue to Preliminary Form</a>
-            </div>
-          </div>
-        </section>
-      </section>
+      </div>
     </section>
   </main>
 
