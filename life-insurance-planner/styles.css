@@ -6733,7 +6733,11 @@ body.studio-page.is-native-client-detail .client-profile-sidebar-sticky {
   min-height: 100%;
   height: 100%;
   overflow: visible;
-  padding: 0 var(--client-profile-banner-pad-right) 1rem var(--client-profile-banner-pad-left);
+  padding:
+    var(--client-overview-summary-top-gap, 1.6rem)
+    var(--client-profile-banner-pad-right)
+    1.3rem
+    var(--client-profile-banner-pad-left);
 }
 
 body.studio-page.is-native-client-detail.workspace-side-nav-collapsed .client-profile-sidebar,
@@ -6788,6 +6792,7 @@ body.studio-page.is-native-client-detail .workspace-side-nav-host.is-collapsed[d
 
 body.studio-page.is-native-client-detail .client-profile-sidebar-card {
   gap: 0.78rem;
+  min-height: 0;
   padding: 1rem 1.05rem;
 }
 
@@ -7301,14 +7306,19 @@ body.studio-page.is-native-client-detail .client-profile-workspace-main--overvie
 body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-overview-stack,
 body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-dashboard--overview,
 body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-profile-dashboard-main {
-  min-height: 100%;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
 }
 
 body.studio-page.is-native-client-detail .client-profile-workspace-main--overview .client-overview-summary-card {
   display: grid;
   align-content: start;
   box-sizing: border-box;
-  min-height: calc(100% - var(--client-overview-summary-top-gap, 1.6rem));
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .client-profile-workspace-wide-row {
@@ -7323,8 +7333,12 @@ body.studio-page.is-native-client-detail .client-profile-workspace-wide-row {
   padding-right: var(--client-profile-banner-pad-right);
 }
 
+body.studio-page.is-native-client-detail .client-profile-workspace-wide-row--overview {
+  padding-top: var(--client-overview-summary-top-gap, 1.6rem);
+}
+
 body.studio-page.is-native-client-detail .client-profile-workspace-action-row + .client-profile-sidebar .client-profile-sidebar-sticky {
-  padding-top: 0;
+  padding-top: var(--client-overview-summary-top-gap, 1.6rem);
 }
 
 body.studio-page.is-native-client-detail .client-profile-workspace-action-row + .client-profile-sidebar + .client-profile-workspace-main {
@@ -7341,6 +7355,7 @@ body.studio-page.is-native-client-detail .client-profile-workspace-shell {
 }
 
 body.studio-page.is-native-client-detail .client-profile-sidebar-card {
+  flex: 1 1 auto;
   min-height: 100%;
   align-content: start;
 }
@@ -7645,6 +7660,10 @@ body.studio-page.is-native-client-detail .client-profile-workspace-section:not(.
   body.studio-page.is-native-client-detail .client-profile-workspace-shell {
     display: grid;
     padding-left: 0;
+  }
+
+  body.studio-page.is-native-client-detail .client-profile-workspace-wide-row--overview {
+    padding-top: 0;
   }
 
   body.studio-page.is-native-client-detail .client-profile-sidebar {
