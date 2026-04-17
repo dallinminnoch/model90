@@ -143,18 +143,45 @@
     `;
   }
 
-  function getWorkspacePages(mode, options) {
-    const config = options && typeof options === "object" ? options : {};
-    const activePage = String(config.activePage || "").trim();
-    const isShell = Boolean(config.shell);
-    const hrefs = isShell
+  function getSettingsSectionIcon(key) {
+    if (key === "account") {
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="10" cy="6.25" r="2.6" stroke="currentColor" stroke-width="1.55"/>
+          <path d="M5.15 15.1c.7-2.5 2.65-4.05 4.85-4.05 2.2 0 4.15 1.55 4.85 4.05" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+        </svg>
+      `;
+    }
+
+    if (key === "workspace") {
+      return `
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <rect x="3" y="3" width="5.15" height="5.15" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
+          <rect x="11.85" y="3" width="5.15" height="5.15" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
+          <rect x="3" y="11.85" width="5.15" height="5.15" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
+          <rect x="11.85" y="11.85" width="5.15" height="5.15" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
+        </svg>
+      `;
+    }
+
+    return `
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M10 3.2 11.35 5.95l3.05.45-2.2 2.15.5 3.05L10 10.2 7.3 11.6l.5-3.05L5.6 6.4l3.05-.45L10 3.2Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+        <circle cx="10" cy="10" r="5.9" stroke="currentColor" stroke-width="1.15" stroke-dasharray="0.01 3.2"/>
+      </svg>
+    `;
+  }
+
+  function getWorkspaceHrefMap(isShell) {
+    return isShell
       ? {
           studio: "studio.html",
           clients: "studio.html?view=clients.html",
           resources: "studio.html?view=resources.html",
           lens: "studio.html?view=lens.html",
           strategy: "studio.html?view=strategy-builder.html",
-          policy: "studio.html?view=policy-web.html"
+          policy: "studio.html?view=policy-web.html",
+          settings: "studio.html?view=settings.html"
         }
       : {
           studio: "studio.html",
@@ -162,10 +189,17 @@
           resources: "resources.html",
           lens: "lens.html",
           strategy: "strategy-builder.html",
-          policy: "policy-web.html"
+          policy: "policy-web.html",
+          settings: "settings.html"
         };
+  }
 
-    return [
+  function getWorkspacePages(mode, options) {
+    const config = options && typeof options === "object" ? options : {};
+    const activePage = String(config.activePage || "").trim();
+    const isShell = Boolean(config.shell);
+    const hrefs = getWorkspaceHrefMap(isShell);
+    const pages = [
       { key: "studio", label: "Start Page", shortLabel: "Start", href: hrefs.studio, active: activePage ? activePage === "studio" : mode === "studio" },
       { key: "clients", label: "Client Directory", shortLabel: "Clients", href: hrefs.clients, active: activePage ? activePage === "clients" : mode === "directory" || mode === "client-detail" },
       { key: "resources", label: "Resources", shortLabel: "Resources", href: hrefs.resources, active: activePage ? activePage === "resources" : mode === "resources" },
@@ -173,9 +207,20 @@
       { key: "strategy", label: "Strategy Builder", shortLabel: "Strategy", href: hrefs.strategy, active: activePage === "strategy" },
       { key: "policy", label: "Policy Web", shortLabel: "Policy", href: hrefs.policy, active: activePage === "policy" }
     ];
+    pages.settingsPage = {
+      key: "settings",
+      label: "Settings",
+      shortLabel: "Settings",
+      href: hrefs.settings,
+      active: activePage ? activePage === "settings" : mode === "settings"
+    };
+    return pages;
   }
 
   function renderPrimaryRail(pages) {
+    const settingsPage = pages && pages.settingsPage
+      ? pages.settingsPage
+      : { key: "settings", label: "Settings", shortLabel: "Settings", href: "settings.html", active: false };
     return `
       <div class="workspace-side-nav-primary-rail">
         <nav class="workspace-side-nav-primary-items" aria-label="Workspace pages">
@@ -196,16 +241,17 @@
             `;
           }).join("")}
         </nav>
-        <button
-          class="workspace-side-nav-button workspace-side-nav-primary-button workspace-side-nav-primary-button-settings"
-          type="button"
-          aria-label="Settings"
-          title="Settings"
+        <a
+          class="workspace-side-nav-button workspace-side-nav-primary-button workspace-side-nav-primary-button-settings${settingsPage.active ? " is-active" : ""}"
+          href="${escapeHtml(settingsPage.href)}"
+          ${settingsPage.active ? ' aria-current="page"' : ""}
+          aria-label="${escapeHtml(settingsPage.label)}"
+          title="${escapeHtml(settingsPage.label)}"
         >
           <span class="workspace-side-nav-icon workspace-side-nav-primary-icon" aria-hidden="true">
             ${getWorkspacePageIcon("settings")}
           </span>
-        </button>
+        </a>
       </div>
     `;
   }
@@ -737,6 +783,45 @@
     });
   }
 
+  function renderSettingsSidebar(options) {
+    const pages = getWorkspacePages("settings", options);
+    const items = [
+      { key: "account", label: "Account", href: "#settings-account", active: true },
+      { key: "workspace", label: "Workspace", href: "#settings-workspace", active: false },
+      { key: "accessibility", label: "Accessibility", href: "#settings-accessibility", active: false }
+    ];
+
+    return renderWorkspaceShell({
+      ariaLabel: "Settings navigation",
+      pages: pages,
+      title: "Settings",
+      sectionLabel: "General Settings",
+      toggleClass: "client-profile-side-tabs-toggle",
+      toggleGlyphClass: "client-profile-side-tabs-toggle-glyph",
+      toggleDataAttr: "data-settings-side-tabs-toggle",
+      toggleLabel: "Collapse settings navigation",
+      contextMarkup: `
+        <nav class="workspace-side-nav-items workspace-side-nav-context-items" aria-label="Settings sections">
+          ${items.map(function (item) {
+            return `
+              <a
+                class="workspace-side-nav-button workspace-side-nav-context-button${item.active ? " is-active" : ""}"
+                href="${escapeHtml(item.href)}"
+                data-settings-tab="${escapeHtml(item.key)}"
+                ${item.active ? ' aria-current="location"' : ""}
+                aria-label="${escapeHtml(item.label)}"
+                title="${escapeHtml(item.label)}"
+              >
+                <span class="workspace-side-nav-icon workspace-side-nav-context-icon" aria-hidden="true">${getSettingsSectionIcon(item.key)}</span>
+                <span class="workspace-side-nav-label workspace-side-nav-context-label">${escapeHtml(item.label)}</span>
+              </a>
+            `;
+          }).join("")}
+        </nav>
+      `
+    });
+  }
+
   function render(mode, options) {
     if (mode === "studio") {
       return renderStudioSidebar(options);
@@ -756,6 +841,10 @@
 
     if (mode === "resources") {
       return renderResourcesSidebar(options);
+    }
+
+    if (mode === "settings") {
+      return renderSettingsSidebar(options);
     }
 
     return "";

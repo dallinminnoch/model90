@@ -1465,10 +1465,10 @@
         }
       ];
       const CLOSE_INDEX_DISPLAY_BANDS = Object.freeze([
-        Object.freeze({ tier: "is-risk", label: "Low", nextLabel: "Watch", nextThreshold: 21 }),
-        Object.freeze({ tier: "is-caution", label: "Watch", nextLabel: "Medium", nextThreshold: 41 }),
-        Object.freeze({ tier: "is-building", label: "Medium", nextLabel: "High", nextThreshold: 71 }),
-        Object.freeze({ tier: "is-premium", label: "High", nextLabel: "", nextThreshold: null })
+        Object.freeze({ tier: "is-risk", label: "Low", nextLabel: "Average", nextThreshold: 21 }),
+        Object.freeze({ tier: "is-caution", label: "Average", nextLabel: "High", nextThreshold: 41 }),
+        Object.freeze({ tier: "is-building", label: "High", nextLabel: "Excellent", nextThreshold: 71 }),
+        Object.freeze({ tier: "is-premium", label: "Excellent", nextLabel: "", nextThreshold: null })
       ]);
 
       function getCloseIndexDisplayBand(score, tier) {
@@ -1507,15 +1507,6 @@
             : ""
         ) || "").trim();
         const band = getCloseIndexDisplayBand(score, tier);
-        const contextNoteMarkup = score === null
-          ? `<span class="client-overview-close-index-note-text">Awaiting Close Index score</span>`
-          : band.nextThreshold === null
-            ? `<span class="client-overview-close-index-note-text">${escapeHtml(`${band.label} tier reached`)}</span>`
-            : `
-              <span class="client-overview-close-index-note-text">${escapeHtml(band.label)}</span>
-              <span class="client-overview-close-index-note-arrow" aria-hidden="true"></span>
-              <span class="client-overview-close-index-note-text">${escapeHtml(`${band.nextLabel} at ${band.nextThreshold}`)}</span>
-            `;
         const markerPosition = score === null ? 50 : Math.max(0, Math.min(100, score));
 
         return `
@@ -1543,7 +1534,6 @@
               </div>
             </div>
             <span class="client-overview-close-index-divider" aria-hidden="true"></span>
-            <span class="client-overview-close-index-note">${contextNoteMarkup}</span>
           </div>
         `;
       }
@@ -1551,78 +1541,6 @@
       function normalizeProbabilityPercent(value, fallback) {
         const safeValue = Number.isFinite(value) ? value : fallback;
         return Math.max(0, Math.min(100, Math.round(safeValue)));
-      }
-
-      function getOverviewCloseProbabilityTopDriver(closeIndex) {
-        const weighted = closeIndex && typeof closeIndex === "object" ? closeIndex.weighted : null;
-        if (!weighted || typeof weighted !== "object") {
-          return "";
-        }
-
-        const driverEntries = [
-          { key: "stageReadiness", label: "Stage readiness" },
-          { key: "completeness", label: "Profile completeness" },
-          { key: "affordability", label: "Affordability" },
-          { key: "needPressure", label: "Need pressure" },
-          { key: "momentum", label: "Momentum" },
-          { key: "confidence", label: "Model confidence" },
-          { key: "opportunity", label: "Coverage gap opportunity" }
-        ];
-
-        const strongestDriver = driverEntries.reduce(function (best, entry) {
-          const weight = Number.isFinite(weighted[entry.key]) ? weighted[entry.key] : 0;
-          if (!best || weight > best.weight) {
-            return { label: entry.label, weight };
-          }
-          return best;
-        }, null);
-
-        return strongestDriver && strongestDriver.weight > 0
-          ? strongestDriver.label
-          : "";
-      }
-
-      function buildOverviewCloseProbabilityNotes(workflowState, closeIndex) {
-        const steps = Array.isArray(workflowState?.steps) ? workflowState.steps : [];
-        const completedCount = Number.isFinite(workflowState?.completedCount)
-          ? workflowState.completedCount
-          : steps.filter(function (step) { return step?.complete; }).length;
-        const totalCount = steps.length || CLIENT_PROFILE_WORKFLOW_SEQUENCE.length;
-        const currentStep = workflowState?.currentStep || null;
-        const topDriver = getOverviewCloseProbabilityTopDriver(closeIndex);
-
-        if (currentStep) {
-          const notes = [
-            Object.freeze({
-              label: "Current Step",
-              value: currentStep.label
-            })
-          ];
-          if (topDriver) {
-            notes.push(Object.freeze({
-              label: "Top Driver",
-              value: topDriver
-            }));
-          } else {
-            notes.push(Object.freeze({
-              label: "Status",
-              value: String(currentStep.detail || `${completedCount} of ${totalCount} milestones completed`).trim()
-            }));
-          }
-          return notes;
-        }
-
-        const completedNotes = [
-          Object.freeze({
-            label: "Workflow",
-            value: "All core milestones completed"
-          })
-        ];
-        completedNotes.push(Object.freeze({
-          label: topDriver ? "Top Driver" : "Progress",
-          value: topDriver || `${completedCount} of ${totalCount} milestones completed`
-        }));
-        return completedNotes;
       }
 
       function getOverviewCloseProbabilityPrediction(workflowState, closeIndex) {
@@ -1651,7 +1569,7 @@
           qualifier: workflowComplete
             ? "Workflow Completed"
             : String(basePrediction.qualifier || OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.qualifier).trim(),
-          notes: Object.freeze(buildOverviewCloseProbabilityNotes(workflowState, closeIndex))
+          notes: Object.freeze([])
         });
       }
 
@@ -1693,6 +1611,7 @@
           </section>
         `;
       }
+
 
       function getRecord() {
         const params = getClientDetailRequestParams();
@@ -2256,23 +2175,6 @@
           : formatValue(record.hasDependents);
         return `
           <section class="client-detail-card client-detail-card-compact client-profile-sidebar-card">
-            <details class="workspace-page-menu client-profile-sidebar-menu">
-              <summary class="workspace-page-menu-trigger client-profile-sidebar-menu-trigger" aria-label="Open profile actions" title="Profile actions">
-                <span class="client-profile-sidebar-menu-dots" aria-hidden="true">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </span>
-              </summary>
-              <div class="workspace-page-menu-panel client-profile-sidebar-menu-panel">
-                <button class="workspace-page-menu-link client-profile-sidebar-menu-action" type="button" data-profile-delete-toggle>
-                  <span class="workspace-page-menu-link-icon client-profile-sidebar-menu-action-icon" aria-hidden="true">
-                    <span class="client-profile-delete-icon-image"></span>
-                  </span>
-                  <span class="workspace-page-menu-link-label">Delete Profile</span>
-                </button>
-              </div>
-            </details>
             <div class="client-profile-avatar-wrap">
               <span class="client-avatar client-profile-sidebar-avatar${isHouseholdAvatar ? " client-avatar-household" : ""}" aria-hidden="true"${avatarStyle}>${escapeHtml(getInitials(clientName, record?.viewType, record?.lastName))}</span>
             </div>
@@ -2922,10 +2824,9 @@
                   ${renderStatCard("Modeled Need", formatCoverageCardCurrency(coverageFields.modeledNeed), "", {
                     editable: true,
                     fieldName: "modeledNeed",
-                    rawValue: String(coverageFields.modeledNeed || "0"),
-                    displayStateClass: coverageFields.uncoveredGap > 0 ? "has-gap" : "is-zero"
+                    rawValue: String(coverageFields.modeledNeed || "0")
                   })}
-                  ${renderStatCard("Gap", formatCoverageCardCurrency(coverageFields.uncoveredGap), "", {
+                  ${renderStatCard("Coverage Gap", formatCoverageCardCurrency(coverageFields.uncoveredGap), "", {
                     fieldName: "coverageGap",
                     rawValue: String(coverageFields.uncoveredGap || "0"),
                     displayStateClass: coverageFields.uncoveredGap > 0 ? "has-gap" : "is-zero"
@@ -2938,6 +2839,9 @@
                 </div>
                 ${renderOverviewCloseProbabilityPrediction(closeProbabilityPrediction)}
               </div>
+              <section class="client-overview-commission-section" aria-label="Expected Commission">
+                <span class="client-overview-commission-title">Expected Commission</span>
+              </section>
             </div>
           </section>
         `;
@@ -4539,9 +4443,7 @@
         const fullDisplayValue = String(value || "").trim();
         const legacyFieldClass = fieldName === "currentCoverage"
           ? " client-detail-stat-card-coverageAmount"
-          : fieldName === "modeledNeed"
-            ? " client-detail-stat-card-coverageGap"
-            : "";
+          : "";
         const isResponsiveCoverageStat = fieldName === "currentCoverage"
           || fieldName === "modeledNeed"
           || fieldName === "coverageAmount"
@@ -5635,7 +5537,6 @@
         profileSidebarLayout.addEventListener("transitionend", handleProfileSidebarLayoutTransitionEnd);
       }
 
-      const profileDeleteToggle = host.querySelector("[data-profile-delete-toggle]");
       const profileDeleteModal = host.querySelector("[data-profile-delete-modal]");
       const profileDeleteModalCloseButtons = host.querySelectorAll("[data-profile-delete-modal-close]");
       const profileDeleteConfirm = host.querySelector("[data-profile-delete-confirm]");
@@ -8026,6 +7927,13 @@
       window.addEventListener("scroll", handleWindowScroll, { passive: true });
 
       host.addEventListener("click", function (event) {
+        const profileDeleteTrigger = event.target.closest("[data-profile-delete-toggle]");
+        if (profileDeleteTrigger && host.contains(profileDeleteTrigger)) {
+          event.preventDefault();
+          openProfileDeleteModal();
+          return;
+        }
+
         const workflowButton = event.target.closest("[data-client-workflow-nav]");
         if (!(workflowButton instanceof HTMLButtonElement)) {
           return;
@@ -9427,12 +9335,6 @@
           closePolicyDeleteModal();
           closePolicyModal();
           refreshCoverageUi();
-        });
-      }
-
-      if (profileDeleteToggle) {
-        profileDeleteToggle.addEventListener("click", function () {
-          openProfileDeleteModal();
         });
       }
 

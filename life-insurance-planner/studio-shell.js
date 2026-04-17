@@ -29,6 +29,11 @@
     agenda: "#resources-agenda",
     summary: "#resources-month-summary"
   };
+  const SETTINGS_SCROLL_TARGETS = {
+    account: "#settings-account",
+    workspace: "#settings-workspace",
+    accessibility: "#settings-accessibility"
+  };
 
   const pageMenu = document.querySelector(".workspace-page-menu");
   const sidebarHost = document.querySelector("[data-workspace-side-nav-host]");
@@ -113,6 +118,8 @@
       ? "clients"
       : fileName === "resources.html"
         ? "resources"
+        : fileName === "settings.html"
+          ? "settings"
         : ANALYSIS_PAGES.has(fileName)
           ? "lens"
           : fileName === "strategy-builder.html"
@@ -126,6 +133,8 @@
         ? "client-detail"
         : fileName === "resources.html"
           ? "resources"
+          : fileName === "settings.html"
+            ? "settings"
           : ANALYSIS_PAGES.has(fileName)
             ? "lens"
             : "studio";
@@ -766,6 +775,15 @@
       return;
     }
 
+    if (mode === "settings") {
+      const activeKeyFromHash = Object.keys(SETTINGS_SCROLL_TARGETS).find(function (key) {
+        return SETTINGS_SCROLL_TARGETS[key] === String(meta?.parsed?.hash || "").trim();
+      }) || "";
+      const activeKey = getActiveInnerValue("[data-settings-tab]", "settingsTab") || activeKeyFromHash || "account";
+      setCurrentPageState(Array.from(sidebarHost.querySelectorAll("[data-settings-tab]")), activeKey, "data-settings-tab");
+      return;
+    }
+
     if (mode === "lens") {
       const activeKey = meta.fileName === "lens.html"
         ? getActiveInnerValue("[data-lens-tab]", "lensTab") || "overview"
@@ -1247,6 +1265,27 @@
           if (scrollEmbeddedTarget(selector)) {
             setCurrentPageState(Array.from(sidebarHost.querySelectorAll("[data-resources-tab]")), key, "data-resources-tab");
           }
+        });
+      });
+      return;
+    }
+
+    if (meta.shellMode === "settings") {
+      sidebarHost.querySelectorAll("[data-settings-tab]").forEach(function (link) {
+        link.addEventListener("click", function (event) {
+          event.preventDefault();
+          const key = String(link.getAttribute("data-settings-tab") || "").trim();
+          const selector = SETTINGS_SCROLL_TARGETS[key];
+          if (!selector) {
+            return;
+          }
+
+          if (scrollEmbeddedTarget(selector)) {
+            setCurrentPageState(Array.from(sidebarHost.querySelectorAll("[data-settings-tab]")), key, "data-settings-tab");
+            return;
+          }
+
+          navigateToView(`settings.html${selector}`, "push");
         });
       });
       return;
