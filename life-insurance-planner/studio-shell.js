@@ -1019,7 +1019,7 @@
         }).catch(function () {});
       } else if (nextMeta.shellMode === "client-detail" && window.StudioClientDetail && typeof window.StudioClientDetail.ensureMounted === "function") {
         window.StudioClientDetail.ensureMounted(nextView).then(function () {
-          syncSidebarCurrentTitle(window.StudioClientDetail.getState?.()?.title || "");
+          syncSidebarCurrentTitle(window.StudioClientDetail.getState?.()?.sideNavTitle || window.StudioClientDetail.getState?.()?.title || "");
           syncCurrentPageControls("client-detail", nextMeta);
         }).catch(function () {});
       } else {
@@ -1076,7 +1076,7 @@
       embedFrame.classList.remove("is-pending");
       if (window.StudioClientDetail && typeof window.StudioClientDetail.ensureMounted === "function") {
         window.StudioClientDetail.ensureMounted(nextView).then(function () {
-          syncSidebarCurrentTitle(window.StudioClientDetail.getState?.()?.title || "");
+          syncSidebarCurrentTitle(window.StudioClientDetail.getState?.()?.sideNavTitle || window.StudioClientDetail.getState?.()?.title || "");
           syncCurrentPageControls("client-detail", nextMeta);
         }).catch(function () {});
       }
@@ -1117,7 +1117,7 @@
     if (actualView === currentView) {
       const meta = getViewMeta(currentView);
       if (meta.shellMode === "client-detail" && window.StudioClientDetail && typeof window.StudioClientDetail.getState === "function") {
-        syncSidebarCurrentTitle(window.StudioClientDetail.getState()?.title || "");
+        syncSidebarCurrentTitle(window.StudioClientDetail.getState()?.sideNavTitle || window.StudioClientDetail.getState()?.title || "");
       } else {
         syncSidebarCurrentTitle(getEmbeddedCurrentPageTitle(meta));
       }

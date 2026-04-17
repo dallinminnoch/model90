@@ -97,8 +97,11 @@
   function renderProfileBannerIdentity() {
     return `
       <div class="studio-native-client-detail-banner-identity" aria-label="Client profile identity">
-        <span class="studio-native-client-detail-banner-avatar" data-studio-native-client-detail-avatar aria-hidden="true">CL</span>
-        <strong class="studio-native-client-detail-banner-name" data-studio-native-client-detail-name>Client Profile</strong>
+        <span class="client-avatar studio-native-client-detail-banner-avatar" data-studio-native-client-detail-avatar aria-hidden="true">CL</span>
+        <div class="studio-native-client-detail-banner-copy">
+          <strong class="studio-native-client-detail-banner-name" data-studio-native-client-detail-name>Client Profile</strong>
+          <span class="studio-native-client-detail-banner-case-ref" data-studio-native-client-detail-case-ref hidden></span>
+        </div>
       </div>
     `;
   }
@@ -198,7 +201,7 @@
 
     const shell = document.createElement("section");
     shell.className = "studio-native-client-detail-shell";
-    shell.setAttribute("data-workspace-current-title", "Client Profile");
+    shell.setAttribute("data-workspace-current-title", "Client Board");
 
     const banner = renderNativeDetailBanner();
 
@@ -231,18 +234,43 @@
       : null;
 
     const identityNameNode = banner.querySelector("[data-studio-native-client-detail-name]");
+    const identityCaseRefNode = banner.querySelector("[data-studio-native-client-detail-case-ref]");
     const identityAvatarNode = banner.querySelector("[data-studio-native-client-detail-avatar]");
     const summaryNode = banner.querySelector("[data-studio-native-client-detail-summary]");
     const currentCoverageNode = banner.querySelector("[data-studio-native-client-detail-current-coverage]");
     const modeledNeedNode = banner.querySelector("[data-studio-native-client-detail-modeled-need]");
     const title = String(state?.title || "Client Profile").trim() || "Client Profile";
+    const caseRef = String(state?.caseRef || "").trim();
 
     if (identityNameNode instanceof HTMLElement) {
       identityNameNode.textContent = title;
     }
 
+    if (identityCaseRefNode instanceof HTMLElement) {
+      identityCaseRefNode.textContent = caseRef;
+      identityCaseRefNode.hidden = !caseRef;
+    }
+
     if (identityAvatarNode instanceof HTMLElement) {
-      identityAvatarNode.textContent = getBannerInitials(title);
+      const avatarState = state?.avatar && typeof state.avatar === "object" ? state.avatar : null;
+      const avatarInitials = String(avatarState?.initials || "").trim() || getBannerInitials(title);
+      identityAvatarNode.textContent = avatarInitials;
+      identityAvatarNode.classList.toggle("client-avatar-household", Boolean(avatarState?.isHousehold));
+      identityAvatarNode.style.removeProperty("background");
+      identityAvatarNode.style.removeProperty("color");
+      identityAvatarNode.style.removeProperty("box-shadow");
+
+      if (!avatarState?.isHousehold) {
+        if (String(avatarState?.background || "").trim()) {
+          identityAvatarNode.style.background = avatarState.background;
+        }
+        if (String(avatarState?.color || "").trim()) {
+          identityAvatarNode.style.color = avatarState.color;
+        }
+        if (String(avatarState?.boxShadow || "").trim()) {
+          identityAvatarNode.style.boxShadow = avatarState.boxShadow;
+        }
+      }
     }
 
     if (currentCoverageNode instanceof HTMLElement) {

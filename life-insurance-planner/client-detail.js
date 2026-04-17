@@ -1296,7 +1296,23 @@
         return `$${formattedInteger}${hasDecimal ? `.${decimalDigits}` : ""}`;
       }
 
-      function getInitials(value) {
+      function getLastInitial(value) {
+        return String(value || "").trim().charAt(0).toUpperCase();
+      }
+
+      function getInitials(value, viewType, lastName) {
+        if (viewType === "households") {
+          const householdLastInitial = getLastInitial(lastName);
+          if (householdLastInitial) {
+            return householdLastInitial;
+          }
+
+          const trimmed = String(value || "").trim().replace(/\s+Household$/i, "");
+          const parts = trimmed.split(/\s+/).filter(Boolean);
+          const fallbackLastName = parts.length ? parts[parts.length - 1] : "";
+          return fallbackLastName.charAt(0).toUpperCase() || "H";
+        }
+
         const words = String(value || "").trim().split(/\s+/).filter(Boolean);
         if (!words.length) {
           return "CL";
@@ -1581,19 +1597,40 @@
           || OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default;
       }
 
-      function renderOverviewCloseProbabilityPrediction(prediction) {
+      function renderOverviewCloseProbabilityPrediction(prediction, workflowState) {
         const current = Number.isFinite(prediction?.current) ? prediction.current : OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.current;
         const projected = Number.isFinite(prediction?.projected) ? prediction.projected : OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.projected;
         const qualifier = String(prediction?.qualifier || OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.qualifier).trim();
+        const boosters = Array.isArray(prediction?.boosters) && prediction.boosters.length
+          ? prediction.boosters
+          : OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.boosters;
+        const workflowStepMap = new Map((Array.isArray(workflowState?.steps) ? workflowState.steps : []).map(function (step) {
+          return [String(step?.key || "").trim(), Boolean(step?.complete)];
+        }));
 
         return `
           <section class="client-overview-probability-prediction" aria-label="Close Probability Prediction">
-            <span class="client-summary-label">Close Probability</span>
+            <span class="client-summary-label">Increase Close Probability</span>
             <div class="client-overview-probability-prediction-row">
               <strong class="client-overview-probability-current">${escapeHtml(`${current}%`)}</strong>
               <span class="client-overview-probability-arrow" aria-hidden="true"></span>
               <strong class="client-overview-probability-projected">${escapeHtml(`${projected}%`)}</strong>
               <span class="client-overview-probability-qualifier">${escapeHtml(qualifier)}</span>
+            </div>
+            <div class="client-overview-probability-boosters" aria-label="Score-boosting completion items">
+              ${boosters.map(function (item) {
+                const stepKey = String(item?.stepKey || "").trim();
+                const isComplete = stepKey ? Boolean(workflowStepMap.get(stepKey)) : false;
+                const gain = Number(item?.gain);
+                const gainLabel = Number.isFinite(gain) && gain > 0 ? `+${gain} pts` : "";
+                return `
+                  <div class="client-overview-probability-booster${isComplete ? " is-complete" : ""}">
+                    <span class="client-overview-probability-booster-indicator" aria-hidden="true"></span>
+                    <span class="client-overview-probability-booster-label">${escapeHtml(String(item?.label || "").trim() || "Completion item")}</span>
+                    <span class="client-overview-probability-booster-gain">${escapeHtml(isComplete ? "Done" : gainLabel || "Open")}</span>
+                  </div>
+                `;
+              }).join("")}
             </div>
           </section>
         `;
@@ -2100,32 +2137,62 @@
         default: Object.freeze({
           current: 49,
           projected: 72,
-          qualifier: "if inputs completed"
+          qualifier: "if inputs completed",
+          boosters: Object.freeze([
+            Object.freeze({ stepKey: "modeling-inputs", label: "Complete Modeling Inputs", gain: 7 }),
+            Object.freeze({ stepKey: "needs-analysis", label: "Save Needs Analysis", gain: 8 }),
+            Object.freeze({ stepKey: "recommendation", label: "Finalize Recommendation", gain: 8 })
+          ])
         }),
         "modeling-inputs": Object.freeze({
           current: 49,
           projected: 72,
-          qualifier: "if inputs completed"
+          qualifier: "if inputs completed",
+          boosters: Object.freeze([
+            Object.freeze({ stepKey: "modeling-inputs", label: "Complete Modeling Inputs", gain: 7 }),
+            Object.freeze({ stepKey: "needs-analysis", label: "Save Needs Analysis", gain: 8 }),
+            Object.freeze({ stepKey: "recommendation", label: "Finalize Recommendation", gain: 8 })
+          ])
         }),
         "needs-analysis": Object.freeze({
           current: 58,
           projected: 76,
-          qualifier: "if analysis completed"
+          qualifier: "if analysis completed",
+          boosters: Object.freeze([
+            Object.freeze({ stepKey: "needs-analysis", label: "Finalize Needs Analysis", gain: 6 }),
+            Object.freeze({ stepKey: "recommendation", label: "Finalize Recommendation", gain: 7 }),
+            Object.freeze({ stepKey: "underwriting", label: "Prepare Underwriting", gain: 5 })
+          ])
         }),
         recommendation: Object.freeze({
           current: 67,
           projected: 83,
-          qualifier: "if recommendation finalized"
+          qualifier: "if recommendation finalized",
+          boosters: Object.freeze([
+            Object.freeze({ stepKey: "recommendation", label: "Finalize Recommendation", gain: 6 }),
+            Object.freeze({ stepKey: "underwriting", label: "Start Underwriting", gain: 6 }),
+            Object.freeze({ stepKey: "placement", label: "Secure Placement", gain: 4 })
+          ])
         }),
         underwriting: Object.freeze({
           current: 74,
           projected: 88,
-          qualifier: "if underwriting started"
+          qualifier: "if underwriting started",
+          boosters: Object.freeze([
+            Object.freeze({ stepKey: "underwriting", label: "Complete Underwriting", gain: 5 }),
+            Object.freeze({ stepKey: "recommendation", label: "Confirm Recommendation Fit", gain: 4 }),
+            Object.freeze({ stepKey: "placement", label: "Move to Placement", gain: 5 })
+          ])
         }),
         placement: Object.freeze({
           current: 82,
           projected: 94,
-          qualifier: "if placement secured"
+          qualifier: "if placement secured",
+          boosters: Object.freeze([
+            Object.freeze({ stepKey: "recommendation", label: "Recommendation Locked", gain: 4 }),
+            Object.freeze({ stepKey: "underwriting", label: "Underwriting Cleared", gain: 4 }),
+            Object.freeze({ stepKey: "placement", label: "Secure Placement", gain: 4 })
+          ])
         })
       });
       const CLIENT_PROFILE_ANALYSIS_CHILD_KEYS = ["modeling-inputs", "needs-analysis", "recommendation"];
@@ -2143,7 +2210,7 @@
         return displayName || preferredFullName || "Client Workspace";
       }
 
-      function renderClientProfileSidebar(record, hasCoveragePlaced, subtitleParts) {
+      function renderClientProfileSidebar(record, subtitleParts) {
         return `
           <aside class="client-profile-sidebar">
             <div class="client-profile-sidebar-sticky">
@@ -2165,24 +2232,8 @@
                     </button>
                   </div>
                 </details>
-                <div class="client-profile-avatar-wrap">
-                  <div class="client-detail-avatar">
-                    <div class="client-detail-avatar-core">
-                      <div class="client-detail-avatar-core-inner">
-                        <div class="client-detail-avatar-core-face client-detail-avatar-core-front">${escapeHtml(getInitials(record.displayName))}</div>
-                        <div class="client-detail-avatar-core-face client-detail-avatar-core-back">
-                          <span class="client-detail-avatar-core-back-label">Created</span>
-                          <span class="client-detail-avatar-core-back-date">${escapeHtml(formatDate(record.dateProfileCreated || record.lastUpdatedDate))}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
                 <div class="client-profile-sidebar-copy">
-                  <h2>
-                    <span>${escapeHtml(formatValue(record.displayName))}</span>
-                    <span class="client-profile-name-badge${hasCoveragePlaced ? " is-complete" : ""}" aria-hidden="true"></span>
-                  </h2>
+                  <span class="client-profile-sidebar-overline">Client Details</span>
                   <p>${escapeHtml([
                     formatValue(record.age),
                     formatValue(record.insuranceRatingSex),
@@ -2193,23 +2244,35 @@
                 <div class="client-profile-contact-list">
                   <div class="client-profile-contact-item">
                     <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M5.1 2.9 3.9 4.1a1.25 1.25 0 0 0-.29 1.4c.63 1.42 1.57 2.76 2.82 4.01 1.25 1.25 2.59 2.19 4.01 2.82a1.25 1.25 0 0 0 1.4-.29l1.2-1.2a.88.88 0 0 0-.08-1.31L11.6 8.47a.9.9 0 0 0-1.02-.08l-.7.42a.6.6 0 0 1-.63.03 7.2 7.2 0 0 1-1.38-1.12 7.2 7.2 0 0 1-1.12-1.38.6.6 0 0 1 .03-.63l.42-.7a.9.9 0 0 0-.08-1.02L6.35 2.97a.88.88 0 0 0-1.25-.07Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
-                    <strong>${escapeHtml(formatValue(record.phoneNumber))}</strong>
+                    <div class="client-profile-contact-copy">
+                      <span class="client-profile-contact-key">Phone</span>
+                      <strong>${escapeHtml(formatValue(record.phoneNumber))}</strong>
+                    </div>
                   </div>
                   <div class="client-profile-contact-item">
                     <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><rect x="2.4" y="3.4" width="11.2" height="9.2" rx="1.7" stroke="currentColor" stroke-width="1.2"/><path d="M3.4 4.8 8 8.1l4.6-3.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
-                    <strong>${escapeHtml(formatValue(record.emailAddress))}</strong>
+                    <div class="client-profile-contact-copy">
+                      <span class="client-profile-contact-key">Email</span>
+                      <strong>${escapeHtml(formatValue(record.emailAddress))}</strong>
+                    </div>
                   </div>
                   <div class="client-profile-contact-item">
                     <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.2" r="2.15" stroke="currentColor" stroke-width="1.2"/><path d="M4.15 12.45a3.85 3.85 0 0 1 7.7 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
-                    <strong>${escapeHtml(formatValue(record.advisorName))}</strong>
+                    <div class="client-profile-contact-copy">
+                      <span class="client-profile-contact-key">Advisor</span>
+                      <strong>${escapeHtml(formatValue(record.advisorName))}</strong>
+                    </div>
                   </div>
                   <div class="client-profile-contact-item">
                     <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M6.15 2.55 5 13.45M10.95 2.55 9.8 13.45M2.95 6.15h10.1M2.2 9.85H12.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
-                    <div class="client-profile-contact-value-shell">
-                      <strong>${escapeHtml(formatValue(record.caseRef))}</strong>
-                      <button class="client-profile-copy-button" type="button" data-case-ref-copy="${escapeHtml(formatValue(record.caseRef))}" aria-label="Copy case ref">
-                        <span class="client-profile-copy-icon" aria-hidden="true"></span>
-                      </button>
+                    <div class="client-profile-contact-copy">
+                      <span class="client-profile-contact-key">Case Ref</span>
+                      <div class="client-profile-contact-value-shell">
+                        <strong>${escapeHtml(formatValue(record.caseRef))}</strong>
+                        <button class="client-profile-copy-button" type="button" data-case-ref-copy="${escapeHtml(formatValue(record.caseRef))}" aria-label="Copy case ref">
+                          <span class="client-profile-copy-icon" aria-hidden="true"></span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2755,6 +2818,7 @@
       }
 
       function renderOverviewSummaryCard(record) {
+        const coverageFields = synchronizeRecordCoverageFields(record);
         const workflowState = getClientWorkflowProgressState(record);
         const currentStepLabel = workflowState.currentStep ? workflowState.currentStep.label : "Placement Complete";
         const closeIndex = window.LipOpportunityScore && typeof window.LipOpportunityScore.calculate === "function"
@@ -2772,16 +2836,31 @@
           <section class="client-detail-card client-detail-card-compact client-planning-card client-planning-card-wide client-overview-summary-card" data-client-nav-section="overview">
             <div class="client-overview-summary-tab">Overview</div>
             <div class="client-overview-summary-body">
-              <div class="client-overview-top-row">
+              <div class="client-profile-stats">
+                ${renderStatCard("Current Coverage", formatCoverageCardCurrency(coverageFields.currentCoverage), "", {
+                  editable: true,
+                  fieldName: "currentCoverage",
+                  rawValue: String(coverageFields.currentCoverage || "0")
+                })}
+                ${renderStatCard("Modeled Need", formatCoverageCardCurrency(coverageFields.modeledNeed), "", {
+                  editable: true,
+                  fieldName: "modeledNeed",
+                  rawValue: String(coverageFields.modeledNeed || "0"),
+                  displayStateClass: coverageFields.uncoveredGap > 0 ? "has-gap" : "is-zero"
+                })}
+              </div>
+              <div class="client-overview-close-index-hero">
+                <div class="client-overview-close-index-panel">
+                  ${renderCloseIndexGauge(closeIndex)}
+                </div>
+                ${renderOverviewCloseProbabilityPrediction(closeProbabilityPrediction, workflowState)}
+              </div>
+              <div class="client-overview-support-grid">
                 <div class="client-overview-secondary-panels">
                   ${renderCoverageAdequacyBar(record, { className: "client-overview-coverage-adequacy" })}
                   ${renderOverviewAccountCompletionPanel(record)}
                 </div>
-                <div class="client-overview-close-index-panel">
-                  ${renderCloseIndexGauge(closeIndex)}
-                </div>
               </div>
-              ${renderOverviewCloseProbabilityPrediction(closeProbabilityPrediction)}
               <div class="client-overview-summary-grid">
                 ${overviewItems.map(function (item) {
                   return `
@@ -4623,18 +4702,56 @@
         return "risk";
       }
 
+      function getCoverageGapMarkerPosition(adequacy) {
+        const safeAdequacy = Math.max(0, Math.min(100, Number(adequacy) || 0));
+        const emptySegment = Math.max(0, 100 - safeAdequacy);
+        const markerPosition = safeAdequacy + (emptySegment * 0.52);
+        return Math.max(8, Math.min(92, markerPosition));
+      }
+
+      function getCoverageAdequacyGapDetails(record, adequacyValue) {
+        const adequacy = Math.max(0, Math.min(100, Number(adequacyValue) || 0));
+        const coverageFields = synchronizeRecordCoverageFields(record);
+        const financialSummary = getFinancialSnapshotSummary(record);
+        const annualIncome = Math.max(0, Number(financialSummary?.annualIncome) || 0);
+        const survivorIncome = Math.max(0, Number(financialSummary?.survivorIncome) || 0);
+        const coverageGap = Math.max(0, Number(coverageFields?.uncoveredGap) || 0);
+        const incomeGap = Math.max(0, annualIncome - survivorIncome);
+        return {
+          coverageGap,
+          incomeGap,
+          hasCoverageGap: coverageGap > 0 && adequacy < 100,
+          markerPosition: getCoverageGapMarkerPosition(adequacy)
+        };
+      }
+
       function renderCoverageAdequacyBar(record, options) {
         const adequacy = getCoverageAdequacy(record);
         const tone = getCoverageAdequacyTone(adequacy);
+        const gapDetails = getCoverageAdequacyGapDetails(record, adequacy);
         const className = String(options?.className || "").trim();
         return `
-          <section class="client-coverage-adequacy${className ? ` ${escapeHtml(className)}` : ""}" data-coverage-adequacy data-coverage-adequacy-tone="${escapeHtml(tone)}">
+          <section class="client-coverage-adequacy${className ? ` ${escapeHtml(className)}` : ""}" data-coverage-adequacy data-coverage-adequacy-tone="${escapeHtml(tone)}" data-coverage-has-gap="${gapDetails.hasCoverageGap ? "true" : "false"}">
             <div class="client-coverage-adequacy-header">
               <span>Coverage Adequacy</span>
               <strong data-coverage-adequacy-percent data-coverage-adequacy-tone="${escapeHtml(tone)}">${adequacy}%</strong>
             </div>
             <div class="client-coverage-adequacy-track" aria-hidden="true">
               <div class="client-coverage-adequacy-fill" data-coverage-adequacy-fill data-coverage-adequacy-tone="${escapeHtml(tone)}" style="width: ${adequacy}%;"></div>
+              <div class="client-coverage-adequacy-gap-marker" data-coverage-gap-marker style="left: ${gapDetails.markerPosition}%;">
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+            <div class="client-coverage-adequacy-gap-summary" data-coverage-gap-summary style="--coverage-gap-marker-position: ${gapDetails.markerPosition}%;">
+              <div class="client-coverage-adequacy-gap-note">
+                <span class="client-coverage-adequacy-gap-label">Coverage Gap</span>
+                <strong class="client-coverage-adequacy-gap-value" data-coverage-gap-value>${escapeHtml(formatCoverageCardCurrency(gapDetails.coverageGap))}</strong>
+              </div>
+              <div class="client-coverage-adequacy-income-row">
+                <span class="client-coverage-adequacy-income-label">Income Gap</span>
+                <strong class="client-coverage-adequacy-income-value" data-income-gap-value>${escapeHtml(formatCoverageCardCurrency(gapDetails.incomeGap))}</strong>
+              </div>
             </div>
           </section>
         `;
@@ -4662,9 +4779,6 @@
           || `${String(record.preferredName || record.firstName || "").trim()} ${String(record.lastName || "").trim()}`.trim()
           || String(record.displayName || "").replace(/\s+Household$/i, "").trim()
         );
-        const hasCoveragePlaced = (Array.isArray(record.coveragePolicies) && record.coveragePolicies.length > 0)
-          || record.statusGroup === "coverage-placed"
-          || record.statusGroup === "closed";
         const completion = calculateProfileCompletion(record);
         const checklistItems = getDashboardChecklistItems(record);
         const coverageFields = synchronizeRecordCoverageFields(record);
@@ -4958,7 +5072,7 @@
                 <div class="client-profile-workspace-action-row" data-primary-action-panel-host data-client-nav-section="overview">
                   ${renderPrimaryActionPanel(record, checklistItems)}
                 </div>
-                ${renderClientProfileSidebar(record, hasCoveragePlaced, subtitleParts)}
+                ${renderClientProfileSidebar(record, subtitleParts)}
                 <div class="client-profile-workspace-main">
                   <div class="client-profile-workspace" data-client-profile-workspace>
                     ${renderProfileWorkspaceSection({
@@ -4972,19 +5086,6 @@
                       description: "",
                       body: `
                         <div class="client-profile-overview-stack">
-                          <div class="client-profile-stats">
-                            ${renderStatCard("Current Coverage", formatCoverageCardCurrency(coverageFields.currentCoverage), "", {
-                              editable: true,
-                              fieldName: "currentCoverage",
-                              rawValue: String(coverageFields.currentCoverage || "0")
-                            })}
-                            ${renderStatCard("Modeled Need", formatCoverageCardCurrency(coverageFields.modeledNeed), "", {
-                              editable: true,
-                              fieldName: "modeledNeed",
-                              rawValue: String(coverageFields.modeledNeed || "0"),
-                              displayStateClass: coverageFields.uncoveredGap > 0 ? "has-gap" : "is-zero"
-                            })}
-                          </div>
                           <div class="client-profile-dashboard client-profile-dashboard--overview">
                             <div class="client-profile-dashboard-main">
                               ${renderOverviewSummaryCard(record)}
@@ -5323,18 +5424,19 @@
       host.innerHTML = renderProfile(record);
 
       const clientWorkspaceSidebarTitle = getClientWorkspaceSidebarTitle(record);
-      document.body.setAttribute("data-workspace-current-title", clientWorkspaceSidebarTitle);
-      document.documentElement.setAttribute("data-workspace-current-title", clientWorkspaceSidebarTitle);
+      const clientWorkspaceSideNavTitle = "Client Board";
+      document.body.setAttribute("data-workspace-current-title", clientWorkspaceSideNavTitle);
+      document.documentElement.setAttribute("data-workspace-current-title", clientWorkspaceSideNavTitle);
 
       const profileSidebarMountHost = document.querySelector('[data-workspace-side-nav="client-detail"]');
       if (profileSidebarMountHost) {
-        profileSidebarMountHost.setAttribute("data-workspace-side-nav-title", clientWorkspaceSidebarTitle);
+        profileSidebarMountHost.setAttribute("data-workspace-side-nav-title", clientWorkspaceSideNavTitle);
         const sidebarTitleNode = profileSidebarMountHost.querySelector(".workspace-side-nav-copy strong");
         if (sidebarTitleNode) {
-          sidebarTitleNode.textContent = clientWorkspaceSidebarTitle;
+          sidebarTitleNode.textContent = clientWorkspaceSideNavTitle;
         } else if (window.WorkspaceSideNav) {
           profileSidebarMountHost.innerHTML = window.WorkspaceSideNav.render("client-detail", {
-            title: clientWorkspaceSidebarTitle
+            title: clientWorkspaceSideNavTitle
           });
         }
       }
@@ -5654,6 +5756,10 @@
       const caseRefCopyButton = host.querySelector("[data-case-ref-copy]");
       const coverageAdequacyPercent = host.querySelector("[data-coverage-adequacy-percent]");
       const coverageAdequacyFill = host.querySelector("[data-coverage-adequacy-fill]");
+      const coverageGapMarker = host.querySelector("[data-coverage-gap-marker]");
+      const coverageGapSummary = host.querySelector("[data-coverage-gap-summary]");
+      const coverageGapValue = host.querySelector("[data-coverage-gap-value]");
+      const incomeGapValue = host.querySelector("[data-income-gap-value]");
       let activeStatField = "";
       let activeStatTitle = "";
       let activePolicyIndex = -1;
@@ -7433,6 +7539,7 @@
 
       function refreshCoverageAdequacy(animateFromZero) {
         const adequacy = getCoverageAdequacy(record);
+        const gapDetails = getCoverageAdequacyGapDetails(record, adequacy);
         if (!coverageAdequacyPercent || !coverageAdequacyFill) {
           return;
         }
@@ -7443,6 +7550,19 @@
         coverageAdequacyFill.setAttribute("data-coverage-adequacy-tone", tone);
         if (adequacySection instanceof HTMLElement) {
           adequacySection.setAttribute("data-coverage-adequacy-tone", tone);
+          adequacySection.setAttribute("data-coverage-has-gap", gapDetails.hasCoverageGap ? "true" : "false");
+        }
+        if (coverageGapSummary instanceof HTMLElement) {
+          coverageGapSummary.style.setProperty("--coverage-gap-marker-position", `${gapDetails.markerPosition}%`);
+        }
+        if (coverageGapMarker instanceof HTMLElement) {
+          coverageGapMarker.style.left = `${gapDetails.markerPosition}%`;
+        }
+        if (coverageGapValue) {
+          coverageGapValue.textContent = formatCoverageCardCurrency(gapDetails.coverageGap);
+        }
+        if (incomeGapValue) {
+          incomeGapValue.textContent = formatCoverageCardCurrency(gapDetails.incomeGap);
         }
 
         if (coverageAdequacyAnimationFrame) {
@@ -7473,12 +7593,19 @@
           const progress = Math.min(elapsed / duration, 1);
           const easedProgress = easeOutQuart(progress);
           const currentValue = startValue + ((targetValue - startValue) * easedProgress);
+          const currentMarkerPosition = getCoverageGapMarkerPosition(currentValue);
           const displayValue = progress < 1
             ? Math.max(0, Math.round(currentValue))
             : targetValue;
 
           coverageAdequacyPercent.textContent = `${Math.max(0, displayValue)}%`;
           coverageAdequacyFill.style.width = `${Math.max(0, displayValue)}%`;
+          if (coverageGapSummary instanceof HTMLElement) {
+            coverageGapSummary.style.setProperty("--coverage-gap-marker-position", `${currentMarkerPosition}%`);
+          }
+          if (coverageGapMarker instanceof HTMLElement) {
+            coverageGapMarker.style.left = `${currentMarkerPosition}%`;
+          }
 
           if (progress < 1) {
             coverageAdequacyAnimationFrame = window.requestAnimationFrame(step);
@@ -7609,15 +7736,26 @@
       function getClientDetailShellState() {
         const activeNav = getActiveProfileNavKey() || getRequestedProfileNavKey();
         const coverageFields = synchronizeRecordCoverageFields(record);
+        const isHouseholdAvatar = record?.viewType === "households";
+        const avatarPresentation = isHouseholdAvatar ? null : getAvatarPresentation(record?.age, record?.dateOfBirth);
+        const avatarName = String(record?.displayName || clientWorkspaceSidebarTitle || "").trim() || clientWorkspaceSidebarTitle;
         return {
           title: clientWorkspaceSidebarTitle,
+          sideNavTitle: "Client Board",
           activeTab: getClientDetailBannerGroupFromNavKey(activeNav),
           activeNav: activeNav,
           recordId: String(record?.id || "").trim(),
           caseRef: String(record?.caseRef || "").trim(),
           currentCoverage: coverageFields.currentCoverage,
           modeledNeed: coverageFields.modeledNeed,
-          showCoverageSummaryInBanner: bannerCoverageSummaryVisible
+          showCoverageSummaryInBanner: bannerCoverageSummaryVisible,
+          avatar: {
+            initials: getInitials(avatarName, record?.viewType, record?.lastName),
+            isHousehold: isHouseholdAvatar,
+            background: avatarPresentation?.background || "",
+            color: avatarPresentation?.color || "",
+            boxShadow: avatarPresentation?.boxShadow || ""
+          }
         };
       }
 
