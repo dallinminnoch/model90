@@ -1464,133 +1464,206 @@
           borderColor: "#506f25"
         }
       ];
-      const CLOSE_INDEX_GAUGE_TICK_COLOR = "#e7edf4";
+      const CLOSE_INDEX_DISPLAY_BANDS = Object.freeze([
+        Object.freeze({ tier: "is-risk", label: "Low", nextLabel: "Watch", nextThreshold: 21 }),
+        Object.freeze({ tier: "is-caution", label: "Watch", nextLabel: "Medium", nextThreshold: 41 }),
+        Object.freeze({ tier: "is-building", label: "Medium", nextLabel: "High", nextThreshold: 71 }),
+        Object.freeze({ tier: "is-premium", label: "High", nextLabel: "", nextThreshold: null })
+      ]);
+
+      function getCloseIndexDisplayBand(score, tier) {
+        const normalizedTier = String(tier || "").trim();
+        if (normalizedTier) {
+          const tierMatch = CLOSE_INDEX_DISPLAY_BANDS.find(function (band) {
+            return band.tier === normalizedTier;
+          });
+          if (tierMatch) {
+            return tierMatch;
+          }
+        }
+
+        const safeScore = Number.isFinite(score) ? score : 0;
+        if (safeScore > 70) {
+          return CLOSE_INDEX_DISPLAY_BANDS[3];
+        }
+        if (safeScore >= 41) {
+          return CLOSE_INDEX_DISPLAY_BANDS[2];
+        }
+        if (safeScore >= 21) {
+          return CLOSE_INDEX_DISPLAY_BANDS[1];
+        }
+        return CLOSE_INDEX_DISPLAY_BANDS[0];
+      }
 
       function renderCloseIndexGauge(closeIndex) {
         const score = closeIndex && Number.isFinite(closeIndex.score)
           ? Math.max(0, Math.min(100, closeIndex.score))
           : null;
-        const centerX = 110;
-        const centerY = 118;
-        const radius = 74;
-        const strokeWidth = 16;
-        const segmentAccentStrokeWidth = 3.2;
-        const segmentAccentRadius = radius - (strokeWidth / 2) + (segmentAccentStrokeWidth / 2);
-        const tickInnerRadius = 86;
-        const tickOuterRadius = 93;
-        const needleLength = 58;
-        const needleTailLength = 13;
-        const segmentGap = 5;
-        const gaugeStartAngle = 240;
-        const gaugeSweep = 240;
-        const totalGap = segmentGap * (CLOSE_INDEX_GAUGE_SEGMENTS.length - 1);
-        const usableSweep = gaugeSweep - totalGap;
-        const tickCount = 7;
-        let currentAngle = gaugeStartAngle;
-        const segmentPaths = [];
-        let needleMarkup = "";
-
-        const tickMarkup = Array.from({ length: tickCount }, function (_, index) {
-          const angle = gaugeStartAngle + (gaugeSweep * (index / (tickCount - 1)));
-          const innerPoint = polarToCartesian(centerX, centerY, tickInnerRadius, angle);
-          const outerPoint = polarToCartesian(centerX, centerY, tickOuterRadius, angle);
-          return `
-            <line
-              x1="${innerPoint.x}"
-              y1="${innerPoint.y}"
-              x2="${outerPoint.x}"
-              y2="${outerPoint.y}"
-              stroke="${CLOSE_INDEX_GAUGE_TICK_COLOR}"
-              stroke-width="2.4"
-              stroke-linecap="round"
-            ></line>
-          `;
-        }).join("");
-
-        CLOSE_INDEX_GAUGE_SEGMENTS.forEach(function (segment) {
-          const span = segment.end - segment.start;
-          const sweep = usableSweep * (span / 100);
-          const segmentStartAngle = currentAngle;
-          const segmentEndAngle = segmentStartAngle + sweep;
-          const containsScore = score !== null && (
-            (score >= segment.start && score < segment.end)
-            || (segment.end === 100 && score === 100)
-          );
-
-          segmentPaths.push(`
-            <path
-              d="${describeArc(centerX, centerY, radius, segmentStartAngle, segmentEndAngle)}"
-              fill="none"
-              stroke="${segment.color}"
-              stroke-width="${strokeWidth}"
-              stroke-linecap="butt"
-            ></path>
-            <path
-              d="${describeArc(centerX, centerY, segmentAccentRadius, segmentStartAngle, segmentEndAngle)}"
-              fill="none"
-              stroke="${segment.borderColor}"
-              stroke-width="${segmentAccentStrokeWidth}"
-              stroke-linecap="butt"
-            ></path>
-          `);
-
-          if (containsScore) {
-            const scoreRatio = span > 0 ? (Math.max(segment.start, Math.min(score, segment.end)) - segment.start) / span : 0;
-            const needleAngle = segmentStartAngle + (sweep * scoreRatio);
-            const needleTip = polarToCartesian(centerX, centerY, needleLength, needleAngle);
-            const needleTail = polarToCartesian(centerX, centerY, needleTailLength, needleAngle + 180);
-            needleMarkup = `
-              <line
-                x1="${needleTail.x}"
-                y1="${needleTail.y}"
-                x2="${needleTip.x}"
-                y2="${needleTip.y}"
-                stroke="#1f2937"
-                stroke-width="4.4"
-                stroke-linecap="round"
-              ></line>
-              <circle cx="${centerX}" cy="${centerY}" r="7.5" fill="#1f2937" stroke="#ffffff" stroke-width="3"></circle>
+        const tier = String(closeIndex?.tier || (
+          score !== null
+            && window.LipOpportunityScore
+            && typeof window.LipOpportunityScore.getScoreTier === "function"
+            ? window.LipOpportunityScore.getScoreTier(score)
+            : ""
+        ) || "").trim();
+        const band = getCloseIndexDisplayBand(score, tier);
+        const contextNoteMarkup = score === null
+          ? `<span class="client-overview-close-index-note-text">Awaiting Close Index score</span>`
+          : band.nextThreshold === null
+            ? `<span class="client-overview-close-index-note-text">${escapeHtml(`${band.label} tier reached`)}</span>`
+            : `
+              <span class="client-overview-close-index-note-text">${escapeHtml(band.label)}</span>
+              <span class="client-overview-close-index-note-arrow" aria-hidden="true"></span>
+              <span class="client-overview-close-index-note-text">${escapeHtml(`${band.nextLabel} at ${band.nextThreshold}`)}</span>
             `;
-          }
-
-          currentAngle = segmentEndAngle + segmentGap;
-        });
+        const markerPosition = score === null ? 50 : Math.max(0, Math.min(100, score));
 
         return `
-          <div class="client-overview-close-index-visual" aria-label="Close Index ${score === null ? "not available" : score}">
-            <svg class="client-overview-close-index-svg" viewBox="0 18 220 152" role="img" aria-hidden="true" focusable="false">
-              ${tickMarkup}
-              ${segmentPaths.join("")}
-              ${needleMarkup}
-            </svg>
-            <div class="client-overview-close-index-center">
+          <div class="client-overview-close-index-visual ${escapeHtml(band.tier)}" aria-label="Close Index ${score === null ? "not available" : score}">
+            <span class="client-overview-close-index-heading">Close Index - Close Probability</span>
+            <div class="client-overview-close-index-score-row">
               <span class="client-overview-close-index-number">${score === null ? "--" : escapeHtml(String(score))}</span>
-              <span class="client-overview-close-index-label">Close Index</span>
+              <span class="client-overview-close-index-pill ${escapeHtml(band.tier)}">${escapeHtml(band.label)}</span>
             </div>
-            <div class="client-overview-close-index-scale" aria-hidden="true">
-              <span>0</span>
-              <span>100</span>
+            <div class="client-overview-close-index-bar-shell">
+              <div class="client-overview-close-index-bar" aria-hidden="true">
+                ${CLOSE_INDEX_GAUGE_SEGMENTS.map(function (segment) {
+                  return `
+                    <span
+                      class="client-overview-close-index-segment"
+                      style="--close-index-segment-span:${segment.end - segment.start};--close-index-segment-fill:${segment.color};"
+                    ></span>
+                  `;
+                }).join("")}
+              </div>
+              ${score === null ? "" : `<span class="client-overview-close-index-marker" style="--close-index-marker-target:${markerPosition}%;left:var(--close-index-marker-target);"></span>`}
+              <div class="client-overview-close-index-scale" aria-hidden="true">
+                <span>0</span>
+                <span>100</span>
+              </div>
             </div>
+            <span class="client-overview-close-index-divider" aria-hidden="true"></span>
+            <span class="client-overview-close-index-note">${contextNoteMarkup}</span>
           </div>
         `;
       }
 
-      function getOverviewCloseProbabilityPrediction(workflowState) {
-        const currentKey = String(workflowState?.currentKey || "").trim();
-        return OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS[currentKey]
-          || OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default;
+      function normalizeProbabilityPercent(value, fallback) {
+        const safeValue = Number.isFinite(value) ? value : fallback;
+        return Math.max(0, Math.min(100, Math.round(safeValue)));
       }
 
-      function renderOverviewCloseProbabilityPrediction(prediction, workflowState) {
+      function getOverviewCloseProbabilityTopDriver(closeIndex) {
+        const weighted = closeIndex && typeof closeIndex === "object" ? closeIndex.weighted : null;
+        if (!weighted || typeof weighted !== "object") {
+          return "";
+        }
+
+        const driverEntries = [
+          { key: "stageReadiness", label: "Stage readiness" },
+          { key: "completeness", label: "Profile completeness" },
+          { key: "affordability", label: "Affordability" },
+          { key: "needPressure", label: "Need pressure" },
+          { key: "momentum", label: "Momentum" },
+          { key: "confidence", label: "Model confidence" },
+          { key: "opportunity", label: "Coverage gap opportunity" }
+        ];
+
+        const strongestDriver = driverEntries.reduce(function (best, entry) {
+          const weight = Number.isFinite(weighted[entry.key]) ? weighted[entry.key] : 0;
+          if (!best || weight > best.weight) {
+            return { label: entry.label, weight };
+          }
+          return best;
+        }, null);
+
+        return strongestDriver && strongestDriver.weight > 0
+          ? strongestDriver.label
+          : "";
+      }
+
+      function buildOverviewCloseProbabilityNotes(workflowState, closeIndex) {
+        const steps = Array.isArray(workflowState?.steps) ? workflowState.steps : [];
+        const completedCount = Number.isFinite(workflowState?.completedCount)
+          ? workflowState.completedCount
+          : steps.filter(function (step) { return step?.complete; }).length;
+        const totalCount = steps.length || CLIENT_PROFILE_WORKFLOW_SEQUENCE.length;
+        const currentStep = workflowState?.currentStep || null;
+        const topDriver = getOverviewCloseProbabilityTopDriver(closeIndex);
+
+        if (currentStep) {
+          const notes = [
+            Object.freeze({
+              label: "Current Step",
+              value: currentStep.label
+            })
+          ];
+          if (topDriver) {
+            notes.push(Object.freeze({
+              label: "Top Driver",
+              value: topDriver
+            }));
+          } else {
+            notes.push(Object.freeze({
+              label: "Status",
+              value: String(currentStep.detail || `${completedCount} of ${totalCount} milestones completed`).trim()
+            }));
+          }
+          return notes;
+        }
+
+        const completedNotes = [
+          Object.freeze({
+            label: "Workflow",
+            value: "All core milestones completed"
+          })
+        ];
+        completedNotes.push(Object.freeze({
+          label: topDriver ? "Top Driver" : "Progress",
+          value: topDriver || `${completedCount} of ${totalCount} milestones completed`
+        }));
+        return completedNotes;
+      }
+
+      function getOverviewCloseProbabilityPrediction(workflowState, closeIndex) {
+        const currentKey = String(workflowState?.currentKey || "").trim();
+        const steps = Array.isArray(workflowState?.steps) ? workflowState.steps : [];
+        const workflowComplete = steps.length > 0 && steps.every(function (step) { return step.complete; });
+        const completedWorkflowKey = steps.length && steps.every(function (step) { return step.complete; })
+          ? String(steps[steps.length - 1]?.key || "").trim()
+          : "";
+        const activeKey = currentKey || completedWorkflowKey || "default";
+        const basePrediction = OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS[activeKey]
+          || OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default;
+        const baseCurrent = normalizeProbabilityPercent(basePrediction.current, OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.current);
+        const baseProjected = normalizeProbabilityPercent(basePrediction.projected, OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.projected);
+        const current = Number.isFinite(closeIndex?.score)
+          ? normalizeProbabilityPercent(closeIndex.score, baseCurrent)
+          : baseCurrent;
+        const projectedGain = Math.max(0, baseProjected - baseCurrent);
+        const projected = workflowComplete
+          ? current
+          : normalizeProbabilityPercent(current + projectedGain, baseProjected);
+
+        return Object.freeze({
+          current,
+          projected,
+          qualifier: workflowComplete
+            ? "Workflow Completed"
+            : String(basePrediction.qualifier || OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.qualifier).trim(),
+          notes: Object.freeze(buildOverviewCloseProbabilityNotes(workflowState, closeIndex))
+        });
+      }
+
+      function renderOverviewCloseProbabilityPrediction(prediction) {
         const current = Number.isFinite(prediction?.current) ? prediction.current : OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.current;
         const projected = Number.isFinite(prediction?.projected) ? prediction.projected : OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.projected;
         const qualifier = String(prediction?.qualifier || OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.qualifier).trim();
-        const boosters = Array.isArray(prediction?.boosters) && prediction.boosters.length
-          ? prediction.boosters
-          : OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS.default.boosters;
-        const workflowStepMap = new Map((Array.isArray(workflowState?.steps) ? workflowState.steps : []).map(function (step) {
-          return [String(step?.key || "").trim(), Boolean(step?.complete)];
-        }));
+        const notes = Array.isArray(prediction?.notes)
+          ? prediction.notes.filter(function (note) {
+              return note && String(note.label || "").trim() && String(note.value || "").trim();
+            }).slice(0, 2)
+          : [];
 
         return `
           <section class="client-overview-probability-prediction" aria-label="Close Probability Prediction">
@@ -1604,23 +1677,19 @@
                 </div>
                 <span class="client-overview-probability-qualifier">${escapeHtml(qualifier)}</span>
               </div>
-              <div class="client-overview-probability-boosters" aria-label="Score-boosting completion items">
-                ${boosters.map(function (item, index) {
-                  const stepKey = String(item?.stepKey || "").trim();
-                  const isComplete = stepKey ? Boolean(workflowStepMap.get(stepKey)) : false;
-                  const gain = Number(item?.gain);
-                  const gainLabel = Number.isFinite(gain) && gain > 0 ? `+${gain} pts` : "";
+            </div>
+            ${notes.length ? `
+              <div class="client-overview-probability-notes" aria-label="Close Probability Notes">
+                ${notes.map(function (note) {
                   return `
-                    <div class="client-overview-probability-booster${index === 0 ? " is-biggest-impact" : ""}${isComplete ? " is-complete" : ""}">
-                      ${index === 0 ? `<span class="client-overview-probability-booster-tab"><span class="client-overview-probability-booster-tab-icon" aria-hidden="true"></span><span>Biggest Impact</span></span>` : ""}
-                      <span class="client-overview-probability-booster-indicator" aria-hidden="true"></span>
-                      <span class="client-overview-probability-booster-label">${escapeHtml(String(item?.label || "").trim() || "Completion item")}</span>
-                      <span class="client-overview-probability-booster-gain">${escapeHtml(isComplete ? "Done" : gainLabel || "Open")}</span>
+                    <div class="client-overview-probability-note">
+                      <span class="client-overview-probability-note-label">${escapeHtml(note.label)}</span>
+                      <span class="client-overview-probability-note-value">${escapeHtml(note.value)}</span>
                     </div>
                   `;
                 }).join("")}
               </div>
-            </div>
+            ` : ""}
           </section>
         `;
       }
@@ -2119,69 +2188,39 @@
         { key: "placement", label: "Placement", tab: "overview", target: "placement" }
       ];
 
-      // CODE NOTE: Overview close-probability forecast copy is intentionally
-      // centralized here so product/design can tune the numbers or the
-      // milestone language later without editing the overview card markup.
+      // CODE NOTE: Overview close-probability forecast copy is centralized
+      // here so stage targets stay easy to tune while the rendered notes come
+      // from the live workflow state below.
       const OVERVIEW_CLOSE_PROBABILITY_PREDICTIONS = Object.freeze({
         default: Object.freeze({
           current: 49,
           projected: 72,
-          qualifier: "If Primary Advisor Action Completed",
-          boosters: Object.freeze([
-            Object.freeze({ stepKey: "modeling-inputs", label: "Complete Modeling Inputs", gain: 7 }),
-            Object.freeze({ stepKey: "needs-analysis", label: "Save Needs Analysis", gain: 8 }),
-            Object.freeze({ stepKey: "recommendation", label: "Finalize Recommendation", gain: 8 })
-          ])
+          qualifier: "If Primary Advisor Action Completed"
         }),
         "modeling-inputs": Object.freeze({
           current: 49,
           projected: 72,
-          qualifier: "If Primary Advisor Action Completed",
-          boosters: Object.freeze([
-            Object.freeze({ stepKey: "modeling-inputs", label: "Complete Modeling Inputs", gain: 7 }),
-            Object.freeze({ stepKey: "needs-analysis", label: "Save Needs Analysis", gain: 8 }),
-            Object.freeze({ stepKey: "recommendation", label: "Finalize Recommendation", gain: 8 })
-          ])
+          qualifier: "If Primary Advisor Action Completed"
         }),
         "needs-analysis": Object.freeze({
           current: 58,
           projected: 76,
-          qualifier: "if analysis completed",
-          boosters: Object.freeze([
-            Object.freeze({ stepKey: "needs-analysis", label: "Finalize Needs Analysis", gain: 6 }),
-            Object.freeze({ stepKey: "recommendation", label: "Finalize Recommendation", gain: 7 }),
-            Object.freeze({ stepKey: "underwriting", label: "Prepare Underwriting", gain: 5 })
-          ])
+          qualifier: "If Needs Analysis Completed"
         }),
         recommendation: Object.freeze({
           current: 67,
           projected: 83,
-          qualifier: "if recommendation finalized",
-          boosters: Object.freeze([
-            Object.freeze({ stepKey: "recommendation", label: "Finalize Recommendation", gain: 6 }),
-            Object.freeze({ stepKey: "underwriting", label: "Start Underwriting", gain: 6 }),
-            Object.freeze({ stepKey: "placement", label: "Secure Placement", gain: 4 })
-          ])
+          qualifier: "If Recommendation Finalized"
         }),
         underwriting: Object.freeze({
           current: 74,
           projected: 88,
-          qualifier: "if underwriting started",
-          boosters: Object.freeze([
-            Object.freeze({ stepKey: "underwriting", label: "Complete Underwriting", gain: 5 }),
-            Object.freeze({ stepKey: "recommendation", label: "Confirm Recommendation Fit", gain: 4 }),
-            Object.freeze({ stepKey: "placement", label: "Move to Placement", gain: 5 })
-          ])
+          qualifier: "If Underwriting Started"
         }),
         placement: Object.freeze({
           current: 82,
           projected: 94,
-          qualifier: "if placement secured",
-          boosters: Object.freeze([
-            Object.freeze({ stepKey: "recommendation", label: "Recommendation Locked", gain: 4 }),
-            Object.freeze({ stepKey: "underwriting", label: "Underwriting Cleared", gain: 4 }),
-            Object.freeze({ stepKey: "placement", label: "Secure Placement", gain: 4 })
-          ])
+          qualifier: "If Placement Secured"
         })
       });
       const CLIENT_PROFILE_ANALYSIS_CHILD_KEYS = ["modeling-inputs", "needs-analysis", "recommendation"];
@@ -2201,6 +2240,11 @@
 
       function renderClientProfileSidebar(record, subtitleParts) {
         const clientName = getClientWorkspaceSidebarTitle(record);
+        const isHouseholdAvatar = record?.viewType === "households";
+        const avatarPresentation = isHouseholdAvatar ? null : getAvatarPresentation(record?.age, record?.dateOfBirth);
+        const avatarStyle = isHouseholdAvatar
+          ? ""
+          : ` style="background:${escapeHtml(avatarPresentation?.background || "")};color:${escapeHtml(avatarPresentation?.color || "")};box-shadow:${escapeHtml(avatarPresentation?.boxShadow || "")};"`;
         const householdAssignment = formatValue(record.householdName);
         const householdAssignmentValue = householdAssignment === "Not provided"
           ? "No household linked"
@@ -2211,95 +2255,94 @@
           ? `${dependentsCount} dependent${dependentsCount === 1 ? "" : "s"}`
           : formatValue(record.hasDependents);
         return `
-          <aside class="client-profile-sidebar">
-            <div class="client-profile-sidebar-sticky">
-              <section class="client-detail-card client-detail-card-compact client-profile-sidebar-card">
-                <details class="workspace-page-menu client-profile-sidebar-menu">
-                  <summary class="workspace-page-menu-trigger client-profile-sidebar-menu-trigger" aria-label="Open profile actions" title="Profile actions">
-                    <span class="client-profile-sidebar-menu-dots" aria-hidden="true">
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </span>
-                  </summary>
-                  <div class="workspace-page-menu-panel client-profile-sidebar-menu-panel">
-                    <button class="workspace-page-menu-link client-profile-sidebar-menu-action" type="button" data-profile-delete-toggle>
-                      <span class="workspace-page-menu-link-icon client-profile-sidebar-menu-action-icon" aria-hidden="true">
-                        <span class="client-profile-delete-icon-image"></span>
-                      </span>
-                      <span class="workspace-page-menu-link-label">Delete Profile</span>
+          <section class="client-detail-card client-detail-card-compact client-profile-sidebar-card">
+            <details class="workspace-page-menu client-profile-sidebar-menu">
+              <summary class="workspace-page-menu-trigger client-profile-sidebar-menu-trigger" aria-label="Open profile actions" title="Profile actions">
+                <span class="client-profile-sidebar-menu-dots" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              </summary>
+              <div class="workspace-page-menu-panel client-profile-sidebar-menu-panel">
+                <button class="workspace-page-menu-link client-profile-sidebar-menu-action" type="button" data-profile-delete-toggle>
+                  <span class="workspace-page-menu-link-icon client-profile-sidebar-menu-action-icon" aria-hidden="true">
+                    <span class="client-profile-delete-icon-image"></span>
+                  </span>
+                  <span class="workspace-page-menu-link-label">Delete Profile</span>
+                </button>
+              </div>
+            </details>
+            <div class="client-profile-avatar-wrap">
+              <span class="client-avatar client-profile-sidebar-avatar${isHouseholdAvatar ? " client-avatar-household" : ""}" aria-hidden="true"${avatarStyle}>${escapeHtml(getInitials(clientName, record?.viewType, record?.lastName))}</span>
+            </div>
+            <div class="client-profile-sidebar-copy">
+              <span class="client-profile-sidebar-overline">Client Details</span>
+              <strong class="client-profile-sidebar-name">${escapeHtml(clientName)}</strong>
+              <p>${escapeHtml([
+                formatValue(record.age),
+                formatValue(record.insuranceRatingSex),
+                formatValue(record.city),
+                formatValue(record.state)
+              ].filter(function (value) { return value !== "Not provided"; }).join(" | ") || subtitleParts.join(" | "))}</p>
+            </div>
+            <div class="client-profile-contact-list">
+              <div class="client-profile-contact-item">
+                <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M5.1 2.9 3.9 4.1a1.25 1.25 0 0 0-.29 1.4c.63 1.42 1.57 2.76 2.82 4.01 1.25 1.25 2.59 2.19 4.01 2.82a1.25 1.25 0 0 0 1.4-.29l1.2-1.2a.88.88 0 0 0-.08-1.31L11.6 8.47a.9.9 0 0 0-1.02-.08l-.7.42a.6.6 0 0 1-.63.03 7.2 7.2 0 0 1-1.38-1.12 7.2 7.2 0 0 1-1.12-1.38.6.6 0 0 1 .03-.63l.42-.7a.9.9 0 0 0-.08-1.02L6.35 2.97a.88.88 0 0 0-1.25-.07Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+                <div class="client-profile-contact-copy">
+                  <span class="client-profile-contact-key">Phone</span>
+                  <strong>${escapeHtml(formatValue(record.phoneNumber))}</strong>
+                </div>
+              </div>
+              <div class="client-profile-contact-item">
+                <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><rect x="2.4" y="3.4" width="11.2" height="9.2" rx="1.7" stroke="currentColor" stroke-width="1.2"/><path d="M3.4 4.8 8 8.1l4.6-3.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+                <div class="client-profile-contact-copy">
+                  <span class="client-profile-contact-key">Email</span>
+                  <strong>${escapeHtml(formatValue(record.emailAddress))}</strong>
+                </div>
+              </div>
+              <div class="client-profile-contact-item">
+                <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.2" r="2.15" stroke="currentColor" stroke-width="1.2"/><path d="M4.15 12.45a3.85 3.85 0 0 1 7.7 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
+                <div class="client-profile-contact-copy">
+                  <span class="client-profile-contact-key">Advisor</span>
+                  <strong>${escapeHtml(formatValue(record.advisorName))}</strong>
+                </div>
+              </div>
+              <div class="client-profile-contact-item">
+                <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M6.15 2.55 5 13.45M10.95 2.55 9.8 13.45M2.95 6.15h10.1M2.2 9.85H12.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
+                <div class="client-profile-contact-copy">
+                  <span class="client-profile-contact-key">Case Ref</span>
+                  <div class="client-profile-contact-value-shell">
+                    <strong>${escapeHtml(formatValue(record.caseRef))}</strong>
+                    <button class="client-profile-copy-button" type="button" data-case-ref-copy="${escapeHtml(formatValue(record.caseRef))}" aria-label="Copy case ref">
+                      <span class="client-profile-copy-icon" aria-hidden="true"></span>
                     </button>
                   </div>
-                </details>
-                <div class="client-profile-sidebar-copy">
-                  <span class="client-profile-sidebar-overline">Client Details</span>
-                  <strong class="client-profile-sidebar-name">${escapeHtml(clientName)}</strong>
-                  <p>${escapeHtml([
-                    formatValue(record.age),
-                    formatValue(record.insuranceRatingSex),
-                    formatValue(record.city),
-                    formatValue(record.state)
-                  ].filter(function (value) { return value !== "Not provided"; }).join(" | ") || subtitleParts.join(" | "))}</p>
                 </div>
-                <div class="client-profile-contact-list">
-                  <div class="client-profile-contact-item">
-                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M5.1 2.9 3.9 4.1a1.25 1.25 0 0 0-.29 1.4c.63 1.42 1.57 2.76 2.82 4.01 1.25 1.25 2.59 2.19 4.01 2.82a1.25 1.25 0 0 0 1.4-.29l1.2-1.2a.88.88 0 0 0-.08-1.31L11.6 8.47a.9.9 0 0 0-1.02-.08l-.7.42a.6.6 0 0 1-.63.03 7.2 7.2 0 0 1-1.38-1.12 7.2 7.2 0 0 1-1.12-1.38.6.6 0 0 1 .03-.63l.42-.7a.9.9 0 0 0-.08-1.02L6.35 2.97a.88.88 0 0 0-1.25-.07Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
-                    <div class="client-profile-contact-copy">
-                      <span class="client-profile-contact-key">Phone</span>
-                      <strong>${escapeHtml(formatValue(record.phoneNumber))}</strong>
-                    </div>
-                  </div>
-                  <div class="client-profile-contact-item">
-                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><rect x="2.4" y="3.4" width="11.2" height="9.2" rx="1.7" stroke="currentColor" stroke-width="1.2"/><path d="M3.4 4.8 8 8.1l4.6-3.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
-                    <div class="client-profile-contact-copy">
-                      <span class="client-profile-contact-key">Email</span>
-                      <strong>${escapeHtml(formatValue(record.emailAddress))}</strong>
-                    </div>
-                  </div>
-                  <div class="client-profile-contact-item">
-                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.2" r="2.15" stroke="currentColor" stroke-width="1.2"/><path d="M4.15 12.45a3.85 3.85 0 0 1 7.7 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
-                    <div class="client-profile-contact-copy">
-                      <span class="client-profile-contact-key">Advisor</span>
-                      <strong>${escapeHtml(formatValue(record.advisorName))}</strong>
-                    </div>
-                  </div>
-                  <div class="client-profile-contact-item">
-                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M6.15 2.55 5 13.45M10.95 2.55 9.8 13.45M2.95 6.15h10.1M2.2 9.85H12.3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
-                    <div class="client-profile-contact-copy">
-                      <span class="client-profile-contact-key">Case Ref</span>
-                      <div class="client-profile-contact-value-shell">
-                        <strong>${escapeHtml(formatValue(record.caseRef))}</strong>
-                        <button class="client-profile-copy-button" type="button" data-case-ref-copy="${escapeHtml(formatValue(record.caseRef))}" aria-label="Copy case ref">
-                          <span class="client-profile-copy-icon" aria-hidden="true"></span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="client-profile-contact-item client-profile-contact-item--assignment">
-                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M8 2.4 2.9 5.25V13.1h10.2V5.25L8 2.4Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6.2 13.1V9.2h3.6v3.9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
-                    <div class="client-profile-contact-copy">
-                      <span class="client-profile-contact-key">Household Assignment</span>
-                      <strong>${escapeHtml(householdAssignmentValue)}</strong>
-                    </div>
-                  </div>
-                  <div class="client-profile-contact-item">
-                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M8 12.6 3.4 8.45a2.55 2.55 0 0 1 3.56-3.66L8 5.8l1.04-1.01a2.55 2.55 0 1 1 3.56 3.66L8 12.6Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
-                    <div class="client-profile-contact-copy">
-                      <span class="client-profile-contact-key">Marital Status</span>
-                      <strong>${escapeHtml(formatValue(record.maritalStatus))}</strong>
-                    </div>
-                  </div>
-                  <div class="client-profile-contact-item">
-                    <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><circle cx="5.3" cy="5.45" r="1.65" stroke="currentColor" stroke-width="1.2"/><circle cx="10.9" cy="6.1" r="1.45" stroke="currentColor" stroke-width="1.2"/><path d="M2.95 12.35a2.85 2.85 0 0 1 4.7-2.15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M8.55 12.35a2.4 2.4 0 0 1 3.95-1.82" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
-                    <div class="client-profile-contact-copy">
-                      <span class="client-profile-contact-key">Dependents</span>
-                      <strong>${escapeHtml(dependentsValue)}</strong>
-                    </div>
-                  </div>
+              </div>
+              <div class="client-profile-contact-item client-profile-contact-item--assignment">
+                <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M8 2.4 2.9 5.25V13.1h10.2V5.25L8 2.4Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6.2 13.1V9.2h3.6v3.9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+                <div class="client-profile-contact-copy">
+                  <span class="client-profile-contact-key">Household Assignment</span>
+                  <strong>${escapeHtml(householdAssignmentValue)}</strong>
                 </div>
-              </section>
+              </div>
+              <div class="client-profile-contact-item">
+                <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="M8 12.6 3.4 8.45a2.55 2.55 0 0 1 3.56-3.66L8 5.8l1.04-1.01a2.55 2.55 0 1 1 3.56 3.66L8 12.6Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+                <div class="client-profile-contact-copy">
+                  <span class="client-profile-contact-key">Marital Status</span>
+                  <strong>${escapeHtml(formatValue(record.maritalStatus))}</strong>
+                </div>
+              </div>
+              <div class="client-profile-contact-item">
+                <span class="client-profile-contact-label"><span class="client-profile-contact-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><circle cx="5.3" cy="5.45" r="1.65" stroke="currentColor" stroke-width="1.2"/><circle cx="10.9" cy="6.1" r="1.45" stroke="currentColor" stroke-width="1.2"/><path d="M2.95 12.35a2.85 2.85 0 0 1 4.7-2.15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M8.55 12.35a2.4 2.4 0 0 1 3.95-1.82" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span></span>
+                <div class="client-profile-contact-copy">
+                  <span class="client-profile-contact-key">Dependents</span>
+                  <strong>${escapeHtml(dependentsValue)}</strong>
+                </div>
+              </div>
             </div>
-          </aside>
+          </section>
         `;
       }
 
@@ -2837,52 +2880,111 @@
 
       function renderOverviewSummaryCard(record) {
         const coverageFields = synchronizeRecordCoverageFields(record);
-        const priorityLever = getPriorityDisplay(normalizePriority(record.priority));
         const closeIndex = window.LipOpportunityScore && typeof window.LipOpportunityScore.calculate === "function"
           ? window.LipOpportunityScore.calculate(record, { now: new Date() })
           : null;
-        const overviewItems = [
-          { label: "Priority Lever", value: priorityLever },
-          { label: "Planning Status", value: getPlanningStatus(record) }
-        ];
+        const workflowState = getClientWorkflowProgressState(record);
+        const closeProbabilityPrediction = getOverviewCloseProbabilityPrediction(workflowState, closeIndex);
 
         return `
           <section class="client-detail-card client-detail-card-compact client-planning-card client-planning-card-wide client-overview-summary-card" data-client-nav-section="overview">
             <div class="client-overview-summary-tab">Overview</div>
             <div class="client-overview-summary-body">
-              <div class="client-profile-stats">
-                ${renderStatCard("Current Coverage", formatCoverageCardCurrency(coverageFields.currentCoverage), "", {
-                  editable: true,
-                  fieldName: "currentCoverage",
-                  rawValue: String(coverageFields.currentCoverage || "0")
-                })}
-                ${renderStatCard("Modeled Need", formatCoverageCardCurrency(coverageFields.modeledNeed), "", {
-                  editable: true,
-                  fieldName: "modeledNeed",
-                  rawValue: String(coverageFields.modeledNeed || "0"),
-                  displayStateClass: coverageFields.uncoveredGap > 0 ? "has-gap" : "is-zero"
-                })}
+              <div class="client-overview-glance">
+                <div class="client-overview-glance-header">
+                  <span class="client-overview-glance-title">
+                    Coverage at a Glance
+                    <span class="client-overview-glance-icon" aria-hidden="true">
+                      <svg viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.1"/>
+                        <path d="M8 6.6v3.65" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+                        <circle cx="8" cy="4.55" r=".7" fill="currentColor"/>
+                      </svg>
+                    </span>
+                  </span>
+                  <span class="client-overview-glance-why">
+                    <span class="client-overview-glance-icon" aria-hidden="true">
+                      <svg viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.1"/>
+                        <path d="M8 6.6v3.65" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+                        <circle cx="8" cy="4.55" r=".7" fill="currentColor"/>
+                      </svg>
+                    </span>
+                    Why this matters
+                  </span>
+                </div>
+                <div class="client-profile-stats client-profile-stats--overview-glance">
+                  ${renderStatCard("Current Coverage", formatCoverageCardCurrency(coverageFields.currentCoverage), "", {
+                    editable: true,
+                    fieldName: "currentCoverage",
+                    rawValue: String(coverageFields.currentCoverage || "0")
+                  })}
+                  ${renderStatCard("Modeled Need", formatCoverageCardCurrency(coverageFields.modeledNeed), "", {
+                    editable: true,
+                    fieldName: "modeledNeed",
+                    rawValue: String(coverageFields.modeledNeed || "0"),
+                    displayStateClass: coverageFields.uncoveredGap > 0 ? "has-gap" : "is-zero"
+                  })}
+                  ${renderStatCard("Gap", formatCoverageCardCurrency(coverageFields.uncoveredGap), "", {
+                    fieldName: "coverageGap",
+                    rawValue: String(coverageFields.uncoveredGap || "0"),
+                    displayStateClass: coverageFields.uncoveredGap > 0 ? "has-gap" : "is-zero"
+                  })}
+                </div>
               </div>
               <div class="client-overview-close-index-hero">
                 <div class="client-overview-close-index-panel">
                   ${renderCloseIndexGauge(closeIndex)}
                 </div>
+                ${renderOverviewCloseProbabilityPrediction(closeProbabilityPrediction)}
               </div>
-              <div class="client-overview-support-grid">
-                <div class="client-overview-secondary-panels">
-                  ${renderCoverageAdequacyBar(record, { className: "client-overview-coverage-adequacy", showIncomeGap: false })}
-                </div>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderStatusControlPanel(record) {
+        const workflowState = getClientWorkflowProgressState(record);
+        const lifecycleStatus = getClientStatusDisplay(record);
+        const planningStatus = getPlanningStatus(record);
+        const priorityLever = getPriorityDisplay(normalizePriority(record.priority));
+        const currentStep = workflowState.currentStep ? workflowState.currentStep.label : "Placement";
+        const stepDetail = workflowState.currentStep
+          ? String(workflowState.currentStep.detail || "").trim()
+          : "All workflow milestones completed";
+        const progressLabel = `${workflowState.completedCount} of ${workflowState.steps.length} complete`;
+
+        return `
+          <section class="client-detail-card client-detail-card-compact client-detail-card-tabbed client-status-control-card" data-status-control-panel>
+            <div class="client-detail-card-tab">Status Control Panel</div>
+            <div class="client-detail-card-header">
+              <h2 class="sr-only">Status Control Panel</h2>
+            </div>
+            <div class="client-status-control-grid">
+              <div class="client-status-control-item">
+                <span class="client-summary-label">Client Status</span>
+                <span class="client-summary-value">${escapeHtml(lifecycleStatus)}</span>
               </div>
-              <div class="client-overview-summary-grid">
-                ${overviewItems.map(function (item) {
-                  return `
-                    <div class="client-overview-summary-item">
-                      <span class="client-summary-label">${escapeHtml(item.label)}</span>
-                      <span class="client-summary-value">${escapeHtml(item.value)}</span>
-                    </div>
-                  `;
-                }).join("")}
+              <div class="client-status-control-item">
+                <span class="client-summary-label">Planning Status</span>
+                <span class="client-summary-value">${escapeHtml(planningStatus)}</span>
               </div>
+              <div class="client-status-control-item">
+                <span class="client-summary-label">Current Step</span>
+                <span class="client-summary-value">${escapeHtml(currentStep)}</span>
+              </div>
+              <div class="client-status-control-item">
+                <span class="client-summary-label">Priority Lever</span>
+                <span class="client-summary-value">${escapeHtml(priorityLever)}</span>
+              </div>
+            </div>
+            <div class="client-status-control-detail">
+              <span class="client-summary-label">Workflow Detail</span>
+              <span class="client-summary-value">${escapeHtml(stepDetail)}</span>
+            </div>
+            <div class="client-status-control-progress">
+              <span class="client-summary-label">Progress</span>
+              <span class="client-summary-value">${escapeHtml(progressLabel)}</span>
             </div>
           </section>
         `;
@@ -3208,6 +3310,7 @@
                 <span class="client-primary-action-eyebrow">Primary Advisor Action</span>
                 <h2>${escapeHtml(headline)}</h2>
                 <p class="client-primary-action-problem">${escapeHtml(problemText)}</p>
+                ${renderCoverageAdequacyBar(record, { className: "client-primary-action-coverage-adequacy", showIncomeGap: false, showGap: false })}
               </div>
               <div class="client-primary-action-recommendation">
                 <span class="client-primary-action-recommendation-label">Next step</span>
@@ -4214,9 +4317,6 @@
       function renderChecklistCard(title, items, record) {
         const completedCount = items.filter(function (item) { return item.complete; }).length;
         const activeIndex = items.findIndex(function (item) { return !item.complete; });
-        const progressRatio = items.length ? (completedCount / items.length) : 0;
-        const workflowState = getClientWorkflowProgressState(record);
-        const closeProbabilityPrediction = getOverviewCloseProbabilityPrediction(workflowState);
 
         return `
           <section class="client-detail-card client-detail-card-compact client-detail-card-checklist client-detail-card-tabbed" data-checklist-card>
@@ -4227,47 +4327,29 @@
               </div>
               <span class="client-checklist-progress-pill">${completedCount} of ${items.length} complete</span>
             </div>
-            <div class="client-checklist-probability-shell">
-              ${renderOverviewCloseProbabilityPrediction(closeProbabilityPrediction, workflowState)}
-            </div>
-            <div
-              class="client-checklist-progress"
-              style="--checklist-progress-ratio:${progressRatio}; --checklist-step-count:${Math.max(items.length, 1)};"
-              aria-label="Planning workflow progress"
-            >
-              <div class="client-checklist-progress-track" aria-hidden="true"></div>
-              <div class="client-checklist-progress-fill" aria-hidden="true"></div>
-              <div class="client-checklist-progress-steps">
-                ${items.map(function (item, index) {
-                  const stepState = item.complete ? "is-complete" : index === activeIndex ? "is-active" : "is-upcoming";
-                  return `
-                    <span class="client-checklist-progress-step ${stepState}">
-                      <span>${item.complete ? '<span class="client-checklist-check-icon" aria-hidden="true"></span>' : index + 1}</span>
-                    </span>
-                  `;
-                }).join("")}
-              </div>
-            </div>
             <div class="client-checklist-list">
               ${items.map(function (item, index) {
                 const action = getChecklistAction(record, item);
                 const rowState = item.complete ? "is-complete" : index === activeIndex ? "is-active" : "is-upcoming";
-                const stateLabel = item.complete ? "Completed" : index === activeIndex ? "Current Step" : "Upcoming";
+                const isLocked = !item.complete && activeIndex !== -1 && index > activeIndex + 1;
+                const stateLabel = item.complete ? "Completed" : index === activeIndex ? "Current Step" : isLocked ? "Locked" : "Ready";
+                const detailText = String(item.detail || "").trim();
+                const actionLabel = index === activeIndex && action && action.type === "nav" ? "Start" : (action?.label || "");
                 return `
                   <div class="client-checklist-row ${rowState}">
                     <div class="client-checklist-step-indicator" aria-hidden="true">
-                      <span>${item.complete ? '<span class="client-checklist-check-icon" aria-hidden="true"></span>' : index + 1}</span>
+                      <span class="client-checklist-step-indicator-badge">${item.complete ? '<span class="client-checklist-check-icon" aria-hidden="true"></span>' : index + 1}</span>
+                      ${index < items.length - 1 ? '<span class="client-checklist-step-connector"></span>' : ""}
                     </div>
                     <div class="client-checklist-row-copy">
-                      <small>${escapeHtml(stateLabel)}</small>
                       <strong>${escapeHtml(item.label)}</strong>
-                      <span>${escapeHtml(item.detail)}</span>
+                      ${detailText && !item.complete ? `<span>${escapeHtml(detailText)}</span>` : ""}
                     </div>
                     ${item.complete ? `
                       <span class="client-checklist-status">Completed</span>
                     ` : index === activeIndex && action && action.type === "nav" ? `
                       <button class="client-checklist-action" type="button" data-client-workflow-nav="${escapeHtml(action.navKey)}">
-                        ${escapeHtml(action.label)}
+                        ${escapeHtml(actionLabel)}
                       </button>
                     ` : `
                       <span class="client-checklist-status">${escapeHtml(stateLabel)}</span>
@@ -4452,6 +4534,7 @@
         const isEditable = Boolean(options?.editable);
         const fieldName = String(options?.fieldName || "").trim();
         const rawValue = String(options?.rawValue || "").trim();
+        const overline = String(options?.overline || "").trim();
         const showMeta = String(meta || "").trim().length > 0;
         const fullDisplayValue = String(value || "").trim();
         const legacyFieldClass = fieldName === "currentCoverage"
@@ -4471,7 +4554,10 @@
         return `
           <section class="client-detail-card client-detail-stat-card${isEditable ? " is-editable" : ""}${fieldClass}">
             <div class="client-detail-stat-header">
-              <span>${escapeHtml(title)}</span>
+              <div class="client-detail-stat-heading">
+                ${overline ? `<small class="client-detail-stat-overline">${escapeHtml(overline)}</small>` : ""}
+                <span class="client-detail-stat-title">${escapeHtml(title)}</span>
+              </div>
               ${isEditable ? `
                 <div class="client-detail-stat-display${displayStateClass}">
                   <strong
@@ -4558,31 +4644,36 @@
         const gapDetails = getCoverageAdequacyGapDetails(record, adequacy);
         const className = String(options?.className || "").trim();
         const showIncomeGap = options?.showIncomeGap !== false;
+        const showGap = options?.showGap !== false;
         return `
-          <section class="client-coverage-adequacy${className ? ` ${escapeHtml(className)}` : ""}" data-coverage-adequacy data-coverage-adequacy-tone="${escapeHtml(tone)}" data-coverage-has-gap="${gapDetails.hasCoverageGap ? "true" : "false"}">
+          <section class="client-coverage-adequacy${className ? ` ${escapeHtml(className)}` : ""}" data-coverage-adequacy data-coverage-adequacy-tone="${escapeHtml(tone)}" data-coverage-has-gap="${showGap && gapDetails.hasCoverageGap ? "true" : "false"}">
             <div class="client-coverage-adequacy-header">
               <span>Coverage Adequacy</span>
               <strong data-coverage-adequacy-percent data-coverage-adequacy-tone="${escapeHtml(tone)}">${adequacy}%</strong>
             </div>
             <div class="client-coverage-adequacy-track" aria-hidden="true">
               <div class="client-coverage-adequacy-fill" data-coverage-adequacy-fill data-coverage-adequacy-tone="${escapeHtml(tone)}" style="width: ${adequacy}%;"></div>
-              <div class="client-coverage-adequacy-gap-marker" data-coverage-gap-marker style="left: ${gapDetails.markerPosition}%;">
-                <span></span>
-                <span></span>
-              </div>
-            </div>
-            <div class="client-coverage-adequacy-gap-summary" data-coverage-gap-summary style="--coverage-gap-marker-position: ${gapDetails.markerPosition}%;">
-              <div class="client-coverage-adequacy-gap-note">
-                <span class="client-coverage-adequacy-gap-label">Coverage Gap</span>
-                <strong class="client-coverage-adequacy-gap-value" data-coverage-gap-value>${escapeHtml(formatCoverageCardCurrency(gapDetails.coverageGap))}</strong>
-              </div>
-              ${showIncomeGap ? `
-                <div class="client-coverage-adequacy-income-row">
-                  <span class="client-coverage-adequacy-income-label">Income Gap</span>
-                  <strong class="client-coverage-adequacy-income-value" data-income-gap-value>${escapeHtml(formatCoverageCardCurrency(gapDetails.incomeGap))}</strong>
+              ${showGap ? `
+                <div class="client-coverage-adequacy-gap-marker" data-coverage-gap-marker style="left: ${gapDetails.markerPosition}%;">
+                  <span></span>
+                  <span></span>
                 </div>
               ` : ""}
             </div>
+            ${showGap ? `
+              <div class="client-coverage-adequacy-gap-summary" data-coverage-gap-summary style="--coverage-gap-marker-position: ${gapDetails.markerPosition}%;">
+                <div class="client-coverage-adequacy-gap-note">
+                  <span class="client-coverage-adequacy-gap-label">Coverage Gap</span>
+                  <strong class="client-coverage-adequacy-gap-value" data-coverage-gap-value>${escapeHtml(formatCoverageCardCurrency(gapDetails.coverageGap))}</strong>
+                </div>
+                ${showIncomeGap ? `
+                  <div class="client-coverage-adequacy-income-row">
+                    <span class="client-coverage-adequacy-income-label">Income Gap</span>
+                    <strong class="client-coverage-adequacy-income-value" data-income-gap-value>${escapeHtml(formatCoverageCardCurrency(gapDetails.incomeGap))}</strong>
+                  </div>
+                ` : ""}
+              </div>
+            ` : ""}
           </section>
         `;
       }
@@ -4902,37 +4993,24 @@
                 <div class="client-profile-workspace-action-row" data-primary-action-panel-host data-client-nav-section="overview">
                   ${renderPrimaryActionPanel(record, checklistItems)}
                 </div>
-                ${renderClientProfileSidebar(record, subtitleParts)}
-                <div class="client-profile-workspace-main client-profile-workspace-main--overview">
-                  <div class="client-profile-workspace" data-client-profile-workspace>
-                    ${renderProfileWorkspaceSection({
-                      sectionTargets: "overview",
-                      sectionClassName: "client-profile-workspace-section--overview",
-                      // CODE NOTE: The overview section intentionally starts right
-                      // on the live workspace content without repeating the section
-                      // heading copy shown elsewhere in the guided profile flow.
-                      eyebrow: "",
-                      title: "",
-                      description: "",
-                      body: `
-                        <div class="client-profile-overview-stack">
-                          <div class="client-profile-dashboard client-profile-dashboard--overview">
-                            <div class="client-profile-dashboard-main">
-                              ${renderOverviewSummaryCard(record)}
-                            </div>
-                          </div>
-                        </div>
-                      `
-                    })}
-                  </div>
-                </div>
-                <div class="client-profile-workspace-wide-row client-profile-workspace-wide-row--overview">
-                  <div class="client-profile-overview-workflow-grid">
-                    <div class="client-profile-overview-workflow-grid-activity">
-                      ${renderNotesWidget(record, "Activity Tracker", "activity activity-log")}
+                <div class="client-profile-workspace-wide-row client-profile-workspace-wide-row--hero" data-client-profile-workspace>
+                  <div class="client-profile-hero-grid">
+                    <div class="client-profile-hero-grid-overview">
+                      ${renderOverviewSummaryCard(record)}
                     </div>
-                    <div class="client-profile-overview-workflow-grid-checklist">
+                    <div class="client-profile-hero-grid-details">
+                      ${renderClientProfileSidebar(record, subtitleParts)}
+                    </div>
+                    <div class="client-profile-hero-grid-checklist">
                       ${renderChecklistCard("Planning Workflow", checklistItems, record)}
+                    </div>
+                    <div class="client-profile-hero-grid-lower">
+                      <div class="client-profile-hero-grid-status">
+                        ${renderStatusControlPanel(record)}
+                      </div>
+                      <div class="client-profile-hero-grid-activity">
+                        ${renderNotesWidget(record, "Activity Tracker", "activity activity-log")}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -8887,7 +8965,7 @@
       statToggles.forEach(function (toggle) {
         const fieldName = String(toggle.dataset.statEditToggle || "").trim();
         const display = host.querySelector(`[data-stat-display="${fieldName}"]`);
-        const title = toggle.closest(".client-detail-stat-card")?.querySelector(".client-detail-stat-header span")?.textContent?.trim() || "Value";
+        const title = toggle.closest(".client-detail-stat-card")?.querySelector(".client-detail-stat-title")?.textContent?.trim() || "Value";
 
         if (!display || !toggle) {
           return;
