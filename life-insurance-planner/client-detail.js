@@ -1611,26 +1611,31 @@
         return `
           <section class="client-overview-probability-prediction" aria-label="Close Probability Prediction">
             <span class="client-summary-label">Increase Close Probability</span>
-            <div class="client-overview-probability-prediction-row">
-              <strong class="client-overview-probability-current">${escapeHtml(`${current}%`)}</strong>
-              <span class="client-overview-probability-arrow" aria-hidden="true"></span>
-              <strong class="client-overview-probability-projected">${escapeHtml(`${projected}%`)}</strong>
-              <span class="client-overview-probability-qualifier">${escapeHtml(qualifier)}</span>
-            </div>
-            <div class="client-overview-probability-boosters" aria-label="Score-boosting completion items">
-              ${boosters.map(function (item) {
-                const stepKey = String(item?.stepKey || "").trim();
-                const isComplete = stepKey ? Boolean(workflowStepMap.get(stepKey)) : false;
-                const gain = Number(item?.gain);
-                const gainLabel = Number.isFinite(gain) && gain > 0 ? `+${gain} pts` : "";
-                return `
-                  <div class="client-overview-probability-booster${isComplete ? " is-complete" : ""}">
-                    <span class="client-overview-probability-booster-indicator" aria-hidden="true"></span>
-                    <span class="client-overview-probability-booster-label">${escapeHtml(String(item?.label || "").trim() || "Completion item")}</span>
-                    <span class="client-overview-probability-booster-gain">${escapeHtml(isComplete ? "Done" : gainLabel || "Open")}</span>
-                  </div>
-                `;
-              }).join("")}
+            <div class="client-overview-probability-content">
+              <div class="client-overview-probability-metric-stack">
+                <div class="client-overview-probability-prediction-row">
+                  <strong class="client-overview-probability-current">${escapeHtml(`${current}%`)}</strong>
+                  <span class="client-overview-probability-arrow" aria-hidden="true"></span>
+                  <strong class="client-overview-probability-projected">${escapeHtml(`${projected}%`)}</strong>
+                </div>
+                <span class="client-overview-probability-qualifier">${escapeHtml(qualifier)}</span>
+              </div>
+              <div class="client-overview-probability-boosters" aria-label="Score-boosting completion items">
+                ${boosters.map(function (item, index) {
+                  const stepKey = String(item?.stepKey || "").trim();
+                  const isComplete = stepKey ? Boolean(workflowStepMap.get(stepKey)) : false;
+                  const gain = Number(item?.gain);
+                  const gainLabel = Number.isFinite(gain) && gain > 0 ? `+${gain} pts` : "";
+                  return `
+                    <div class="client-overview-probability-booster${index === 0 ? " is-biggest-impact" : ""}${isComplete ? " is-complete" : ""}">
+                      ${index === 0 ? `<span class="client-overview-probability-booster-tab"><span class="client-overview-probability-booster-tab-icon" aria-hidden="true"></span><span>Biggest Impact</span></span>` : ""}
+                      <span class="client-overview-probability-booster-indicator" aria-hidden="true"></span>
+                      <span class="client-overview-probability-booster-label">${escapeHtml(String(item?.label || "").trim() || "Completion item")}</span>
+                      <span class="client-overview-probability-booster-gain">${escapeHtml(isComplete ? "Done" : gainLabel || "Open")}</span>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
             </div>
           </section>
         `;
