@@ -125,6 +125,11 @@ body.clients-page .home-shell.app-home-shell {
   padding: 0;
 }
 
+body.profile-creation-page .home-shell.app-home-shell {
+  display: block;
+  min-height: 0;
+}
+
 /* CODE NOTE: Studio uses a real topbar in normal document flow, so the shared
    100vh app shell and generic home-shell vertical padding make the main workspace
    taller than the visible screen. Keep the Studio main wrapper sized to the

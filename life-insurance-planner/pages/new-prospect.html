@@ -397,6 +397,7 @@
   <script src="../app/features/auth.js"></script>
   <script src="../app/features/client-records.js"></script>
   <script src="../app/features/client-intake.js"></script>
+  <script src="../app/features/client-directory.js"></script>
   <script src="../app.js"></script>
   <script>
     (function () {
@@ -446,36 +447,16 @@
         return;
       }
 
-      function calculateAge(value) {
-        const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-        if (!match) {
-          return "";
-        }
-
-        const birthYear = Number(match[1]);
-        const birthMonth = Number(match[2]) - 1;
-        const birthDay = Number(match[3]);
-        const today = new Date();
-
-        let age = today.getFullYear() - birthYear;
-        const monthDelta = today.getMonth() - birthMonth;
-        if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birthDay)) {
-          age -= 1;
-        }
-
-        return String(Math.max(age, 0));
-      }
-
-      function syncAge() {
-        ageField.value = calculateAge(dobField.value);
-      }
-
       function syncSpouseAge() {
         if (!spouseAgeField) {
           return;
         }
 
-        spouseAgeField.value = calculateAge(spouseDobField?.value || "");
+        const spouseBirthDate = String(spouseDobField?.value || "").trim();
+        const calculateAgeFromDate = window.LensApp?.clientIntake?.calculateAgeFromDate;
+        spouseAgeField.value = spouseBirthDate && typeof calculateAgeFromDate === "function"
+          ? String(calculateAgeFromDate(spouseBirthDate))
+          : "";
       }
 
       function syncSpouseFields() {
@@ -946,8 +927,6 @@
         }, 3000);
       }
 
-      dobField.addEventListener("input", syncAge);
-      dobField.addEventListener("change", syncAge);
       spouseDobField?.addEventListener("input", syncSpouseAge);
       spouseDobField?.addEventListener("change", syncSpouseAge);
       maritalStatusField?.addEventListener("change", syncSpouseFields);
@@ -999,7 +978,6 @@
 
         profilePriorityDropdown.classList.remove("is-open");
       });
-      syncAge();
       syncSpouseFields();
       syncPhone();
       syncAssignmentActionButtons();
@@ -1016,5 +994,6 @@
   </script>
 </body>
 </html>
+
 
 
