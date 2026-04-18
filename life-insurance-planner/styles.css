@@ -1,3 +1,11 @@
+@layer tokens, base, layout, components, utilities, legacy, overrides;
+@import "./tokens.css" layer(tokens);
+@import "./base.css" layer(base);
+@import "./layout.css" layer(layout);
+@import "./components.css" layer(components);
+@import "./utilities.css" layer(utilities);
+
+@layer legacy {
 :root {
   --bg: #f3f5f8;
   --surface: #ffffff;
@@ -21349,4 +21357,5 @@ body.studio-page.is-embedded-tool .studio-shell {
 .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-label,
 .client-directory-shell-layout.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-label {
   display: none;
+}
 }
