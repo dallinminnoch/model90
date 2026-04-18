@@ -4482,11 +4482,11 @@
         return `
           <div class="client-table client-table-clickable directory-list-row" role="row" tabindex="0" data-client-open="${record.id}">
             <div class="client-table-cell client-table-cell-check"><input class="row-select-checkbox" type="checkbox" data-client-select="${record.id}" aria-label="Select ${record.displayName}"${selectedRecordIds.has(String(record.id || "").trim()) ? " checked" : ""}></div>
-            <div class="client-table-cell client-table-cell-client">
-              <span class="${avatarClasses}"${avatarStyle}>${getInitials(record.displayName, record.viewType, record.lastName)}</span>
-              <div>
-                <strong>${record.displayName}</strong>
-                <span>${getClientDirectorySubtitle(record)}</span>
+            <div class="client-table-cell client-table-cell-client directory-person">
+              <span class="${avatarClasses} directory-person__avatar"${avatarStyle}>${getInitials(record.displayName, record.viewType, record.lastName)}</span>
+              <div class="directory-person__body">
+                <strong class="directory-person__name">${record.displayName}</strong>
+                <span class="directory-person__subtitle">${getClientDirectorySubtitle(record)}</span>
               </div>
             </div>
             <div class="client-table-cell client-table-cell-flag">
@@ -4496,7 +4496,7 @@
             </div>
             <div class="client-table-cell">${record.caseRef || "--"}</div>
             <div class="client-table-cell client-table-cell-opportunity-score">
-              <span class="client-opportunity-score-pill ${opportunityScore.tier}" aria-label="Close index ${opportunityScore.score}" title="Close Index ${opportunityScore.score}">
+              <span class="client-opportunity-score-pill opportunity-score-pill ${opportunityScore.tier}" aria-label="Close index ${opportunityScore.score}" title="Close Index ${opportunityScore.score}">
                 ${opportunityScore.score}
               </span>
             </div>
@@ -4508,10 +4508,10 @@
                 <button class="client-priority-button priority-pill ${priority ? `client-priority-button-${priority}` : "client-priority-button-unset"}" type="button" data-priority-trigger aria-expanded="false">
                   ${getPriorityDisplay(priority)}
                 </button>
-                <div class="client-priority-menu">
-                  <button class="client-priority-option client-priority-option-low ${priority === "low" ? "is-active" : ""}" type="button" data-priority-record="${record.id}" data-priority-option="low">Low</button>
-                  <button class="client-priority-option client-priority-option-medium ${priority === "medium" ? "is-active" : ""}" type="button" data-priority-record="${record.id}" data-priority-option="medium">Medium</button>
-                  <button class="client-priority-option client-priority-option-high ${priority === "high" ? "is-active" : ""}" type="button" data-priority-record="${record.id}" data-priority-option="high">High</button>
+                <div class="client-priority-menu priority-menu">
+                  <button class="client-priority-option priority-menu__option client-priority-option-low ${priority === "low" ? "is-active" : ""}" type="button" data-priority-record="${record.id}" data-priority-option="low">Low</button>
+                  <button class="client-priority-option priority-menu__option client-priority-option-medium ${priority === "medium" ? "is-active" : ""}" type="button" data-priority-record="${record.id}" data-priority-option="medium">Medium</button>
+                  <button class="client-priority-option priority-menu__option client-priority-option-high ${priority === "high" ? "is-active" : ""}" type="button" data-priority-record="${record.id}" data-priority-option="high">High</button>
                 </div>
               </div>
             </div>

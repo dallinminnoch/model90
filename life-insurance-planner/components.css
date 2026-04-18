@@ -261,3 +261,108 @@ input.search-bar__input {
   color: #445065;
   font-size: 0.94rem;
 }
+
+.opportunity-score-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  padding: 0.34rem 0.7rem;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: #6b7a90;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.opportunity-score-pill.is-premium {
+  background: #dff0c8;
+  color: #506f25;
+}
+
+.opportunity-score-pill.is-building {
+  background: #e4edf7;
+  color: #556a85;
+}
+
+.opportunity-score-pill.is-caution {
+  background: #f8e8b4;
+  color: #7f5a12;
+}
+
+.opportunity-score-pill.is-risk {
+  background: #f6d1d0;
+  color: #8a2d2a;
+}
+
+.directory-person__avatar {
+  width: 2.6rem;
+  height: 2.6rem;
+  display: inline-grid;
+  place-items: center;
+  text-align: center;
+  line-height: 1;
+  border-radius: 50%;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.9rem;
+  flex: 0 0 auto;
+  padding: 0;
+  vertical-align: middle;
+}
+
+.directory-person__body {
+  min-width: 0;
+}
+
+.directory-person__name {
+  display: block;
+  color: #182132;
+  font-size: 1rem;
+  min-width: 0;
+}
+
+.directory-person__subtitle {
+  display: block;
+  margin-top: 0.2rem;
+  color: #6c7688;
+}
+
+.priority-menu {
+  padding: 0.35rem;
+  border: 1px solid rgba(213, 221, 232, 0.95);
+  border-radius: 0.7rem;
+  background: #ffffff;
+  box-shadow: 0 16px 34px rgba(16, 33, 52, 0.12);
+}
+
+.priority-menu__option {
+  min-height: 2.1rem;
+  padding: 0 0.7rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.priority-menu__option.client-priority-option-low {
+  background: #dbe9e1;
+  color: #24533d;
+  border-color: rgba(47, 107, 82, 0.22);
+}
+
+.priority-menu__option.client-priority-option-medium {
+  background: #f4e4aa;
+  color: #7a5a10;
+  border-color: rgba(224, 179, 38, 0.28);
+}
+
+.priority-menu__option.client-priority-option-high {
+  background: #efc8c8;
+  color: #8c2323;
+  border-color: rgba(184, 52, 52, 0.24);
+}
