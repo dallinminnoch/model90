@@ -366,3 +366,15 @@ input.search-bar__input {
   color: #8c2323;
   border-color: rgba(184, 52, 52, 0.24);
 }
+
+.directory-list-header {
+  background: #f8faff;
+  color: #000000;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: none;
+}
+
+.directory-list-header .client-table-cell {
+  color: #000000;
+}
