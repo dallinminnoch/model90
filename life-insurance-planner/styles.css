@@ -40,15 +40,19 @@
   --app-side-nav-toggle-top-offset: calc(var(--workspace-topbar-height) + 0.75rem);
 }
 
+/*
 * {
   box-sizing: border-box;
 }
+*/
 
 body {
+  /*
   margin: 0;
   min-width: 0;
   min-height: 100vh;
   font-family: "Inter", sans-serif;
+  */
   color: var(--text);
   overflow-x: hidden;
   background:
@@ -76,12 +80,14 @@ a {
   text-decoration: none;
 }
 
+/*
 button,
 input,
 select,
 textarea {
   font: inherit;
 }
+*/
 
 .home-shell,
 .workflow-shell {
@@ -6405,6 +6411,7 @@ body.studio-embed-mode.clients-page .client-directory-summary-list-row strong {
   line-height: 1.15;
 }
 
+/*
 .client-opportunity-score-pill {
   display: inline-flex;
   align-items: center;
@@ -6439,6 +6446,7 @@ body.studio-embed-mode.clients-page .client-directory-summary-list-row strong {
   background: #f6d1d0;
   color: #8a2d2a;
 }
+*/
 
 .client-table-cell-status-title {
   transform: none;
