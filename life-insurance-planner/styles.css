@@ -6109,6 +6109,7 @@ body.studio-embed-mode.clients-page .client-directory-summary-list-row strong {
   line-height: 1;
 }
 
+/*
 .client-status-tab-label::after {
   content: "";
   position: absolute;
@@ -6146,6 +6147,7 @@ body.studio-embed-mode.clients-page .client-directory-summary-list-row strong {
   background: rgba(92, 63, 214, 0.1);
   color: #5c3fd6;
 }
+*/
 
 .client-directory-toolbar {
   position: relative;
@@ -6741,9 +6743,11 @@ body.studio-embed-mode.clients-page .client-status-tab {
   font-size: 1.12rem;
 }
 
+/*
 body.studio-embed-mode.clients-page .client-status-tab-label {
   padding-bottom: 0;
 }
+*/
 
 body.studio-embed-mode.clients-page .client-status-tab-count {
   min-width: 1.72rem;
