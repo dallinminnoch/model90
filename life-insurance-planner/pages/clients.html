@@ -10,8 +10,94 @@
   <link rel="stylesheet" href="../styles.css">
   <link rel="stylesheet" href="../tokens.css">
   <link rel="stylesheet" href="../components.css">
+  <style>
+    body.clients-page[data-local-client-directory="true"] .directory-list-shell > .directory-list-header,
+    body.clients-page[data-local-client-directory="true"] #client-table-rows > .directory-list-row {
+      min-width: 0;
+      grid-template-columns:
+        38px
+        minmax(172px, 1.42fr)
+        16px
+        minmax(108px, 0.76fr)
+        minmax(104px, 0.78fr)
+        minmax(146px, 1fr)
+        minmax(118px, 0.84fr)
+        minmax(116px, 0.9fr)
+        minmax(102px, 0.72fr);
+      gap: 0.45rem;
+      padding: 0.92rem 1rem;
+    }
+
+    body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-actions .client-toolbar-button,
+    body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-actions .client-items-trigger {
+      font-size: 1rem;
+    }
+
+    body.clients-page[data-local-client-directory="true"] .client-directory-toolbar {
+      gap: 0.6rem 0.9rem;
+      margin-top: 0.78rem;
+    }
+
+    body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-spacer {
+      min-height: 0.12rem;
+    }
+
+    body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-search-spacer {
+      min-height: 0.24rem;
+    }
+
+    body.clients-page[data-local-client-directory="true"] .client-directory-shell-layout {
+      padding-left: var(--app-side-nav-width);
+    }
+
+    body.clients-page.workspace-side-nav-collapsed[data-local-client-directory="true"] .client-directory-shell-layout,
+    body.clients-page[data-local-client-directory="true"] .client-directory-shell-layout.is-collapsed {
+      padding-left: var(--app-side-nav-collapsed-width);
+    }
+
+    body.clients-page[data-local-client-directory="true"] .client-directory-main {
+      --client-directory-main-pad-x: clamp(0.95rem, 1.35vw, 1.2rem);
+    }
+
+    body.clients-page[data-local-client-directory="true"] .client-directory-header {
+      align-items: center;
+      gap: 0.7rem 0.9rem;
+      padding: 0.32rem var(--client-directory-main-pad-x);
+    }
+
+    body.clients-page[data-local-client-directory="true"] .client-items-trigger,
+    body.clients-page[data-local-client-directory="true"] .client-order-trigger {
+      min-height: 2.05rem;
+      padding: 0 0.62rem;
+      font-size: 0.84rem;
+      border-radius: 0.32rem;
+    }
+
+    body.clients-page[data-local-client-directory="true"] .client-items-trigger {
+      min-width: 6.55rem;
+    }
+
+    body.clients-page[data-local-client-directory="true"] .client-order-trigger {
+      min-width: 9rem;
+    }
+
+    body.clients-page[data-local-client-directory="true"] .client-directory-header-actions .client-header-action {
+      min-height: 2.05rem;
+      padding: 0 0.62rem;
+      font-size: 0.84rem;
+      border-radius: 0.32rem;
+    }
+
+    body.clients-page[data-local-client-directory="true"] .client-directory-header-actions .client-header-action-primary {
+      gap: 0.38rem;
+    }
+
+    body.clients-page[data-local-client-directory="true"] .client-directory-header-actions .client-add-icon {
+      font-size: 1.28em;
+    }
+  </style>
 </head>
-<body class="home-page clients-page">
+<body class="home-page clients-page" data-local-client-directory="true">
   <script>
     (function () {
       try {
@@ -932,11 +1018,10 @@
               </div>
               <div class="client-items-dropdown" data-items-dropdown>
                 <button class="client-toolbar-button client-items-trigger" type="button" data-items-trigger aria-expanded="false">
-                  Items Shown (15)
+                  Items Shown (10)
                 </button>
                 <div class="client-items-menu">
-                  <button class="client-items-option is-active" type="button" data-items-option="5">5</button>
-                  <button class="client-items-option" type="button" data-items-option="15">15</button>
+                  <button class="client-items-option is-active" type="button" data-items-option="10">10</button>
                   <button class="client-items-option" type="button" data-items-option="35">35</button>
                   <button class="client-items-option" type="button" data-items-option="75">75</button>
                   <button class="client-items-option" type="button" data-items-option="100">100</button>
@@ -949,7 +1034,7 @@
         <section class="client-table-card directory-list-shell">
           <div class="client-table client-table-header directory-list-header" role="row">
             <div class="client-table-cell client-table-cell-check"></div>
-            <div class="client-table-cell client-table-cell-client" id="client-table-heading-name">Client</div>
+            <div class="client-table-cell" id="client-table-heading-name">Client</div>
             <div class="client-table-cell client-table-cell-flag"></div>
             <div class="client-table-cell">Case Ref</div>
             <!-- CODE NOTE: Close Index column replaced the legacy Date Created column. -->
@@ -1057,6 +1142,8 @@
       });
     })();
   </script>
+  <!-- CODE NOTE: Shared Close Index engine is loaded here for standalone Client Directory mode. -->
+  <script src="../opportunity-score.js"></script>
   <script>
     (function () {
       const rowsHost = document.getElementById("client-table-rows");
@@ -1265,10 +1352,11 @@
       let activePriority = "all";
       // CODE NOTE: Keep the directory defaulted to Close Index so execution-first sorting stays consistent.
       let sortOrder = "opportunity-score";
-      let itemsShown = 15;
+      let itemsShown = 10;
       let currentPage = 1;
       let records = [];
       const selectedRecordIds = new Set();
+      let shouldClearCoreSelection = false;
       let summaryCardVisibility = null;
       let summaryCardOrder = null;
       let summaryCardDraftVisibility = null;
@@ -1277,6 +1365,46 @@
       let summaryCustomizeReturnFocus = null;
       let accessibilitySettings = null;
       let directoryAccessibilityReturnFocus = null;
+
+      function getDirectoryCoreApi() {
+        return window.LensApp?.clientDirectoryCore || null;
+      }
+
+      function syncShellStateFromCore(event) {
+        const directoryCoreApi = getDirectoryCoreApi();
+        if (!directoryCoreApi || typeof directoryCoreApi.getState !== "function") {
+          return;
+        }
+
+        const coreState = event?.detail && typeof event.detail === "object"
+          ? event.detail
+          : directoryCoreApi.getState();
+
+        activeLetter = String(coreState.activeLetter || "all").trim() || "all";
+        activeView = String(coreState.activeView || "individuals").trim() || "individuals";
+        activeStatus = String(coreState.activeStatus || "all").trim() || "all";
+        sortOrder = String(coreState.sortOrder || "opportunity-score").trim() || "opportunity-score";
+        itemsShown = Number(coreState.itemsShown) || 10;
+        currentPage = Math.max(1, Number(coreState.currentPage) || 1);
+        records = loadRecords();
+
+        selectedRecordIds.clear();
+        const nextSelectedIds = Array.isArray(coreState.selectedRecordIds)
+          ? coreState.selectedRecordIds
+          : [];
+        nextSelectedIds.forEach(function (recordId) {
+          const normalizedRecordId = String(recordId || "").trim();
+          if (normalizedRecordId) {
+            selectedRecordIds.add(normalizedRecordId);
+          }
+        });
+
+        syncDirectoryTitleMenuState();
+        syncDirectorySidebarButtons();
+        syncSummaryCardVisibility();
+      }
+
+      window.addEventListener("client-directory-core:render", syncShellStateFromCore);
 
       function loadJson(source, key) {
         try {
@@ -1922,6 +2050,11 @@
       }
 
       function getFilteredRecords() {
+        const directoryCoreApi = getDirectoryCoreApi();
+        if (directoryCoreApi && typeof directoryCoreApi.getFilteredRecords === "function") {
+          return directoryCoreApi.getFilteredRecords();
+        }
+
         return getDirectoryScopeRecords({ includeStatus: true });
       }
 
@@ -3864,139 +3997,12 @@
         });
       }
 
-      function syncStatusButtons() {
-        const counts = buildStatusCounts(records);
-        statusButtons.forEach(function (button) {
-          button.classList.toggle("is-active", button.dataset.clientStatus === activeStatus);
-          const counter = button.querySelector("[data-status-count]");
-          if (counter) {
-            counter.textContent = String(counts[button.dataset.clientStatus] || 0);
-          }
-        });
-      }
-
-      function syncViewButtons() {
-        viewButtons.forEach(function (button) {
-          button.classList.toggle("is-active", button.dataset.clientView === activeView);
-        });
-      }
-
-      function syncTableHeadings() {
-        if (nameHeading) {
-          nameHeading.textContent = activeView === "households" ? "Household" : activeView === "businesses" ? "Business" : "Client";
-        }
-        if (nextActionHeading) {
-          nextActionHeading.textContent = "Next Action";
-        }
-        if (coverageHeading) {
-          coverageHeading.textContent = "Coverage Gap";
-        }
-        if (statusHeading) {
-          statusHeading.textContent = "Client Status";
-        }
-      }
-
-      function syncLetterButtons() {
-        letterButtons.forEach(function (button) {
-          button.classList.toggle("is-active", button.dataset.clientLetter === activeLetter);
-        });
-      }
-
-      function syncItemsShown() {
-        if (itemsTrigger) {
-          itemsTrigger.textContent = `Items Shown (${itemsShown})`;
-        }
-        itemsOptions.forEach(function (button) {
-          button.classList.toggle("is-active", Number(button.dataset.itemsOption) === itemsShown);
-        });
-      }
-
-      function getDirectoryOrderLabel() {
-        return sortOrder === "alphabetical" ? "Alphabetical" : "Close Index";
-      }
-
-      function syncDirectoryOrder() {
-        if (orderTrigger) {
-          orderTrigger.textContent = `Order: ${getDirectoryOrderLabel()}`;
-        }
-
-        orderOptions.forEach(function (button) {
-          button.classList.toggle("is-active", String(button.dataset.orderOption || "").trim() === sortOrder);
-        });
-      }
-
-      function setItemsMenuOpen(isOpen) {
-        if (!itemsDropdown || !itemsTrigger) {
-          return;
-        }
-
-        itemsDropdown.classList.toggle("is-open", isOpen);
-        itemsTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
-      }
-
-      function setOrderMenuOpen(isOpen) {
-        if (!orderDropdown || !orderTrigger) {
-          return;
-        }
-
-        orderDropdown.classList.toggle("is-open", isOpen);
-        orderTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
-      }
-
-      function compareDirectoryRecordsAlphabetically(firstRecord, secondRecord) {
-        const nameResult = String(firstRecord.displayName || "").localeCompare(String(secondRecord.displayName || ""), undefined, {
-          sensitivity: "base",
-          numeric: true
-        });
-
-        if (nameResult !== 0) {
-          return nameResult;
-        }
-
-        return normalizeCaseRef(firstRecord.caseRef).localeCompare(normalizeCaseRef(secondRecord.caseRef), undefined, {
-          sensitivity: "base",
-          numeric: true
-        });
-      }
-
-      function sortDirectoryRecords(sourceRecords) {
-        if (sortOrder === "alphabetical") {
-          return sourceRecords.slice().sort(compareDirectoryRecordsAlphabetically);
-        }
-
-        // CODE NOTE: Close Index sort is decorated here so each record score is calculated once per render.
-        return sourceRecords.map(function (record) {
-          return {
-            record,
-            scoreResult: getDirectoryOpportunityScoreResult(record)
-          };
-        }).sort(function (firstEntry, secondEntry) {
-          const scoreDifference = secondEntry.scoreResult.score - firstEntry.scoreResult.score;
-          if (scoreDifference !== 0) {
-            return scoreDifference;
-          }
-
-          const uncoveredGapDifference = (secondEntry.scoreResult.uncoveredGap || 0) - (firstEntry.scoreResult.uncoveredGap || 0);
-          if (uncoveredGapDifference !== 0) {
-            return uncoveredGapDifference;
-          }
-
-          return compareDirectoryRecordsAlphabetically(firstEntry.record, secondEntry.record);
-        }).map(function (entry) {
-          return entry.record;
-        });
-      }
-
-      function pruneSelectedRecordIds() {
-        const validIds = new Set(records.map(function (record) { return String(record.id || "").trim(); }));
-        Array.from(selectedRecordIds).forEach(function (recordId) {
-          if (!validIds.has(recordId)) {
-            selectedRecordIds.delete(recordId);
-          }
-        });
-      }
-
       function getSelectedRecords() {
+        const directoryCoreApi = getDirectoryCoreApi();
+        if (directoryCoreApi && typeof directoryCoreApi.getSelectedRecords === "function") {
+          return directoryCoreApi.getSelectedRecords();
+        }
+
         return records.filter(function (record) {
           return selectedRecordIds.has(String(record.id || "").trim());
         });
@@ -4145,6 +4151,7 @@
 
         nextRecords.unshift(record);
         selectedRecordIds.clear();
+        shouldClearCoreSelection = true;
         persistRecords(nextRecords);
         activeView = isBusiness ? "businesses" : "households";
         activeLetter = "all";
@@ -4229,6 +4236,7 @@
 
         const mergeResult = mergeImportedRecords(loadRecords(), importedRecords);
         selectedRecordIds.clear();
+        shouldClearCoreSelection = true;
         persistRecords(mergeResult.records);
         activeLetter = "all";
         activeStatus = "all";
@@ -4451,325 +4459,41 @@
         directorySidebarToggle.setAttribute("title", isCollapsed ? "Expand directory navigation" : "Collapse directory navigation");
       }
 
-      function renderPagination(totalPages) {
-        if (!paginationHost || !prevPageButton || !nextPageButton) {
-          return;
+      function buildShellExternalRecordFilter() {
+        if (activeScope === "all" && activePriority === "all") {
+          return null;
         }
 
-        prevPageButton.disabled = currentPage <= 1;
-        nextPageButton.disabled = currentPage >= totalPages;
-        paginationHost.innerHTML = "";
-
-        for (let page = 1; page <= totalPages; page += 1) {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = "client-page-number";
-          button.textContent = String(page);
-          if (page === currentPage) {
-            button.classList.add("is-active");
-          }
-          button.addEventListener("click", function () {
-            currentPage = page;
-            renderDirectory();
-          });
-          paginationHost.appendChild(button);
-        }
-      }
-
-      function renderRow(record) {
-        const priority = normalizePriority(record.priority);
-        const opportunityScore = getDirectoryOpportunityScoreResult(record);
-        const isHouseholdAvatar = record.viewType === "households";
-        const avatarClasses = `client-avatar${isHouseholdAvatar ? " client-avatar-household" : ""}`;
-        const avatarPresentation = isHouseholdAvatar ? null : getAvatarPresentation(record.age, record.dateOfBirth);
-        const avatarStyle = avatarPresentation
-          ? ` style="background: ${avatarPresentation.background}; color: ${avatarPresentation.color};"`
-          : "";
-        const isFlagged = Boolean(record.isFlagged);
-        return `
-          <div class="client-table client-table-clickable directory-list-row" role="row" tabindex="0" data-client-open="${record.id}">
-            <div class="client-table-cell client-table-cell-check"><input class="row-select-checkbox" type="checkbox" data-client-select="${record.id}" aria-label="Select ${record.displayName}"${selectedRecordIds.has(String(record.id || "").trim()) ? " checked" : ""}></div>
-            <div class="client-table-cell client-table-cell-client directory-person">
-              <span class="${avatarClasses} directory-person__avatar"${avatarStyle}>${getInitials(record.displayName, record.viewType, record.lastName)}</span>
-              <div class="directory-person__body">
-                <strong class="directory-person__name">${record.displayName}</strong>
-                <span class="directory-person__subtitle">${getClientDirectorySubtitle(record)}</span>
-              </div>
-            </div>
-            <div class="client-table-cell client-table-cell-flag">
-              <button class="client-row-flag-button row-flag-control${isFlagged ? " is-flagged" : ""}" type="button" data-client-flag-toggle="${record.id}" aria-pressed="${isFlagged ? "true" : "false"}" aria-label="${isFlagged ? `Unflag ${record.displayName}` : `Flag ${record.displayName}`}">
-                <span class="client-row-flag-icon row-flag-control__icon" aria-hidden="true"></span>
-              </button>
-            </div>
-            <div class="client-table-cell">${record.caseRef || "--"}</div>
-            <div class="client-table-cell client-table-cell-opportunity-score">
-              <span class="client-opportunity-score-pill opportunity-score-pill ${opportunityScore.tier}" aria-label="Close index ${opportunityScore.score}" title="Close Index ${opportunityScore.score}">
-                ${opportunityScore.score}
-              </span>
-            </div>
-            <div class="client-table-cell client-table-cell-next-action-value">${getDirectoryNextAction(record)}</div>
-            <div class="client-table-cell client-table-cell-status-value">${getClientStatusDisplay(record)}</div>
-            <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(getRecordUncoveredGapValue(record))}</div>
-            <div class="client-table-cell client-table-cell-value client-table-cell-priority-value">
-              <div class="client-priority-dropdown" data-priority-dropdown="${record.id}">
-                <button class="client-priority-button priority-pill ${priority ? `client-priority-button-${priority}` : "client-priority-button-unset"}" type="button" data-priority-trigger aria-expanded="false">
-                  ${getPriorityDisplay(priority)}
-                </button>
-                <div class="client-priority-menu priority-menu">
-                  <button class="client-priority-option priority-menu__option client-priority-option-low ${priority === "low" ? "is-active" : ""}" type="button" data-priority-record="${record.id}" data-priority-option="low">Low</button>
-                  <button class="client-priority-option priority-menu__option client-priority-option-medium ${priority === "medium" ? "is-active" : ""}" type="button" data-priority-record="${record.id}" data-priority-option="medium">Medium</button>
-                  <button class="client-priority-option priority-menu__option client-priority-option-high ${priority === "high" ? "is-active" : ""}" type="button" data-priority-record="${record.id}" data-priority-option="high">High</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
-      function closePriorityDropdowns() {
-        rowsHost.querySelectorAll("[data-priority-dropdown].is-open").forEach(function (dropdown) {
-          dropdown.classList.remove("is-open");
-          dropdown.querySelector("[data-priority-trigger]")?.setAttribute("aria-expanded", "false");
-          dropdown.closest(".client-table")?.classList.remove("is-priority-open");
-        });
-      }
-
-      function updateRecordPriority(recordId, priority) {
-        const nextRecords = loadRecords().map(function (record, index) {
-          const normalized = normalizeRecord(record, index);
-          if (normalized.id !== recordId) {
-            return normalized;
-          }
-
-          return {
-            ...normalized,
-            priority: normalizePriority(priority)
-          };
-        });
-
-        persistRecords(nextRecords);
-      }
-
-      function toggleRecordFlag(recordId) {
-        const normalizedRecordId = String(recordId || "").trim();
-        if (!normalizedRecordId) {
-          return false;
-        }
-
-        const nextRecords = loadRecords().map(function (record, index) {
-          const normalized = normalizeRecord(record, index);
-          if (normalized.id !== normalizedRecordId) {
-            return normalized;
-          }
-
-          return {
-            ...normalized,
-            isFlagged: !Boolean(normalized.isFlagged)
-          };
-        });
-
-        persistRecords(nextRecords);
-        renderDirectory();
-        return true;
-      }
-
-      function bindSelectionCheckboxes() {
-        rowsHost.querySelectorAll("[data-client-select]").forEach(function (input) {
-          input.addEventListener("click", function (event) {
-            event.stopPropagation();
-          });
-
-          input.addEventListener("change", function () {
-            const recordId = String(input.dataset.clientSelect || "").trim();
-            if (!recordId) {
-              return;
-            }
-
-            if (input.checked) {
-              selectedRecordIds.add(recordId);
-            } else {
-              selectedRecordIds.delete(recordId);
-            }
-
-            syncDirectoryTitleMenuState();
-          });
-        });
-      }
-
-      function bindPriorityDropdowns() {
-        rowsHost.querySelectorAll("[data-priority-trigger]").forEach(function (button) {
-          button.addEventListener("click", function (event) {
-            event.stopPropagation();
-            const dropdown = button.closest("[data-priority-dropdown]");
-            const row = button.closest(".client-table");
-            if (!dropdown) {
-              return;
-            }
-
-            const willOpen = !dropdown.classList.contains("is-open");
-            closePriorityDropdowns();
-
-            if (!willOpen) {
-              return;
-            }
-
-            dropdown.classList.add("is-open");
-            button.setAttribute("aria-expanded", "true");
-            row?.classList.add("is-priority-open");
-          });
-        });
-
-        rowsHost.querySelectorAll("[data-priority-option]").forEach(function (option) {
-          option.addEventListener("click", function (event) {
-            event.stopPropagation();
-            const recordId = option.dataset.priorityRecord;
-            const priority = normalizePriority(option.dataset.priorityOption);
-            if (!recordId || !priority) {
-              return;
-            }
-
-            updateRecordPriority(recordId, priority);
-            renderDirectory();
-          });
-        });
-      }
-
-      function bindFlagButtons() {
-        rowsHost.querySelectorAll("[data-client-flag-toggle]").forEach(function (button) {
-          button.addEventListener("click", function (event) {
-            event.stopPropagation();
-            const recordId = String(button.getAttribute("data-client-flag-toggle") || "").trim();
-            if (!recordId) {
-              return;
-            }
-
-            toggleRecordFlag(recordId);
-          });
-        });
-      }
-
-      function bindRowClicks() {
-        rowsHost.querySelectorAll("[data-client-open]").forEach(function (row) {
-          row.addEventListener("click", function (event) {
-            if (event.target.closest("input") || event.target.closest("[data-priority-dropdown]") || event.target.closest("[data-client-flag-toggle]")) {
-              return;
-            }
-            window.location.href = `client-detail.html?id=${encodeURIComponent(row.dataset.clientOpen)}`;
-          });
-
-          row.addEventListener("keydown", function (event) {
-            if (event.key !== "Enter" && event.key !== " ") {
-              return;
-            }
-            if (event.target.closest("input") || event.target.closest("[data-priority-dropdown]") || event.target.closest("[data-client-flag-toggle]")) {
-              return;
-            }
-            event.preventDefault();
-            window.location.href = `client-detail.html?id=${encodeURIComponent(row.dataset.clientOpen)}`;
-          });
-        });
+        return function (record) {
+          const matchesScope = matchesDirectoryScope(record);
+          const matchesPriority = activePriority === "all" || String(record.priority || "").trim().toLowerCase() === activePriority;
+          return matchesScope && matchesPriority;
+        };
       }
 
       function renderDirectory() {
-        records = loadRecords();
-        pruneSelectedRecordIds();
-        const filtered = sortDirectoryRecords(getFilteredRecords());
-        const totalPages = Math.max(1, Math.ceil(filtered.length / itemsShown));
-        currentPage = Math.min(currentPage, totalPages);
-        const startIndex = (currentPage - 1) * itemsShown;
-        const visibleRecords = filtered.slice(startIndex, startIndex + itemsShown);
-
-        rowsHost.innerHTML = visibleRecords.map(renderRow).join("");
-        if (emptyState) {
-          emptyState.hidden = visibleRecords.length > 0;
+        const directoryCoreApi = getDirectoryCoreApi();
+        if (!directoryCoreApi || typeof directoryCoreApi.applyShellState !== "function") {
+          records = loadRecords();
+          syncDirectoryTitleMenuState();
+          syncDirectorySidebarButtons();
+          syncSummaryCardVisibility();
+          return;
         }
 
-        bindSelectionCheckboxes();
-        bindPriorityDropdowns();
-        bindFlagButtons();
-        bindRowClicks();
-        syncStatusButtons();
-        syncViewButtons();
-        syncTableHeadings();
-        syncLetterButtons();
-        syncItemsShown();
-        syncDirectoryOrder();
-        syncDirectoryTitleMenuState();
-        syncDirectorySummaryCards();
-        syncDirectorySidebarButtons();
-        renderPagination(totalPages);
+        const clearSelection = shouldClearCoreSelection;
+        shouldClearCoreSelection = false;
+        directoryCoreApi.applyShellState({
+          activeView: activeView,
+          activeLetter: activeLetter,
+          activeStatus: activeStatus,
+          sortOrder: sortOrder,
+          itemsShown: itemsShown,
+          currentPage: currentPage,
+          externalRecordFilter: buildShellExternalRecordFilter(),
+          clearSelection: clearSelection
+        });
       }
-
-      letterButtons.forEach(function (button) {
-        button.addEventListener("click", function () {
-          activeLetter = button.dataset.clientLetter || "all";
-          currentPage = 1;
-          renderDirectory();
-        });
-      });
-
-      viewButtons.forEach(function (button) {
-        button.addEventListener("click", function () {
-          activeView = button.dataset.clientView || "individuals";
-          activeScope = "all";
-          activePriority = "all";
-          currentPage = 1;
-          renderDirectory();
-        });
-      });
-
-      statusButtons.forEach(function (button) {
-        button.addEventListener("click", function () {
-          activeStatus = button.dataset.clientStatus || "all";
-          currentPage = 1;
-          renderDirectory();
-        });
-      });
-
-      searchField?.addEventListener("input", function () {
-        currentPage = 1;
-        renderDirectory();
-      });
-
-      itemsOptions.forEach(function (button) {
-        button.addEventListener("click", function () {
-          itemsShown = Number(button.dataset.itemsOption) || 15;
-          currentPage = 1;
-          renderDirectory();
-          setItemsMenuOpen(false);
-          itemsTrigger?.blur();
-        });
-      });
-
-      itemsTrigger?.addEventListener("click", function (event) {
-        event.stopPropagation();
-        const willOpen = !itemsDropdown?.classList.contains("is-open");
-        setOrderMenuOpen(false);
-        setItemsMenuOpen(Boolean(willOpen));
-      });
-
-      orderOptions.forEach(function (button) {
-        button.addEventListener("click", function () {
-          const nextOrder = String(button.dataset.orderOption || "").trim();
-          if (nextOrder !== "alphabetical" && nextOrder !== "opportunity-score") {
-            return;
-          }
-
-          sortOrder = nextOrder;
-          persistDirectoryOrder();
-          currentPage = 1;
-          renderDirectory();
-          setOrderMenuOpen(false);
-          orderTrigger?.blur();
-        });
-      });
-
-      orderTrigger?.addEventListener("click", function (event) {
-        event.stopPropagation();
-        const willOpen = !orderDropdown?.classList.contains("is-open");
-        setItemsMenuOpen(false);
-        setOrderMenuOpen(Boolean(willOpen));
-      });
 
       if (directorySidebarLayout && directorySidebarToggle) {
         let isDirectorySidebarCollapsed = false;
@@ -5092,21 +4816,6 @@
         }
       };
 
-      prevPageButton?.addEventListener("click", function () {
-        if (currentPage > 1) {
-          currentPage -= 1;
-          renderDirectory();
-        }
-      });
-
-      nextPageButton?.addEventListener("click", function () {
-        const totalPages = Math.max(1, Math.ceil(getFilteredRecords().length / itemsShown));
-        if (currentPage < totalPages) {
-          currentPage += 1;
-          renderDirectory();
-        }
-      });
-
       document.addEventListener("click", function (event) {
         if (!event.target.closest(".workspace-page-menu")) {
           document.querySelectorAll(".workspace-page-menu[open]").forEach(function (menu) {
@@ -5128,28 +4837,12 @@
         ) {
           setSummaryCustomizeOpen(false);
         }
-
-        if (!event.target.closest("[data-items-dropdown]")) {
-          setItemsMenuOpen(false);
-        }
-
-        if (!event.target.closest("[data-order-dropdown]")) {
-          setOrderMenuOpen(false);
-        }
-
-        if (event.target.closest("[data-priority-dropdown]")) {
-          return;
-        }
-
-        closePriorityDropdowns();
       });
 
       syncSummaryCardVisibility();
       renderDirectory();
     })();
   </script>
-  <!-- CODE NOTE: Shared Close Index engine is loaded here for standalone Client Directory mode. -->
-  <script src="../opportunity-score.js"></script>
   <script>
     document.addEventListener("keydown", function (event) {
       if (event.key === "Tab") {

@@ -247,7 +247,9 @@
 
   function updateAuthMode(mode, modeButtons, registerFieldsHost, submitButton, feedback, modeField) {
     modeButtons.forEach((button) => {
-      button.classList.toggle("is-active", button.dataset.authMode === mode);
+      const isActive = button.dataset.authMode === mode;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-selected", String(isActive));
     });
 
     if (modeField) {

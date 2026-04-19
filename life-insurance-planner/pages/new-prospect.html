@@ -406,7 +406,6 @@
       const spouseDobField = document.querySelector("[data-spouse-date-of-birth]");
       const spouseAgeField = document.querySelector("[data-spouse-age-field]");
       const ageHint = document.querySelector("[data-age-hint]");
-      const phoneField = document.getElementById("phone-number");
       const placeholderSelects = document.querySelectorAll("[data-placeholder-select]");
       const interestButtons = document.querySelectorAll("[data-interest-button]");
       const interestTypeField = document.querySelector("[data-interest-type-field]");
@@ -415,8 +414,6 @@
       const familyOnlyRoleOptions = document.querySelectorAll("[data-family-only]");
       const businessOnlyRoleOptions = document.querySelectorAll("[data-business-only]");
       const assignmentModeField = document.querySelector("[data-profile-assignment-mode]");
-      const assignmentNameField = document.querySelector("[data-profile-assignment-name]");
-      const assignmentTargetIdField = document.querySelector("[data-profile-assignment-target-id]");
       const employmentStatusField = document.getElementById("employment-status");
       const employmentDetailFields = document.querySelectorAll("[data-employment-detail-field]");
       const hasDependentsField = document.getElementById("has-dependents");
@@ -437,8 +434,6 @@
       const businessFields = document.querySelectorAll("[data-business-field]");
       const familyAssignmentOptions = document.querySelectorAll("[data-family-assignment]");
       const businessAssignmentOptions = document.querySelectorAll("[data-business-assignment]");
-      const searchHouseholdsButton = document.querySelector("[data-search-households]");
-      const searchCompaniesButton = document.querySelector("[data-search-companies]");
       const dependentFields = document.querySelector("[data-profile-dependent-fields]");
       let ageHintTimer = null;
       let ageHintFadeTimer = null;
@@ -478,31 +473,6 @@
         if (isApplicable) {
           syncSpouseAge();
         }
-      }
-
-      function formatPhone(value) {
-        const digits = String(value || "").replace(/\D/g, "").slice(0, 10);
-        if (!digits) {
-          return "";
-        }
-
-        if (digits.length < 4) {
-          return `(${digits}`;
-        }
-
-        if (digits.length < 7) {
-          return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-        }
-
-        return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-      }
-
-      function syncPhone() {
-        if (!phoneField) {
-          return;
-        }
-
-        phoneField.value = formatPhone(phoneField.value);
       }
 
       function syncPlaceholderSelectState(select) {
@@ -594,62 +564,16 @@
           }
         }
 
-        syncAssignmentActionButtons();
-      }
-
-      function syncAssignmentActionButtons() {
-        const assignmentMode = String(assignmentModeField?.value || "");
-        if (searchHouseholdsButton) {
-          searchHouseholdsButton.disabled = assignmentMode !== "existing-household";
-        }
-        if (searchCompaniesButton) {
-          searchCompaniesButton.disabled = assignmentMode !== "existing-company";
-        }
-      }
-
-      function syncAssignmentNameField() {
-        const assignmentMode = String(assignmentModeField?.value || "");
-        if (!assignmentNameField) {
-          return;
-        }
-
-        assignmentNameField.disabled = !assignmentMode;
-        assignmentNameField.readOnly = assignmentMode === "existing-household" || assignmentMode === "existing-company";
-
-        if (!assignmentMode) {
-          assignmentNameField.value = "";
-          assignmentNameField.placeholder = "Please select to continue";
-        } else if (assignmentMode === "create-household") {
-          assignmentNameField.placeholder = "Enter new household name";
-        } else if (assignmentMode === "create-company") {
-          assignmentNameField.placeholder = "Enter new company profile name";
-        } else if (assignmentMode === "existing-household") {
-          assignmentNameField.value = "";
-          assignmentNameField.placeholder = "Select an existing household";
-        } else if (assignmentMode === "existing-company") {
-          assignmentNameField.value = "";
-          assignmentNameField.placeholder = "Select an existing company profile";
-        }
       }
 
       function syncDependentFieldsetState() {
-        const assignmentMode = String(assignmentModeField?.value || "");
         const isFamilyInterest = String(interestTypeField?.value || "family") === "family";
         if (!dependentFields) {
           return;
         }
 
-        const isExistingMode = assignmentMode === "existing-household" || assignmentMode === "existing-company";
-        const isCreateMode = assignmentMode === "create-household" || assignmentMode === "create-company";
-        const hasExistingSelection = Boolean(String(assignmentTargetIdField?.value || "").trim());
-        const hasManualName = Boolean(String(assignmentNameField?.value || "").trim());
-
-        dependentFields.disabled = !isFamilyInterest || !(
-          (isExistingMode && hasExistingSelection) ||
-          (isCreateMode && hasManualName)
-        );
-
         if (!isFamilyInterest) {
+          dependentFields.disabled = true;
           [
             hasDependentsField,
             dependentsCountField,
@@ -746,6 +670,12 @@
         syncDependentEntryLabels();
         syncDependentHiddenFields();
         syncDependentBuilderDisabledState();
+      }
+
+      if (dependentFields && typeof MutationObserver === "function") {
+        new MutationObserver(function () {
+          syncDependentBuilderDisabledState();
+        }).observe(dependentFields, { attributes: true, attributeFilter: ["disabled"] });
       }
 
       function createDependentEntry(ageValue) {
@@ -932,20 +862,12 @@
       maritalStatusField?.addEventListener("change", syncSpouseFields);
       ageField.addEventListener("click", showAgeHint);
       ageField.addEventListener("focus", showAgeHint);
-      phoneField?.addEventListener("input", syncPhone);
-      phoneField?.addEventListener("change", syncPhone);
-      phoneField?.addEventListener("blur", syncPhone);
       placeholderSelects.forEach(function (select) {
         select.addEventListener("change", function () {
           syncPlaceholderSelectState(select);
         });
         syncPlaceholderSelectState(select);
       });
-      assignmentModeField?.addEventListener("change", syncAssignmentActionButtons);
-      assignmentModeField?.addEventListener("change", syncAssignmentNameField);
-      assignmentModeField?.addEventListener("change", syncDependentFieldsetState);
-      assignmentNameField?.addEventListener("input", syncDependentFieldsetState);
-      assignmentNameField?.addEventListener("change", syncDependentFieldsetState);
       employmentStatusField?.addEventListener("change", syncEmploymentDetailFields);
       hasDependentsField?.addEventListener("change", () => {
         syncDependentsCountField();
@@ -979,9 +901,6 @@
         profilePriorityDropdown.classList.remove("is-open");
       });
       syncSpouseFields();
-      syncPhone();
-      syncAssignmentActionButtons();
-      syncAssignmentNameField();
       syncDependentFieldsetState();
       syncEmploymentDetailFields();
       rebuildDependentEntriesFromStoredValue();
