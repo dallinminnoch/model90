@@ -107,6 +107,14 @@
       try {
         initializer();
       } catch (error) {
+        if (label === "client-directory") {
+          window.LensApp = window.LensApp || {};
+          window.LensApp.clientDirectoryInitDebug = {
+            failed: true,
+            message: String(error?.message || error || "Unknown error"),
+            stack: String(error?.stack || "")
+          };
+        }
         console.error(`[LENS init] ${label} failed`, error);
       }
     }

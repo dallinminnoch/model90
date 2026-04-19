@@ -127,17 +127,6 @@
             </span>
             <span class="workspace-page-menu-link-label">Home</span>
           </a>
-          <a class="workspace-page-menu-link" href="studio.html">
-            <span class="workspace-page-menu-link-icon" aria-hidden="true">
-              <svg viewBox="0 0 20 20" fill="none">
-                <rect x="2.75" y="2.75" width="5.1" height="5.1" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
-                <rect x="12.15" y="2.75" width="5.1" height="5.1" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
-                <rect x="2.75" y="12.15" width="5.1" height="5.1" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
-                <rect x="12.15" y="12.15" width="5.1" height="5.1" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
-              </svg>
-            </span>
-            <span class="workspace-page-menu-link-label">Start Page</span>
-          </a>
           <a class="workspace-page-menu-link is-active" href="clients.html" aria-current="page">
             <span class="workspace-page-menu-link-icon" aria-hidden="true">
               <svg viewBox="0 0 20 20" fill="none">
@@ -562,8 +551,6 @@
             </button>
           </div>
         </header>
-
-        <p id="client-directory-core-debug-banner" hidden style="margin: 0.28rem var(--client-directory-main-pad-x) 0.82rem; padding: 0.58rem 0.72rem; border: 1px solid rgba(122, 74, 28, 0.22); border-radius: 0.52rem; background: #fff7ea; color: #7a4a1c; font-size: 0.78rem; font-weight: 600; line-height: 1.35;"></p>
 
         <section class="client-directory-summary" data-directory-summary aria-label="Client directory summary">
           <article class="client-directory-summary-card client-directory-summary-card-recommended-actions" data-summary-card="recommended-actions">
@@ -1121,7 +1108,7 @@
         document.body.classList.remove("is-modal-open");
       }
 
-      // CODE NOTE: Studio profile banner actions reuse this same add-client
+      // CODE NOTE: Directory header actions reuse this same add-client
       // chooser, so expose a tiny modal API instead of duplicating the flow.
       window.ClientDirectoryAddModalApi = {
         open: openModal,
@@ -1329,7 +1316,6 @@
       const directoryExportSelectedButton = document.querySelector("[data-directory-export-selected]");
       const directoryFlagSelectedButton = document.querySelector("[data-directory-flag-selected]");
       const directoryUnflagSelectedButton = document.querySelector("[data-directory-unflag-selected]");
-      const directoryCoreDebugBanner = document.getElementById("client-directory-core-debug-banner");
 
       if (summaryCustomizeDialog instanceof HTMLElement && summaryCustomizeDialog.parentElement !== document.body) {
         document.body.appendChild(summaryCustomizeDialog);
@@ -1373,32 +1359,6 @@
         return window.LensApp?.clientDirectoryCore || null;
       }
 
-      function renderDirectoryCoreDebugBanner() {
-        if (!(directoryCoreDebugBanner instanceof HTMLElement)) {
-          return;
-        }
-
-        const debugState = window.LensApp?.clientDirectoryCoreDebug;
-        if (!debugState || typeof debugState !== "object") {
-          directoryCoreDebugBanner.hidden = true;
-          return;
-        }
-
-        directoryCoreDebugBanner.textContent = [
-          `[DEBUG] pendingId=${String(debugState.pendingId || "").trim() || "--"}`,
-          `pendingCaseRef=${String(debugState.pendingCaseRef || "").trim() || "--"}`,
-          `foundInAllRecords=${debugState.foundInAllRecords ? "yes" : "no"}`,
-          `foundInFilteredRecords=${debugState.foundInFilteredRecords ? "yes" : "no"}`,
-          `filteredIndex=${Number.isInteger(debugState.filteredIndex) ? debugState.filteredIndex : "n/a"}`,
-          `targetPage=${Number(debugState.targetPage) > 0 ? debugState.targetPage : "n/a"}`,
-          `currentPage=${Number(debugState.currentPage) > 0 ? debugState.currentPage : "n/a"}`,
-          `sort=${String(debugState.sortOrder || "").trim() || "--"}`,
-          `view=${String(debugState.activeView || "").trim() || "--"}`,
-          `status=${String(debugState.activeStatus || "").trim() || "--"}`
-        ].join(" | ");
-        directoryCoreDebugBanner.hidden = false;
-      }
-
       function syncShellStateFromCore(event) {
         const directoryCoreApi = getDirectoryCoreApi();
         if (!directoryCoreApi || typeof directoryCoreApi.getState !== "function") {
@@ -1431,11 +1391,9 @@
         syncDirectoryTitleMenuState();
         syncDirectorySidebarButtons();
         syncSummaryCardVisibility();
-        renderDirectoryCoreDebugBanner();
       }
 
       window.addEventListener("client-directory-core:render", syncShellStateFromCore);
-      renderDirectoryCoreDebugBanner();
 
       function loadJson(source, key) {
         try {

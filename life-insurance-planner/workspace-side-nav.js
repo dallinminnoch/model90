@@ -200,13 +200,13 @@
     const isShell = Boolean(config.shell);
     const hrefs = getWorkspaceHrefMap(isShell);
     const pages = [
-      { key: "studio", label: "Start Page", shortLabel: "Start", href: hrefs.studio, active: activePage ? activePage === "studio" : mode === "studio" },
+      isShell ? { key: "studio", label: "Start Page", shortLabel: "Start", href: hrefs.studio, active: activePage ? activePage === "studio" : mode === "studio" } : null,
       { key: "clients", label: "Client Directory", shortLabel: "Clients", href: hrefs.clients, active: activePage ? activePage === "clients" : mode === "directory" || mode === "client-detail" },
       { key: "resources", label: "Resources", shortLabel: "Resources", href: hrefs.resources, active: activePage ? activePage === "resources" : mode === "resources" },
       { key: "lens", label: "LENS Analysis", shortLabel: "LENS", href: hrefs.lens, active: activePage ? activePage === "lens" : mode === "lens" },
       { key: "strategy", label: "Strategy Builder", shortLabel: "Strategy", href: hrefs.strategy, active: activePage === "strategy" },
       { key: "policy", label: "Policy Web", shortLabel: "Policy", href: hrefs.policy, active: activePage === "policy" }
-    ];
+    ].filter(Boolean);
     pages.settingsPage = {
       key: "settings",
       label: "Settings",

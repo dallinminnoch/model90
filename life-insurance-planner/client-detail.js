@@ -5,20 +5,6 @@
         return;
       }
 
-      // CODE NOTE: Studio native mounting re-runs client-detail.js when the
-      // active profile changes. Clean up the prior native instance first so
-      // global listeners do not stack up across profile switches.
-      if (typeof window.__StudioNativeClientDetailCleanup === "function") {
-        try {
-          window.__StudioNativeClientDetailCleanup();
-        } catch (_error) {
-          // Ignore cleanup issues and let the new mount continue.
-        }
-        window.__StudioNativeClientDetailCleanup = null;
-      }
-
-      const isStudioNativeClientDetail = Boolean(host.closest("[data-studio-native-client-detail-view]"));
-
       const STORAGE_KEYS = {
         authSession: "lipPlannerAuthSession",
         clientRecords: "lensClientRecords",
@@ -46,21 +32,7 @@
         return `${STORAGE_KEYS.accessibility}:${getStorageIdentity()}`;
       }
 
-      // CODE NOTE: Native Studio detail view provides the requested record via
-      // the Studio view string instead of window.location.search.
       function getClientDetailRequestUrl() {
-        const studioNativeView = isStudioNativeClientDetail
-          ? String(window.__STUDIO_NATIVE_CLIENT_DETAIL_VIEW__ || "").trim()
-          : "";
-
-        if (studioNativeView) {
-          try {
-            return new URL(studioNativeView, window.location.href);
-          } catch (_error) {
-            // Fall back to the real page URL below.
-          }
-        }
-
         return new URL(window.location.href);
       }
 
@@ -2087,7 +2059,7 @@
       }
 
       // CODE NOTE: These defaults keep the grouped profile sidebar aligned with
-      // the broader profile tabs and the native Studio top banner.
+      // the broader profile tabs and the sticky detail header summary.
       const CLIENT_PROFILE_DEFAULT_NAV_BY_TAB = {
         overview: "overview",
         planning: "modeling-inputs",
@@ -7547,7 +7519,7 @@
         }
 
         // CODE NOTE: Once the top coverage stat row has moved above the sticky
-        // Studio header stack, mirror those values into the native banner so
+        // header stack, mirror those values into the auxiliary banner so
         // current coverage and modeled need stay visible while scrolling.
         return statsRow.getBoundingClientRect().bottom <= (getProfileScrollOffset() + 8);
       }
@@ -7708,7 +7680,7 @@
 
       // CODE NOTE: Sidebar workflow items now scroll within one continuous
       // profile workspace, so the landing offset must account for the sticky
-      // Studio topbar and sticky native profile banner.
+      // page header and any sticky detail banner.
       function scrollToProfileNavTarget(targetKey, options) {
         const normalizedTarget = String(targetKey || "").trim();
         if (!normalizedTarget) {
@@ -9345,10 +9317,6 @@
           if (!wasDeleted) {
             return;
           }
-          if (window.StudioShellApi && typeof window.StudioShellApi.navigateToView === "function") {
-            window.StudioShellApi.navigateToView("clients.html", "push");
-            return;
-          }
           window.location.href = "clients.html";
         });
       }
@@ -9667,51 +9635,6 @@
         }
       };
       document.addEventListener("keydown", handleDocumentKeydown);
-
-      // CODE NOTE: Studio native detail mount reads this API to keep the
-      // outer Studio shell in sync without relying on the iframe path.
-      window.ClientDetailShellApi = {
-        getState: getClientDetailShellState,
-        setTab: function (tabKey) {
-          const targetNavKey = getClientDetailBannerNavTarget(tabKey);
-          return setActiveProfileNav(targetNavKey, { scroll: true });
-        },
-        setNav: function (navKey) {
-          return setActiveProfileNav(navKey);
-        }
-      };
-
-      window.__StudioNativeClientDetailCleanup = function () {
-        window.removeEventListener("resize", handleWindowResize);
-        document.removeEventListener("click", handleDocumentClick);
-        document.removeEventListener("keydown", handleDocumentKeydown);
-        if (profileSidebarHost) {
-          profileSidebarHost.removeEventListener("transitionend", handleProfileSidebarHostTransitionEnd);
-        }
-        if (profileSidebarLayout) {
-          profileSidebarLayout.removeEventListener("transitionend", handleProfileSidebarLayoutTransitionEnd);
-        }
-        if (coverageStatResizeObserver) {
-          coverageStatResizeObserver.disconnect();
-          coverageStatResizeObserver = null;
-        }
-        if (coverageStatSyncFrame) {
-          window.cancelAnimationFrame(coverageStatSyncFrame);
-          coverageStatSyncFrame = 0;
-        }
-        if (coverageAdequacyAnimationFrame) {
-          window.cancelAnimationFrame(coverageAdequacyAnimationFrame);
-          coverageAdequacyAnimationFrame = 0;
-        }
-        if (profileScrollSpyFrame) {
-          window.cancelAnimationFrame(profileScrollSpyFrame);
-          profileScrollSpyFrame = 0;
-        }
-        window.removeEventListener("scroll", handleWindowScroll);
-        if (window.ClientDetailShellApi && window.ClientDetailShellApi.getState?.().recordId === String(record?.id || "").trim()) {
-          delete window.ClientDetailShellApi;
-        }
-      };
 
       if (activityDetailModal) {
         activityDetailModal.addEventListener("submit", function (event) {

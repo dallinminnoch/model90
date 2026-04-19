@@ -42,7 +42,6 @@
     const addClientModal = document.querySelector("[data-add-client-modal]");
     const addClientModalCloseTargets = document.querySelectorAll("[data-add-client-modal-close]");
     const shouldKeepInlineAddModalOwnership = document.body?.dataset.localClientDirectory === "true";
-
     if (!letterButtons.length || !rowsHost) {
       return;
     }
@@ -92,35 +91,6 @@
       ? (sessionStorage.getItem(STORAGE_KEYS.clientItemsShown) || String(defaultItemsShown))
       : defaultItemsShown);
     let currentPage = 1;
-    const debugPendingTarget = pendingRevealTarget
-      ? { ...pendingRevealTarget }
-      : { id: "", caseRef: "" };
-
-    function doesDebugTargetMatchRecord(record) {
-      const normalizedRecordId = String(record?.id || "").trim();
-      const normalizedRecordCaseRef = String(record?.caseRef || "").trim().toUpperCase();
-      return (
-        (debugPendingTarget.id && normalizedRecordId === debugPendingTarget.id)
-        || (debugPendingTarget.caseRef && normalizedRecordCaseRef === debugPendingTarget.caseRef)
-      );
-    }
-
-    function updateDirectoryCoreDebug(nextState) {
-      LensApp.clientDirectoryCoreDebug = {
-        pendingId: debugPendingTarget.id,
-        pendingCaseRef: debugPendingTarget.caseRef,
-        foundInAllRecords: false,
-        foundInFilteredRecords: false,
-        filteredIndex: -1,
-        targetPage: 0,
-        currentPage,
-        itemsShown,
-        sortOrder,
-        activeView,
-        activeStatus,
-        ...(nextState && typeof nextState === "object" ? nextState : {})
-      };
-    }
 
     if (!shouldRestoreClientStatus) {
       sessionStorage.setItem(STORAGE_KEYS.clientStatus, "all");
@@ -134,7 +104,6 @@
 
     sessionStorage.removeItem(STORAGE_KEYS.clientViewIntent);
     sessionStorage.removeItem(STORAGE_KEYS.clientItemsShownReset);
-    updateDirectoryCoreDebug();
 
     function syncItemsShownControls() {
       if (itemsTrigger) {
@@ -369,12 +338,6 @@
     function renderDirectory() {
       allRecords = getClientRecords();
       const filteredRecords = sortDirectoryRecords(getFilteredRecords());
-      const foundInAllRecords = Boolean((debugPendingTarget.id || debugPendingTarget.caseRef) && allRecords.some(doesDebugTargetMatchRecord));
-      const filteredIndex = (debugPendingTarget.id || debugPendingTarget.caseRef)
-        ? filteredRecords.findIndex(doesDebugTargetMatchRecord)
-        : -1;
-      const foundInFilteredRecords = filteredIndex >= 0;
-      const targetPage = foundInFilteredRecords ? Math.floor(filteredIndex / itemsShown) + 1 : 0;
       if (pendingRevealTarget) {
         const revealIndex = filteredRecords.findIndex((record) => {
           const normalizedRecordId = String(record?.id || "").trim();
@@ -392,17 +355,6 @@
       }
       const totalPages = Math.max(1, Math.ceil(filteredRecords.length / itemsShown));
       currentPage = Math.min(currentPage, totalPages);
-      updateDirectoryCoreDebug({
-        foundInAllRecords,
-        foundInFilteredRecords,
-        filteredIndex,
-        targetPage,
-        currentPage,
-        itemsShown,
-        sortOrder,
-        activeView,
-        activeStatus
-      });
       const startIndex = (currentPage - 1) * itemsShown;
       const visibleRecords = filteredRecords.slice(startIndex, startIndex + itemsShown);
 
