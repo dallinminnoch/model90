@@ -240,8 +240,7 @@
   <script src="../lens-workflow.js"></script>
   <script>
     (function () {
-      const authSessionKey = "lipPlannerAuthSession";
-      const clientRecordsKey = "lensClientRecords";
+      const clientRecordsApi = window.LensApp?.clientRecords || {};
       const temporaryAnalysisSessionKey = "lensTemporaryAnalysisSession";
       const form = document.getElementById("client-profile-form");
       const linkOpenButtons = Array.from(document.querySelectorAll("[data-analysis-link-open]"));
@@ -418,47 +417,6 @@
         });
       }
 
-      function getClientRecordsStorageKey() {
-        let session = null;
-        try {
-          session = JSON.parse(localStorage.getItem(authSessionKey) || "null");
-        } catch (error) {
-          session = null;
-        }
-
-        const identity = session?.email ? String(session.email).trim().toLowerCase() : "guest";
-        return `${clientRecordsKey}:${identity}`;
-      }
-
-      function loadClientRecords() {
-        try {
-          const records = JSON.parse(localStorage.getItem(getClientRecordsStorageKey()) || "[]");
-          return Array.isArray(records)
-            ? records.filter((record) => String(record.viewType || "").trim() === "individuals")
-            : [];
-        } catch (error) {
-          return [];
-        }
-      }
-
-      function findRecordByCaseRef(caseRef) {
-        const normalizedCaseRef = String(caseRef || "").trim().toUpperCase();
-        if (!normalizedCaseRef) {
-          return null;
-        }
-
-        return loadClientRecords().find((record) => String(record.caseRef || "").trim().toUpperCase() === normalizedCaseRef) || null;
-      }
-
-      function findRecordById(recordId) {
-        const normalizedRecordId = String(recordId || "").trim();
-        if (!normalizedRecordId) {
-          return null;
-        }
-
-        return loadClientRecords().find((record) => String(record.id || "").trim() === normalizedRecordId) || null;
-      }
-
       function updateLinkedClientButton(record) {
         linkedRecord = record || null;
 
@@ -524,7 +482,7 @@
       }
 
       function syncLinkedClientFromCaseRef() {
-        const matchedRecord = findRecordByCaseRef(caseRefField?.value || "");
+        const matchedRecord = clientRecordsApi.findLinkableIndividualClientByCaseRef?.(caseRefField?.value || "") || null;
         updateLinkedClientButton(matchedRecord);
       }
 
@@ -618,8 +576,8 @@
           if (caseRefField && shouldSwitchToCaseRefTab) {
             caseRefField.value = "";
           }
-          window.setLensLinkedCaseRef?.("");
-          window.setLensLinkedRecordId?.("");
+          clientRecordsApi.setLinkedCaseRef?.("");
+          clientRecordsApi.setLinkedRecordId?.("");
           updateLinkedClientButton(null);
           openLinkErrorModal(getMissingPmiLinkMessage(nextRecord));
           return false;
@@ -627,9 +585,9 @@
 
         if (caseRefField) {
           caseRefField.value = String(nextRecord.caseRef || "").trim();
-          window.setLensLinkedCaseRef?.(caseRefField.value);
+          clientRecordsApi.setLinkedCaseRef?.(caseRefField.value);
         }
-        window.setLensLinkedRecordId?.(String(nextRecord.id || "").trim());
+        clientRecordsApi.setLinkedRecordId?.(String(nextRecord.id || "").trim());
         syncLinkedClientFromCaseRef();
 
         if (shouldCloseSearch) {
@@ -670,16 +628,8 @@
           return;
         }
 
-        const query = String(linkModalInput?.value || "").trim().toLowerCase();
-        const records = loadClientRecords()
-          .filter((record) => String(record.caseRef || "").trim())
-          .sort((left, right) => String(left.displayName || "").localeCompare(String(right.displayName || "")));
-        const filtered = records.filter((record) => {
-          const displayName = String(record.displayName || "").toLowerCase();
-          const caseRef = String(record.caseRef || "").toLowerCase();
-          const summary = String(record.summary || "").toLowerCase();
-          return !query || displayName.includes(query) || caseRef.includes(query) || summary.includes(query);
-        });
+        const query = String(linkModalInput?.value || "").trim();
+        const filtered = clientRecordsApi.getLinkableIndividualClientRecords?.(query) || [];
 
         linkModalResults.innerHTML = "";
 
@@ -712,10 +662,10 @@
         caseRefField.addEventListener("pointerdown", unlockCaseRefField);
         caseRefField.addEventListener("input", function () {
           caseRefField.value = String(caseRefField.value || "").toUpperCase();
-          const matchedRecord = findRecordByCaseRef(caseRefField.value);
+          const matchedRecord = clientRecordsApi.findLinkableIndividualClientByCaseRef?.(caseRefField.value) || null;
           if (!matchedRecord) {
-            window.setLensLinkedCaseRef?.("");
-            window.setLensLinkedRecordId?.("");
+            clientRecordsApi.setLinkedCaseRef?.("");
+            clientRecordsApi.setLinkedRecordId?.("");
             updateLinkedClientButton(null);
             return;
           }
@@ -742,8 +692,8 @@
               return;
             }
 
-            window.setLensLinkedCaseRef?.(String(linkedRecord.caseRef || "").trim());
-            window.setLensLinkedRecordId?.(String(linkedRecord.id || "").trim());
+            clientRecordsApi.setLinkedCaseRef?.(String(linkedRecord.caseRef || "").trim());
+            clientRecordsApi.setLinkedRecordId?.(String(linkedRecord.id || "").trim());
             clearTemporaryAnalysisSession();
             syncManualTriggerState();
           }
@@ -767,8 +717,8 @@
         if (caseRefField) {
           caseRefField.value = "";
         }
-        window.setLensLinkedCaseRef?.("");
-        window.setLensLinkedRecordId?.("");
+        clientRecordsApi.setLinkedCaseRef?.("");
+        clientRecordsApi.setLinkedRecordId?.("");
         updateLinkedClientButton(null);
       });
       linkErrorClose.forEach(function (button) {
@@ -829,19 +779,25 @@
         if (caseRefField) {
           caseRefField.value = "";
         }
-        window.setLensLinkedCaseRef?.("");
-        window.setLensLinkedRecordId?.("");
+        clientRecordsApi.setLinkedCaseRef?.("");
+        clientRecordsApi.setLinkedRecordId?.("");
         updateLinkedClientButton(null);
         setManualMode(true);
       } else {
-        const linkedFromId = findRecordById(urlRecordId || window.getLensLinkedRecordId?.());
-        const linkedFromCaseRef = findRecordByCaseRef(urlCaseRef || window.getLensLinkedCaseRef?.());
-        const initialRecord = linkedFromId || linkedFromCaseRef;
+        const initialRecordCandidate = clientRecordsApi.getClientRecordByReference?.(
+          urlRecordId || clientRecordsApi.getLinkedRecordId?.(),
+          urlCaseRef || clientRecordsApi.getLinkedCaseRef?.()
+        ) || null;
+        const initialRecord = initialRecordCandidate
+          && String(initialRecordCandidate.viewType || "").trim() === "individuals"
+          && String(initialRecordCandidate.caseRef || "").trim()
+            ? initialRecordCandidate
+            : null;
 
         if (initialRecord && caseRefField) {
           caseRefField.value = String(initialRecord.caseRef || "").trim();
-          window.setLensLinkedCaseRef?.(caseRefField.value);
-          window.setLensLinkedRecordId?.(String(initialRecord.id || "").trim());
+          clientRecordsApi.setLinkedCaseRef?.(caseRefField.value);
+          clientRecordsApi.setLinkedRecordId?.(String(initialRecord.id || "").trim());
         }
 
         syncLinkedClientFromCaseRef();
