@@ -13231,6 +13231,16 @@ body[data-step] .step-item:focus-visible .step-title {
 
 
 
+
+
+
+
+
+
+
+
+
+
 .resources-header-kicker {
   color: #93a0b2;
   font-size: 0.71rem;
@@ -13284,32 +13294,600 @@ body[data-step] .step-item:focus-visible .step-title {
   color: #ffffff;
 }
 
+.workspace-side-nav.workspace-side-nav-shell {
+  position: relative;
+  display: block;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  width: 3.55rem;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  margin-top: 0;
+  overflow-y: auto;
+  padding: 0.76rem 0.24rem 0.9rem;
+  background: #1f1a45;
+  border-radius: 0.48rem;
+  box-shadow: 0 16px 34px rgba(31, 26, 69, 0.2);
+}
+
+.workspace-side-nav-shell .workspace-side-nav-toggle-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%);
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.38rem;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-button {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.34rem;
+  min-height: 3.45rem;
+  padding: 0.5rem 0.12rem;
+  border: 0;
+  border-radius: 0.24rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 0.77rem;
+  font-weight: 400;
+  line-height: 1.05;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-button-settings {
+  margin-top: auto;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-button:hover,
+.workspace-side-nav-shell .workspace-side-nav-primary-button:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-button.is-active {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-icon {
+  width: 1.16rem;
+  height: 1.16rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-icon img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-label {
+  display: none;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-context {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3.95rem;
+  right: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  margin-top: 0;
+  background: #FAFAF9;
+  border: 1px solid rgba(214, 221, 231, 0.92);
+  border-right: 0;
+  border-radius: 0.48rem 0 0 0.48rem;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-context-header {
+  padding: 1rem 2.55rem 0.9rem 1rem;
+  border-bottom: 1px solid rgba(224, 230, 239, 0.98);
+}
+
+.workspace-side-nav-shell .workspace-side-nav-context-header-extra {
+  margin-top: 0.72rem;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-context-header-extra .workspace-side-nav-context-button {
+  width: 100%;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-copy {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-kicker,
+.workspace-side-nav-shell .workspace-side-nav-context-section-label {
+  color: #98a3b4;
+  font-size: 0.67rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-copy strong {
+  color: #17202c;
+  font-size: 1.02rem;
+  line-height: 1.15;
+  font-weight: 540;
+}
+
+
+.workspace-side-nav-shell .workspace-side-nav-context-section {
+  display: grid;
+  align-content: start;
+  gap: 0.72rem;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.9rem 0.78rem 1rem;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-context-items {
+  display: grid;
+  align-content: start;
+  gap: 0.36rem;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-context-group {
+  display: grid;
+  gap: 0.22rem;
+}
+
 /* CODE NOTE: Profile workflow nav items jump to these section anchors inside
    client detail, so keep a small scroll margin for cleaner landings. */
 [data-client-nav-section] {
   scroll-margin-top: var(--client-profile-anchor-offset, 0.85rem);
 }
+
+.workspace-side-nav-shell .workspace-side-nav-context-button {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 0.68rem;
+  min-height: 2.55rem;
+  padding: 0.52rem 0.74rem;
+  border: 0;
+  border-radius: 0.3rem;
+  background: transparent;
+  color: #4f5b6b;
+  font-size: 0.94rem;
+  font-weight: 400;
+  line-height: 1.2;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-context-button:hover,
+.workspace-side-nav-shell .workspace-side-nav-context-button:focus-visible {
+  background: #f2f5f9;
+  color: #17202c;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-context-button.is-active {
+  background: #f2f5f9;
+  color: #17202c;
+}
+
+/* CODE NOTE: Hybrid client-profile nav styles live here so the workflow
+   progress states and nested Analysis branch can be tuned in one place. */
+.workspace-side-nav-shell .client-profile-side-tabs-section {
+  gap: 0.42rem;
+}
+
+.workspace-side-nav-shell .client-profile-side-tabs-section-primary {
+  gap: 0.5rem;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-nav {
+  gap: 0.28rem;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button {
+  justify-content: space-between;
+  min-height: 2.48rem;
+  padding: 0.48rem 0.7rem;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.68rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button-meta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.38rem;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--workflow.is-current,
+.workspace-side-nav-shell .client-profile-workflow-button--workflow.is-active {
+  background: #f2f5f9;
+  color: #17202c;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--workflow.is-complete:not(.is-active):not(.is-current) {
+  color: #435063;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--workflow.is-future {
+  color: #95a0b1;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--workflow.is-future .client-profile-workflow-button-icon {
+  opacity: 0.62;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--quiet {
+  min-height: 2.34rem;
+  color: #6f7c8f;
+  font-size: 0.89rem;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--quiet .client-profile-workflow-button-icon {
+  opacity: 0.8;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--quiet:not(.is-active):hover,
+.workspace-side-nav-shell .client-profile-workflow-button--quiet:not(.is-active):focus-visible {
+  color: #334155;
+}
+
+.workspace-side-nav-shell .client-profile-nav-branch {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-branch-toggle {
+  justify-content: space-between;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-branch-toggle.is-current,
+.workspace-side-nav-shell .client-profile-workflow-branch-toggle.is-active {
+  background: #f2f5f9;
+  color: #17202c;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-branch-toggle.is-complete:not(.is-active):not(.is-current) {
+  color: #435063;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-branch-toggle.is-future {
+  color: #95a0b1;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-branch-chevron {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-8%);
+  transition: transform 0.18s ease;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-branch-toggle.is-expanded .client-profile-workflow-branch-chevron {
+  transform: rotate(225deg) translateY(-8%);
+}
+
+.workspace-side-nav-shell .client-profile-nav-branch-panel {
+  display: grid;
+  gap: 0.18rem;
+  margin-left: 0.62rem;
+  padding-left: 0.78rem;
+  border-left: 1px solid rgba(223, 229, 236, 0.96);
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--child {
+  min-height: 2.18rem;
+  padding-top: 0.38rem;
+  padding-bottom: 0.38rem;
+  font-size: 0.88rem;
+}
+
+.workspace-side-nav-shell .client-profile-workflow-button--child .client-profile-workflow-button-icon {
+  width: 0.98rem;
+  height: 0.98rem;
+  opacity: 0.88;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu {
+  display: none;
+  gap: 0.16rem;
+  margin: -0.02rem 0 0.14rem 0.58rem;
+  padding: 0 0 0 0.92rem;
+  border-left: 1px solid rgba(223, 229, 236, 0.96);
+}
+
+.workspace-side-nav-shell .workspace-side-nav-context-group.is-expanded .workspace-side-nav-submenu {
+  display: grid;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-divider {
+  height: 1px;
+  margin: 0.1rem 0 0.14rem;
+  background: rgba(223, 229, 236, 0.96);
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 0.48rem;
+  min-height: 2rem;
+  padding: 0.36rem 0.48rem;
+  border: 0;
+  border-radius: 0.26rem;
+  background: transparent;
+  color: #6b7686;
+  font-size: 0.84rem;
+  font-weight: 380;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button::before {
+  content: "";
+  width: 0.34rem;
+  height: 0.34rem;
+  border-radius: 999px;
+  background: #c7d0db;
+  flex: 0 0 auto;
+  transition: width 0.18s ease, height 0.18s ease, background-color 0.18s ease;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-scope-action]::before {
+  content: none;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-icon {
+  width: 1.02rem;
+  height: 1.02rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  opacity: 0.42;
+  transform: scale(1);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-icon img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%);
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority-action]:hover,
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority-action]:focus-visible {
+  background: transparent;
+  color: #17202c;
+  font-weight: 440;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority-action]:hover::before,
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority-action]:focus-visible::before {
+  background: #17202c;
+  width: 0.48rem;
+  height: 0.48rem;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button.is-active[data-directory-priority-action] {
+  background: transparent;
+  color: #17202c;
+  font-weight: 440;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button.is-active[data-directory-priority-action]::before {
+  background: #17202c;
+  width: 0.48rem;
+  height: 0.48rem;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority="high"]:hover,
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority="high"]:focus-visible {
+  color: #8c2323;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority="high"]:hover::before,
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority="high"]:focus-visible::before {
+  background: #ef5a5a;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button.is-active[data-directory-priority="high"] {
+  color: #8c2323;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button.is-active[data-directory-priority="high"]::before {
+  background: #ef5a5a;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority="medium"]:hover,
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority="medium"]:focus-visible {
+  color: #9a6a00;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority="medium"]:hover::before,
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority="medium"]:focus-visible::before {
+  background: #e59600;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button.is-active[data-directory-priority="medium"] {
+  color: #9a6a00;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button.is-active[data-directory-priority="medium"]::before {
+  background: #e59600;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority="low"]:hover,
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority="low"]:focus-visible {
+  color: #24533d;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority="low"]:hover::before,
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-priority="low"]:focus-visible::before {
+  background: #2f6b52;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button.is-active[data-directory-priority="low"] {
+  color: #24533d;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button.is-active[data-directory-priority="low"]::before {
+  background: #2f6b52;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-scope-action]:hover,
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-scope-action]:focus-visible {
+  background: transparent;
+  color: #000000;
+  font-weight: 440;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-scope-action]:hover .workspace-side-nav-submenu-icon,
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-scope-action]:focus-visible .workspace-side-nav-submenu-icon {
+  opacity: 1;
+  transform: scale(1.14);
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-scope-action]:hover .workspace-side-nav-submenu-label,
+.workspace-side-nav-shell .workspace-side-nav-submenu-button[data-directory-scope-action]:focus-visible .workspace-side-nav-submenu-label {
+  color: #000000;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button.is-active[data-directory-scope-action] {
+  background: transparent;
+  color: #000000;
+  font-weight: 440;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button.is-active[data-directory-scope-action] .workspace-side-nav-submenu-label {
+  color: #000000;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button.is-active[data-directory-scope-action] .workspace-side-nav-submenu-icon {
+  opacity: 1;
+  transform: scale(1.14);
+}
+
+.workspace-side-nav-shell .workspace-side-nav-submenu-button.is-active[data-directory-scope-action] .workspace-side-nav-submenu-icon img {
+  opacity: 1;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-context-icon {
+  width: 1.08rem;
+  height: 1.08rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-context-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-context-label {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-context-button-add {
+  color: #5b42db;
+}
+
+.workspace-side-nav-host.is-collapsed .workspace-side-nav.workspace-side-nav-shell,
 .client-profile-shell.is-collapsed .workspace-side-nav.workspace-side-nav-shell,
 .client-directory-shell-layout.is-collapsed .workspace-side-nav.workspace-side-nav-shell {
   display: block;
 }
 
+.workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-context,
 .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-context,
 .client-directory-shell-layout.is-collapsed .workspace-side-nav-shell .workspace-side-nav-context {
   display: none;
 }
 
+.workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-rail,
 .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-rail,
 .client-directory-shell-layout.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-rail {
   width: 3.55rem;
   padding: 2.7rem 0.24rem 0.9rem;
 }
 
+.workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-items,
 .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-items,
 .client-directory-shell-layout.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-items {
   align-items: center;
 }
 
+.workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-label,
 .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-label,
 .client-directory-shell-layout.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-label {
   display: none;
