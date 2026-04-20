@@ -111,83 +111,17 @@
       <header class="resources-header">
         <div class="resources-header-copy">
           <span class="resources-header-kicker">Resources</span>
-          <h1>Calendar</h1>
-          <p>Keep advisor trainings, client review blocks, and planning deadlines organized in one shared planning view.</p>
-        </div>
-        <div class="resources-header-legend" aria-label="Calendar legend">
-          <span class="resources-legend-chip"><span class="resources-legend-dot is-training"></span>Training</span>
-          <span class="resources-legend-chip"><span class="resources-legend-dot is-review"></span>Client Review</span>
-          <span class="resources-legend-chip"><span class="resources-legend-dot is-deadline"></span>Deadline</span>
-          <span class="resources-legend-chip"><span class="resources-legend-dot is-team"></span>Team</span>
+          <h1>Resources</h1>
+          <p>This workspace section is being refreshed while the next Resources experience is defined.</p>
         </div>
       </header>
 
-      <section class="resources-calendar-layout" data-resources-calendar-root>
-        <section class="resources-calendar-board" id="resources-calendar-board">
-          <div class="resources-calendar-toolbar">
-            <div class="resources-calendar-toolbar-copy">
-              <span class="resources-calendar-kicker">Planning Month</span>
-              <h2 data-calendar-month-label>April 2026</h2>
-            </div>
-            <div class="resources-calendar-toolbar-actions">
-              <button class="resources-calendar-nav-button" type="button" data-calendar-nav="-1" aria-label="Previous month">&#8249;</button>
-              <button class="resources-calendar-today-button" type="button" data-calendar-today>Today</button>
-              <button class="resources-calendar-nav-button" type="button" data-calendar-nav="1" aria-label="Next month">&#8250;</button>
-            </div>
-          </div>
-
-          <div class="resources-calendar-weekdays" aria-hidden="true">
-            <span>Sun</span>
-            <span>Mon</span>
-            <span>Tue</span>
-            <span>Wed</span>
-            <span>Thu</span>
-            <span>Fri</span>
-            <span>Sat</span>
-          </div>
-
-          <div class="resources-calendar-grid" data-calendar-grid></div>
-        </section>
-
-        <aside class="resources-calendar-sidebar">
-          <section class="resources-calendar-sidebar-card resources-calendar-sidebar-card-focus">
-            <span class="resources-calendar-sidebar-kicker">Selected Day</span>
-            <h3 data-calendar-selected-label>Today</h3>
-            <p data-calendar-selected-subcopy>Select any day on the calendar to review the schedule.</p>
-          </section>
-
-          <section class="resources-calendar-sidebar-card" id="resources-agenda">
-            <div class="resources-calendar-sidebar-card-header">
-              <span class="resources-calendar-sidebar-kicker">Agenda</span>
-              <span class="resources-calendar-sidebar-count" data-calendar-selected-count>0 items</span>
-            </div>
-            <div class="resources-calendar-agenda" data-calendar-agenda></div>
-          </section>
-
-          <section class="resources-calendar-sidebar-card resources-calendar-sidebar-card-summary" id="resources-month-summary">
-            <div class="resources-calendar-sidebar-card-header">
-              <span class="resources-calendar-sidebar-kicker">This Month</span>
-            </div>
-            <div class="resources-calendar-summary-grid">
-              <article class="resources-calendar-summary-stat">
-                <strong data-calendar-summary-training>0</strong>
-                <span>Trainings</span>
-              </article>
-              <article class="resources-calendar-summary-stat">
-                <strong data-calendar-summary-review>0</strong>
-                <span>Reviews</span>
-              </article>
-              <article class="resources-calendar-summary-stat">
-                <strong data-calendar-summary-deadline>0</strong>
-                <span>Deadlines</span>
-              </article>
-              <article class="resources-calendar-summary-stat">
-                <strong data-calendar-summary-team>0</strong>
-                <span>Team Blocks</span>
-              </article>
-            </div>
-          </section>
-        </aside>
+      <section class="resources-overview-panel" id="resources-overview">
+        <div class="resources-header-copy">
+          <span class="resources-header-kicker">Update</span>
+          <h2 class="resources-overview-title">Resources are being refreshed</h2>
+          <p>The calendar has been removed from this page while the next Resources direction is being finalized.</p>
+        </div>
       </section>
     </section>
   </main>
@@ -199,16 +133,6 @@
       const resourcesSidebarHost = document.querySelector('[data-workspace-side-nav="resources"]');
       const resourcesSidebarToggle = document.querySelector("[data-resources-side-tabs-toggle]");
       const resourcesNavLinks = Array.from(document.querySelectorAll("[data-resources-tab]"));
-      const monthLabel = document.querySelector("[data-calendar-month-label]");
-      const grid = document.querySelector("[data-calendar-grid]");
-      const selectedLabel = document.querySelector("[data-calendar-selected-label]");
-      const selectedSubcopy = document.querySelector("[data-calendar-selected-subcopy]");
-      const selectedCount = document.querySelector("[data-calendar-selected-count]");
-      const agenda = document.querySelector("[data-calendar-agenda]");
-
-      if (!monthLabel || !grid || !selectedLabel || !selectedSubcopy || !selectedCount || !agenda) {
-        return;
-      }
 
       function getStorageIdentity() {
         try {
@@ -267,186 +191,6 @@
         });
       });
 
-      const summaryTargets = {
-        training: document.querySelector("[data-calendar-summary-training]"),
-        review: document.querySelector("[data-calendar-summary-review]"),
-        deadline: document.querySelector("[data-calendar-summary-deadline]"),
-        team: document.querySelector("[data-calendar-summary-team]")
-      };
-
-      const resourceEvents = [
-        { date: "2026-04-13", time: "9:00 AM", title: "Protection Modeling Office Hours", type: "training", detail: "Walk through new modeling assumptions with the advisor team." },
-        { date: "2026-04-14", time: "1:30 PM", title: "Case Review Block", type: "review", detail: "Review active coverage gap cases before client outreach." },
-        { date: "2026-04-16", time: "10:00 AM", title: "Carrier Product Update", type: "training", detail: "New term conversion updates and underwriting notes." },
-        { date: "2026-04-18", time: "All Day", title: "Quarterly Planning Deadline", type: "deadline", detail: "Finalize open planning workflows before the quarter close." },
-        { date: "2026-04-21", time: "11:00 AM", title: "Client Review Prep", type: "review", detail: "Prepare analysis and placed-policy summary for upcoming reviews." },
-        { date: "2026-04-22", time: "2:00 PM", title: "Advisor Calendar Sync", type: "team", detail: "Weekly internal scheduling and workload alignment." },
-        { date: "2026-04-24", time: "8:30 AM", title: "Underwriting Roundtable", type: "training", detail: "Discuss recent underwriting outcomes and positioning notes." },
-        { date: "2026-04-28", time: "3:00 PM", title: "Placement Follow-Up Window", type: "deadline", detail: "Confirm policy delivery updates and pending docs." },
-        { date: "2026-05-05", time: "9:00 AM", title: "May Kickoff Planning Session", type: "team", detail: "Set review cadence and planning priorities for the new month." },
-        { date: "2026-05-08", time: "12:30 PM", title: "Client Review Day", type: "review", detail: "Reserved day for policy review and adequacy conversations." }
-      ];
-
-      const today = new Date();
-      let activeMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      let selectedDateKey = formatDateKey(today);
-
-      function formatDateKey(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-      }
-
-      function formatDisplayDate(date) {
-        return new Intl.DateTimeFormat("en-US", {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-          year: "numeric"
-        }).format(date);
-      }
-
-      function getEventsForDate(dateKey) {
-        return resourceEvents.filter(function (event) {
-          return event.date === dateKey;
-        });
-      }
-
-      function getEventsForMonth(date) {
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        return resourceEvents.filter(function (event) {
-          const eventDate = new Date(`${event.date}T12:00:00`);
-          return eventDate.getFullYear() === year && eventDate.getMonth() === month;
-        });
-      }
-
-      function renderAgenda(dateKey) {
-        const selectedDate = new Date(`${dateKey}T12:00:00`);
-        const dayEvents = getEventsForDate(dateKey);
-
-        selectedLabel.textContent = formatDisplayDate(selectedDate);
-        selectedSubcopy.textContent = dayEvents.length
-          ? "Here is what is scheduled for this day."
-          : "No events are scheduled for this day yet.";
-        selectedCount.textContent = `${dayEvents.length} ${dayEvents.length === 1 ? "item" : "items"}`;
-
-        if (!dayEvents.length) {
-          agenda.innerHTML = '<div class="resources-calendar-agenda-empty">No scheduled items.</div>';
-          return;
-        }
-
-        agenda.innerHTML = dayEvents.map(function (event) {
-          return `
-            <article class="resources-calendar-agenda-item">
-              <div class="resources-calendar-agenda-item-top">
-                <span class="resources-calendar-agenda-time">${event.time}</span>
-                <span class="resources-calendar-agenda-tag is-${event.type}">${event.type === "team" ? "Team" : event.type === "review" ? "Review" : event.type === "deadline" ? "Deadline" : "Training"}</span>
-              </div>
-              <strong>${event.title}</strong>
-              <p>${event.detail}</p>
-            </article>
-          `;
-        }).join("");
-      }
-
-      function renderMonthSummary(date) {
-        const monthEvents = getEventsForMonth(date);
-        const counts = monthEvents.reduce(function (accumulator, event) {
-          accumulator[event.type] += 1;
-          return accumulator;
-        }, { training: 0, review: 0, deadline: 0, team: 0 });
-
-        Object.keys(summaryTargets).forEach(function (key) {
-          if (summaryTargets[key]) {
-            summaryTargets[key].textContent = String(counts[key]);
-          }
-        });
-      }
-
-      function buildDayButton(date, inActiveMonth) {
-        const dateKey = formatDateKey(date);
-        const events = getEventsForDate(dateKey);
-        const isToday = dateKey === formatDateKey(today);
-        const isSelected = dateKey === selectedDateKey;
-        const eventPreview = events.slice(0, 2);
-
-        return `
-          <button
-            class="resources-calendar-day${inActiveMonth ? "" : " is-outside-month"}${isToday ? " is-today" : ""}${isSelected ? " is-selected" : ""}${events.length ? " has-events" : ""}"
-            type="button"
-            data-calendar-date="${dateKey}"
-            aria-pressed="${isSelected ? "true" : "false"}"
-          >
-            <span class="resources-calendar-day-number">${date.getDate()}</span>
-            <span class="resources-calendar-day-body">
-              ${eventPreview.map(function (event) {
-                return `<span class="resources-calendar-day-pill is-${event.type}">${event.title}</span>`;
-              }).join("")}
-              ${events.length > 2 ? `<span class="resources-calendar-day-more">+${events.length - 2} more</span>` : ""}
-            </span>
-          </button>
-        `;
-      }
-
-      function renderGrid() {
-        const year = activeMonth.getFullYear();
-        const month = activeMonth.getMonth();
-        const firstDay = new Date(year, month, 1);
-        const gridStart = new Date(firstDay);
-        gridStart.setDate(gridStart.getDate() - firstDay.getDay());
-
-        monthLabel.textContent = new Intl.DateTimeFormat("en-US", {
-          month: "long",
-          year: "numeric"
-        }).format(activeMonth);
-
-        const dayButtons = [];
-        for (let offset = 0; offset < 42; offset += 1) {
-          const current = new Date(gridStart);
-          current.setDate(gridStart.getDate() + offset);
-          dayButtons.push(buildDayButton(current, current.getMonth() === month));
-        }
-
-        grid.innerHTML = dayButtons.join("");
-        renderMonthSummary(activeMonth);
-        renderAgenda(selectedDateKey);
-      }
-
-      document.addEventListener("click", function (event) {
-        const navButton = event.target.closest("[data-calendar-nav]");
-        const todayButton = event.target.closest("[data-calendar-today]");
-        const dayButton = event.target.closest("[data-calendar-date]");
-        const pageMenu = document.querySelector(".workspace-page-menu");
-
-        if (pageMenu && pageMenu.hasAttribute("open")) {
-          const clickedInsideMenu = event.target.closest(".workspace-page-menu");
-          if (!clickedInsideMenu) {
-            pageMenu.removeAttribute("open");
-          }
-        }
-
-        if (navButton instanceof HTMLButtonElement) {
-          activeMonth = new Date(activeMonth.getFullYear(), activeMonth.getMonth() + Number(navButton.dataset.calendarNav || "0"), 1);
-          selectedDateKey = formatDateKey(activeMonth);
-          renderGrid();
-          return;
-        }
-
-        if (todayButton instanceof HTMLButtonElement) {
-          activeMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-          selectedDateKey = formatDateKey(today);
-          renderGrid();
-          return;
-        }
-
-        if (dayButton instanceof HTMLButtonElement) {
-          selectedDateKey = String(dayButton.dataset.calendarDate || selectedDateKey);
-          renderGrid();
-        }
-      });
-
       document.addEventListener("keydown", function (event) {
         if (event.key === "Escape") {
           if (pageMenu && pageMenu.hasAttribute("open")) {
@@ -460,8 +204,6 @@
           pageMenu.removeAttribute("open");
         }
       });
-
-      renderGrid();
     })();
   </script>
 

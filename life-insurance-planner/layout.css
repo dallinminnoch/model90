@@ -285,27 +285,6 @@ body.clients-page[data-local-client-directory="true"] .client-directory-header {
   gap: 0.18rem;
 }
 
-.resources-header-legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-
-.resources-calendar-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.75fr) minmax(18rem, 0.8fr);
-  gap: 0.9rem;
-  align-items: start;
-}
-
-@media (max-width: 1120px) {
-  .resources-calendar-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 760px) {
   .resources-shell {
     width: min(calc(100% - 0.75rem), 100%);
@@ -315,10 +294,6 @@ body.clients-page[data-local-client-directory="true"] .client-directory-header {
   .resources-header {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .resources-header-legend {
-    justify-content: flex-start;
   }
 }
 

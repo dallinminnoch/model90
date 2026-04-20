@@ -747,9 +747,7 @@
   function renderResourcesSidebar(options) {
     const pages = getWorkspacePages("resources", options);
     const items = [
-      { key: "calendar", label: "Calendar", href: "#resources-calendar-board", active: true },
-      { key: "agenda", label: "Agenda", href: "#resources-agenda", active: false },
-      { key: "summary", label: "Month Summary", href: "#resources-month-summary", active: false }
+      { key: "overview", label: "Overview", href: "#resources-overview", active: true }
     ];
 
     return renderWorkspaceShell({
