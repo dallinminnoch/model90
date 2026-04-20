@@ -6399,30 +6399,6 @@ body.client-detail-page .client-reminders-strip-item {
   mask-size: contain;
 }
 
-.client-profile-analysis-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: start;
-}
-
-.client-profile-analysis-subsection,
-.client-profile-section-grid-main,
-.client-profile-section-grid-side {
-  display: grid;
-  gap: 1rem;
-  min-width: 0;
-  align-content: start;
-}
-
-.client-profile-section-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-  gap: 1rem;
-  min-width: 0;
-  align-items: start;
-}
-
 .client-profile-dashboard--overview .client-profile-dashboard-main,
 .client-profile-dashboard--overview .client-detail-card-checklist {
   width: 100%;
@@ -6434,73 +6410,9 @@ body.client-detail-page .client-reminders-strip-item {
   transform: rotate(180deg);
 }
 
-.client-profile-overview-layout {
-  display: grid;
-  grid-template-columns: 21.25rem minmax(0, 1fr);
-  min-width: 0;
-  gap: 0.28rem;
-  align-items: start;
-}
-
-.client-profile-hero-grid {
-  display: grid;
-  grid-template-columns:
-    minmax(21.25rem, 1fr)
-    minmax(0, var(--client-profile-hero-center-card-width, 20rem))
-    minmax(21.25rem, 1fr);
-  grid-template-areas:
-    "overview details workflow"
-    "lower lower lower";
-  gap: 1rem;
-  min-width: 0;
-  align-items: stretch;
-}
-
-.client-profile-hero-grid-lower {
-  grid-area: lower;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  min-width: 0;
-  align-items: stretch;
-  /* CODE NOTE: This offsets the lower-row cards so their top spacing
-     matches the measured desktop gap between the banner and Overview. */
-  padding-top: calc(0.35rem + 0.58rem + var(--client-overview-summary-top-gap, 0.95rem) - 1rem + 0.32rem);
-}
-
-.client-profile-hero-grid-status,
-.client-profile-hero-grid-activity,
-.client-profile-hero-grid-overview,
-.client-profile-hero-grid-details,
-.client-profile-hero-grid-checklist {
-  display: flex;
-  min-width: 0;
-}
-
-.client-profile-hero-grid-overview {
-  grid-area: overview;
-  padding-top: 0.58rem;
-}
-
-.client-profile-hero-grid-details {
-  display: grid;
-  grid-area: details;
-  align-self: stretch;
-  justify-items: center;
-}
-
-.client-profile-hero-grid-checklist {
-  grid-area: workflow;
-  padding-top: 0.58rem;
-}
-
 .client-profile-hero-grid-lower .client-profile-hero-grid-status,
 .client-profile-hero-grid-lower .client-profile-hero-grid-activity {
   height: 100%;
-}
-
-.client-profile-hero-grid-activity {
-  justify-content: stretch;
 }
 
 .client-profile-hero-grid-overview .client-overview-summary-card {
@@ -6605,28 +6517,6 @@ body.client-detail-page .client-reminders-strip-item {
   grid-column: 2;
 }
 
-.client-profile-overview-stack {
-  display: grid;
-  align-content: start;
-  gap: 0.92rem;
-}
-
-.client-profile-overview-workflow-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 1rem;
-  min-width: 0;
-  align-items: stretch;
-}
-
-.client-profile-overview-workflow-grid-activity,
-.client-profile-overview-workflow-grid-checklist {
-  display: flex;
-  gap: 1rem;
-  min-width: 0;
-  align-items: stretch;
-}
-
 .client-profile-overview-workflow-grid-activity .client-notes-widget-card {
   flex: 1 1 auto;
   height: 100%;
@@ -6642,19 +6532,6 @@ body.client-detail-page .client-reminders-strip-item {
   flex: 1 1 auto;
   min-height: 0;
   max-height: none;
-}
-
-.client-profile-overview-main {
-  display: grid;
-  align-content: start;
-  gap: 1rem;
-  min-width: 0;
-}
-
-@media (max-width: 1360px) {
-  .client-profile-analysis-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 1120px) {
@@ -13795,29 +13672,6 @@ textarea {
   margin-bottom: 16px;
 }
 
-body.lens-intake-page .workflow-shell {
-  width: min(calc(100% - 5.5rem), 1380px);
-  padding-top: 0.8rem;
-}
-
-.lens-intake-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 1.6rem;
-  align-items: start;
-}
-
-.lens-intake-main {
-  display: grid;
-  gap: 1rem;
-}
-
-.lens-intake-intro {
-  margin-bottom: 0;
-  padding: 2rem 0 1rem 0.35rem;
-  border-right: 1px solid rgba(225, 231, 240, 0.92);
-}
-
 .lens-intake-intro .section-label {
   margin-bottom: 0.75rem;
   color: #5f7189;
@@ -13835,13 +13689,6 @@ body.lens-intake-page .workflow-shell {
   color: #62748b;
   font-size: 1.15rem;
   max-width: 40rem;
-}
-
-.lens-intake-form {
-  display: grid;
-  gap: 0.9rem;
-  padding-right: 1.2rem;
-  border-right: 1px solid rgba(225, 231, 240, 0.92);
 }
 
 .lens-intake-link-card {
@@ -15674,12 +15521,6 @@ body.lens-intake-page .workflow-shell {
   box-shadow: none;
 }
 
-.lens-intake-rail {
-  display: grid;
-  gap: 1rem;
-  padding-top: 2.35rem;
-}
-
 .lens-intake-sidecard {
   display: grid;
   gap: 1rem;
@@ -16236,44 +16077,6 @@ body[data-step] .step-item:focus-visible .step-title {
   body.lens-page .lens-start-main {
     width: 100%;
     min-width: 0;
-  }
-
-  body.client-detail-page .workspace-side-nav-host[data-workspace-side-nav="client-detail"],
-  body.clients-page .workspace-side-nav-host[data-workspace-side-nav="directory"],
-  body.lens-page .workspace-side-nav-host[data-workspace-side-nav="lens"],
-  body.resources-page .workspace-side-nav-host[data-workspace-side-nav="resources"],
-  body.settings-page .workspace-side-nav-host[data-workspace-side-nav="settings"] {
-    display: block;
-    position: fixed;
-    top: var(--workspace-topbar-height);
-    left: var(--app-side-nav-screen-gap);
-    bottom: 0;
-    width: calc(var(--app-side-nav-width) - var(--app-side-nav-screen-gap));
-    z-index: 30;
-    transition: width 0.22s ease;
-  }
-
-  body.client-detail-page.workspace-side-nav-collapsed .workspace-side-nav-host[data-workspace-side-nav="client-detail"],
-  body.clients-page.workspace-side-nav-collapsed .workspace-side-nav-host[data-workspace-side-nav="directory"],
-  body.lens-page.workspace-side-nav-collapsed .workspace-side-nav-host[data-workspace-side-nav="lens"],
-  body.resources-page.workspace-side-nav-collapsed .workspace-side-nav-host[data-workspace-side-nav="resources"],
-  body.settings-page.workspace-side-nav-collapsed .workspace-side-nav-host[data-workspace-side-nav="settings"] {
-    width: calc(var(--app-side-nav-collapsed-width) - var(--app-side-nav-screen-gap));
-  }
-
-  body.client-detail-page .workspace-side-nav-host[data-workspace-side-nav="client-detail"] > .workspace-side-nav,
-  body.clients-page .workspace-side-nav-host[data-workspace-side-nav="directory"] > .workspace-side-nav,
-  body.lens-page .workspace-side-nav-host[data-workspace-side-nav="lens"] > .workspace-side-nav,
-  body.resources-page .workspace-side-nav-host[data-workspace-side-nav="resources"] > .workspace-side-nav,
-  body.settings-page .workspace-side-nav-host[data-workspace-side-nav="settings"] > .workspace-side-nav {
-    position: relative;
-    inset: auto;
-    width: 100%;
-    height: 100%;
-    min-height: 100%;
-    padding: 0;
-    overflow: hidden;
-    box-shadow: 8px 0 24px rgba(16, 33, 52, 0.05);
   }
 
   body.client-detail-page .client-profile-shell:not(.client-profile-shell-household) .client-profile-main {
