@@ -195,7 +195,6 @@ body.profile-creation-page .home-shell.app-home-shell {
 body.clients-page .site-header,
 body.client-detail-page .site-header,
 body.lens-page .site-header,
-body.resources-page .site-header,
 body.settings-page .site-header {
   display: none;
 }
@@ -8716,7 +8715,6 @@ body[data-step] .step-item:focus-visible .step-title {
     padding-left: calc(var(--app-side-nav-collapsed-width) + var(--app-side-nav-gap));
   }
 
-  body.resources-page .resources-shell,
   body.settings-page .settings-shell {
   }
 
@@ -9175,39 +9173,7 @@ body[data-step] .step-item:focus-visible .step-title {
 }
 
 
-.resources-header-kicker {
-  color: #93a0b2;
-  font-size: 0.71rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.resources-header-copy h1 {
-  margin: 0;
-  color: #172033;
-  font-family: "Inter", sans-serif;
-  letter-spacing: -0.04em;
-}
-
-.resources-header-copy h1 {
-  font-size: clamp(2rem, 1.5rem + 1.2vw, 2.7rem);
-  font-weight: 600;
-}
-
-.resources-header-copy p {
-  margin: 0;
-  max-width: 38rem;
-  color: #667084;
-  font-size: 0.92rem;
-  line-height: 1.45;
-}
-
 @media (max-width: 760px) {
-  body.resources-page {
-    --workspace-topbar-height: 3.55rem;
-  }
-
   body.settings-page {
     --workspace-topbar-height: 3.55rem;
   }

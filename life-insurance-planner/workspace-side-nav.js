@@ -99,16 +99,6 @@
       `;
     }
 
-    if (key === "resources") {
-      return `
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M5.1 3.15h7.65l2.15 2.2v10.1a1.55 1.55 0 0 1-1.55 1.55H5.1a1.55 1.55 0 0 1-1.55-1.55V4.7A1.55 1.55 0 0 1 5.1 3.15Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
-          <path d="M12.75 3.3v2.55h2.4" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M6.4 9.2h6.85M6.4 12.15h6.85" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-        </svg>
-      `;
-    }
-
     if (key === "lens") {
       return `
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -177,7 +167,6 @@
       ? {
           studio: "studio.html",
           clients: "studio.html?view=clients.html",
-          resources: "studio.html?view=resources.html",
           lens: "studio.html?view=lens.html",
           strategy: "studio.html?view=strategy-builder.html",
           policy: "studio.html?view=policy-web.html",
@@ -186,7 +175,6 @@
       : {
           studio: "studio.html",
           clients: "clients.html",
-          resources: "resources.html",
           lens: "lens.html",
           strategy: "strategy-builder.html",
           policy: "policy-web.html",
@@ -202,7 +190,6 @@
     const pages = [
       isShell ? { key: "studio", label: "Start Page", shortLabel: "Start", href: hrefs.studio, active: activePage ? activePage === "studio" : mode === "studio" } : null,
       { key: "clients", label: "Client Directory", shortLabel: "Clients", href: hrefs.clients, active: activePage ? activePage === "clients" : mode === "directory" || mode === "client-detail" },
-      { key: "resources", label: "Resources", shortLabel: "Resources", href: hrefs.resources, active: activePage ? activePage === "resources" : mode === "resources" },
       { key: "lens", label: "LENS Analysis", shortLabel: "LENS", href: hrefs.lens, active: activePage ? activePage === "lens" : mode === "lens" },
       { key: "strategy", label: "Strategy Builder", shortLabel: "Strategy", href: hrefs.strategy, active: activePage === "strategy" },
       { key: "policy", label: "Policy Web", shortLabel: "Policy", href: hrefs.policy, active: activePage === "policy" }
@@ -744,43 +731,6 @@
     });
   }
 
-  function renderResourcesSidebar(options) {
-    const pages = getWorkspacePages("resources", options);
-    const items = [
-      { key: "overview", label: "Overview", href: "#resources-overview", active: true }
-    ];
-
-    return renderWorkspaceShell({
-      ariaLabel: "Resources navigation",
-      pages: pages,
-      title: "Resources",
-      sectionLabel: "Sections",
-      toggleClass: "client-profile-side-tabs-toggle",
-      toggleGlyphClass: "client-profile-side-tabs-toggle-glyph",
-      toggleDataAttr: "data-resources-side-tabs-toggle",
-      toggleLabel: "Collapse resources navigation",
-      contextMarkup: `
-        <nav class="workspace-side-nav-items workspace-side-nav-context-items" aria-label="Resources sections">
-          ${items.map(function (item, index) {
-            return `
-              <a
-                class="workspace-side-nav-button workspace-side-nav-context-button${index === 0 ? " is-active" : ""}"
-                href="${escapeHtml(item.href)}"
-                data-resources-tab="${escapeHtml(item.key)}"
-                ${item.active ? ' aria-current="location"' : ""}
-                aria-label="${escapeHtml(item.label)}"
-                title="${escapeHtml(item.label)}"
-              >
-                <span class="workspace-side-nav-icon workspace-side-nav-context-icon" aria-hidden="true">${getLensPageIcon(index === 0 ? "overview" : index === 1 ? "start" : "summary")}</span>
-                <span class="workspace-side-nav-label workspace-side-nav-context-label">${escapeHtml(item.label)}</span>
-              </a>
-            `;
-          }).join("")}
-        </nav>
-      `
-    });
-  }
-
   function renderSettingsSidebar(options) {
     const pages = getWorkspacePages("settings", options);
     const items = [
@@ -835,10 +785,6 @@
 
     if (mode === "lens") {
       return renderLensSidebar(options);
-    }
-
-    if (mode === "resources") {
-      return renderResourcesSidebar(options);
     }
 
     if (mode === "settings") {

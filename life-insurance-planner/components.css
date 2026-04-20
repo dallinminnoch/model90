@@ -424,31 +424,6 @@ input.search-bar__input {
   }
 }
 
-.resources-overview-panel {
-  display: grid;
-  gap: 0.4rem;
-  padding: 1rem;
-  border: 1px solid rgba(220, 228, 238, 0.96);
-  border-radius: 0.4rem;
-  background: #ffffff;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.05);
-}
-
-.resources-overview-title {
-  margin: 0;
-  color: #172033;
-  font-family: "Inter", sans-serif;
-  letter-spacing: -0.04em;
-  font-size: clamp(1.55rem, 1.2rem + 0.7vw, 2rem);
-  font-weight: 600;
-}
-
-@media (max-width: 760px) {
-  .resources-overview-panel {
-    padding: 0.72rem;
-  }
-}
-
 .entry-mode-panel {
   display: grid;
   justify-items: center;
@@ -636,23 +611,6 @@ input.search-bar__input {
   justify-content: space-between;
   gap: 0.6rem;
 }
-
-.client-profile-calendar-open-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 1.78rem;
-  padding: 0 0.62rem;
-  border: 1px solid rgba(213, 221, 232, 0.95);
-  border-radius: 0.42rem;
-  background: #ffffff;
-  color: #5b47db;
-  font-family: "Inter", sans-serif;
-  font-size: 0.76rem;
-  font-weight: 500;
-  text-decoration: none;
-}
-
 
 .client-profile-calendar-details-body {
   display: grid;

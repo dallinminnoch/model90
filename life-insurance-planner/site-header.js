@@ -271,7 +271,6 @@
     const homeHref = isNestedPage ? "../index.html" : "index.html";
     const brandSrc = isNestedPage ? "../Images/MODEL 90 (30 x 10 in).png" : "Images/MODEL 90 (30 x 10 in).png";
     const clientsHref = isNestedPage ? "clients.html" : "pages/clients.html";
-    const resourcesHref = isNestedPage ? "resources.html" : "pages/resources.html";
     const lensHref = isNestedPage ? "lens.html" : "pages/lens.html";
     const strategyHref = isNestedPage ? "strategy-builder.html" : "pages/strategy-builder.html";
     const policyHref = isNestedPage ? "policy-web.html" : "pages/policy-web.html";
@@ -302,7 +301,6 @@
                   <a class="site-dropdown-link" href="${clientsHref}" data-i18n="nav.clients" data-client-directory-nav>Clients</a>
                 </div>
               </div>
-              <a class="site-nav-link" href="${resourcesHref}" data-i18n="nav.resources">Resources</a>
               <div class="site-dropdown">
                 <button class="site-nav-link site-dropdown-toggle" type="button" aria-expanded="false" data-i18n="nav.financialProducts">Financial Products</button>
                 <div class="site-dropdown-menu">

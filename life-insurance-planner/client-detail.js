@@ -2579,7 +2579,6 @@
                   <span class="client-profile-calendar-kicker">Resources</span>
                   <div class="client-profile-calendar-month-actions">
                     <strong>${escapeHtml(monthLabel)}</strong>
-                    <a class="client-profile-calendar-open-link" href="resources.html">Open</a>
                   </div>
                 </div>
                 <div class="client-profile-calendar-weekdays" aria-hidden="true">
@@ -2625,7 +2624,7 @@
                     <div class="client-profile-calendar-preview-event is-empty">
                       <span class="client-profile-calendar-preview-label">Next resource event</span>
                       <strong>No events scheduled</strong>
-                      <span>Use Resources to manage the shared planning calendar.</span>
+                      <span>No shared calendar events are scheduled.</span>
                     </div>
                   `}
                 </div>
