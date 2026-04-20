@@ -2128,82 +2128,6 @@ select option:disabled {
   box-shadow: 0.3rem 0.3rem 0 #000000;
 }
 
-.entry-mode-panel {
-  display: grid;
-  justify-items: center;
-  gap: 1rem;
-  padding: 3rem 1rem 1rem;
-}
-
-.entry-mode-actions {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.entry-mode-option {
-  display: grid;
-  justify-items: center;
-  gap: 0.45rem;
-}
-
-.entry-mode-option .entry-mode-button {
-  order: 2;
-}
-
-.entry-mode-option .entry-mode-icon {
-  order: 1;
-}
-
-.entry-mode-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18rem;
-  min-height: 3.35rem;
-  border-radius: 0.38rem !important;
-}
-
-.entry-mode-button.is-disabled,
-.entry-mode-button[aria-disabled="true"],
-.entry-mode-button:disabled {
-  background: #e9edf4 !important;
-  color: #8a96a8 !important;
-  border-color: rgba(213, 221, 232, 0.95) !important;
-  box-shadow: none !important;
-  transform: none !important;
-  pointer-events: none;
-}
-
-.entry-mode-actions .entry-mode-option:first-child .entry-mode-button {
-  background: #ffffff !important;
-  color: #233044 !important;
-  border: 1px solid #000000 !important;
-}
-
-.entry-mode-button-confidential {
-  background: #5478f0 !important;
-  color: #ffffff !important;
-  border: 1px solid #5478f0 !important;
-}
-
-.entry-mode-actions .entry-mode-option:first-child .entry-mode-button.is-disabled,
-.entry-mode-actions .entry-mode-option:first-child .entry-mode-button[aria-disabled="true"],
-.entry-mode-actions .entry-mode-option:first-child .entry-mode-button:disabled,
-.entry-mode-button-confidential.is-disabled,
-.entry-mode-button-confidential[aria-disabled="true"],
-.entry-mode-button-confidential:disabled {
-  background: #e9edf4 !important;
-  color: #8a96a8 !important;
-  border-color: rgba(213, 221, 232, 0.95) !important;
-}
-
-.entry-mode-button-confidential.is-selected {
-  transform: translate(-0.3rem, -0.3rem);
-  box-shadow: 0.3rem 0.3rem 0 #000000;
-}
-
 .entry-mode-icon {
   width: 1.7rem;
   height: 2rem;
@@ -2220,56 +2144,6 @@ select option:disabled {
 
 .entry-mode-icon-unlocked {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 56'%3E%3Cpath d='M31 24H12V16c0-6.627 5.373-12 12-12 4.314 0 8.097 2.277 10.216 5.694' fill='none' stroke='%23000' stroke-width='4' stroke-linecap='round'/%3E%3Crect x='8' y='24' width='32' height='24' rx='3' fill='%23fff' stroke='%23000' stroke-width='4'/%3E%3C/svg%3E");
-}
-
-.entry-mode-button:hover ~ .entry-mode-icon,
-.entry-mode-button:focus-visible ~ .entry-mode-icon,
-.entry-mode-button:hover + .entry-mode-icon,
-.entry-mode-button:focus-visible + .entry-mode-icon {
-  transform: translate(-0.14rem, -0.48rem) scale(1.06);
-}
-
-.entry-mode-note {
-  margin: 0;
-  max-width: 48rem;
-  color: #2b3442;
-  font-size: 0.98rem;
-  text-align: center;
-}
-
-.entry-mode-heading-note {
-  margin-top: 2.4rem;
-  display: block;
-  transform: translateY(1.2rem);
-  text-align: center;
-  color: #233044;
-  font-size: 1.02rem;
-  font-weight: 700;
-  font-style: normal;
-}
-
-.entry-mode-pin-shell {
-  display: grid;
-  justify-items: center;
-  gap: 0.8rem;
-  padding-top: 0.35rem;
-}
-
-.entry-mode-pin-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-weight: 700;
-  color: #233044;
-}
-
-.entry-mode-pin-shell.is-disabled .entry-mode-pin-label {
-  color: #98a1af;
-}
-
-.entry-mode-pin-shell.is-disabled .entry-mode-help {
-  color: #233044;
-  border-color: rgba(35, 48, 68, 0.3);
 }
 
 .entry-mode-help {
@@ -2340,54 +2214,6 @@ select option:disabled {
 .entry-mode-help:hover::after,
 .entry-mode-help:focus-visible::after {
   transform: translate(-50%, 0);
-}
-
-.entry-mode-pin-grid {
-  display: flex;
-  gap: 0.6rem;
-}
-
-.entry-mode-pin-input {
-  width: 2.8rem;
-  min-height: 3rem;
-  border: 1px solid rgba(213, 221, 232, 0.95);
-  border-radius: 0.38rem;
-  background: #ffffff;
-  text-align: center;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #1f2734;
-}
-
-.entry-mode-pin-shell.is-disabled .entry-mode-pin-input {
-  background: #f1f3f7;
-  color: #a6aeb9;
-  pointer-events: none;
-}
-
-.entry-mode-pin-shell.is-disabled .entry-mode-button-confidential-continue {
-  background: #d8dde8 !important;
-  color: #7b8492 !important;
-  border-color: #d8dde8 !important;
-  box-shadow: none !important;
-  transform: none !important;
-  pointer-events: none;
-}
-
-.entry-mode-button-confidential-continue {
-  min-width: 18rem;
-  background: #dff5df !important;
-  border-color: #b9e2b9 !important;
-  color: #1d5a2b !important;
-}
-
-.entry-mode-button-confidential-continue.is-disabled {
-  background: #d8dde8 !important;
-  color: #7b8492 !important;
-  border-color: #d8dde8 !important;
-  box-shadow: none !important;
-  transform: none !important;
-  pointer-events: none;
 }
 
 .profile-search-modal {
