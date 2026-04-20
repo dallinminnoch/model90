@@ -17435,6 +17435,91 @@ body[data-step] .step-item:focus-visible .step-title {
 
 }
 
+body.clients-page[data-local-client-directory="true"] .directory-list-shell > .directory-list-header,
+body.clients-page[data-local-client-directory="true"] #client-table-rows > .directory-list-row {
+  min-width: 0;
+  grid-template-columns:
+    38px
+    minmax(172px, 1.42fr)
+    16px
+    minmax(108px, 0.76fr)
+    minmax(104px, 0.78fr)
+    minmax(146px, 1fr)
+    minmax(118px, 0.84fr)
+    minmax(116px, 0.9fr)
+    minmax(102px, 0.72fr);
+  gap: 0.45rem;
+  padding: 0.92rem 1rem;
+}
+
+body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-actions .client-toolbar-button,
+body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-actions .client-items-trigger {
+  font-size: 1rem;
+}
+
+body.clients-page[data-local-client-directory="true"] .client-directory-toolbar {
+  gap: 0.6rem 0.9rem;
+  margin-top: 0.78rem;
+}
+
+body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-spacer {
+  min-height: 0.12rem;
+}
+
+body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-search-spacer {
+  min-height: 0.24rem;
+}
+
+body.clients-page[data-local-client-directory="true"] .client-directory-shell-layout {
+  padding-left: var(--app-side-nav-width);
+}
+
+body.clients-page.workspace-side-nav-collapsed[data-local-client-directory="true"] .client-directory-shell-layout,
+body.clients-page[data-local-client-directory="true"] .client-directory-shell-layout.is-collapsed {
+  padding-left: var(--app-side-nav-collapsed-width);
+}
+
+body.clients-page[data-local-client-directory="true"] .client-directory-main {
+  --client-directory-main-pad-x: clamp(0.95rem, 1.35vw, 1.2rem);
+}
+
+body.clients-page[data-local-client-directory="true"] .client-directory-header {
+  align-items: center;
+  gap: 0.7rem 0.9rem;
+  padding: 0.32rem var(--client-directory-main-pad-x);
+}
+
+body.clients-page[data-local-client-directory="true"] .client-items-trigger,
+body.clients-page[data-local-client-directory="true"] .client-order-trigger {
+  min-height: 2.05rem;
+  padding: 0 0.62rem;
+  font-size: 0.84rem;
+  border-radius: 0.32rem;
+}
+
+body.clients-page[data-local-client-directory="true"] .client-items-trigger {
+  min-width: 6.55rem;
+}
+
+body.clients-page[data-local-client-directory="true"] .client-order-trigger {
+  min-width: 9rem;
+}
+
+body.clients-page[data-local-client-directory="true"] .client-directory-header-actions .client-header-action {
+  min-height: 2.05rem;
+  padding: 0 0.62rem;
+  font-size: 0.84rem;
+  border-radius: 0.32rem;
+}
+
+body.clients-page[data-local-client-directory="true"] .client-directory-header-actions .client-header-action-primary {
+  gap: 0.38rem;
+}
+
+body.clients-page[data-local-client-directory="true"] .client-directory-header-actions .client-add-icon {
+  font-size: 1.28em;
+}
+
 .client-directory-shell-layout.is-a11y-large-text .client-directory-title-block.client-directory-title-block-compact h1 {
   font-size: 1.3rem !important;
 }
@@ -17957,30 +18042,6 @@ body[data-step] .step-item:focus-visible .step-title {
 
 
 
-body.resources-page {
-  background: #ffffff;
-}
-
-body.resources-page .site-header {
-  display: none;
-}
-
-body.resources-page .app-home-shell {
-  min-height: 100vh;
-  padding-top: 0;
-}
-
-body.resources-page .workspace-page-topbar {
-  display: block;
-  position: sticky;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--workspace-topbar-height);
-  background: #ffffff;
-  z-index: 36;
-}
-
 .resources-shell {
   width: min(calc(100% - clamp(1rem, 2vw, 1.75rem)), 1540px);
   padding: 0.85rem clamp(0.35rem, 1vw, 0.75rem) clamp(0.8rem, 1.8vw, 1.2rem);
@@ -18386,26 +18447,6 @@ body.resources-page .workspace-page-topbar {
   font-weight: 500;
 }
 
-body.settings-page {
-  background: #ffffff;
-}
-
-body.settings-page .app-home-shell {
-  min-height: 100vh;
-  padding-top: 0;
-}
-
-body.settings-page .workspace-page-topbar {
-  display: block;
-  position: sticky;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--workspace-topbar-height);
-  background: #ffffff;
-  z-index: 36;
-}
-
 .settings-shell {
   width: min(calc(100% - clamp(1rem, 2vw, 1.75rem)), 1540px);
   padding: 0.9rem clamp(0.35rem, 1vw, 0.75rem) 1rem;
@@ -18656,14 +18697,6 @@ body.settings-page .workspace-page-topbar {
 
   body.settings-page {
     --workspace-topbar-height: 3.55rem;
-  }
-
-  body.resources-page .workspace-page-topbar {
-    height: var(--workspace-topbar-height);
-  }
-
-  body.settings-page .workspace-page-topbar {
-    height: var(--workspace-topbar-height);
   }
 
   .resources-shell {
