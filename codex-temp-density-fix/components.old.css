@@ -3645,12 +3645,6 @@ body.is-modal-open {
   border-radius: 0.42rem;
 }
 
-.client-directory-header-actions .client-header-action,
-.client-directory-toolbar-actions .client-toolbar-button,
-.client-directory-toolbar-actions .client-items-trigger {
-  font-size: 1.08rem;
-  line-height: 1;
-}
 
 .client-toolbar-button.is-active {
   border-color: rgba(92, 63, 214, 0.12);
@@ -4770,14 +4764,6 @@ body.is-modal-open {
   color: #000000;
 }
 
-@media (min-width: 721px) {
-  .client-header-action,
-  .client-toolbar-button {
-    min-height: 2.85rem;
-    padding: 0 1rem;
-    font-size: 0.94rem;
-  }
-}
 
 body.clients-page[data-local-client-directory="true"] .directory-list-shell > .directory-list-header,
 body.clients-page[data-local-client-directory="true"] #client-table-rows > .directory-list-row {
@@ -4831,3 +4817,4 @@ body.clients-page[data-local-client-directory="true"] .client-directory-header-a
 body.clients-page[data-local-client-directory="true"] .client-directory-header-actions .client-add-icon {
   font-size: 1.28em;
 }
+

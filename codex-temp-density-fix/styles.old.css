@@ -3431,6 +3431,12 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
 .client-export-dropdown .client-header-action-secondary {
   border-radius: 0.42rem;
 }
+.client-directory-header-actions .client-header-action,
+.client-directory-toolbar-actions .client-toolbar-button,
+.client-directory-toolbar-actions .client-items-trigger {
+  font-size: 1.08rem;
+  line-height: 1;
+}
 
 .client-table.is-priority-open {
   z-index: 500;
@@ -12609,6 +12615,12 @@ body[data-step] .step-item:focus-visible .step-title {
     padding: 0.4rem;
   }
 
+  .client-header-action,
+  .client-toolbar-button {
+    min-height: 2.85rem;
+    padding: 0 1rem;
+    font-size: 0.94rem;
+  }
   .client-add-modal .client-add-modal-continue.client-header-action {
     font-size: 1.02rem;
     font-weight: 390;
@@ -13893,3 +13905,4 @@ body[data-step] .step-item:focus-visible .step-title {
   display: none;
 }
 }
+
