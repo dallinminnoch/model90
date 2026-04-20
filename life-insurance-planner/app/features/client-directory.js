@@ -41,7 +41,6 @@
     const statusHeading = document.getElementById("client-table-heading-status");
     const addClientModal = document.querySelector("[data-add-client-modal]");
     const addClientModalCloseTargets = document.querySelectorAll("[data-add-client-modal-close]");
-    const shouldKeepInlineAddModalOwnership = document.body?.dataset.localClientDirectory === "true";
     if (!letterButtons.length || !rowsHost) {
       return;
     }
@@ -592,31 +591,29 @@
       });
     }
 
-    if (!shouldKeepInlineAddModalOwnership && addClientButton) {
+    if (addClientButton) {
       addClientButton.addEventListener("click", (event) => {
         event.preventDefault();
         openAddClientModal();
       });
     }
 
-    if (!shouldKeepInlineAddModalOwnership) {
-      addClientModalCloseTargets.forEach((target) => {
-        target.addEventListener("click", closeAddClientModal);
-      });
+    addClientModalCloseTargets.forEach((target) => {
+      target.addEventListener("click", closeAddClientModal);
+    });
 
-      document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeAddClientModal();
+      }
+    });
+
+    if (addClientModal) {
+      addClientModal.addEventListener("click", (event) => {
+        if (event.target === addClientModal) {
           closeAddClientModal();
         }
       });
-
-      if (addClientModal) {
-        addClientModal.addEventListener("click", (event) => {
-          if (event.target === addClientModal) {
-            closeAddClientModal();
-          }
-        });
-      }
     }
 
     if (exportButton && exportDropdown) {

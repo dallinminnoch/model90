@@ -1744,40 +1744,11 @@
 
       const resolvedLinkedCaseRef = String(urlLinkedCaseRef || window.getLensLinkedCaseRef?.() || "").trim();
 
-      function getCurrentClientRecordsStorageKey() {
-        let session = null;
-        try {
-          session = JSON.parse(localStorage.getItem("lipPlannerAuthSession") || "null");
-        } catch (_error) {
-          session = null;
-        }
-
-        const identity = session?.email ? String(session.email).trim().toLowerCase() : "guest";
-        return `lensClientRecords:${identity}`;
-      }
-
       function getLinkedRecord() {
-        const linkedCaseRef = resolvedLinkedCaseRef.toLowerCase();
-
-        if (!linkedCaseRef) {
-          return null;
-        }
-
-        const key = getCurrentClientRecordsStorageKey();
-        try {
-          const records = JSON.parse(localStorage.getItem(key) || "[]");
-          if (!Array.isArray(records)) {
-            return null;
-          }
-
-          const match = records.find((record) => String(record?.caseRef || "").trim().toLowerCase() === linkedCaseRef);
-          if (match) {
-            return match;
-          }
-        } catch (_error) {
-        }
-
-        return null;
+        const getCurrentLinkedRecord = window.LensApp?.clientRecords?.getCurrentLinkedRecord;
+        return typeof getCurrentLinkedRecord === "function"
+          ? getCurrentLinkedRecord(resolvedLinkedCaseRef)
+          : null;
       }
 
       function saveLinkedPmiEntry(draft) {
@@ -1786,19 +1757,10 @@
           return null;
         }
 
-        if (window.saveLensLinkedWorkflowSectionWithFallback) {
-          return window.saveLensLinkedWorkflowSectionWithFallback(linkedCaseRef, "protectionModeling", draft, {
-            variant: form.dataset.pmiDraftKey || "advisor",
-            page: "next-step"
-          });
-        }
-
-        return window.saveLensLinkedWorkflowSection
-          ? window.saveLensLinkedWorkflowSection(linkedCaseRef, "protectionModeling", draft, {
-              variant: form.dataset.pmiDraftKey || "advisor",
-              page: "next-step"
-            })
-          : null;
+        return window.saveLensCurrentLinkedWorkflowSection?.("protectionModeling", draft, {
+          variant: form.dataset.pmiDraftKey || "advisor",
+          page: "next-step"
+        }) || null;
       }
 
       function syncLinkedStateOfResidence() {

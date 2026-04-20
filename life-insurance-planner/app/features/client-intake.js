@@ -356,6 +356,312 @@
     }
   }
 
+  function createSharedProfileFormBehavior(elements) {
+    const {
+      spouseDobField,
+      spouseAgeField,
+      maritalStatusField,
+      interestTypeField,
+      dependentFields,
+      hasDependentsField,
+      dependentsCountField,
+      dependentAgesField,
+      dependentList,
+      addDependentButton,
+      projectedDependentsField,
+      projectedDependentsCountField,
+      employmentStatusField,
+      employmentDetailFields,
+      acquisitionSourceField,
+      acquisitionSourceOtherField
+    } = elements || {};
+
+    function syncSpouseAge() {
+      if (!spouseAgeField) {
+        return;
+      }
+
+      const spouseBirthDate = String(spouseDobField?.value || "").trim();
+      spouseAgeField.value = spouseBirthDate
+        ? String(calculateAgeFromDate(spouseBirthDate))
+        : "";
+    }
+
+    function syncSpouseFields() {
+      const applicableStatuses = ["Married", "Domestic Partnership", "Separated"];
+      const isApplicable = applicableStatuses.includes(String(maritalStatusField?.value || ""));
+
+      [spouseDobField, spouseAgeField].forEach(function (field) {
+        if (!field) {
+          return;
+        }
+
+        field.disabled = !isApplicable;
+        field.closest(".field-group")?.classList.toggle("is-disabled", !isApplicable);
+        if (!isApplicable) {
+          field.value = "";
+        }
+      });
+
+      if (isApplicable) {
+        syncSpouseAge();
+      }
+    }
+
+    function syncDependentBuilderDisabledState() {
+      const disabled = dependentFields?.disabled || String(hasDependentsField?.value || "No") !== "Yes";
+      if (addDependentButton) {
+        addDependentButton.disabled = disabled;
+      }
+      if (!dependentList) {
+        return;
+      }
+
+      dependentList.querySelectorAll("input, button").forEach(function (element) {
+        if (element === addDependentButton) {
+          return;
+        }
+        element.disabled = disabled;
+      });
+    }
+
+    function syncDependentFieldsetState() {
+      const isFamilyInterest = String(interestTypeField?.value || "family") === "family";
+      if (!dependentFields) {
+        return;
+      }
+
+      if (!isFamilyInterest) {
+        dependentFields.disabled = true;
+        [
+          hasDependentsField,
+          dependentsCountField,
+          dependentAgesField,
+          projectedDependentsField,
+          projectedDependentsCountField
+        ].forEach(function (field) {
+          if (!field) {
+            return;
+          }
+
+          if (field.tagName === "SELECT") {
+            field.selectedIndex = 0;
+          } else {
+            field.value = "";
+          }
+        });
+        if (dependentList) {
+          dependentList.innerHTML = "";
+        }
+      }
+
+      syncDependentBuilderDisabledState();
+    }
+
+    function syncEmploymentDetailFields() {
+      const selectedStatus = String(employmentStatusField?.value || "");
+      const disableDetails = ["Retired", "Unemployed", "Student", "Child <18"].includes(selectedStatus);
+
+      Array.from(employmentDetailFields || []).forEach(function (field) {
+        field.disabled = disableDetails;
+        field.closest(".field-group")?.classList.toggle("is-disabled", disableDetails);
+        if (field.id === "occupation") {
+          field.required = !disableDetails;
+        }
+        if (disableDetails) {
+          field.value = "";
+        }
+      });
+    }
+
+    function getDependentAgeValues() {
+      if (!dependentList) {
+        return [];
+      }
+
+      return Array.from(dependentList.querySelectorAll("[data-dependent-age-input]"))
+        .map(function (input) {
+          return String(input.value || "").trim();
+        });
+    }
+
+    function syncDependentHiddenFields() {
+      if (dependentsCountField) {
+        dependentsCountField.value = String(getDependentAgeValues().length);
+      }
+      if (dependentAgesField) {
+        dependentAgesField.value = getDependentAgeValues().join(", ");
+      }
+    }
+
+    function syncDependentEntryLabels() {
+      if (!dependentList) {
+        return;
+      }
+
+      Array.from(dependentList.querySelectorAll("[data-dependent-entry]")).forEach(function (entry, index) {
+        const label = entry.querySelector("[data-dependent-entry-label]");
+        if (label) {
+          label.textContent = `Dependent ${index + 1}`;
+        }
+      });
+    }
+
+    function removeDependentEntry(entry) {
+      entry?.remove();
+      syncDependentEntryLabels();
+      syncDependentHiddenFields();
+      syncDependentBuilderDisabledState();
+    }
+
+    if (dependentFields && typeof MutationObserver === "function") {
+      new MutationObserver(function () {
+        syncDependentBuilderDisabledState();
+      }).observe(dependentFields, { attributes: true, attributeFilter: ["disabled"] });
+    }
+
+    function createDependentEntry(ageValue) {
+      if (!dependentList) {
+        return;
+      }
+
+      const entry = document.createElement("div");
+      entry.className = "profile-dependent-entry";
+      entry.setAttribute("data-dependent-entry", "");
+      entry.innerHTML = `
+          <div class="profile-dependent-entry-header">
+            <span class="profile-dependent-entry-label" data-dependent-entry-label></span>
+            <button class="profile-dependent-entry-remove" type="button">Remove</button>
+          </div>
+          <div class="profile-dependent-entry-body">
+            <label>Age</label>
+            <div class="profile-currency-field">
+              <input class="profile-yes-no-field" data-dependent-age-input type="number" min="0" step="1" value="">
+              <span class="profile-currency-suffix">Years</span>
+            </div>
+          </div>
+        `;
+
+      const input = entry.querySelector("[data-dependent-age-input]");
+      const removeButton = entry.querySelector(".profile-dependent-entry-remove");
+      if (input) {
+        input.value = String(ageValue || "");
+        input.addEventListener("input", syncDependentHiddenFields);
+        input.addEventListener("change", syncDependentHiddenFields);
+      }
+      removeButton?.addEventListener("click", function () {
+        removeDependentEntry(entry);
+      });
+
+      dependentList.appendChild(entry);
+      syncDependentEntryLabels();
+      syncDependentHiddenFields();
+      syncDependentBuilderDisabledState();
+    }
+
+    function rebuildDependentEntriesFromStoredValue() {
+      if (!dependentList) {
+        return;
+      }
+
+      dependentList.innerHTML = "";
+      const storedAges = String(dependentAgesField?.value || "")
+        .split(",")
+        .map(function (value) {
+          return String(value || "").trim();
+        })
+        .filter(Boolean);
+
+      if (storedAges.length) {
+        storedAges.forEach(createDependentEntry);
+        return;
+      }
+
+      const fallbackCount = Number(dependentsCountField?.value || 0);
+      for (let index = 0; index < fallbackCount; index += 1) {
+        createDependentEntry("");
+      }
+    }
+
+    function syncDependentsCountField() {
+      if (!dependentsCountField && !dependentAgesField) {
+        return;
+      }
+
+      const disableCount = String(hasDependentsField?.value || "No") !== "Yes";
+      [dependentsCountField, dependentAgesField].forEach(function (field) {
+        if (field) {
+          field.disabled = disableCount;
+        }
+      });
+
+      addDependentButton?.closest(".field-group")?.classList.toggle("is-disabled", disableCount);
+      if (disableCount && dependentList) {
+        dependentList.innerHTML = "";
+        syncDependentHiddenFields();
+      }
+      syncDependentBuilderDisabledState();
+    }
+
+    function setProjectedFieldDisabled(field, disabled, preserveValue) {
+      if (!field) {
+        return;
+      }
+
+      field.disabled = disabled;
+      field.closest(".field-group")?.classList.toggle("is-disabled", disabled);
+      if (disabled && !preserveValue) {
+        if (field.tagName === "SELECT") {
+          field.selectedIndex = 0;
+        } else {
+          field.value = "";
+        }
+      }
+    }
+
+    function syncProjectedDependentsFields() {
+      const hasProjectedDependents = String(projectedDependentsField?.value || "No") === "Yes";
+
+      if (!hasProjectedDependents) {
+        setProjectedFieldDisabled(projectedDependentsCountField, true);
+        return;
+      }
+
+      setProjectedFieldDisabled(projectedDependentsCountField, false);
+    }
+
+    function syncAcquisitionSourceField() {
+      const isOther = String(acquisitionSourceField?.value || "") === "Other";
+      if (!acquisitionSourceOtherField) {
+        return;
+      }
+
+      acquisitionSourceOtherField.disabled = !isOther;
+      acquisitionSourceOtherField.closest(".field-group")?.classList.toggle("is-disabled", !isOther);
+      acquisitionSourceOtherField.required = isOther;
+      if (!isOther) {
+        acquisitionSourceOtherField.value = "";
+      }
+    }
+
+    return {
+      syncSpouseFields,
+      syncDependentFieldsetState,
+      syncEmploymentDetailFields,
+      getDependentAgeValues,
+      syncDependentHiddenFields,
+      syncDependentEntryLabels,
+      syncDependentBuilderDisabledState,
+      removeDependentEntry,
+      createDependentEntry,
+      rebuildDependentEntriesFromStoredValue,
+      syncDependentsCountField,
+      setProjectedFieldDisabled,
+      syncProjectedDependentsFields,
+      syncAcquisitionSourceField
+    };
+  }
+
   function calculateAgeFromDate(value) {
     if (!value) {
       return 0;
@@ -608,6 +914,7 @@
 
   LensApp.clientIntake = Object.assign(LensApp.clientIntake || {}, {
     initializeClientCreationForm,
+    createSharedProfileFormBehavior,
     saveClientCreationForm,
     calculateAgeFromDate,
     formatPhoneNumberInput,

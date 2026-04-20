@@ -1028,6 +1028,15 @@
     return null;
   }
 
+  function saveCurrentLinkedWorkflowSection(sectionName, payload, meta) {
+    const linkedCaseRef = getLinkedCaseRef();
+    if (!linkedCaseRef) {
+      return null;
+    }
+
+    return saveLinkedWorkflowSectionWithFallback(linkedCaseRef, sectionName, payload, meta);
+  }
+
   function formatDateInputValue(value) {
     const date = value instanceof Date ? value : new Date(value);
     if (Number.isNaN(date.getTime())) {
@@ -1441,6 +1450,7 @@
   window.serializeLensFormSnapshot = serializeFormSnapshot;
   window.saveLensLinkedWorkflowSection = saveLinkedWorkflowSection;
   window.saveLensLinkedWorkflowSectionWithFallback = saveLinkedWorkflowSectionWithFallback;
+  window.saveLensCurrentLinkedWorkflowSection = saveCurrentLinkedWorkflowSection;
   document.addEventListener("DOMContentLoaded", () => {
     if (isAnalysisToolPath(window.location.pathname)) {
       initializeTemporaryAnalysisLeaveGuard();

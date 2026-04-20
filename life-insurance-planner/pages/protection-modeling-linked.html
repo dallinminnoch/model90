@@ -100,8 +100,7 @@
   <script src="../app.js"></script>
   <script>
     (function () {
-      const authSessionKey = "lipPlannerAuthSession";
-      const clientRecordsKey = "lensClientRecords";
+      const clientRecordsApi = window.LensApp?.clientRecords || {};
       const linkOpenButton = document.querySelector("[data-protection-modeling-link-open]");
       const linkModal = document.querySelector("[data-protection-modeling-link-modal]");
       const linkModalInput = document.querySelector("[data-protection-modeling-link-search-input]");
@@ -116,38 +115,6 @@
       const confidentialContinue = document.querySelector("[data-confidential-continue]");
       const advisorContinue = document.querySelector('.entry-mode-button[href="next-step.html"]');
       let linkedRecord = null;
-
-      function getClientRecordsStorageKey() {
-        let session = null;
-        try {
-          session = JSON.parse(localStorage.getItem(authSessionKey) || "null");
-        } catch (error) {
-          session = null;
-        }
-
-        const identity = session?.email ? String(session.email).trim().toLowerCase() : "guest";
-        return `${clientRecordsKey}:${identity}`;
-      }
-
-      function loadClientRecords() {
-        try {
-          const records = JSON.parse(localStorage.getItem(getClientRecordsStorageKey()) || "[]");
-          return Array.isArray(records)
-            ? records.filter((record) => String(record.viewType || "").trim() === "individuals")
-            : [];
-        } catch (error) {
-          return [];
-        }
-      }
-
-      function findRecordByCaseRef(caseRef) {
-        const normalizedCaseRef = String(caseRef || "").trim().toUpperCase();
-        if (!normalizedCaseRef) {
-          return null;
-        }
-
-        return loadClientRecords().find((record) => String(record.caseRef || "").trim().toUpperCase() === normalizedCaseRef) || null;
-      }
 
       function updateLinkedClientButton(record) {
         linkedRecord = record || null;
@@ -198,7 +165,10 @@
       }
 
       function syncLinkedClientFromCaseRef() {
-        const matchedRecord = findRecordByCaseRef(caseRefField?.value || "");
+        const findLinkableIndividualClientByCaseRef = clientRecordsApi.findLinkableIndividualClientByCaseRef;
+        const matchedRecord = typeof findLinkableIndividualClientByCaseRef === "function"
+          ? findLinkableIndividualClientByCaseRef(caseRefField?.value || "")
+          : null;
         updateLinkedClientButton(matchedRecord);
       }
 
@@ -234,15 +204,10 @@
         }
 
         const query = String(linkModalInput?.value || "").trim().toLowerCase();
-        const records = loadClientRecords()
-          .filter((record) => String(record.caseRef || "").trim())
-          .sort((left, right) => String(left.displayName || "").localeCompare(String(right.displayName || "")));
-        const filtered = records.filter((record) => {
-          const displayName = String(record.displayName || "").toLowerCase();
-          const caseRef = String(record.caseRef || "").toLowerCase();
-          const summary = String(record.summary || "").toLowerCase();
-          return !query || displayName.includes(query) || caseRef.includes(query) || summary.includes(query);
-        });
+        const getLinkableIndividualClientRecords = clientRecordsApi.getLinkableIndividualClientRecords;
+        const filtered = typeof getLinkableIndividualClientRecords === "function"
+          ? getLinkableIndividualClientRecords(query)
+          : [];
 
         linkModalResults.innerHTML = "";
 
@@ -262,7 +227,7 @@
           button.addEventListener("click", () => {
             if (caseRefField) {
               caseRefField.value = String(record.caseRef || "").trim();
-              window.setLensLinkedCaseRef?.(caseRefField.value);
+              clientRecordsApi.setLinkedCaseRef?.(caseRefField.value);
             }
             syncLinkedClientFromCaseRef();
             closeLinkModal();
@@ -280,8 +245,11 @@
         caseRefField.addEventListener("pointerdown", unlockCaseRefField);
         caseRefField.addEventListener("input", () => {
           caseRefField.value = String(caseRefField.value || "").toUpperCase();
-          const matchedRecord = findRecordByCaseRef(caseRefField.value);
-          window.setLensLinkedCaseRef?.(matchedRecord ? String(matchedRecord.caseRef || "").trim() : "");
+          const findLinkableIndividualClientByCaseRef = clientRecordsApi.findLinkableIndividualClientByCaseRef;
+          const matchedRecord = typeof findLinkableIndividualClientByCaseRef === "function"
+            ? findLinkableIndividualClientByCaseRef(caseRefField.value)
+            : null;
+          clientRecordsApi.setLinkedCaseRef?.(matchedRecord ? String(matchedRecord.caseRef || "").trim() : "");
           syncLinkedClientFromCaseRef();
         });
       }
@@ -306,7 +274,7 @@
         }
 
         const linkedCaseRef = String(linkedRecord.caseRef || "").trim();
-        window.setLensLinkedCaseRef?.(linkedCaseRef);
+        clientRecordsApi.setLinkedCaseRef?.(linkedCaseRef);
       });
 
       if (!confidentialTrigger || !pinShell || !pinInputs.length || !confidentialContinue) {
@@ -356,7 +324,7 @@
         }
 
         const linkedCaseRef = String(linkedRecord.caseRef || "").trim();
-        window.setLensLinkedCaseRef?.(linkedCaseRef);
+        clientRecordsApi.setLinkedCaseRef?.(linkedCaseRef);
       });
 
       pinInputs.forEach((input, index) => {

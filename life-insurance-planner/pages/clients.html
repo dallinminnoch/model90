@@ -1084,53 +1084,6 @@
   <script src="../app/features/client-intake.js"></script>
   <script src="../app/features/client-directory.js"></script>
   <script src="../app.js"></script>
-  <script>
-    (function () {
-      const addButton = document.querySelector("[data-add-client-button]");
-      const modal = document.querySelector("[data-add-client-modal]");
-      const closeTargets = document.querySelectorAll("[data-add-client-modal-close]");
-
-      if (!addButton || !modal) {
-        return;
-      }
-
-      function openModal() {
-        modal.hidden = false;
-        modal.style.display = "grid";
-        modal.classList.add("is-open");
-        document.body.classList.add("is-modal-open");
-      }
-
-      function closeModal() {
-        modal.classList.remove("is-open");
-        modal.style.display = "none";
-        modal.hidden = true;
-        document.body.classList.remove("is-modal-open");
-      }
-
-      // CODE NOTE: Directory header actions reuse this same add-client
-      // chooser, so expose a tiny modal API instead of duplicating the flow.
-      window.ClientDirectoryAddModalApi = {
-        open: openModal,
-        close: closeModal
-      };
-
-      addButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        openModal();
-      });
-
-      closeTargets.forEach((target) => {
-        target.addEventListener("click", closeModal);
-      });
-
-      document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && !modal.hidden) {
-          closeModal();
-        }
-      });
-    })();
-  </script>
   <!-- CODE NOTE: Shared Close Index engine is loaded here for standalone Client Directory mode. -->
   <script src="../opportunity-score.js"></script>
   <script>
@@ -1359,6 +1312,23 @@
         return window.LensApp?.clientDirectoryCore || null;
       }
 
+      function getDirectoryHelpers() {
+        return window.LensApp?.clientDirectoryHelpers || {};
+      }
+
+      function getDirectoryFeatureApi() {
+        return window.LensApp?.clientDirectory || {};
+      }
+
+      const directoryHelpers = getDirectoryHelpers();
+      const directoryFeatureApi = getDirectoryFeatureApi();
+      const normalizePriority = directoryHelpers.normalizePriority;
+      const getClientLifecycleStatus = directoryHelpers.getClientLifecycleStatus;
+      const formatCurrencyCompact = directoryHelpers.formatCurrencyCompact;
+      const formatDateForDirectory = directoryHelpers.formatDateForDirectory;
+      const getDirectoryCreatedDate = directoryHelpers.getDirectoryCreatedDate;
+      const getLastInitial = directoryFeatureApi.getLastInitial;
+
       function syncShellStateFromCore(event) {
         const directoryCoreApi = getDirectoryCoreApi();
         if (!directoryCoreApi || typeof directoryCoreApi.getState !== "function") {
@@ -1582,11 +1552,6 @@
         return trimmed || "New Business";
       }
 
-      function normalizePriority(value) {
-        const normalized = String(value || "").trim().toLowerCase();
-        return ["low", "medium", "high"].includes(normalized) ? normalized : "";
-      }
-
       function normalizeDirectoryPriority(value) {
         const normalized = String(value || "").trim().toLowerCase();
         return ["all", "low", "medium", "high"].includes(normalized) ? normalized : "all";
@@ -1597,19 +1562,6 @@
         return ["all", "flagged", "recently-viewed", "recently-added", "incomplete"].includes(normalized)
           ? normalized
           : "all";
-      }
-
-      function getPriorityDisplay(value) {
-        if (value === "high") {
-          return "High";
-        }
-        if (value === "medium") {
-          return "Medium";
-        }
-        if (value === "low") {
-          return "Low";
-        }
-        return "Select Priority";
       }
 
       // CODE NOTE: Client Directory status tabs now use a lifecycle layer on top of legacy stored status groups.
@@ -1627,64 +1579,6 @@
         ].includes(normalized)
           ? normalized
           : "prospects";
-      }
-
-      function getClientLifecycleStatus(recordOrStatusGroup) {
-        const isRecordObject = recordOrStatusGroup && typeof recordOrStatusGroup === "object";
-        const normalizedStatusGroup = normalizeDirectoryStatusGroup(
-          isRecordObject ? recordOrStatusGroup.statusGroup : recordOrStatusGroup
-        );
-
-        if (normalizedStatusGroup === "closed") {
-          return "closed";
-        }
-
-        if (
-          normalizedStatusGroup === "coverage-placed"
-          || normalizedStatusGroup === "placed"
-          || (isRecordObject
-            && Array.isArray(recordOrStatusGroup.coveragePolicies)
-            && recordOrStatusGroup.coveragePolicies.length > 0)
-        ) {
-          return "placed";
-        }
-
-        if (normalizedStatusGroup === "in-review" || normalizedStatusGroup === "underwriting") {
-          return "underwriting";
-        }
-
-        if (normalizedStatusGroup === "in-progress") {
-          return "in-progress";
-        }
-
-        if (isRecordObject) {
-          const record = recordOrStatusGroup;
-          const hasActiveWorkflowProgress = Boolean(record?.preliminaryUnderwritingCompleted)
-            || Boolean(record?.pmiCompleted)
-            || Boolean(record?.analysisCompleted);
-          if (hasActiveWorkflowProgress) {
-            return "in-progress";
-          }
-        }
-
-        return "prospecting";
-      }
-
-      function getClientStatusDisplay(valueOrRecord) {
-        const lifecycleStatus = getClientLifecycleStatus(valueOrRecord);
-        if (lifecycleStatus === "in-progress") {
-          return "In Progress";
-        }
-        if (lifecycleStatus === "underwriting") {
-          return "Underwriting";
-        }
-        if (lifecycleStatus === "placed") {
-          return "Placed";
-        }
-        if (lifecycleStatus === "closed") {
-          return "Closed";
-        }
-        return "Prospecting";
       }
 
       function hasDirectoryProfileCreated(record) {
@@ -1829,33 +1723,6 @@
         return "No household linked";
       }
 
-      function formatCurrencyCompact(value) {
-        const amount = Number(value || 0);
-        return new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "USD",
-          notation: amount >= 1000000 ? "compact" : "standard",
-          maximumFractionDigits: amount >= 1000000 ? 2 : 0
-        }).format(amount);
-      }
-
-      function formatDateForDirectory(value) {
-        if (!value) {
-          return "--";
-        }
-
-        const date = new Date(`${value}T00:00:00`);
-        if (Number.isNaN(date.getTime())) {
-          return value;
-        }
-
-        return `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}/${date.getFullYear()}`;
-      }
-
-      function getDirectoryCreatedDate(record) {
-        return String(record?.dateProfileCreated || record?.lastReview || "").trim();
-      }
-
       function normalizeCaseRef(value) {
         return String(value || "").trim().toUpperCase();
       }
@@ -1996,21 +1863,6 @@
         const nextRecordsForStorage = toStorageCompatibleRecords(nextRecords);
         localStorage.setItem(getRecordsStorageKey(), JSON.stringify(nextRecordsForStorage));
         records = nextRecordsForStorage.map(normalizeRecord);
-      }
-
-      function buildStatusCounts(sourceRecords) {
-        return sourceRecords
-          .filter(function (record) { return record.viewType === activeView; })
-          .reduce(function (counts, record) {
-            counts.all += 1;
-            const lifecycleStatus = getClientLifecycleStatus(record);
-            counts[lifecycleStatus] = (counts[lifecycleStatus] || 0) + 1;
-            return counts;
-          }, { all: 0, prospecting: 0, "in-progress": 0, underwriting: 0, placed: 0, closed: 0 });
-      }
-
-      function getLastInitial(lastName) {
-        return String(lastName || "").trim().charAt(0).toUpperCase();
       }
 
       function matchesDirectorySearch(record, query) {
@@ -4801,7 +4653,7 @@
         getState: getDirectorySidebarState,
         refresh: renderDirectory,
         openAddClientModal: function () {
-          window.ClientDirectoryAddModalApi?.open?.();
+          return openDirectoryAddModal();
         }
       };
 

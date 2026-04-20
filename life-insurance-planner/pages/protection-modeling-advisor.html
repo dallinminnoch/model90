@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -452,7 +452,7 @@
   </main>
 
   <div class="floating-calculator" id="protection-calculator" hidden aria-hidden="true">
-    <div class="floating-calculator-header" data-calculator-drag-handle><button class="floating-calculator-close" type="button" aria-label="Close calculator">×</button>
+    <div class="floating-calculator-header" data-calculator-drag-handle><button class="floating-calculator-close" type="button" aria-label="Close calculator">ï¿½</button>
     </div>
     <div class="floating-calculator-body">
       <input
@@ -958,13 +958,10 @@
         clampCostToFundPercent();
         const draft = serializeForm();
         localStorage.setItem(storageKey, JSON.stringify(draft));
-        const linkedCaseRef = window.getLensLinkedCaseRef?.() || "";
-        if (linkedCaseRef && window.saveLensLinkedWorkflowSection) {
-          window.saveLensLinkedWorkflowSection(linkedCaseRef, "protectionModeling", draft, {
-            variant: form.dataset.pmiDraftKey || "advisor-copy",
-            page: "protection-modeling-advisor"
-          });
-        }
+        window.saveLensCurrentLinkedWorkflowSection?.("protectionModeling", draft, {
+          variant: form.dataset.pmiDraftKey || "advisor-copy",
+          page: "protection-modeling-advisor"
+        });
         window.location.href = "clients.html";
       });
 

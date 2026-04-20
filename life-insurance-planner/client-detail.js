@@ -49,10 +49,10 @@
           .replace(/'/g, "&#39;");
       }
 
-      function normalizePriority(value) {
-        const normalized = String(value || "").trim().toLowerCase();
-        return ["low", "medium", "high"].includes(normalized) ? normalized : "";
-      }
+      const clientDirectoryHelpers = window.LensApp?.clientDirectoryHelpers || {};
+      const normalizePriority = clientDirectoryHelpers.normalizePriority;
+      const getClientLifecycleStatus = clientDirectoryHelpers.getClientLifecycleStatus;
+      const getClientStatusDisplay = clientDirectoryHelpers.getClientStatusDisplay;
 
       function getPriorityDisplay(value) {
         if (value === "high") {
@@ -65,80 +65,6 @@
           return "Low";
         }
         return "Not provided";
-      }
-
-      // CODE NOTE: Client detail shows the same lifecycle status labels as the Client Directory.
-      function normalizeLifecycleStatusGroup(value) {
-        const normalized = String(value || "").trim().toLowerCase();
-        return [
-          "prospects",
-          "in-review",
-          "coverage-placed",
-          "closed",
-          "prospecting",
-          "in-progress",
-          "underwriting",
-          "placed"
-        ].includes(normalized)
-          ? normalized
-          : "prospects";
-      }
-
-      function getClientLifecycleStatus(recordOrStatusGroup) {
-        const isRecordObject = recordOrStatusGroup && typeof recordOrStatusGroup === "object";
-        const normalizedStatusGroup = normalizeLifecycleStatusGroup(
-          isRecordObject ? recordOrStatusGroup.statusGroup : recordOrStatusGroup
-        );
-
-        if (normalizedStatusGroup === "closed") {
-          return "closed";
-        }
-
-        if (
-          normalizedStatusGroup === "coverage-placed"
-          || normalizedStatusGroup === "placed"
-          || (isRecordObject
-            && Array.isArray(recordOrStatusGroup.coveragePolicies)
-            && recordOrStatusGroup.coveragePolicies.length > 0)
-        ) {
-          return "placed";
-        }
-
-        if (normalizedStatusGroup === "in-review" || normalizedStatusGroup === "underwriting") {
-          return "underwriting";
-        }
-
-        if (normalizedStatusGroup === "in-progress") {
-          return "in-progress";
-        }
-
-        if (isRecordObject) {
-          const hasActiveWorkflowProgress = Boolean(recordOrStatusGroup.preliminaryUnderwritingCompleted)
-            || Boolean(recordOrStatusGroup.pmiCompleted)
-            || Boolean(recordOrStatusGroup.analysisCompleted);
-          if (hasActiveWorkflowProgress) {
-            return "in-progress";
-          }
-        }
-
-        return "prospecting";
-      }
-
-      function getClientStatusDisplay(valueOrRecord) {
-        const lifecycleStatus = getClientLifecycleStatus(valueOrRecord);
-        if (lifecycleStatus === "in-progress") {
-          return "In Progress";
-        }
-        if (lifecycleStatus === "underwriting") {
-          return "Underwriting";
-        }
-        if (lifecycleStatus === "placed") {
-          return "Placed";
-        }
-        if (lifecycleStatus === "closed") {
-          return "Closed";
-        }
-        return "Prospecting";
       }
 
       function formatDate(value) {

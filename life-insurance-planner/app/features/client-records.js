@@ -231,6 +231,44 @@
     return null;
   }
 
+  function findLinkableIndividualClientByCaseRef(caseRef) {
+    const normalizedCaseRef = normalizeCaseRef(caseRef);
+    if (!normalizedCaseRef) {
+      return null;
+    }
+
+    return getClientRecords().find((record) => (
+      String(record?.viewType || "").trim() === "individuals"
+      && normalizeCaseRef(record?.caseRef) === normalizedCaseRef
+    )) || null;
+  }
+
+  function getLinkableIndividualClientRecords(query) {
+    const normalizedQuery = String(query || "").trim().toLowerCase();
+
+    return getClientRecords()
+      .filter((record) => (
+        String(record?.viewType || "").trim() === "individuals"
+        && normalizeCaseRef(record?.caseRef)
+      ))
+      .filter((record) => {
+        const displayName = String(record?.displayName || "").toLowerCase();
+        const caseRef = String(record?.caseRef || "").toLowerCase();
+        const summary = String(record?.summary || "").toLowerCase();
+        return !normalizedQuery
+          || displayName.includes(normalizedQuery)
+          || caseRef.includes(normalizedQuery)
+          || summary.includes(normalizedQuery);
+      })
+      .sort((left, right) => String(left?.displayName || "").localeCompare(String(right?.displayName || "")));
+  }
+
+  function getCurrentLinkedRecord(caseRefOverride, recordIdOverride) {
+    const resolvedRecordId = String(recordIdOverride || "").trim() || getLinkedRecordId();
+    const resolvedCaseRef = normalizeCaseRef(caseRefOverride) || getLinkedCaseRef();
+    return getClientRecordByReference(resolvedRecordId, resolvedCaseRef);
+  }
+
   function updateClientRecordByCaseRef(caseRef, updater) {
     const normalizedCaseRef = normalizeCaseRef(caseRef);
     if (!normalizedCaseRef || typeof updater !== "function") {
@@ -276,6 +314,9 @@
     setLinkedRecordId,
     getLinkedRecordId,
     getClientRecordByReference,
+    findLinkableIndividualClientByCaseRef,
+    getLinkableIndividualClientRecords,
+    getCurrentLinkedRecord,
     updateClientRecordByCaseRef
   });
 })();

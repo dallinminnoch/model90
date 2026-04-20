@@ -958,13 +958,10 @@
         clampCostToFundPercent();
         const draft = serializeForm();
         localStorage.setItem(storageKey, JSON.stringify(draft));
-        const linkedCaseRef = window.getLensLinkedCaseRef?.() || "";
-        if (linkedCaseRef && window.saveLensLinkedWorkflowSection) {
-          window.saveLensLinkedWorkflowSection(linkedCaseRef, "protectionModeling", draft, {
-            variant: form.dataset.pmiDraftKey || "advisor-copy",
-            page: "protection-modeling-simplified"
-          });
-        }
+        window.saveLensCurrentLinkedWorkflowSection?.("protectionModeling", draft, {
+          variant: form.dataset.pmiDraftKey || "advisor-copy",
+          page: "protection-modeling-simplified"
+        });
         window.location.href = "clients.html";
       });
 

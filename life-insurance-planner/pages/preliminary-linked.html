@@ -81,8 +81,7 @@
   <script src="../app.js"></script>
   <script>
     (function () {
-      const authSessionKey = "lipPlannerAuthSession";
-      const clientRecordsKey = "lensClientRecords";
+      const clientRecordsApi = window.LensApp?.clientRecords || {};
       const linkOpenButton = document.querySelector("[data-preliminary-link-open]");
       const linkModal = document.querySelector("[data-preliminary-link-modal]");
       const linkModalInput = document.querySelector("[data-preliminary-link-search-input]");
@@ -93,38 +92,6 @@
       const urlCaseRef = String(new URLSearchParams(window.location.search).get("caseRef") || "").trim().toUpperCase();
       const urlRecordId = String(new URLSearchParams(window.location.search).get("id") || "").trim();
       let linkedRecord = null;
-
-      function getClientRecordsStorageKey() {
-        let session = null;
-        try {
-          session = JSON.parse(localStorage.getItem(authSessionKey) || "null");
-        } catch (error) {
-          session = null;
-        }
-
-        const identity = session?.email ? String(session.email).trim().toLowerCase() : "guest";
-        return `${clientRecordsKey}:${identity}`;
-      }
-
-      function loadClientRecords() {
-        try {
-          const records = JSON.parse(localStorage.getItem(getClientRecordsStorageKey()) || "[]");
-          return Array.isArray(records)
-            ? records.filter((record) => String(record.viewType || "").trim() === "individuals")
-            : [];
-        } catch (error) {
-          return [];
-        }
-      }
-
-      function findRecordByCaseRef(caseRef) {
-        const normalizedCaseRef = String(caseRef || "").trim().toUpperCase();
-        if (!normalizedCaseRef) {
-          return null;
-        }
-
-        return loadClientRecords().find((record) => String(record.caseRef || "").trim().toUpperCase() === normalizedCaseRef) || null;
-      }
 
       function updateLinkedClientButton(record) {
         linkedRecord = record || null;
@@ -159,7 +126,7 @@
       }
 
       function syncLinkedClientFromCaseRef() {
-        const matchedRecord = findRecordByCaseRef(caseRefField?.value || "");
+        const matchedRecord = clientRecordsApi.findLinkableIndividualClientByCaseRef?.(caseRefField?.value || "") || null;
         updateLinkedClientButton(matchedRecord);
       }
 
@@ -194,16 +161,8 @@
           return;
         }
 
-        const query = String(linkModalInput?.value || "").trim().toLowerCase();
-        const records = loadClientRecords()
-          .filter((record) => String(record.caseRef || "").trim())
-          .sort((left, right) => String(left.displayName || "").localeCompare(String(right.displayName || "")));
-        const filtered = records.filter((record) => {
-          const displayName = String(record.displayName || "").toLowerCase();
-          const caseRef = String(record.caseRef || "").toLowerCase();
-          const summary = String(record.summary || "").toLowerCase();
-          return !query || displayName.includes(query) || caseRef.includes(query) || summary.includes(query);
-        });
+        const query = String(linkModalInput?.value || "").trim();
+        const filtered = clientRecordsApi.getLinkableIndividualClientRecords?.(query) || [];
 
         linkModalResults.innerHTML = "";
 
@@ -223,7 +182,7 @@
           button.addEventListener("click", () => {
             if (caseRefField) {
               caseRefField.value = String(record.caseRef || "").trim();
-              window.setLensLinkedCaseRef?.(caseRefField.value);
+              clientRecordsApi.setLinkedCaseRef?.(caseRefField.value);
             }
             syncLinkedClientFromCaseRef();
             closeLinkModal();
@@ -241,8 +200,8 @@
         caseRefField.addEventListener("pointerdown", unlockCaseRefField);
         caseRefField.addEventListener("input", () => {
           caseRefField.value = String(caseRefField.value || "").toUpperCase();
-          const matchedRecord = findRecordByCaseRef(caseRefField.value);
-          window.setLensLinkedCaseRef?.(matchedRecord ? String(matchedRecord.caseRef || "").trim() : "");
+          const matchedRecord = clientRecordsApi.findLinkableIndividualClientByCaseRef?.(caseRefField.value) || null;
+          clientRecordsApi.setLinkedCaseRef?.(matchedRecord ? String(matchedRecord.caseRef || "").trim() : "");
           syncLinkedClientFromCaseRef();
         });
       }
@@ -267,24 +226,27 @@
         }
 
         const linkedCaseRef = String(linkedRecord.caseRef || "").trim();
-        window.setLensLinkedCaseRef?.(linkedCaseRef);
-        window.setLensLinkedRecordId?.(String(linkedRecord.id || "").trim());
+        clientRecordsApi.setLinkedCaseRef?.(linkedCaseRef);
+        clientRecordsApi.setLinkedRecordId?.(String(linkedRecord.id || "").trim());
       });
 
       if (caseRefField && urlCaseRef) {
         caseRefField.value = urlCaseRef;
-        window.setLensLinkedCaseRef?.(urlCaseRef);
+        clientRecordsApi.setLinkedCaseRef?.(urlCaseRef);
         if (urlRecordId) {
-          window.setLensLinkedRecordId?.(urlRecordId);
+          clientRecordsApi.setLinkedRecordId?.(urlRecordId);
         }
       }
 
       if (!caseRefField?.value && urlRecordId) {
-        const matchedById = loadClientRecords().find((record) => String(record?.id || "").trim() === urlRecordId) || null;
-        if (matchedById && caseRefField) {
+        const matchedById = clientRecordsApi.getClientRecordByReference?.(urlRecordId, "") || null;
+        const isLinkableIndividualRecord = matchedById
+          && String(matchedById.viewType || "").trim() === "individuals"
+          && String(matchedById.caseRef || "").trim();
+        if (isLinkableIndividualRecord && caseRefField) {
           caseRefField.value = String(matchedById.caseRef || "").trim().toUpperCase();
-          window.setLensLinkedCaseRef?.(caseRefField.value);
-          window.setLensLinkedRecordId?.(String(matchedById.id || "").trim());
+          clientRecordsApi.setLinkedCaseRef?.(caseRefField.value);
+          clientRecordsApi.setLinkedRecordId?.(String(matchedById.id || "").trim());
         }
       }
 
