@@ -2304,6 +2304,431 @@ input.search-bar__input {
   color: #5a48de;
 }
 
+.client-coverage-card {
+  --merged-coverage-card-height: calc(18.4rem + 24.4rem + var(--dashboard-side-lower-card-height) + 2rem);
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  gap: 0.95rem;
+  height: var(--merged-coverage-card-height);
+  min-height: var(--merged-coverage-card-height);
+  max-height: var(--merged-coverage-card-height);
+  overflow: hidden;
+}
+
+.client-coverage-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.95rem;
+}
+
+.client-coverage-card-heading {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.client-coverage-card-heading h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.08;
+  font-weight: 540;
+  color: #17202c;
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+.client-coverage-card-heading span {
+  color: #667084;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.client-coverage-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.48rem;
+}
+
+.client-coverage-inline-action,
+.client-coverage-add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0 0.8rem;
+  border: 1px solid rgba(213, 221, 232, 0.95);
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #17212e;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 560;
+  white-space: nowrap;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.client-coverage-inline-action:hover,
+.client-coverage-inline-action:focus-visible,
+.client-coverage-add-button:hover,
+.client-coverage-add-button:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(172, 182, 196, 0.95);
+  box-shadow: 0 10px 18px rgba(16, 33, 52, 0.06);
+}
+
+.client-coverage-inline-action {
+  color: #5b47d6;
+  background: rgba(238, 232, 255, 0.72);
+  border-color: rgba(195, 188, 255, 0.92);
+}
+
+.client-coverage-add-button {
+  background: #ffffff;
+}
+
+.client-coverage-add-button.is-disabled {
+  background: #e9edf4;
+  border-color: rgba(213, 221, 232, 0.95);
+  color: #8a96a8;
+  pointer-events: none;
+}
+
+.client-coverage-card-summary {
+  /* CODE NOTE: Keep the summary metrics stacked vertically here so Total Face
+     Amount stays above Total Annual Premium without text collisions. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0 -1.05rem;
+  border-top: 1px solid rgba(223, 229, 238, 0.92);
+  border-bottom: 3px solid #111111;
+}
+
+.client-coverage-card-stat {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+  padding: 0.84rem 1.05rem 0.78rem;
+}
+
+.client-coverage-card-stat-button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.client-coverage-card-stat-button.is-active {
+  cursor: pointer;
+  transition: background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.client-coverage-card-stat-button.is-active:hover,
+.client-coverage-card-stat-button.is-active:focus-visible {
+  background: rgba(98, 92, 167, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(210, 216, 228, 0.34);
+  outline: none;
+}
+
+.client-coverage-card-stat + .client-coverage-card-stat {
+  border-top: 1px solid rgba(223, 229, 238, 0.92);
+}
+
+.client-coverage-card-stat-label {
+  color: #b4b7e7;
+  font-size: 0.71rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.client-coverage-card-stat-value {
+  color: #24184f;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.client-coverage-card-stat-meta {
+  color: #9a95c5;
+  font-size: 0.74rem;
+  line-height: 1.14;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.client-coverage-card-premium-strip {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.1rem 0 0;
+}
+
+.client-coverage-card-premium-line {
+  color: #8d88bf;
+  font-size: 0.73rem;
+  line-height: 1.12;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.client-coverage-card-sections {
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  align-content: start;
+  gap: 0.95rem;
+  min-height: 0;
+}
+
+.client-coverage-card-section {
+  display: grid;
+  gap: 0.58rem;
+  align-content: start;
+}
+
+.client-coverage-card-section-heading-block {
+  display: grid;
+  gap: 0;
+}
+
+.client-coverage-card-section-title {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.client-coverage-card-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.client-coverage-card-section-label {
+  color: #6b7280;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.client-coverage-card-section-meta {
+  color: #98a3b4;
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.client-coverage-card-section-illustrations {
+  min-height: 0;
+}
+
+.client-coverage-policy-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.client-coverage-policy-list.is-empty {
+  place-items: center;
+  min-height: 100%;
+}
+
+.client-coverage-policy-item {
+  display: grid;
+  align-content: center;
+  gap: 0.18rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: 0.62rem;
+  background: #fbfcfe;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  overflow: hidden;
+}
+
+.client-coverage-policy-item:hover,
+.client-coverage-policy-item:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(47, 107, 82, 0.22);
+  box-shadow: 0 10px 22px rgba(16, 33, 52, 0.08);
+  outline: none;
+}
+
+.client-coverage-policy-topline,
+.client-coverage-policy-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.client-coverage-policy-topline strong {
+  color: #1a2435;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.client-coverage-policy-topline span,
+.client-coverage-policy-meta span {
+  color: #526074;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.client-coverage-card-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.42rem;
+}
+
+.client-coverage-card-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  min-height: 1.52rem;
+  padding: 0 0.6rem;
+  border-radius: 999px;
+  background: rgba(123, 97, 255, 0.08);
+  color: #6858e8;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.client-coverage-card-chip::before {
+  content: "";
+  width: 0.32rem;
+  height: 0.32rem;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+
+.client-coverage-card-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 4.1rem;
+  padding: 0.7rem;
+  border: 1px dashed rgba(219, 213, 255, 0.9);
+  border-radius: 0.62rem;
+  background: rgba(252, 250, 255, 0.72);
+}
+
+.client-coverage-card-empty-illustrations {
+  min-height: 100%;
+}
+
+.client-coverage-empty {
+  margin: 0;
+  color: #667084;
+  font-size: 0.84rem;
+  text-align: center;
+}
+
+.client-coverage-card-illustrations {
+  display: grid;
+  gap: 0.52rem;
+  align-content: start;
+}
+
+.client-coverage-card-illustration-item {
+  appearance: none;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.68rem 0.78rem;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: 0.62rem;
+  background: #fbfcfe;
+  text-align: left;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.client-coverage-card-illustration-item:hover,
+.client-coverage-card-illustration-item:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(109, 77, 229, 0.24);
+  box-shadow: 0 10px 18px rgba(16, 33, 52, 0.07);
+}
+
+.client-coverage-card-illustration-copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.12rem;
+}
+
+.client-coverage-card-illustration-copy strong {
+  color: #1f2937;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.08;
+}
+
+.client-coverage-card-illustration-copy small {
+  color: #98a3b4;
+  font-size: 0.71rem;
+  font-weight: 700;
+  line-height: 1.08;
+}
+
+.client-coverage-card-illustration-arrow {
+  color: #6858e8;
+  font-size: 1rem;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.client-coverage-card-more {
+  color: #5b47d6;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.client-coverage-view-all-button {
+  width: 100%;
+  min-height: 2.3rem;
+  margin-top: 0;
+  border: 1px solid rgba(213, 221, 232, 0.95);
+  border-radius: 0.8rem;
+  background: #edf1f7;
+  color: #8a96a8;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: not-allowed;
+}
+
+.client-coverage-view-all-button.is-active {
+  background: #ece8ff;
+  border-color: rgba(99, 102, 241, 0.24);
+  color: #5b47d6;
+  cursor: pointer;
+}
+
+.client-coverage-horizon-button {
+  margin-top: -0.32rem;
+}
+
+.client-coverage-horizon-button.is-active {
+  background: #f7f5ff;
+  border-color: rgba(195, 188, 255, 0.9);
+  color: #6c5ae8;
+  cursor: pointer;
+}
+
+.client-coverage-horizon-button.is-active:hover,
+.client-coverage-horizon-button.is-active:focus-visible {
+  background: #eee9ff;
+}
+
 .client-overview-summary-card {
   --client-overview-summary-top-gap: 1.6rem;
   position: relative;
