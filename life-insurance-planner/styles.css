@@ -63,7 +63,6 @@ body {
 body.clients-page,
 body.client-detail-page,
 body.lens-page,
-body.studio-page,
 body.resources-page,
 body.settings-page {
   --app-side-nav-top-offset: calc(var(--workspace-topbar-height) + 0.6rem);
@@ -112,7 +111,6 @@ textarea {
 body.clients-page .app-home-shell,
 body.client-detail-page .app-home-shell,
 body.lens-page .app-home-shell,
-body.studio-page .app-home-shell,
 body.resources-page .app-home-shell,
 body.settings-page .app-home-shell {
   min-height: 100vh;
@@ -137,7 +135,6 @@ body.profile-creation-page .home-shell.app-home-shell {
 body.clients-page .workspace-page-topbar,
 body.client-detail-page .workspace-page-topbar,
 body.lens-page .workspace-page-topbar,
-body.studio-page .workspace-page-topbar,
 body.resources-page .workspace-page-topbar,
 body.settings-page .workspace-page-topbar {
   display: block;
@@ -390,7 +387,6 @@ body.settings-page .workspace-page-topbar {
 body.clients-page .site-header,
 body.client-detail-page .site-header,
 body.lens-page .site-header,
-body.studio-page .site-header,
 body.resources-page .site-header,
 body.settings-page .site-header {
   display: none;
@@ -17200,9 +17196,7 @@ body[data-step] .step-item:focus-visible .step-title {
   body.client-detail-page .prospect-shell,
   body.clients-page .client-directory-shell,
   body.lens-page .home-shell,
-  body.lens-page .prospect-shell,
-  body.studio-page .home-shell,
-  body.studio-page .studio-shell {
+  body.lens-page .prospect-shell {
     display: block;
     width: 100%;
     max-width: none;
@@ -17226,7 +17220,6 @@ body[data-step] .step-item:focus-visible .step-title {
   body.client-detail-page .workspace-side-nav-host[data-workspace-side-nav="client-detail"],
   body.clients-page .workspace-side-nav-host[data-workspace-side-nav="directory"],
   body.lens-page .workspace-side-nav-host[data-workspace-side-nav="lens"],
-  body.studio-page .workspace-side-nav-host[data-workspace-side-nav="studio"],
   body.resources-page .workspace-side-nav-host[data-workspace-side-nav="resources"],
   body.settings-page .workspace-side-nav-host[data-workspace-side-nav="settings"] {
     display: block;
@@ -17242,7 +17235,6 @@ body[data-step] .step-item:focus-visible .step-title {
   body.client-detail-page.workspace-side-nav-collapsed .workspace-side-nav-host[data-workspace-side-nav="client-detail"],
   body.clients-page.workspace-side-nav-collapsed .workspace-side-nav-host[data-workspace-side-nav="directory"],
   body.lens-page.workspace-side-nav-collapsed .workspace-side-nav-host[data-workspace-side-nav="lens"],
-  body.studio-page.workspace-side-nav-collapsed .workspace-side-nav-host[data-workspace-side-nav="studio"],
   body.resources-page.workspace-side-nav-collapsed .workspace-side-nav-host[data-workspace-side-nav="resources"],
   body.settings-page.workspace-side-nav-collapsed .workspace-side-nav-host[data-workspace-side-nav="settings"] {
     width: calc(var(--app-side-nav-collapsed-width) - var(--app-side-nav-screen-gap));
@@ -17251,7 +17243,6 @@ body[data-step] .step-item:focus-visible .step-title {
   body.client-detail-page .workspace-side-nav-host[data-workspace-side-nav="client-detail"] > .workspace-side-nav,
   body.clients-page .workspace-side-nav-host[data-workspace-side-nav="directory"] > .workspace-side-nav,
   body.lens-page .workspace-side-nav-host[data-workspace-side-nav="lens"] > .workspace-side-nav,
-  body.studio-page .workspace-side-nav-host[data-workspace-side-nav="studio"] > .workspace-side-nav,
   body.resources-page .workspace-side-nav-host[data-workspace-side-nav="resources"] > .workspace-side-nav,
   body.settings-page .workspace-side-nav-host[data-workspace-side-nav="settings"] > .workspace-side-nav {
     position: relative;
@@ -17373,7 +17364,6 @@ body[data-step] .step-item:focus-visible .step-title {
     padding-left: calc(var(--app-side-nav-collapsed-width) + var(--app-side-nav-gap));
   }
 
-  body.studio-page .studio-shell,
   body.resources-page .resources-shell,
   body.settings-page .settings-shell {
   }
