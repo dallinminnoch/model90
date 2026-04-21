@@ -377,6 +377,43 @@ body.settings-page .workspace-page-topbar {
   }
 }
 
+.admin-page {
+  background:
+    linear-gradient(180deg, rgba(246, 248, 250, 1) 0%, rgba(235, 240, 244, 1) 100%);
+}
+
+.admin-shell {
+  width: min(calc(100% - clamp(1.5rem, 4vw, 3rem)), 1180px);
+  margin: 0 auto;
+  padding: clamp(1.5rem, 3vw, 2.5rem) 0 clamp(2rem, 4vw, 3.5rem);
+}
+
+.admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-xl);
+  margin-bottom: var(--space-xl);
+}
+
+.admin-header-actions {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.admin-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+@media (max-width: 480px) {
+  .admin-shell {
+    width: min(calc(100% - clamp(1rem, 5vw, 1.75rem)), 1180px);
+  }
+}
+
 .client-profile-shell {
   display: grid;
   grid-template-columns: 13.5rem minmax(0, 1fr);

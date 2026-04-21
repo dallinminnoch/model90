@@ -727,37 +727,6 @@ body.settings-page .site-header {
   display: none;
 }
 
-.admin-page {
-  background:
-    linear-gradient(180deg, rgba(246, 248, 250, 1) 0%, rgba(235, 240, 244, 1) 100%);
-}
-
-.admin-shell {
-  width: min(calc(100% - clamp(1.5rem, 4vw, 3rem)), 1180px);
-  margin: 0 auto;
-  padding: clamp(1.5rem, 3vw, 2.5rem) 0 clamp(2rem, 4vw, 3.5rem);
-}
-
-.admin-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-xl);
-  margin-bottom: var(--space-xl);
-}
-
-.admin-header-actions {
-  display: flex;
-  gap: var(--space-md);
-}
-
-.admin-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-lg);
-  margin-bottom: var(--space-xl);
-}
-
 .admin-summary-card,
 .admin-accounts-panel {
   border: 1px solid rgba(213, 221, 232, 0.9);
@@ -9093,10 +9062,6 @@ body[data-step] .step-item:focus-visible .step-title {
 
   .auth-shell {
     width: min(calc(100% - clamp(1rem, 5vw, 1.75rem)), 1120px);
-  }
-
-  .admin-shell {
-    width: min(calc(100% - clamp(1rem, 5vw, 1.75rem)), 1180px);
   }
 
   .hero-card,
