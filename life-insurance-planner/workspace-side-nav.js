@@ -72,65 +72,104 @@
     return `<img src="${escapeHtml(src)}" alt="" aria-hidden="true">`;
   }
 
+  function renderWorkspacePrimarySvg(body) {
+    return `
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        ${body}
+      </svg>
+    `;
+  }
+
+  function getWorkspacePrimaryRailIcon(key) {
+    const assetMap = {
+      studio: "../Images/start_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg",
+      home: "../Images/start_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg",
+      clients: "../Images/clientdirectory.svg",
+      lens: "../Images/analysismenu.svg",
+      teleportal: "../Images/teleportal.svg",
+      compliance: "../Images/compliancemenu.svg",
+      workflow: "../Images/customworkflow.svg",
+      settings: "../Images/settings.svg"
+    };
+    const src = assetMap[String(key || "").trim()];
+    if (!src) {
+      return getWorkspacePageIcon(key);
+    }
+    const assetUrl = escapeHtml(`url("${src}")`);
+    return `<span class="workspace-side-nav-primary-icon-art workspace-side-nav-primary-icon-art--asset" style="--workspace-side-nav-primary-icon-asset:${assetUrl};"></span>`;
+  }
+
   function getWorkspacePageIcon(key) {
     if (key === "studio") {
-      return `
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      return renderWorkspacePrimarySvg(`
           <rect x="2.75" y="2.75" width="5.1" height="5.1" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
           <rect x="12.15" y="2.75" width="5.1" height="5.1" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
           <rect x="2.75" y="12.15" width="5.1" height="5.1" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
           <rect x="12.15" y="12.15" width="5.1" height="5.1" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
-        </svg>
-      `;
+      `);
     }
 
     if (key === "home") {
-      return `
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      return renderWorkspacePrimarySvg(`
           <path d="M3.6 8.45 10 3.55l6.4 4.9v7.2a1.35 1.35 0 0 1-1.35 1.35H4.95A1.35 1.35 0 0 1 3.6 15.65V8.45Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
           <path d="M7.75 16.95v-4.3h4.5v4.3" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
-        </svg>
-      `;
+      `);
     }
 
     if (key === "clients") {
-      return `
-        <img src="../Images/clientdirectory.svg" alt="" />
-      `;
+      return renderWorkspacePrimarySvg(`
+          <circle cx="7" cy="7.15" r="2.1" stroke="currentColor" stroke-width="1.55"/>
+          <circle cx="13.15" cy="8" r="1.8" stroke="currentColor" stroke-width="1.55"/>
+          <path d="M4 15.1c.52-1.95 2.06-3.13 3.85-3.13 1.8 0 3.32 1.18 3.84 3.13" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+          <path d="M11.2 15.1c.36-1.38 1.48-2.24 2.84-2.24.93 0 1.81.41 2.42 1.18" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+      `);
     }
 
     if (key === "lens") {
-      return `
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <circle cx="10" cy="10" r="6.05" stroke="currentColor" stroke-width="1.55"/>
-          <circle cx="10" cy="10" r="2.1" stroke="currentColor" stroke-width="1.55"/>
-          <path d="M10 2.95v1.85M10 15.2v1.85M17.05 10H15.2M4.8 10H2.95" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-        </svg>
-      `;
+      return renderWorkspacePrimarySvg(`
+          <rect x="3.5" y="10.4" width="2.55" height="5.1" rx="0.78" fill="currentColor"/>
+          <rect x="8.72" y="6.9" width="2.55" height="8.6" rx="0.78" fill="currentColor"/>
+          <rect x="13.95" y="4.25" width="2.55" height="11.25" rx="0.78" fill="currentColor"/>
+      `);
     }
 
-    if (key === "strategy") {
-      return `
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M3 15.75h14" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-          <path d="M4.25 13.1 7.45 9.9l2.75 2.75 5.55-6.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M12.95 6.55h2.8v2.8" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      `;
+    if (key === "teleportal") {
+      return renderWorkspacePrimarySvg(`
+          <path d="M4.4 10.35a5.6 5.6 0 0 1 11.2 0" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+          <rect x="3.45" y="10.15" width="2.6" height="4.85" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
+          <rect x="13.95" y="10.15" width="2.6" height="4.85" rx="1.1" stroke="currentColor" stroke-width="1.55"/>
+          <path d="M6.05 14.95h2.25c0 1.08.87 1.95 1.95 1.95h1.7" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+      `);
+    }
+
+    if (key === "compliance") {
+      return renderWorkspacePrimarySvg(`
+          <rect x="4.1" y="3.7" width="11.8" height="12.6" rx="1.5" stroke="currentColor" stroke-width="1.45"/>
+          <path d="M7.15 5.55h5.7" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"/>
+          <path d="M7.3 10.25 8.95 11.9l3.75-3.75" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+      `);
+    }
+
+    if (key === "workflow") {
+      return renderWorkspacePrimarySvg(`
+          <circle cx="5.2" cy="5.4" r="1.7" stroke="currentColor" stroke-width="1.45"/>
+          <circle cx="14.8" cy="5.4" r="1.7" stroke="currentColor" stroke-width="1.45"/>
+          <circle cx="10" cy="14.25" r="1.7" stroke="currentColor" stroke-width="1.45"/>
+          <path d="M6.9 6.3 8.85 10.1M13.1 6.3 11.15 10.1M7.1 5.4h5.8" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
+      `);
     }
 
     if (key === "settings") {
-      return `
-        <img src="../Images/settings.svg" alt="" />
-      `;
+      return renderWorkspacePrimarySvg(`
+          <path d="M10 3.15 11.08 4.72l1.86-.26.6 1.76 1.72.7-.24 1.83 1.25 1.27-1.25 1.27.24 1.83-1.72.7-.6 1.76-1.86-.26L10 16.85l-1.08-1.57-1.86.26-.6-1.76-1.72-.7.24-1.83-1.25-1.27 1.25-1.27-.24-1.83 1.72-.7.6-1.76 1.86.26L10 3.15Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+          <circle cx="10" cy="10" r="2.2" stroke="currentColor" stroke-width="1.55"/>
+      `);
     }
 
-    return `
-      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    return renderWorkspacePrimarySvg(`
         <path d="M4.25 5.25h11.5a1.1 1.1 0 0 1 1.1 1.1v7.3a1.1 1.1 0 0 1-1.1 1.1H4.25a1.1 1.1 0 0 1-1.1-1.1v-7.3a1.1 1.1 0 0 1 1.1-1.1Z" stroke="currentColor" stroke-width="1.55"/>
         <path d="M6.2 8.15h7.6M6.2 10.85h5.2" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-      </svg>
-    `;
+    `);
   }
 
   function getSettingsSectionIcon(key) {
@@ -186,7 +225,10 @@
     const pages = [
       isShell ? { key: "studio", label: "Start Page", shortLabel: "Start", href: hrefs.studio, active: activePage ? activePage === "studio" : mode === "studio" } : null,
       { key: "clients", label: "Client Directory", shortLabel: "Clients", href: hrefs.clients, active: activePage ? activePage === "clients" : mode === "directory" || mode === "client-detail" },
-      { key: "lens", label: "LENS Analysis", shortLabel: "LENS", href: hrefs.lens, active: activePage ? activePage === "lens" : mode === "lens" }
+      { key: "lens", label: "LENS Analysis", shortLabel: "LENS", href: hrefs.lens, active: activePage ? activePage === "lens" : mode === "lens" },
+      { key: "teleportal", label: "Teleportal", shortLabel: "Teleportal", placeholder: true },
+      { key: "compliance", label: "Compliance Menu", shortLabel: "Compliance Menu", placeholder: true },
+      { key: "workflow", label: "Custom Workflow", shortLabel: "Custom Workflow", placeholder: true }
     ].filter(Boolean);
     pages.settingsPage = {
       key: "settings",
@@ -198,6 +240,51 @@
     return pages;
   }
 
+  function renderPrimaryRailItem(page, extraClass) {
+    const classes = [
+      "workspace-side-nav-button",
+      "workspace-side-nav-primary-button",
+      extraClass || "",
+      page.active ? " is-active" : "",
+      page.placeholder ? " workspace-side-nav-primary-button--placeholder" : ""
+    ].map(function (className) {
+      return String(className || "").trim();
+    }).filter(Boolean).join(" ");
+    const label = escapeHtml(page.label);
+    const iconMarkup = `<span class="workspace-side-nav-icon workspace-side-nav-primary-icon" aria-hidden="true">${getWorkspacePrimaryRailIcon(page.key)}</span>`;
+
+    if (page.placeholder) {
+      const placeholderLabel = escapeHtml(`${page.label} (Coming soon)`);
+      return `
+        <button
+          class="${classes}"
+          type="button"
+          data-workspace-side-nav-item="${escapeHtml(page.key)}"
+          data-workspace-side-nav-placeholder="true"
+          tabindex="-1"
+          aria-label="${placeholderLabel}"
+          aria-disabled="true"
+          title="${placeholderLabel}"
+        >
+          ${iconMarkup}
+        </button>
+      `;
+    }
+
+    return `
+      <a
+        class="${classes}"
+        href="${escapeHtml(page.href)}"
+        data-workspace-side-nav-item="${escapeHtml(page.key)}"
+        ${page.active ? ' aria-current="page"' : ""}
+        aria-label="${label}"
+        title="${label}"
+      >
+        ${iconMarkup}
+      </a>
+    `;
+  }
+
   function renderPrimaryRail(pages) {
     const settingsPage = pages && pages.settingsPage
       ? pages.settingsPage
@@ -206,33 +293,10 @@
       <div class="workspace-side-nav-primary-rail">
         <nav class="workspace-side-nav-primary-items" aria-label="Workspace pages">
           ${pages.map(function (page) {
-            return `
-              <a
-                class="workspace-side-nav-button workspace-side-nav-primary-button${page.active ? " is-active" : ""}"
-                href="${escapeHtml(page.href)}"
-                ${page.active ? ' aria-current="page"' : ""}
-                aria-label="${escapeHtml(page.label)}"
-                title="${escapeHtml(page.label)}"
-              >
-                <span class="workspace-side-nav-icon workspace-side-nav-primary-icon" aria-hidden="true">
-                  ${getWorkspacePageIcon(page.key)}
-                </span>
-                <span class="workspace-side-nav-label workspace-side-nav-primary-label">${escapeHtml(page.shortLabel || page.label)}</span>
-              </a>
-            `;
+            return renderPrimaryRailItem(page);
           }).join("")}
         </nav>
-        <a
-          class="workspace-side-nav-button workspace-side-nav-primary-button workspace-side-nav-primary-button-settings${settingsPage.active ? " is-active" : ""}"
-          href="${escapeHtml(settingsPage.href)}"
-          ${settingsPage.active ? ' aria-current="page"' : ""}
-          aria-label="${escapeHtml(settingsPage.label)}"
-          title="${escapeHtml(settingsPage.label)}"
-        >
-          <span class="workspace-side-nav-icon workspace-side-nav-primary-icon" aria-hidden="true">
-            ${getWorkspacePageIcon("settings")}
-          </span>
-        </a>
+        ${renderPrimaryRailItem(settingsPage, " workspace-side-nav-primary-button-settings")}
       </div>
     `;
   }

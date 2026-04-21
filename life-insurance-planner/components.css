@@ -1519,6 +1519,14 @@ body[data-page="protection-modeling-inputs"] .preliminary-link-grid {
 }
 
 .workspace-side-nav.workspace-side-nav-shell {
+  --workspace-side-nav-primary-rail-width: 3.55rem;
+  --workspace-side-nav-primary-button-color: #ffffff;
+  --workspace-side-nav-primary-icon-size: 2.12rem;
+  --workspace-side-nav-primary-icon-art-size: 1.18rem;
+  --workspace-side-nav-primary-icon-radius: 0.62rem;
+  --workspace-side-nav-primary-icon-active-bg: #ffffff;
+  --workspace-side-nav-primary-icon-active-color: #1f1a45;
+  --workspace-side-nav-primary-icon-active-shadow: 0 12px 24px rgba(9, 12, 33, 0.28);
   position: relative;
   display: block;
   height: 100%;
@@ -1531,6 +1539,7 @@ body[data-page="protection-modeling-inputs"] .preliminary-link-grid {
   overflow: visible;
 }
 
+/* Workspace side menu primary rail */
 .workspace-side-nav-shell .workspace-side-nav-primary-rail {
   position: absolute;
   top: 0;
@@ -1538,7 +1547,7 @@ body[data-page="protection-modeling-inputs"] .preliminary-link-grid {
   left: 0;
   display: flex;
   flex-direction: column;
-  width: 3.55rem;
+  width: var(--workspace-side-nav-primary-rail-width);
   min-width: 0;
   min-height: 0;
   height: auto;
@@ -1564,64 +1573,116 @@ body[data-page="protection-modeling-inputs"] .preliminary-link-grid {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.34rem;
-  min-height: 3.45rem;
-  padding: 0.5rem 0.12rem;
+  gap: 0;
+  min-height: 3.3rem;
+  padding: 0.44rem 0.12rem;
   border: 0;
   border-radius: 0.24rem;
   background: transparent;
-  color: rgba(255, 255, 255, 0.84);
+  color: var(--workspace-side-nav-primary-button-color);
   font-size: 0.77rem;
   font-weight: 400;
   line-height: 1.05;
   text-align: center;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  transition: color 0.18s ease, opacity 0.18s ease;
+  outline: none;
+}
+
+.workspace-side-nav-shell a.workspace-side-nav-primary-button,
+.workspace-side-nav-shell a.workspace-side-nav-primary-button:visited,
+.workspace-side-nav-shell .workspace-side-nav-primary-button:not(.is-active) {
+  color: var(--workspace-side-nav-primary-button-color);
 }
 
 .workspace-side-nav-shell .workspace-side-nav-primary-button-settings {
   margin-top: auto;
 }
 
-.workspace-side-nav-shell .workspace-side-nav-primary-button:hover,
-.workspace-side-nav-shell .workspace-side-nav-primary-button:focus-visible {
-  background: rgba(255, 255, 255, 0.1);
+.workspace-side-nav-shell .workspace-side-nav-primary-button.is-active {
   color: #ffffff;
-  transform: translateY(-1px);
 }
 
-.workspace-side-nav-shell .workspace-side-nav-primary-button.is-active {
-  background: rgba(255, 255, 255, 0.14);
+.workspace-side-nav-shell .workspace-side-nav-primary-button--placeholder[aria-disabled="true"] {
+  cursor: default;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-button:hover,
+.workspace-side-nav-shell .workspace-side-nav-primary-button:focus-visible {
+  background: transparent;
   color: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.28);
+  outline-offset: 2px;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-button.is-active:focus-visible {
+  outline-color: rgba(255, 255, 255, 0.36);
 }
 
 .workspace-side-nav-shell .workspace-side-nav-primary-icon {
-  width: 1.16rem;
-  height: 1.16rem;
+  position: relative;
+  width: var(--workspace-side-nav-primary-icon-size);
+  height: var(--workspace-side-nav-primary-icon-size);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
+  border-radius: var(--workspace-side-nav-primary-icon-radius);
+  background: transparent;
+  box-shadow: none;
+  color: var(--workspace-side-nav-primary-button-color);
+  transition: background-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+  isolation: isolate;
 }
 
-.workspace-side-nav-shell .workspace-side-nav-primary-icon svg {
-  width: 100%;
-  height: 100%;
+.workspace-side-nav-shell .workspace-side-nav-primary-icon::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: transparent;
+  box-shadow: none;
+  transition: background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-button.is-active .workspace-side-nav-primary-icon {
+  color: var(--workspace-side-nav-primary-icon-active-color);
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-button.is-active .workspace-side-nav-primary-icon::before {
+  background: var(--workspace-side-nav-primary-icon-active-bg);
+  box-shadow: var(--workspace-side-nav-primary-icon-active-shadow);
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-button:not(.is-active) .workspace-side-nav-primary-icon::before {
+  background: transparent;
+  box-shadow: none;
+}
+
+.workspace-side-nav-shell .workspace-side-nav-primary-icon svg,
+.workspace-side-nav-shell .workspace-side-nav-primary-icon-art {
+  width: var(--workspace-side-nav-primary-icon-art-size);
+  height: var(--workspace-side-nav-primary-icon-art-size);
   display: block;
+  position: relative;
+  z-index: 1;
+  overflow: visible;
 }
 
-.workspace-side-nav-shell .workspace-side-nav-primary-icon img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
-}
-
-.workspace-side-nav-shell .workspace-side-nav-primary-label {
-  display: none;
+.workspace-side-nav-shell .workspace-side-nav-primary-icon-art--asset {
+  background: currentColor;
+  -webkit-mask-image: var(--workspace-side-nav-primary-icon-asset);
+  mask-image: var(--workspace-side-nav-primary-icon-asset);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
 }
 
 .workspace-side-nav-shell .workspace-side-nav-context {
@@ -2080,16 +2141,11 @@ body[data-page="protection-modeling-inputs"] .preliminary-link-grid {
 }
 
 .workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-rail {
-  width: 3.55rem;
   padding: 2.7rem 0.24rem 0.9rem;
 }
 
 .workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-items {
   align-items: center;
-}
-
-.workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-label {
-  display: none;
 }
 
 .client-profile-backlink {
