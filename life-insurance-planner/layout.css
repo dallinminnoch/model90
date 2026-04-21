@@ -416,6 +416,19 @@ body.settings-page .workspace-page-topbar {
   display: block;
 }
 
+.prospect-shell {
+  width: min(calc(100% - clamp(1rem, 3vw, 2rem)), 1200px);
+  padding-top: clamp(1rem, 2vw, 1.5rem);
+  padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.prospect-stage {
+  width: 100%;
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
 @media (max-width: 480px) {
   .admin-shell {
     width: min(calc(100% - clamp(1rem, 5vw, 1.75rem)), 1180px);
