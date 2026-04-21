@@ -739,29 +739,6 @@ body.settings-page .site-header {
   background: #fff;
 }
 
-.admin-action-button {
-  min-height: clamp(2.25rem, 3vw, 2.4rem);
-  padding: 0 clamp(0.7rem, 1.2vw, 0.9rem);
-  border: 1px solid rgba(213, 221, 232, 0.9);
-  border-radius: var(--radius-sm);
-  background: #fff;
-  color: var(--text);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.admin-state-tax-toggle .admin-action-button.is-active {
-  background: #233044;
-  color: #ffffff;
-  border-color: #233044;
-}
-
-.admin-action-button.is-danger {
-  color: #8b2727;
-  border-color: rgba(139, 39, 39, 0.2);
-  background: rgba(255, 243, 243, 0.95);
-}
-
 .client-directory-shell {
   width: min(calc(100% - clamp(1rem, 3vw, 2rem)), 1540px);
   padding-top: clamp(1rem, 2vw, 1.5rem);
@@ -2204,28 +2181,6 @@ select option:disabled {
   margin-top: 0;
 }
 
-.preliminary-link-grid {
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-  align-items: end;
-}
-
-.preliminary-link-search-button {
-  width: 100%;
-  min-height: 2.85rem;
-  justify-content: center;
-}
-
-.preliminary-link-search-button:hover,
-.preliminary-link-search-button:focus-visible {
-  background: #f3f5f8;
-}
-
-.preliminary-link-search-button.is-linked {
-  justify-content: space-between;
-  gap: 0.85rem;
-  padding-inline: 0.95rem;
-}
-
 .preliminary-link-button-primary {
   flex: 1 1 auto;
   min-width: 0;
@@ -2246,51 +2201,6 @@ select option:disabled {
   font-weight: 700;
   white-space: nowrap;
   text-align: right;
-}
-
-.preliminary-link-helper {
-  grid-column: 1 / -1;
-  text-align: center;
-  margin-top: 0.2rem;
-}
-
-body[data-page="preliminary-linked"],
-body[data-page="protection-modeling-linked"],
-body[data-page="protection-modeling-inputs"] {
-  --entry-page-max-width: 1080px;
-}
-
-body[data-page="preliminary-linked"] .prospect-stage,
-body[data-page="protection-modeling-linked"] .prospect-stage,
-body[data-page="protection-modeling-inputs"] .prospect-stage {
-  max-width: calc(var(--entry-page-max-width) + 6rem);
-  margin: 0 auto;
-}
-
-body[data-page="preliminary-linked"] .prospect-stage {
-  max-width: none;
-  width: 100%;
-}
-
-.entry-page-viewport {
-  width: 100%;
-  display: grid;
-  align-items: center;
-}
-
-body[data-page="preliminary-linked"] .entry-page-viewport,
-body[data-page="protection-modeling-linked"] .entry-page-viewport,
-body[data-page="protection-modeling-inputs"] .entry-page-viewport {
-  min-height: clamp(38rem, 82vh, 56rem);
-  padding-block: clamp(0.75rem, 2vw, 1.5rem);
-}
-
-body[data-page="preliminary-linked"] .entry-page-viewport {
-  justify-items: center;
-  height: 100%;
-  min-height: 100%;
-  padding: clamp(1.2rem, 2.6vw, 2rem);
-  background: #1f1a45;
 }
 
 body[data-page="preliminary-linked"] .prospect-empty-panel,
@@ -2330,23 +2240,6 @@ body[data-page="preliminary-linked"] .prospect-empty-panel h1 {
   color: #ffffff;
 }
 
-.entry-page-layout {
-  display: grid;
-  gap: 1.45rem;
-  align-items: stretch;
-  width: min(100%, 61rem);
-  margin: 0 auto;
-}
-
-body[data-page="preliminary-linked"] .preliminary-link-helper,
-body[data-page="protection-modeling-linked"] .preliminary-link-helper,
-body[data-page="protection-modeling-inputs"] .preliminary-link-helper {
-  text-align: left;
-  margin-top: 0.25rem;
-  font-size: 0.96rem;
-  line-height: 1.55;
-}
-
 body[data-page="preliminary-linked"] .preliminary-link-search-button,
 body[data-page="protection-modeling-linked"] .preliminary-link-search-button,
 body[data-page="protection-modeling-inputs"] .preliminary-link-search-button,
@@ -2355,12 +2248,6 @@ body[data-page="protection-modeling-linked"] .preliminary-link-grid input,
 body[data-page="protection-modeling-inputs"] .preliminary-link-grid input {
   min-height: 3.45rem;
   font-size: 1rem;
-}
-
-body[data-page="preliminary-linked"] .preliminary-link-grid,
-body[data-page="protection-modeling-linked"] .preliminary-link-grid,
-body[data-page="protection-modeling-inputs"] .preliminary-link-grid {
-  gap: 0.95rem;
 }
 
 body[data-page="preliminary-linked"] .preliminary-link-button-primary,
@@ -2376,20 +2263,6 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
 }
 
 @media (max-width: 720px) {
-  body[data-page="preliminary-linked"] .prospect-stage,
-  body[data-page="protection-modeling-linked"] .prospect-stage,
-  body[data-page="protection-modeling-inputs"] .prospect-stage {
-    min-height: 0;
-    padding-block: 0;
-  }
-
-  body[data-page="preliminary-linked"] .entry-page-viewport,
-  body[data-page="protection-modeling-linked"] .entry-page-viewport,
-  body[data-page="protection-modeling-inputs"] .entry-page-viewport {
-    min-height: 0;
-    padding-block: 0;
-  }
-
   body[data-page="preliminary-linked"] .prospect-empty-panel,
   body[data-page="protection-modeling-linked"] .prospect-empty-panel,
   body[data-page="protection-modeling-inputs"] .prospect-empty-panel {
@@ -2412,11 +2285,6 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
     text-align: left;
   }
 
-  body[data-page="preliminary-linked"] .preliminary-link-grid,
-  body[data-page="protection-modeling-linked"] .preliminary-link-grid,
-  body[data-page="protection-modeling-inputs"] .preliminary-link-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .underwriting-nicotine-grid {

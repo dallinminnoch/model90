@@ -591,10 +591,27 @@ input.search-bar__input {
   justify-content: flex-end;
 }
 
+.admin-action-button {
+  min-height: clamp(2.25rem, 3vw, 2.4rem);
+  padding: 0 clamp(0.7rem, 1.2vw, 0.9rem);
+  border: 1px solid rgba(213, 221, 232, 0.9);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .admin-state-tax-toggle .admin-action-button.is-active {
   background: #233044;
   color: #ffffff;
   border-color: #233044;
+}
+
+.admin-action-button.is-danger {
+  color: #8b2727;
+  border-color: rgba(139, 39, 39, 0.2);
+  background: rgba(255, 243, 243, 0.95);
 }
 
 .admin-state-tax-summary {
@@ -954,6 +971,57 @@ body[data-page="protection-modeling-inputs"] .entry-page-action-card .entry-mode
 body[data-page="protection-modeling-linked"] .entry-page-action-card .entry-mode-pin-label,
 body[data-page="protection-modeling-inputs"] .entry-page-action-card .entry-mode-pin-label {
   justify-content: space-between;
+}
+
+.preliminary-link-grid {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  align-items: end;
+}
+
+.preliminary-link-search-button {
+  width: 100%;
+  min-height: 2.85rem;
+  justify-content: center;
+}
+
+.preliminary-link-search-button:hover,
+.preliminary-link-search-button:focus-visible {
+  background: #f3f5f8;
+}
+
+.preliminary-link-search-button.is-linked {
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding-inline: 0.95rem;
+}
+
+.preliminary-link-helper {
+  grid-column: 1 / -1;
+  text-align: center;
+  margin-top: 0.2rem;
+}
+
+body[data-page="preliminary-linked"] .preliminary-link-helper,
+body[data-page="protection-modeling-linked"] .preliminary-link-helper,
+body[data-page="protection-modeling-inputs"] .preliminary-link-helper {
+  text-align: left;
+  margin-top: 0.25rem;
+  font-size: 0.96rem;
+  line-height: 1.55;
+}
+
+body[data-page="preliminary-linked"] .preliminary-link-grid,
+body[data-page="protection-modeling-linked"] .preliminary-link-grid,
+body[data-page="protection-modeling-inputs"] .preliminary-link-grid {
+  gap: 0.95rem;
+}
+
+@media (max-width: 720px) {
+  body[data-page="preliminary-linked"] .preliminary-link-grid,
+  body[data-page="protection-modeling-linked"] .preliminary-link-grid,
+  body[data-page="protection-modeling-inputs"] .preliminary-link-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .client-profile-calendar-card {
