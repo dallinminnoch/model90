@@ -805,6 +805,33 @@ body[data-page="preliminary-linked"] .entry-page-viewport {
 }
 
 @media (min-width: 721px) {
+  body.clients-page,
+  body.client-detail-page,
+  body.lens-page,
+  body.settings-page {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  body.clients-page .app-home-shell,
+  body.client-detail-page .app-home-shell,
+  body.lens-page .app-home-shell,
+  body.settings-page .app-home-shell {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    height: calc(100vh - var(--workspace-topbar-height));
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  body.clients-page main.home-shell.app-home-shell.client-directory-shell,
+  body.client-detail-page main.home-shell.app-home-shell.prospect-shell,
+  body.lens-page main.home-shell.app-home-shell.prospect-shell,
+  body.settings-page main.home-shell.app-home-shell.settings-shell {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
   body.client-detail-page .workspace-side-nav-host[data-workspace-side-nav="client-detail"],
   body.clients-page .workspace-side-nav-host[data-workspace-side-nav="directory"],
   body.lens-page .workspace-side-nav-host[data-workspace-side-nav="lens"],
@@ -855,6 +882,82 @@ body[data-page="preliminary-linked"] .entry-page-viewport {
   body.client-detail-page.workspace-side-nav-collapsed .client-profile-shell:not(.client-profile-shell-household),
   body.client-detail-page .client-profile-shell.is-collapsed:not(.client-profile-shell-household) {
     padding-left: calc(var(--app-side-nav-collapsed-width) + var(--app-side-nav-gap));
+  }
+
+  body.clients-page .client-directory-shell {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  body.clients-page .client-directory-shell-layout {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  body.clients-page .client-directory-workspace {
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  body.clients-page .client-directory-main {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  body.client-detail-page .prospect-shell,
+  body.lens-page .prospect-shell {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  body.client-detail-page .prospect-stage,
+  body.lens-page .prospect-stage {
+    display: grid;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  body.client-detail-page .client-detail-panel {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  body.client-detail-page .client-detail-sections,
+  body.lens-page .lens-start-main {
+    min-height: 0;
+  }
+
+  body.lens-page .lens-start-layout {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  body.settings-page .settings-shell {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    height: calc(100vh - var(--workspace-topbar-height));
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  body.settings-page .settings-workspace {
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 }
 

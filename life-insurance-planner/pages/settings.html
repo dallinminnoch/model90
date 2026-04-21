@@ -394,6 +394,10 @@
           return;
         }
 
+        const observerRoot = window.matchMedia("(min-width: 721px)").matches
+          ? document.querySelector(".settings-workspace")
+          : null;
+
         observer = new window.IntersectionObserver(function (entries) {
           const visibleEntry = entries
             .filter(function (entry) { return entry.isIntersecting; })
@@ -408,6 +412,7 @@
             setActiveSettingsSection(nextKey);
           }
         }, {
+          root: observerRoot instanceof HTMLElement ? observerRoot : null,
           rootMargin: "-22% 0px -56% 0px",
           threshold: [0.2, 0.45, 0.7]
         });
