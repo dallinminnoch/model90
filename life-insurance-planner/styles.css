@@ -94,10 +94,16 @@ textarea {
   padding-top: clamp(1rem, 2vw, 1.75rem);
 }
 
-body.clients-page .home-shell.app-home-shell {
-  display: block;
+body.clients-page .home-shell.app-home-shell,
+body.client-detail-page .home-shell.app-home-shell,
+body.lens-page .home-shell.app-home-shell,
+body.settings-page .home-shell.app-home-shell {
+  width: 100%;
+  max-width: none;
+  margin: 0;
   min-height: 0;
   padding: 0;
+  place-items: stretch;
 }
 
 body.profile-creation-page .home-shell.app-home-shell {
@@ -2332,10 +2338,6 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
   transition: transform 0.22s ease;
 }
 
-.client-directory-shell-layout.is-collapsed .client-directory-app-sidebar-toggle-glyph {
-  transform: rotate(180deg);
-}
-
 .client-directory-app-sidebar-section {
   display: grid;
   gap: 0.7rem;
@@ -2405,15 +2407,13 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
   transition: opacity 0.16s ease, width 0.16s ease;
 }
 
-.workspace-side-nav-host.is-collapsed .client-directory-app-sidebar,
-.client-directory-shell-layout.is-collapsed .client-directory-app-sidebar {
+.workspace-side-nav-host.is-collapsed .client-directory-app-sidebar {
   justify-items: center;
   padding: 0.9rem 0.5rem;
   overflow: hidden;
 }
 
-.workspace-side-nav-host.is-collapsed .client-directory-app-sidebar-header,
-.client-directory-shell-layout.is-collapsed .client-directory-app-sidebar-header {
+.workspace-side-nav-host.is-collapsed .client-directory-app-sidebar-header {
   width: 100%;
   display: grid;
   place-items: center;
@@ -2423,24 +2423,20 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
 }
 
 .workspace-side-nav-host.is-collapsed .client-directory-app-sidebar-copy,
-.workspace-side-nav-host.is-collapsed .client-directory-app-sidebar-section-label,
-.client-directory-shell-layout.is-collapsed .client-directory-app-sidebar-copy,
-.client-directory-shell-layout.is-collapsed .client-directory-app-sidebar-section-label {
+.workspace-side-nav-host.is-collapsed .client-directory-app-sidebar-section-label {
   max-height: 0;
   overflow: hidden;
   opacity: 0;
   pointer-events: none;
 }
 
-.workspace-side-nav-host.is-collapsed .client-directory-app-sidebar-section,
-.client-directory-shell-layout.is-collapsed .client-directory-app-sidebar-section {
+.workspace-side-nav-host.is-collapsed .client-directory-app-sidebar-section {
   width: 100%;
   justify-items: center;
   gap: 0.55rem;
 }
 
-.workspace-side-nav-host.is-collapsed .client-directory-app-nav,
-.client-directory-shell-layout.is-collapsed .client-directory-app-nav {
+.workspace-side-nav-host.is-collapsed .client-directory-app-nav {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -2448,8 +2444,7 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
   gap: 0.55rem;
 }
 
-.workspace-side-nav-host.is-collapsed .client-directory-app-nav-button,
-.client-directory-shell-layout.is-collapsed .client-directory-app-nav-button {
+.workspace-side-nav-host.is-collapsed .client-directory-app-nav-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2466,22 +2461,19 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
   overflow: hidden;
 }
 
-.workspace-side-nav-host.is-collapsed .client-directory-app-nav-label,
-.client-directory-shell-layout.is-collapsed .client-directory-app-nav-label {
+.workspace-side-nav-host.is-collapsed .client-directory-app-nav-label {
   display: none;
   width: 0;
   opacity: 0;
 }
 
-.workspace-side-nav-host.is-collapsed .client-directory-app-nav-icon,
-.client-directory-shell-layout.is-collapsed .client-directory-app-nav-icon {
+.workspace-side-nav-host.is-collapsed .client-directory-app-nav-icon {
   width: 1.2rem;
   height: 1.2rem;
   margin: 0 auto;
 }
 
-.workspace-side-nav-host.is-collapsed .client-directory-app-sidebar-toggle,
-.client-directory-shell-layout.is-collapsed .client-directory-app-sidebar-toggle {
+.workspace-side-nav-host.is-collapsed .client-directory-app-sidebar-toggle {
   color: #526074;
 }
 
@@ -5561,10 +5553,9 @@ body.client-detail-page .client-reminders-strip-item {
 .lens-page .home-shell {
   width: 100%;
   max-width: none;
-  display: block;
-  min-height: calc(100vh - 5rem);
   margin: 0;
-  padding: 0.35rem 0 0;
+  min-height: 0;
+  padding: 0;
 }
 
 .lens-landing {
@@ -7657,25 +7648,25 @@ body[data-step] .step-item:focus-visible .step-title {
 }
 
 @media (min-width: 1300px) and (max-width: 1499px) {
-  body {
+  body:not(.clients-page):not(.client-detail-page):not(.lens-page):not(.settings-page) {
     zoom: 0.92;
   }
 }
 
 @media (min-width: 1100px) and (max-width: 1299px) {
-  body {
+  body:not(.clients-page):not(.client-detail-page):not(.lens-page):not(.settings-page) {
     zoom: 0.84;
   }
 }
 
 @media (min-width: 900px) and (max-width: 1099px) {
-  body {
+  body:not(.clients-page):not(.client-detail-page):not(.lens-page):not(.settings-page) {
     zoom: 0.76;
   }
 }
 
 @media (min-width: 721px) and (max-width: 899px) {
-  body {
+  body:not(.clients-page):not(.client-detail-page):not(.lens-page):not(.settings-page) {
     zoom: 0.68;
   }
 }
@@ -7683,17 +7674,19 @@ body[data-step] .step-item:focus-visible .step-title {
 @media (min-width: 721px) {
   body.client-detail-page .home-shell,
   body.client-detail-page .prospect-shell,
+  body.clients-page .home-shell.app-home-shell,
   body.clients-page .client-directory-shell,
   body.lens-page .home-shell,
-  body.lens-page .prospect-shell {
-    display: block;
+  body.lens-page .prospect-shell,
+  body.settings-page .home-shell,
+  body.settings-page .settings-shell {
     width: 100%;
     max-width: none;
     margin: 0;
   }
 
   body.client-detail-page .prospect-shell {
-    padding: 0.4rem clamp(0.75rem, 2vw, 1.25rem) clamp(1.25rem, 2.5vw, 1.75rem);
+    padding: 0;
   }
 
   body.client-detail-page .prospect-stage,
@@ -7723,8 +7716,7 @@ body[data-step] .step-item:focus-visible .step-title {
   }
 
   .workspace-side-nav-host[data-workspace-side-nav] .workspace-side-nav-shell .workspace-side-nav-toggle,
-  .client-profile-shell .workspace-side-nav-shell .workspace-side-nav-toggle,
-  .client-directory-shell-layout .workspace-side-nav-shell .workspace-side-nav-toggle {
+  .client-profile-shell .workspace-side-nav-shell .workspace-side-nav-toggle {
     position: absolute;
     top: 0.88rem;
     right: 0.78rem;
@@ -7750,23 +7742,19 @@ body[data-step] .step-item:focus-visible .step-title {
   .workspace-side-nav-host[data-workspace-side-nav] .workspace-side-nav-shell .workspace-side-nav-toggle:hover,
   .workspace-side-nav-host[data-workspace-side-nav] .workspace-side-nav-shell .workspace-side-nav-toggle:focus-visible,
   .client-profile-shell .workspace-side-nav-shell .workspace-side-nav-toggle:hover,
-  .client-profile-shell .workspace-side-nav-shell .workspace-side-nav-toggle:focus-visible,
-  .client-directory-shell-layout .workspace-side-nav-shell .workspace-side-nav-toggle:hover,
-  .client-directory-shell-layout .workspace-side-nav-shell .workspace-side-nav-toggle:focus-visible {
+  .client-profile-shell .workspace-side-nav-shell .workspace-side-nav-toggle:focus-visible {
     transform: translateY(-1px);
   }
 
   .workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-toggle,
-  .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-toggle,
-  .client-directory-shell-layout.is-collapsed .workspace-side-nav-shell .workspace-side-nav-toggle {
+  .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-toggle {
     top: 0.76rem;
     right: auto;
     left: calc((3.55rem - 1.45rem) / 2);
   }
 
   .workspace-side-nav-host[data-workspace-side-nav] .workspace-side-nav-shell .workspace-side-nav-toggle-glyph,
-  .client-profile-shell .workspace-side-nav-shell .workspace-side-nav-toggle-glyph,
-  .client-directory-shell-layout .workspace-side-nav-shell .workspace-side-nav-toggle-glyph {
+  .client-profile-shell .workspace-side-nav-shell .workspace-side-nav-toggle-glyph {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -7778,19 +7766,17 @@ body[data-step] .step-item:focus-visible .step-title {
   }
 
   .workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-toggle-glyph,
-  .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-toggle-glyph,
-  .client-directory-shell-layout.is-collapsed .workspace-side-nav-shell .workspace-side-nav-toggle-glyph {
+  .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-toggle-glyph {
     transform: none;
   }
 
   .workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-toggle .workspace-side-nav-toggle-art,
-  .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-toggle .workspace-side-nav-toggle-art,
-  .client-directory-shell-layout.is-collapsed .workspace-side-nav-shell .workspace-side-nav-toggle .workspace-side-nav-toggle-art {
+  .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-toggle .workspace-side-nav-toggle-art {
     filter: brightness(0) invert(1);
   }
 
-  body.lens-page.workspace-side-nav-collapsed .lens-start-layout,
-  body.lens-page .workspace-side-nav-host.is-collapsed[data-workspace-side-nav="lens"] ~ .home-shell .lens-start-layout {
+  body.lens-page.workspace-side-nav-collapsed .prospect-stage,
+  body.lens-page .workspace-side-nav-host.is-collapsed[data-workspace-side-nav="lens"] ~ .home-shell .prospect-stage {
     padding-left: calc(var(--app-side-nav-collapsed-width) + var(--app-side-nav-gap));
   }
 
@@ -7798,147 +7784,153 @@ body[data-step] .step-item:focus-visible .step-title {
   }
 
   body.clients-page .client-directory-shell {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    width: 100%;
+    max-width: none;
+    margin: 0;
     min-height: 0;
-    padding: 0.82rem clamp(0.4rem, 0.9vw, 0.7rem) clamp(0.55rem, 1.2vw, 0.9rem);
+    padding: 0;
+    overflow: hidden;
   }
 
 }
 
-.client-directory-shell-layout.is-a11y-large-text .client-directory-title-block.client-directory-title-block-compact h1 {
+body.clients-page.is-a11y-large-text .client-directory-title-block.client-directory-title-block-compact h1 {
   font-size: 1.3rem !important;
 }
 
-.client-directory-shell-layout.is-a11y-large-text .client-table-search input,
-.client-directory-shell-layout.is-a11y-large-text .client-toolbar-button,
-.client-directory-shell-layout.is-a11y-large-text .client-status-tab,
-.client-directory-shell-layout.is-a11y-large-text .client-table-header,
-.client-directory-shell-layout.is-a11y-large-text .client-table-cell {
+body.clients-page.is-a11y-large-text .client-table-search input,
+body.clients-page.is-a11y-large-text .client-toolbar-button,
+body.clients-page.is-a11y-large-text .client-status-tab,
+body.clients-page.is-a11y-large-text .client-table-header,
+body.clients-page.is-a11y-large-text .client-table-cell {
   font-size: 1rem !important;
 }
 
-.client-directory-shell-layout.is-a11y-large-text .client-opportunity-score-pill {
+body.clients-page.is-a11y-large-text .client-opportunity-score-pill {
   font-size: 1rem !important;
 }
 
-.client-directory-shell-layout.is-a11y-large-text .client-status-tab-count,
-.client-directory-shell-layout.is-a11y-large-text .client-directory-summary-kicker,
-.client-directory-shell-layout.is-a11y-large-text .client-directory-summary-note,
-.client-directory-shell-layout.is-a11y-large-text .client-directory-summary-badge,
-.client-directory-shell-layout.is-a11y-large-text .client-directory-summary-list-label,
-.client-directory-shell-layout.is-a11y-large-text .client-directory-summary-progress-head,
-.client-directory-shell-layout.is-a11y-large-text .client-directory-summary-progress-foot {
+body.clients-page.is-a11y-large-text .client-status-tab-count,
+body.clients-page.is-a11y-large-text .client-directory-summary-kicker,
+body.clients-page.is-a11y-large-text .client-directory-summary-note,
+body.clients-page.is-a11y-large-text .client-directory-summary-badge,
+body.clients-page.is-a11y-large-text .client-directory-summary-list-label,
+body.clients-page.is-a11y-large-text .client-directory-summary-progress-head,
+body.clients-page.is-a11y-large-text .client-directory-summary-progress-foot {
   font-size: 0.9rem !important;
 }
 
-.client-directory-shell-layout.is-a11y-large-text .client-directory-summary-value {
+body.clients-page.is-a11y-large-text .client-directory-summary-value {
   font-size: clamp(2.5rem, 4vw, 3.35rem) !important;
 }
 
-.client-directory-shell-layout.is-a11y-large-text .client-table-cell-client > div > strong {
+body.clients-page.is-a11y-large-text .client-table-cell-client > div > strong {
   font-size: 1.08rem !important;
   line-height: 1.2;
 }
 
-.client-directory-shell-layout.is-a11y-large-text .client-table-cell-client > div > span,
-.client-directory-shell-layout.is-a11y-large-text .client-table-cell-next-action-value,
-.client-directory-shell-layout.is-a11y-large-text .client-table-cell-status-value {
+body.clients-page.is-a11y-large-text .client-table-cell-client > div > span,
+body.clients-page.is-a11y-large-text .client-table-cell-next-action-value,
+body.clients-page.is-a11y-large-text .client-table-cell-status-value {
   font-size: 0.94rem !important;
   line-height: 1.35;
 }
 
-.client-directory-shell-layout.is-a11y-high-contrast {
+body.clients-page.is-a11y-high-contrast .client-directory-workspace {
   background: #ffffff !important;
   border-color: rgba(116, 127, 145, 0.68) !important;
   box-shadow: 0 18px 40px rgba(16, 33, 52, 0.08) !important;
 }
 
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-app-sidebar,
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-rail,
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-header,
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-summary-card,
-.client-directory-shell-layout.is-a11y-high-contrast .client-table-card,
-.client-directory-shell-layout.is-a11y-high-contrast .client-table-search input,
-.client-directory-shell-layout.is-a11y-high-contrast .client-toolbar-button,
-.client-directory-shell-layout.is-a11y-high-contrast .client-header-action,
-.client-directory-shell-layout.is-a11y-high-contrast .client-rail-button {
+body.clients-page.is-a11y-high-contrast .client-directory-app-sidebar,
+body.clients-page.is-a11y-high-contrast .client-directory-rail,
+body.clients-page.is-a11y-high-contrast .client-directory-header,
+body.clients-page.is-a11y-high-contrast .client-directory-summary-card,
+body.clients-page.is-a11y-high-contrast .client-table-card,
+body.clients-page.is-a11y-high-contrast .client-table-search input,
+body.clients-page.is-a11y-high-contrast .client-toolbar-button,
+body.clients-page.is-a11y-high-contrast .client-header-action,
+body.clients-page.is-a11y-high-contrast .client-rail-button {
   background: #ffffff !important;
   border-color: rgba(148, 163, 184, 0.95) !important;
   box-shadow: none !important;
 }
 
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-title-block.client-directory-title-block-compact h1,
-.client-directory-shell-layout.is-a11y-high-contrast .client-table-header,
-.client-directory-shell-layout.is-a11y-high-contrast .client-table-cell,
-.client-directory-shell-layout.is-a11y-high-contrast .client-status-tab,
-.client-directory-shell-layout.is-a11y-high-contrast .client-toolbar-button,
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-app-nav-button,
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-summary-value {
+body.clients-page.is-a11y-high-contrast .client-directory-title-block.client-directory-title-block-compact h1,
+body.clients-page.is-a11y-high-contrast .client-table-header,
+body.clients-page.is-a11y-high-contrast .client-table-cell,
+body.clients-page.is-a11y-high-contrast .client-status-tab,
+body.clients-page.is-a11y-high-contrast .client-toolbar-button,
+body.clients-page.is-a11y-high-contrast .client-directory-app-nav-button,
+body.clients-page.is-a11y-high-contrast .client-directory-summary-value {
   color: #0f172a !important;
 }
 
-.client-directory-shell-layout.is-a11y-high-contrast .client-opportunity-score-pill {
+body.clients-page.is-a11y-high-contrast .client-opportunity-score-pill {
   border: 1px solid rgba(148, 163, 184, 0.95);
 }
 
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-title-block p,
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-summary-note,
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-summary-kicker,
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-summary-list-label,
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-summary-progress-head,
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-summary-progress-foot,
-.client-directory-shell-layout.is-a11y-high-contrast .client-table-cell-client > div > span,
-.client-directory-shell-layout.is-a11y-high-contrast .client-table-cell-next-action-value,
-.client-directory-shell-layout.is-a11y-high-contrast .client-table-cell-status-value,
-.client-directory-shell-layout.is-a11y-high-contrast .client-rail-button,
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-app-section-label {
+body.clients-page.is-a11y-high-contrast .client-directory-title-block p,
+body.clients-page.is-a11y-high-contrast .client-directory-summary-note,
+body.clients-page.is-a11y-high-contrast .client-directory-summary-kicker,
+body.clients-page.is-a11y-high-contrast .client-directory-summary-list-label,
+body.clients-page.is-a11y-high-contrast .client-directory-summary-progress-head,
+body.clients-page.is-a11y-high-contrast .client-directory-summary-progress-foot,
+body.clients-page.is-a11y-high-contrast .client-table-cell-client > div > span,
+body.clients-page.is-a11y-high-contrast .client-table-cell-next-action-value,
+body.clients-page.is-a11y-high-contrast .client-table-cell-status-value,
+body.clients-page.is-a11y-high-contrast .client-rail-button,
+body.clients-page.is-a11y-high-contrast .client-directory-app-section-label {
   color: #334155 !important;
 }
 
-.client-directory-shell-layout.is-a11y-high-contrast .client-status-tab-count {
+body.clients-page.is-a11y-high-contrast .client-status-tab-count {
   background: #e2e8f0 !important;
   color: #0f172a !important;
 }
 
-.client-directory-shell-layout.is-a11y-high-contrast .client-status-tab.is-active,
-.client-directory-shell-layout.is-a11y-high-contrast .client-status-tab.is-active .client-status-tab-count,
-.client-directory-shell-layout.is-a11y-high-contrast .client-directory-utility-button.is-active {
+body.clients-page.is-a11y-high-contrast .client-status-tab.is-active,
+body.clients-page.is-a11y-high-contrast .client-status-tab.is-active .client-status-tab-count,
+body.clients-page.is-a11y-high-contrast .client-directory-utility-button.is-active {
   color: #4c2fd1 !important;
 }
 
-.client-directory-shell-layout.is-a11y-focus-assist button:focus-visible,
-.client-directory-shell-layout.is-a11y-focus-assist input:focus-visible,
-.client-directory-shell-layout.is-a11y-focus-assist [href]:focus-visible,
-.client-directory-shell-layout.is-a11y-focus-assist [tabindex]:focus-visible {
+body.clients-page.is-a11y-focus-assist button:focus-visible,
+body.clients-page.is-a11y-focus-assist input:focus-visible,
+body.clients-page.is-a11y-focus-assist [href]:focus-visible,
+body.clients-page.is-a11y-focus-assist [tabindex]:focus-visible {
   outline: 3px solid rgba(92, 63, 214, 0.48) !important;
   outline-offset: 3px !important;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.96) !important;
 }
 
-.client-directory-shell-layout.is-a11y-reduced-motion *,
-.client-directory-shell-layout.is-a11y-reduced-motion *::before,
-.client-directory-shell-layout.is-a11y-reduced-motion *::after {
+body.clients-page.is-a11y-reduced-motion *,
+body.clients-page.is-a11y-reduced-motion *::before,
+body.clients-page.is-a11y-reduced-motion *::after {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
 }
 
-.client-directory-shell-layout.is-a11y-reduced-motion .client-directory-utility-button:hover,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-directory-utility-button:focus-visible,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-directory-accessibility-close:hover,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-directory-accessibility-close:focus-visible,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-directory-accessibility-option:hover,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-directory-accessibility-option:focus-within,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-directory-accessibility-reset:hover,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-directory-accessibility-reset:focus-visible,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-directory-summary-customize-close:hover,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-directory-summary-customize-close:focus-visible,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-directory-summary-customize-option:hover,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-directory-summary-customize-option:focus-within,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-header-action-primary:hover,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-header-action-primary:focus-visible,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-rail-button:hover,
-.client-directory-shell-layout.is-a11y-reduced-motion .client-rail-button:focus-visible {
+body.clients-page.is-a11y-reduced-motion .client-directory-utility-button:hover,
+body.clients-page.is-a11y-reduced-motion .client-directory-utility-button:focus-visible,
+body.clients-page.is-a11y-reduced-motion .client-directory-accessibility-close:hover,
+body.clients-page.is-a11y-reduced-motion .client-directory-accessibility-close:focus-visible,
+body.clients-page.is-a11y-reduced-motion .client-directory-accessibility-option:hover,
+body.clients-page.is-a11y-reduced-motion .client-directory-accessibility-option:focus-within,
+body.clients-page.is-a11y-reduced-motion .client-directory-accessibility-reset:hover,
+body.clients-page.is-a11y-reduced-motion .client-directory-accessibility-reset:focus-visible,
+body.clients-page.is-a11y-reduced-motion .client-directory-summary-customize-close:hover,
+body.clients-page.is-a11y-reduced-motion .client-directory-summary-customize-close:focus-visible,
+body.clients-page.is-a11y-reduced-motion .client-directory-summary-customize-option:hover,
+body.clients-page.is-a11y-reduced-motion .client-directory-summary-customize-option:focus-within,
+body.clients-page.is-a11y-reduced-motion .client-header-action-primary:hover,
+body.clients-page.is-a11y-reduced-motion .client-header-action-primary:focus-visible,
+body.clients-page.is-a11y-reduced-motion .client-rail-button:hover,
+body.clients-page.is-a11y-reduced-motion .client-rail-button:focus-visible {
   transform: none !important;
   box-shadow: none !important;
 }
@@ -8046,8 +8038,7 @@ body[data-step] .step-item:focus-visible .step-title {
     justify-content: flex-end;
   }
 
-  .client-directory-app-sidebar,
-  .client-directory-shell-layout.is-collapsed .client-directory-app-sidebar {
+  .client-directory-app-sidebar {
     padding: 0.9rem;
     border-right: 0;
     border-bottom: 1px solid rgba(229, 235, 242, 0.95);
@@ -8059,14 +8050,7 @@ body[data-step] .step-item:focus-visible .step-title {
     display: none;
   }
 
-  .client-directory-shell-layout.is-collapsed .client-directory-app-sidebar-toggle {
-    display: inline-flex;
-    position: relative;
-    z-index: 2;
-  }
-
-  .client-directory-app-sidebar-header,
-  .client-directory-shell-layout.is-collapsed .client-directory-app-sidebar-header {
+  .client-directory-app-sidebar-header {
     display: flex;
     justify-content: space-between;
     width: auto;
@@ -8075,31 +8059,26 @@ body[data-step] .step-item:focus-visible .step-title {
   }
 
   .client-directory-app-sidebar-copy,
-  .client-directory-app-sidebar-section-label,
-  .client-directory-shell-layout.is-collapsed .client-directory-app-sidebar-copy,
-  .client-directory-shell-layout.is-collapsed .client-directory-app-sidebar-section-label {
+  .client-directory-app-sidebar-section-label {
     max-height: none;
     overflow: visible;
     opacity: 1;
     pointer-events: auto;
   }
 
-  .client-directory-app-sidebar-section,
-  .client-directory-shell-layout.is-collapsed .client-directory-app-sidebar-section {
+  .client-directory-app-sidebar-section {
     width: auto;
     justify-items: stretch;
     gap: 0.7rem;
   }
 
-  .client-directory-app-nav,
-  .client-directory-shell-layout.is-collapsed .client-directory-app-nav {
+  .client-directory-app-nav {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: stretch;
   }
 
-  .client-directory-app-nav-button,
-  .client-directory-shell-layout.is-collapsed .client-directory-app-nav-button {
+  .client-directory-app-nav-button {
     width: 100%;
     max-width: none;
     min-width: 0;
@@ -8112,8 +8091,7 @@ body[data-step] .step-item:focus-visible .step-title {
     align-self: auto;
   }
 
-  .client-directory-app-nav-label,
-  .client-directory-shell-layout.is-collapsed .client-directory-app-nav-label {
+  .client-directory-app-nav-label {
     display: block;
     width: auto;
     opacity: 1;
@@ -8262,28 +8240,28 @@ body[data-step] .step-item:focus-visible .step-title {
   scroll-margin-top: var(--client-profile-anchor-offset, 0.85rem);
 }
 .client-profile-shell.is-collapsed .workspace-side-nav.workspace-side-nav-shell,
-.client-directory-shell-layout.is-collapsed .workspace-side-nav.workspace-side-nav-shell {
+body.clients-page .workspace-side-nav-host.is-collapsed .workspace-side-nav.workspace-side-nav-shell {
   display: block;
 }
 
 .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-context,
-.client-directory-shell-layout.is-collapsed .workspace-side-nav-shell .workspace-side-nav-context {
+body.clients-page .workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-context {
   display: none;
 }
 
 .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-rail,
-.client-directory-shell-layout.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-rail {
+body.clients-page .workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-rail {
   width: 3.55rem;
   padding: 2.7rem 0.24rem 0.9rem;
 }
 
 .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-items,
-.client-directory-shell-layout.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-items {
+body.clients-page .workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-items {
   align-items: center;
 }
 
 .client-profile-shell.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-label,
-.client-directory-shell-layout.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-label {
+body.clients-page .workspace-side-nav-host.is-collapsed .workspace-side-nav-shell .workspace-side-nav-primary-label {
   display: none;
 }
 }

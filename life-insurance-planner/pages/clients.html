@@ -78,7 +78,7 @@
   </script>
   <main class="home-shell app-home-shell client-directory-shell">
     <section class="client-directory-shell-layout" data-directory-sidebar-layout>
-      <section class="client-directory-workspace">
+      <section class="client-directory-workspace workspace-visible-pane">
         <aside class="client-directory-rail" aria-label="Browse clients by last name letter">
           <button class="client-rail-button is-active" type="button" data-client-letter="all">All</button>
           <button class="client-rail-button" type="button" data-client-letter="A">A</button>
@@ -1343,9 +1343,7 @@
       }
 
       function syncAccessibilitySettings() {
-        const accessibilityRoot = directorySidebarLayout instanceof HTMLElement
-          ? directorySidebarLayout
-          : document.querySelector(".client-directory-shell-layout");
+        const accessibilityRoot = document.body;
 
         if (accessibilityRoot instanceof HTMLElement) {
           Object.keys(ACCESSIBILITY_CLASS_BY_KEY).forEach(function (key) {
@@ -4177,7 +4175,6 @@
 
         document.body.classList.toggle("workspace-side-nav-collapsed", isCollapsed);
         directorySidebarHost.classList.toggle("is-collapsed", isCollapsed);
-        directorySidebarLayout.classList.toggle("is-collapsed", isCollapsed);
         directorySidebarToggle.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
         directorySidebarToggle.setAttribute("aria-label", isCollapsed ? "Expand directory navigation" : "Collapse directory navigation");
         directorySidebarToggle.setAttribute("title", isCollapsed ? "Expand directory navigation" : "Collapse directory navigation");
@@ -4231,7 +4228,7 @@
         setDirectorySidebarCollapsed(isDirectorySidebarCollapsed);
 
         directorySidebarToggle.addEventListener("click", function () {
-          const nextCollapsed = !directorySidebarLayout.classList.contains("is-collapsed");
+          const nextCollapsed = !document.body.classList.contains("workspace-side-nav-collapsed");
           setDirectorySidebarCollapsed(nextCollapsed);
 
           try {

@@ -252,8 +252,13 @@
 
   function initializeReturnHomeButton() {
     const isHomePage = document.body.classList.contains("app-home");
+    const isWorkspacePage =
+      document.body.classList.contains("clients-page") ||
+      document.body.classList.contains("client-detail-page") ||
+      document.body.classList.contains("lens-page") ||
+      document.body.classList.contains("settings-page");
 
-    if (isHomePage) {
+    if (isHomePage || isWorkspacePage) {
       return;
     }
 
