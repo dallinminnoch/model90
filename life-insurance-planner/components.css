@@ -424,6 +424,26 @@ input.search-bar__input {
   }
 }
 
+.admin-summary-card,
+.admin-accounts-panel {
+  border: 1px solid rgba(213, 221, 232, 0.9);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 14px 34px rgba(16, 33, 52, 0.06);
+}
+
+.admin-summary-card {
+  padding: clamp(1rem, 1.8vw, 1.5rem);
+}
+
+.admin-accounts-panel {
+  padding: clamp(1rem, 1.8vw, 1.5rem);
+}
+
+.admin-panel-header h2 {
+  margin-top: 6px;
+}
+
 .entry-mode-panel {
   display: grid;
   justify-items: center;

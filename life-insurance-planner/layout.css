@@ -408,6 +408,14 @@ body.settings-page .workspace-page-topbar {
   margin-bottom: var(--space-xl);
 }
 
+.income-loss-page .workflow-shell {
+  max-width: 1500px;
+}
+
+.income-loss-layout {
+  display: block;
+}
+
 @media (max-width: 480px) {
   .admin-shell {
     width: min(calc(100% - clamp(1rem, 5vw, 1.75rem)), 1180px);
