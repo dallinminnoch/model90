@@ -168,16 +168,12 @@
           studio: "studio.html",
           clients: "studio.html?view=clients.html",
           lens: "studio.html?view=lens.html",
-          strategy: "studio.html?view=strategy-builder.html",
-          policy: "studio.html?view=policy-web.html",
           settings: "studio.html?view=settings.html"
         }
       : {
           studio: "studio.html",
           clients: "clients.html",
           lens: "lens.html",
-          strategy: "strategy-builder.html",
-          policy: "policy-web.html",
           settings: "settings.html"
         };
   }
@@ -190,9 +186,7 @@
     const pages = [
       isShell ? { key: "studio", label: "Start Page", shortLabel: "Start", href: hrefs.studio, active: activePage ? activePage === "studio" : mode === "studio" } : null,
       { key: "clients", label: "Client Directory", shortLabel: "Clients", href: hrefs.clients, active: activePage ? activePage === "clients" : mode === "directory" || mode === "client-detail" },
-      { key: "lens", label: "LENS Analysis", shortLabel: "LENS", href: hrefs.lens, active: activePage ? activePage === "lens" : mode === "lens" },
-      { key: "strategy", label: "Strategy Builder", shortLabel: "Strategy", href: hrefs.strategy, active: activePage === "strategy" },
-      { key: "policy", label: "Policy Web", shortLabel: "Policy", href: hrefs.policy, active: activePage === "policy" }
+      { key: "lens", label: "LENS Analysis", shortLabel: "LENS", href: hrefs.lens, active: activePage ? activePage === "lens" : mode === "lens" }
     ].filter(Boolean);
     pages.settingsPage = {
       key: "settings",

@@ -3317,91 +3317,6 @@ body.client-detail-page .client-reminders-strip-item {
   line-height: 1.18;
 }
 
-.client-checklist-progress {
-  position: relative;
-  display: grid;
-  align-items: start;
-  min-height: 1.7rem;
-  padding: 0.02rem 0.12rem 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  overflow: visible;
-}
-
-.client-checklist-progress-track,
-.client-checklist-progress-fill {
-  position: absolute;
-  top: 0.66rem;
-  left: calc(50% / var(--checklist-step-count));
-  height: 2px;
-  border-radius: 999px;
-  transform: translateY(-50%);
-}
-
-.client-checklist-progress-track {
-  width: calc(100% - (100% / var(--checklist-step-count)));
-  background: rgba(188, 198, 213, 0.9);
-}
-
-.client-checklist-progress-fill {
-  width: calc((100% - (100% / var(--checklist-step-count))) * var(--checklist-progress-ratio));
-  background: #6d4de5;
-  transition: width 220ms ease;
-}
-
-.client-checklist-progress-steps {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(var(--checklist-step-count), minmax(0, 1fr));
-  align-items: start;
-  z-index: 1;
-}
-
-.client-checklist-progress-step {
-  display: flex;
-  justify-content: center;
-}
-
-.client-checklist-progress-step span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.28rem;
-  height: 1.28rem;
-  border-radius: 999px;
-  border: 1px solid rgba(188, 198, 213, 0.98);
-  background: #ffffff;
-  color: #96a1b2;
-  font-size: 0.72rem;
-  font-weight: 700;
-  line-height: 1;
-  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease;
-}
-
-.client-checklist-progress-step.is-complete span,
-.client-checklist-progress-step.is-active span {
-  border-color: #6d4de5;
-  background: #6d4de5;
-  color: #ffffff;
-}
-
-.client-checklist-progress-step.is-complete span {
-  border-color: transparent;
-  background: #ffffff;
-}
-
-.client-checklist-progress-step.is-complete .client-checklist-check-icon {
-  width: 1.18rem;
-  height: 1.18rem;
-  background-color: #6d4de5;
-}
-
-.client-checklist-progress-step.is-upcoming span {
-  border-color: rgba(188, 198, 213, 0.98);
-  background: #ffffff;
-  color: #96a1b2;
-}
 .client-detail-card-split .client-detail-card-header {
   margin-bottom: 0.72rem;
 }
@@ -5562,88 +5477,10 @@ body.client-detail-page .client-reminders-strip-item {
   word-break: break-word;
 }
 
-.client-checklist-next {
-  display: grid;
-  gap: 0.22rem;
-  padding: 0.66rem 0.88rem;
-  border: 0 !important;
-  border-radius: 0.35rem;
-  background: #FEF3C7 !important;
-  box-shadow: none;
-}
-
-.client-checklist-next-label {
-  color: #92400E;
-  font-size: 0.98rem;
-  font-weight: 600 !important;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.client-checklist-next-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.client-checklist-next-button {
-  display: block;
-  color: inherit;
-}
-
-.client-checklist-next-top .client-checklist-next-label {
-  flex: 0 0 auto;
-}
-
-.client-checklist-next strong {
-  color: #92400E;
-  font-size: 1rem;
-  font-weight: 650;
-  line-height: 1.15;
-  white-space: nowrap;
-}
-
-.client-checklist-next-row {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.25rem;
-  min-width: 0;
-}
-
-.client-checklist-next-button .client-checklist-next-top {
-  gap: 0.45rem;
-  justify-content: space-between;
-}
-
-.client-checklist-next-icon {
-  width: 1.6rem;
-  height: 1.6rem;
-  flex: 0 0 auto;
-  opacity: 1;
-  filter: brightness(0);
-  transform: translateY(1px);
-}
-
-.client-checklist-next.is-incomplete {
-  border-color: rgba(146, 64, 14, 0.18);
-  background: #FEF3C7;
-}
-
-.client-checklist-next.is-complete {
-  border-color: rgba(146, 64, 14, 0.18);
-  background: #FEF3C7;
-}
-
 @media (max-width: 1180px) {
   .client-primary-action-shell {
     grid-template-columns: 1fr;
   }
-
-  $1615;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 .lens-stage-grid {
@@ -7399,19 +7236,6 @@ textarea {
   background: linear-gradient(180deg, #faf8ff 0%, #f5f1ff 100%);
   box-shadow: 0 10px 24px rgba(109, 77, 229, 0.08);
   outline: none;
-}
-
-.lens-intake-manual-panel {
-  display: grid;
-  gap: 1.35rem;
-  padding-top: 0.2rem;
-}
-
-.lens-intake-manual-panel .form-section {
-  padding: 1.1rem 1.05rem;
-  border: 1px solid rgba(226, 232, 240, 0.95);
-  border-radius: 0.85rem;
-  background: #fbfcfe;
 }
 
 body[data-step] .workflow-nav {

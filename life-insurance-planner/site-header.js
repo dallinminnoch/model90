@@ -272,8 +272,6 @@
     const brandSrc = isNestedPage ? "../Images/MODEL 90 (30 x 10 in).png" : "Images/MODEL 90 (30 x 10 in).png";
     const clientsHref = isNestedPage ? "clients.html" : "pages/clients.html";
     const lensHref = isNestedPage ? "lens.html" : "pages/lens.html";
-    const strategyHref = isNestedPage ? "strategy-builder.html" : "pages/strategy-builder.html";
-    const policyHref = isNestedPage ? "policy-web.html" : "pages/policy-web.html";
     const signInHref = isNestedPage ? "sign-in.html" : "pages/sign-in.html";
     const adminHref = isNestedPage ? "admin-accounts.html" : "pages/admin-accounts.html";
     const fullscreenOpenSrc = isNestedPage ? "../Images/openfullscreen.svg" : "Images/openfullscreen.svg";
@@ -305,8 +303,6 @@
                 <button class="site-nav-link site-dropdown-toggle" type="button" aria-expanded="false" data-i18n="nav.financialProducts">Financial Products</button>
                 <div class="site-dropdown-menu">
                   <a class="site-dropdown-link" href="${lensHref}">LENS Analysis</a>
-                  <a class="site-dropdown-link" href="${strategyHref}">Strategy Builder</a>
-                  <a class="site-dropdown-link" href="${policyHref}">Policy Web</a>
                 </div>
               </div>
             </nav>
