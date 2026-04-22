@@ -1036,12 +1036,14 @@
       : "";
     const isFlagged = Boolean(record.isFlagged);
 
+    const rowFlagIconSrc = isFlagged ? "../Images/flat-row-selected.svg" : "../Images/flat-row.svg";
+
     return `
       <div class="client-table client-table-clickable directory-list-row" role="row" tabindex="0" data-client-open="${record.id}">
         <div class="client-table-cell client-table-cell-check"><input class="row-select-checkbox" type="checkbox" aria-label="Select ${record.displayName}" data-client-select="${record.id}"${isSelected ? " checked" : ""}></div>
         <div class="client-table-cell client-table-cell-flag">
           <button class="client-row-flag-button row-flag-control${isFlagged ? " is-flagged" : ""}" type="button" data-client-flag-toggle="${record.id}" aria-pressed="${isFlagged ? "true" : "false"}" aria-label="${isFlagged ? `Unflag ${record.displayName}` : `Flag ${record.displayName}`}">
-            <span class="client-row-flag-icon row-flag-control__icon" aria-hidden="true"></span>
+            <img class="client-row-flag-icon row-flag-control__icon" src="${rowFlagIconSrc}" alt="" aria-hidden="true">
           </button>
         </div>
         <div class="client-table-cell client-table-cell-client directory-person">
@@ -1051,8 +1053,8 @@
             <span class="directory-person__subtitle">${getClientDirectorySubtitle(record)}</span>
           </div>
         </div>
-        <div class="client-table-cell">${record.caseRef || "--"}</div>
-        <div class="client-table-cell client-table-cell-opportunity-score">
+        <div class="client-table-cell client-table-cell-case-ref-value">${record.caseRef || "--"}</div>
+        <div class="client-table-cell client-table-cell-close-index-value client-table-cell-opportunity-score">
           <span class="client-opportunity-score-pill opportunity-score-pill ${opportunityScore.tier}" aria-label="Close index ${opportunityScore.score}" title="Close Index ${opportunityScore.score}">
             ${opportunityScore.score}
           </span>
@@ -1342,7 +1344,7 @@
 
   function getAvatarPresentation(ageValue, dateOfBirthValue) {
     const hue = getAvatarHue(ageValue, dateOfBirthValue);
-    const prefersSoftAvatars = Boolean(document.querySelector(".client-directory-shell-layout.is-a11y-soft-avatars"));
+    const prefersSoftAvatars = Boolean(document.body?.classList.contains("is-a11y-soft-avatars"));
     if (prefersSoftAvatars) {
       return {
         background: `hsl(${hue} 62% 88%)`,

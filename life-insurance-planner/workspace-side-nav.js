@@ -60,7 +60,7 @@
 
   function getDirectoryScopeIcon(key) {
     const assetMap = {
-      flagged: "../Images/flag.svg",
+      flagged: "../Images/flat.svg",
       "recently-viewed": "../Images/recentlyviewed.svg",
       "recently-added": "../Images/recentlyadded.svg",
       incomplete: "../Images/incomplete.svg"

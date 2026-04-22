@@ -864,8 +864,8 @@
 
         <section class="client-directory-toolbar">
           <div class="client-directory-toolbar-spacer" aria-hidden="true"></div>
-          <form class="client-table-search search-bar" role="search">
-            <input class="search-bar__input" type="search" placeholder="Search for Clients">
+          <form class="client-table-search" role="search">
+            <input class="client-table-search-input" type="text" placeholder="Search for Clients">
           </form>
           <div class="client-directory-toolbar-search-spacer" aria-hidden="true"></div>
             <nav class="client-status-tabs status-tabs" aria-label="Client status filters">
@@ -908,9 +908,9 @@
             <div class="client-table-cell client-table-cell-check"></div>
             <div class="client-table-cell client-table-cell-flag"></div>
             <div class="client-table-cell" id="client-table-heading-name">Client</div>
-            <div class="client-table-cell">Case Ref</div>
+            <div class="client-table-cell client-table-cell-case-ref-title">Case Ref</div>
             <!-- CODE NOTE: Close Index column replaced the legacy Date Created column. -->
-            <div class="client-table-cell client-table-cell-opportunity-score">Close Index</div>
+            <div class="client-table-cell client-table-cell-close-index-title client-table-cell-opportunity-score">Close Index</div>
             <div class="client-table-cell client-table-cell-next-action-title" id="client-table-heading-next-action">Next Action</div>
             <div class="client-table-cell client-table-cell-status-title" id="client-table-heading-status">Client Status</div>
             <div class="client-table-cell client-table-cell-nowrap client-table-cell-coverage-amount-title" id="client-table-heading-coverage">Coverage Gap</div>
@@ -1500,108 +1500,6 @@
         }
 
         return "Workflow Complete";
-      }
-
-      function getInitials(name, viewType, lastName) {
-        if (viewType === "households") {
-          const householdLastInitial = getLastInitial(lastName);
-          if (householdLastInitial) {
-            return householdLastInitial;
-          }
-
-          const trimmed = String(name || "").trim().replace(/\s+Household$/i, "");
-          const parts = trimmed.split(/\s+/).filter(Boolean);
-          const fallbackLastName = parts.length ? parts[parts.length - 1] : "";
-          return fallbackLastName.charAt(0).toUpperCase() || "H";
-        }
-
-        return String(name || "")
-          .split(" ")
-          .filter(Boolean)
-          .slice(0, 2)
-          .map(function (part) { return part.charAt(0).toUpperCase(); })
-          .join("") || "CL";
-      }
-
-      function getAvatarAge(ageValue, dateOfBirthValue) {
-        const directAge = Number(String(ageValue || "").replace(/[^\d.]/g, ""));
-        if (Number.isFinite(directAge) && directAge >= 0) {
-          return Math.max(0, Math.min(100, directAge));
-        }
-
-        const birthDateValue = String(dateOfBirthValue || "").trim();
-        if (!birthDateValue) {
-          return null;
-        }
-
-        const today = new Date();
-        const birthDate = new Date(`${birthDateValue}T00:00:00`);
-        if (Number.isNaN(birthDate.getTime())) {
-          return null;
-        }
-
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDifference = today.getMonth() - birthDate.getMonth();
-        if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
-          age -= 1;
-        }
-
-        return Number.isFinite(age) ? Math.max(0, Math.min(100, age)) : null;
-      }
-
-      function interpolateNumber(start, end, progress) {
-        return start + ((end - start) * progress);
-      }
-
-      function getAvatarHue(ageValue, dateOfBirthValue) {
-        const age = getAvatarAge(ageValue, dateOfBirthValue);
-        if (age === null) {
-          return 210;
-        }
-
-        if (age <= 18) {
-          return interpolateNumber(48, 60, age / 18);
-        }
-
-        if (age <= 30) {
-          return interpolateNumber(60, 210, (age - 18) / 12);
-        }
-
-        if (age <= 65) {
-          return interpolateNumber(210, 280, (age - 30) / 35);
-        }
-
-        return interpolateNumber(280, 360, (age - 65) / 35);
-      }
-
-      function getAvatarPresentation(ageValue, dateOfBirthValue) {
-        const hue = getAvatarHue(ageValue, dateOfBirthValue);
-        if (Boolean(accessibilitySettings && accessibilitySettings["soft-avatars"])) {
-          return {
-            background: `hsl(${hue} 62% 88%)`,
-            color: `hsl(${hue} 46% 36%)`
-          };
-        }
-
-        const highlightHue = hue;
-        const shadowHue = (hue + 22) % 360;
-        return {
-          background: `linear-gradient(135deg, hsl(${highlightHue} 72% 66%), hsl(${shadowHue} 68% 44%))`,
-          color: "#ffffff"
-        };
-      }
-
-      function getClientDirectorySubtitle(record) {
-        const assignmentName = String(record.householdName || "").trim();
-        if (assignmentName) {
-          return assignmentName;
-        }
-
-        if (record.viewType === "households" || record.viewType === "businesses") {
-          return String(record.summary || "").trim() || "Profile";
-        }
-
-        return "No household linked";
       }
 
       function normalizeCaseRef(value) {
@@ -4674,7 +4572,3 @@
   </script>
 </body>
 </html>
-
-
-
-

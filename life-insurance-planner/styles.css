@@ -2617,24 +2617,6 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
 }
 */
 
-.client-row-flag-button:hover,
-.client-row-flag-button:focus-visible {
-  background: #f2f5f9;
-}
-
-.client-row-flag-button:hover .client-row-flag-icon,
-.client-row-flag-button:focus-visible .client-row-flag-icon {
-  background-color: #7d8898;
-}
-
-.client-row-flag-button.is-flagged {
-  background: transparent;
-}
-
-.client-row-flag-button.is-flagged .client-row-flag-icon {
-  background-color: #111111;
-}
-
 .client-priority-dropdown.is-open {
   z-index: 300;
 }
@@ -6273,7 +6255,7 @@ label {
   font-weight: 700;
 }
 
-input,
+input:not(.client-table-search-input),
 select,
 textarea {
   width: 100%;

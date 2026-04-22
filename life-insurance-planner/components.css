@@ -37,28 +37,26 @@ input.search-bar__input {
 }
 
 .client-table-search::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 1em;
-  width: 1.55em;
-  height: 1.55em;
-  transform: translateY(-50%);
-  background: center / contain no-repeat url("Images/search-286.png");
-  pointer-events: none;
+  content: none;
 }
 
 .client-table-search::after {
   content: none;
 }
 
-.client-table-search input {
+.client-table-search-input {
   width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
   min-height: 2.56em;
-  padding: 0.62em 1em 0.62em 2.75em;
+  padding: 0.62em 1em 0.62em 3em;
   border: 1px solid rgba(213, 221, 232, 0.95);
   border-radius: 999px;
-  background: #ffffff;
+  background-color: #ffffff;
+  background-image: url("Images/search-286.png");
+  background-repeat: no-repeat;
+  background-position: 0.95em center;
+  background-size: 1.35em 1.35em;
   color: #17202c;
   font-size: 1em;
 }
@@ -9553,52 +9551,31 @@ body.is-modal-open {
 }
 
 .row-flag-control {
-  appearance: none;
-  width: var(--client-directory-flag-button-size, 1.95em);
+  all: unset;
+  box-sizing: border-box;
+  width: calc(var(--client-directory-flag-icon-size, 1.95em) * var(--client-directory-flag-aspect-ratio, 1.2835));
   height: var(--client-directory-flag-button-size, 1.95em);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  position: relative;
   flex: 0 0 auto;
   padding: 0;
   border: 0;
   border-radius: 0.32em;
   background: transparent;
+  box-shadow: none;
+  outline: none;
   cursor: pointer;
-  transition: background-color 0.18s ease, opacity 0.18s ease, transform 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.18s ease;
 }
 
 .row-flag-control__icon {
-  width: var(--client-directory-flag-icon-size, 1.55em);
+  width: calc(var(--client-directory-flag-icon-size, 1.95em) * var(--client-directory-flag-aspect-ratio, 1.2835));
   height: var(--client-directory-flag-icon-size, 1.55em);
   display: block;
-  background-color: #bac4d1;
-  -webkit-mask-image: url("../Images/flag.svg");
-  mask-image: url("../Images/flag.svg");
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
-}
-
-.row-flag-control:hover,
-.row-flag-control:focus-visible {
-  background: #f2f5f9;
-}
-
-.row-flag-control:hover .row-flag-control__icon,
-.row-flag-control:focus-visible .row-flag-control__icon {
-  background-color: #7d8898;
-}
-
-.row-flag-control.is-flagged {
-  background: transparent;
-}
-
-.row-flag-control.is-flagged .row-flag-control__icon {
-  background-color: #111111;
+  object-fit: contain;
 }
 
 .row-select-checkbox {
@@ -9608,8 +9585,7 @@ body.is-modal-open {
 }
 
 .client-row-flag-button {
-  appearance: none;
-  width: var(--client-directory-flag-button-size, 1.95em);
+  width: calc(var(--client-directory-flag-icon-size, 1.95em) * var(--client-directory-flag-aspect-ratio, 1.2835));
   height: var(--client-directory-flag-button-size, 1.95em);
   display: inline-flex;
   align-items: center;
@@ -9617,25 +9593,14 @@ body.is-modal-open {
   flex: 0 0 auto;
   padding: 0;
   border: 0;
-  border-radius: 0.32em;
+  border-radius: 0;
   background: transparent;
-  cursor: pointer;
-  transition: background-color 0.18s ease, opacity 0.18s ease, transform 0.18s ease;
 }
 
 .client-row-flag-icon {
-  width: var(--client-directory-flag-icon-size, 1.55em);
+  width: calc(var(--client-directory-flag-icon-size, 1.95em) * var(--client-directory-flag-aspect-ratio, 1.2835));
   height: var(--client-directory-flag-icon-size, 1.55em);
   display: block;
-  background-color: #bac4d1;
-  -webkit-mask-image: url("../Images/flag.svg");
-  mask-image: url("../Images/flag.svg");
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
 }
 
 .client-table {
@@ -9679,13 +9644,14 @@ body.is-modal-open {
 .client-table-header {
   background: #f8faff;
   color: #000000;
-  font-size: 0.85em;
+  font-size: 1.08em;
   font-weight: 800;
   text-transform: none;
 }
 
 .client-table-header .client-table-cell {
   color: #000000;
+  font-size: 1.08em;
 }
 
 .client-table-cell {
@@ -9694,15 +9660,27 @@ body.is-modal-open {
 }
 
 /* CODE NOTE: Close Index column styles live here. */
+.client-table-cell-case-ref-title,
+.client-table-cell-close-index-title,
+.client-table-cell-case-ref-value,
+.client-table-cell-close-index-value,
 .client-table-cell-opportunity-score {
   transform: none;
   justify-self: center;
   text-align: center;
 }
 
+.client-table-header .client-table-cell-case-ref-title,
+.client-table-header .client-table-cell-close-index-title,
 .client-table-header .client-table-cell-opportunity-score {
   transform: none;
   line-height: 1.15;
+}
+
+.client-table-cell-case-ref-value {
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .client-table-cell-status-title {
@@ -9773,7 +9751,12 @@ body.is-modal-open {
 .client-table-cell-client {
   display: flex;
   align-items: center;
-  gap: 0.85em;
+  gap: var(--client-directory-row-person-gap, 0.85em);
+}
+
+.directory-list-row .client-table-cell-client {
+  padding-left: calc((var(--client-directory-check-track, 3.45em) - var(--client-directory-check-size, 1.95em)) / 2);
+  box-sizing: border-box;
 }
 
 .client-table-cell-client > div {
@@ -9783,15 +9766,15 @@ body.is-modal-open {
 .client-table-cell-client > div > strong {
     display: block;
     color: #182132;
-    font-size: 1em;
+    font-size: var(--client-directory-row-name-size, 1em);
     min-width: 0;
   }
   
 .client-table-cell-client > div > span {
     display: block;
-    margin-top: 0.2em;
+    margin-top: var(--client-directory-row-subtitle-gap, 0.2em);
     color: #6c7688;
-    font-size: 0.94em;
+    font-size: var(--client-directory-row-subtitle-size, 0.94em);
   }
 
 .client-tag {
@@ -9895,8 +9878,8 @@ body.is-modal-open {
 }
 
 .directory-person__avatar {
-  width: 2.6em;
-  height: 2.6em;
+  width: var(--client-directory-row-avatar-size, 2.6em);
+  height: var(--client-directory-row-avatar-size, 2.6em);
   display: inline-grid;
   place-items: center;
   text-align: center;
@@ -9904,7 +9887,7 @@ body.is-modal-open {
   border-radius: 50%;
   color: #ffffff;
   font-weight: 800;
-  font-size: 0.9em;
+  font-size: var(--client-directory-row-avatar-font-size, 0.9em);
   flex: 0 0 auto;
   padding: 0;
   vertical-align: middle;
@@ -9917,20 +9900,20 @@ body.is-modal-open {
 .directory-person__name {
   display: block;
   color: #182132;
-  font-size: 1em;
+  font-size: var(--client-directory-row-name-size, 1em);
   min-width: 0;
 }
 
 .directory-person__subtitle {
   display: block;
-  margin-top: 0.2em;
+  margin-top: var(--client-directory-row-subtitle-gap, 0.2em);
   color: #6c7688;
-  font-size: 0.94em;
+  font-size: var(--client-directory-row-subtitle-size, 0.94em);
 }
 
 .client-avatar {
-    width: 2.6em;
-    height: 2.6em;
+    width: var(--client-directory-row-avatar-size, 2.6em);
+    height: var(--client-directory-row-avatar-size, 2.6em);
     display: inline-grid;
     place-items: center;
     text-align: center;
@@ -9938,7 +9921,7 @@ body.is-modal-open {
     border-radius: 50%;
     color: #ffffff;
     font-weight: 800;
-    font-size: 0.9em;
+    font-size: var(--client-directory-row-avatar-font-size, 0.9em);
     flex: 0 0 auto;
     padding: 0;
     vertical-align: middle;
@@ -10123,7 +10106,14 @@ body.clients-page[data-local-client-directory="true"] #client-table-rows > .dire
   min-width: 0;
   grid-template-columns: var(--client-directory-local-table-columns);
   gap: var(--client-directory-local-table-gap);
+}
+
+body.clients-page[data-local-client-directory="true"] .directory-list-shell > .directory-list-header {
   padding: var(--client-directory-local-table-pad);
+}
+
+body.clients-page[data-local-client-directory="true"] #client-table-rows > .directory-list-row {
+  padding: var(--client-directory-local-table-row-pad, var(--client-directory-local-table-pad));
 }
 
 body.clients-page[data-local-client-directory="true"] .client-items-trigger,
