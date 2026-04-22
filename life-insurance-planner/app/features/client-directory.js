@@ -1039,17 +1039,17 @@
     return `
       <div class="client-table client-table-clickable directory-list-row" role="row" tabindex="0" data-client-open="${record.id}">
         <div class="client-table-cell client-table-cell-check"><input class="row-select-checkbox" type="checkbox" aria-label="Select ${record.displayName}" data-client-select="${record.id}"${isSelected ? " checked" : ""}></div>
+        <div class="client-table-cell client-table-cell-flag">
+          <button class="client-row-flag-button row-flag-control${isFlagged ? " is-flagged" : ""}" type="button" data-client-flag-toggle="${record.id}" aria-pressed="${isFlagged ? "true" : "false"}" aria-label="${isFlagged ? `Unflag ${record.displayName}` : `Flag ${record.displayName}`}">
+            <span class="client-row-flag-icon row-flag-control__icon" aria-hidden="true"></span>
+          </button>
+        </div>
         <div class="client-table-cell client-table-cell-client directory-person">
           <span class="${avatarClasses} directory-person__avatar"${avatarStyle}>${getInitials(record.displayName, record.viewType, record.lastName)}</span>
           <div class="directory-person__body">
             <strong class="directory-person__name">${record.displayName}</strong>
             <span class="directory-person__subtitle">${getClientDirectorySubtitle(record)}</span>
           </div>
-        </div>
-        <div class="client-table-cell client-table-cell-flag">
-          <button class="client-row-flag-button row-flag-control${isFlagged ? " is-flagged" : ""}" type="button" data-client-flag-toggle="${record.id}" aria-pressed="${isFlagged ? "true" : "false"}" aria-label="${isFlagged ? `Unflag ${record.displayName}` : `Flag ${record.displayName}`}">
-            <span class="client-row-flag-icon row-flag-control__icon" aria-hidden="true"></span>
-          </button>
         </div>
         <div class="client-table-cell">${record.caseRef || "--"}</div>
         <div class="client-table-cell client-table-cell-opportunity-score">
