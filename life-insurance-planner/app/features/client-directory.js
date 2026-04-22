@@ -1041,6 +1041,7 @@
     return `
       <div class="client-table client-table-clickable directory-list-row" role="row" tabindex="0" data-client-open="${record.id}">
         <div class="client-table-cell client-table-cell-check"><input class="row-select-checkbox" type="checkbox" aria-label="Select ${record.displayName}" data-client-select="${record.id}"${isSelected ? " checked" : ""}></div>
+        <div class="client-table-cell client-table-cell-pin"><span class="client-row-pin-icon" aria-hidden="true"></span></div>
         <div class="client-table-cell client-table-cell-flag">
           <button class="client-row-flag-button row-flag-control${isFlagged ? " is-flagged" : ""}" type="button" data-client-flag-toggle="${record.id}" aria-pressed="${isFlagged ? "true" : "false"}" aria-label="${isFlagged ? `Unflag ${record.displayName}` : `Flag ${record.displayName}`}">
             <img class="client-row-flag-icon row-flag-control__icon" src="${rowFlagIconSrc}" alt="" aria-hidden="true">
@@ -1059,7 +1060,7 @@
             ${opportunityScore.score}
           </span>
         </div>
-        <div class="client-table-cell client-table-cell-next-action-value">${getDirectoryNextAction(record)}</div>
+        <div class="client-table-cell client-table-cell-next-action-value"><span class="client-table-cell-next-action-text">${getDirectoryNextAction(record)}</span></div>
         <div class="client-table-cell client-table-cell-status-value">${clientStatus}</div>
         <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(getRecordUncoveredGapValue(record))}</div>
         <div class="client-table-cell client-table-cell-value client-table-cell-priority-value">

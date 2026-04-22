@@ -78,6 +78,7 @@
     --client-directory-flag-aspect-ratio: 1.2835;
     --client-directory-check-size: 1.95em;
     --client-directory-check-track: calc(var(--client-directory-check-size) + 0.42em);
+    --client-directory-control-track: calc(var(--client-directory-check-size) * 0.64);
     --client-directory-flag-button-size: var(--client-directory-check-size);
     --client-directory-flag-icon-size: calc(var(--client-directory-check-size) * 0.68);
     --client-directory-flag-track: calc((var(--client-directory-flag-icon-size) * var(--client-directory-flag-aspect-ratio)) + 0.12em);
@@ -92,7 +93,7 @@
     --client-directory-row-name-size: calc(0.99em + (0.14em * var(--client-directory-density-scale)));
     --client-directory-row-subtitle-size: calc(0.91em + (0.11em * var(--client-directory-density-scale)));
     --client-directory-row-person-gap: calc(0.56em + (0.26em * var(--client-directory-density-scale)));
-    --client-directory-row-subtitle-gap: calc(0.015em + (0.025em * var(--client-directory-density-scale)));
+    --client-directory-row-subtitle-gap: calc(0.14em + (0.08em * var(--client-directory-density-scale)));
     font-size: clamp(0.84rem, calc(0.5rem + 0.62cqi), 1rem);
     position: relative;
     display: block;
@@ -112,7 +113,7 @@
      - narrow: <= 760px enables the strongest compaction and 2-up summary wrap
      Routine sizing should ride these workspace tokens; only true layout shifts belong in the band queries. */
   body.clients-page:not(.workspace-side-nav-collapsed) .client-directory-workspace {
-    --client-directory-density-scale: 0.9;
+    --client-directory-density-scale: 0.7;
     --client-directory-track-scale: 0.88;
     --client-directory-rail-width: 4.7em;
     --client-directory-main-pad-y: 0.92em;
@@ -151,8 +152,9 @@
     --client-directory-local-control-radius: 0.32em;
     --client-directory-local-primary-gap: 0.38em;
     --client-directory-local-table-columns:
-      var(--client-directory-check-track)
-      var(--client-directory-flag-track)
+      var(--client-directory-control-track)
+      var(--client-directory-control-track)
+      var(--client-directory-control-track)
       minmax(calc(10.75em * var(--client-directory-track-scale, 1)), 1.42fr)
       minmax(calc(6.75em * var(--client-directory-track-scale, 1)), 0.76fr)
       minmax(calc(6.5em * var(--client-directory-track-scale, 1)), 0.78fr)
@@ -161,14 +163,16 @@
       minmax(calc(7.25em * var(--client-directory-track-scale, 1)), 0.9fr)
       minmax(calc(6.375em * var(--client-directory-track-scale, 1)), 0.72fr);
     --client-directory-local-table-gap: 0.45em;
-    --client-directory-local-table-pad: 0.92em 1em;
-    --client-directory-local-table-row-pad: calc(0.3em + (0.16em * var(--client-directory-density-scale))) calc(0.68em + (0.16em * var(--client-directory-density-scale)));
+    --client-directory-local-table-pad-block: 0.92em;
+    --client-directory-local-table-pad-inline: 1em;
+    --client-directory-local-table-row-pad-block: calc(0.3em + (0.16em * var(--client-directory-density-scale)));
   }
 
   body.clients-page:not(.workspace-side-nav-collapsed)[data-local-client-directory="true"] .client-directory-workspace {
     --client-directory-local-table-columns:
-      var(--client-directory-check-track)
-      var(--client-directory-flag-track)
+      var(--client-directory-control-track)
+      var(--client-directory-control-track)
+      var(--client-directory-control-track)
       minmax(9.875em, 1.48fr)
       minmax(6.125em, 0.72fr)
       minmax(5.25em, 0.74fr)
@@ -177,7 +181,8 @@
       minmax(5.625em, 0.8fr)
       minmax(5.25em, 0.68fr);
     --client-directory-local-table-gap: 0.36em;
-    --client-directory-local-table-pad: 0.8em 0.84em;
+    --client-directory-local-table-pad-block: 0.8em;
+    --client-directory-local-table-pad-inline: 0.84em;
   }
 
   /* CODE NOTE: Clients density responds to the open-nav pane width without reviving page zoom. */
@@ -205,8 +210,9 @@
 
     body.clients-page[data-local-client-directory="true"] .client-directory-workspace {
       --client-directory-local-table-columns:
-        var(--client-directory-check-track)
-        var(--client-directory-flag-track)
+        var(--client-directory-control-track)
+        var(--client-directory-control-track)
+        var(--client-directory-control-track)
         minmax(9.75em, 1.42fr)
         minmax(6em, 0.76fr)
         minmax(5.75em, 0.78fr)
@@ -215,7 +221,8 @@
         minmax(6.125em, 0.9fr)
         minmax(5.375em, 0.72fr);
       --client-directory-local-table-gap: 0.38em;
-      --client-directory-local-table-pad: 0.82em 0.88em;
+      --client-directory-local-table-pad-block: 0.82em;
+      --client-directory-local-table-pad-inline: 0.88em;
     }
 
     .client-directory-toolbar {
@@ -259,8 +266,9 @@
 
     body.clients-page[data-local-client-directory="true"] .client-directory-workspace {
       --client-directory-local-table-columns:
-        var(--client-directory-check-track)
-        var(--client-directory-flag-track)
+        var(--client-directory-control-track)
+        var(--client-directory-control-track)
+        var(--client-directory-control-track)
         minmax(9em, 1.38fr)
         minmax(5.5em, 0.72fr)
         minmax(5.125em, 0.76fr)

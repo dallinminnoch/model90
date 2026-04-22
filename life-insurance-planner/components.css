@@ -9550,6 +9550,16 @@ body.is-modal-open {
   line-height: 1;
 }
 
+.client-row-pin-icon {
+  width: calc(var(--client-directory-check-size, 1.95em) * 0.68);
+  height: calc(var(--client-directory-check-size, 1.95em) * 0.68);
+  display: block;
+  background-color: #7c8798;
+  opacity: 0.82;
+  -webkit-mask: center / contain no-repeat url("Images/pin.svg");
+  mask: center / contain no-repeat url("Images/pin.svg");
+}
+
 .row-flag-control {
   all: unset;
   box-sizing: border-box;
@@ -9572,8 +9582,8 @@ body.is-modal-open {
 }
 
 .row-flag-control__icon {
-  width: calc(var(--client-directory-flag-icon-size, 1.95em) * var(--client-directory-flag-aspect-ratio, 1.2835));
-  height: var(--client-directory-flag-icon-size, 1.55em);
+  width: calc(var(--client-directory-flag-icon-size, 1.95em) * var(--client-directory-flag-aspect-ratio, 1.2835) * 0.78);
+  height: calc(var(--client-directory-flag-icon-size, 1.55em) * 0.78);
   display: block;
   object-fit: contain;
 }
@@ -9598,16 +9608,17 @@ body.is-modal-open {
 }
 
 .client-row-flag-icon {
-  width: calc(var(--client-directory-flag-icon-size, 1.95em) * var(--client-directory-flag-aspect-ratio, 1.2835));
-  height: var(--client-directory-flag-icon-size, 1.55em);
+  width: calc(var(--client-directory-flag-icon-size, 1.95em) * var(--client-directory-flag-aspect-ratio, 1.2835) * 0.78);
+  height: calc(var(--client-directory-flag-icon-size, 1.55em) * 0.78);
   display: block;
 }
 
 .client-table {
   display: grid;
   grid-template-columns:
-    var(--client-directory-check-track, calc(3.45em * var(--client-directory-track-scale, 1)))
-    var(--client-directory-flag-track, calc(2.2em * var(--client-directory-track-scale, 1)))
+    var(--client-directory-control-track, calc(var(--client-directory-check-size, 1.95em) * 0.64))
+    var(--client-directory-control-track, calc(var(--client-directory-check-size, 1.95em) * 0.64))
+    var(--client-directory-control-track, calc(var(--client-directory-check-size, 1.95em) * 0.64))
     minmax(calc(13.875em * var(--client-directory-track-scale, 1)), 1.54fr)
     minmax(calc(8em * var(--client-directory-track-scale, 1)), 0.82fr)
     minmax(calc(7.75em * var(--client-directory-track-scale, 1)), 0.82fr)
@@ -9622,9 +9633,46 @@ body.is-modal-open {
 }
 
 .client-table-cell-check,
+.client-table-cell-pin,
 .client-table-cell-flag {
   justify-self: center;
   align-self: center;
+}
+
+.directory-list-row .client-table-cell-check,
+.directory-list-row .client-table-cell-pin {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.16s ease, visibility 0s linear 0.16s;
+}
+
+.directory-list-row .row-select-checkbox,
+.directory-list-row .client-row-pin-icon {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.16s ease, visibility 0s linear 0.16s;
+}
+
+.directory-list-row:hover .client-table-cell-check,
+.directory-list-row:hover .client-table-cell-pin,
+.directory-list-row:focus-within .client-table-cell-check,
+.directory-list-row:focus-within .client-table-cell-pin {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+.directory-list-row:hover .row-select-checkbox,
+.directory-list-row:hover .client-row-pin-icon,
+.directory-list-row:focus-within .row-select-checkbox,
+.directory-list-row:focus-within .client-row-pin-icon {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
 }
 
 .client-table-clickable {
@@ -9659,89 +9707,64 @@ body.is-modal-open {
   font-size: 0.94em;
 }
 
-/* CODE NOTE: Close Index column styles live here. */
+/* CODE NOTE: Centered directory data columns should fill their track, then center content inside it. */
 .client-table-cell-case-ref-title,
-.client-table-cell-close-index-title,
 .client-table-cell-case-ref-value,
+.client-table-cell-close-index-title,
 .client-table-cell-close-index-value,
-.client-table-cell-opportunity-score {
+.client-table-cell-next-action-title,
+.client-table-cell-next-action-value,
+.client-table-cell-status-title,
+.client-table-cell-status-value,
+.client-table-cell-coverage-amount-title,
+.client-table-cell-coverage-amount-value,
+.client-table-cell-priority-title,
+.client-table-cell-priority-value {
   transform: none;
-  justify-self: center;
+  justify-self: stretch;
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  place-items: center;
   text-align: center;
 }
 
 .client-table-header .client-table-cell-case-ref-title,
 .client-table-header .client-table-cell-close-index-title,
-.client-table-header .client-table-cell-opportunity-score {
+.client-table-header .client-table-cell-next-action-title,
+.client-table-header .client-table-cell-status-title,
+.client-table-header .client-table-cell-coverage-amount-title,
+.client-table-header .client-table-cell-priority-title {
   transform: none;
   line-height: 1.15;
 }
 
 .client-table-cell-case-ref-value {
-  display: flex;
-  justify-content: center;
   white-space: nowrap;
 }
 
-.client-table-cell-status-title {
-  transform: none;
-  justify-self: center;
-  text-align: center;
-}
-
-.client-table-cell-next-action-title {
-  transform: none;
-  justify-self: center;
-  text-align: center;
-}
-
-.client-table-cell-priority-title {
-  transform: none;
-  justify-self: center;
-  text-align: center;
-}
-
 .client-table-cell-coverage-amount-title {
-  transform: none;
-  justify-self: center;
-  text-align: center;
   color: #000000;
   font-weight: 800;
 }
 
 .client-table-cell-next-action-value {
-  display: flex;
-  justify-content: center;
-  justify-self: center;
-  text-align: center;
   line-height: 1.25;
   color: #5d6a7d;
+}
+
+.client-table-cell-next-action-text {
+  display: block;
   max-width: var(--client-directory-next-action-max, 11.25em);
-  transform: none;
 }
 
 .client-table-cell-status-value {
-  display: flex;
-  justify-content: center;
-  justify-self: center;
-  text-align: center;
   white-space: nowrap;
-  transform: none;
 }
 
 .client-table-cell-coverage-amount-value {
-  display: block;
-  justify-self: center;
-  text-align: center;
-  transform: none;
   color: #000000;
   font-weight: 800;
-}
-
-.client-table-cell-priority-value {
-  justify-content: center;
-  justify-self: center;
-  text-align: center;
 }
 
 .client-table-cell-nowrap {
@@ -9811,8 +9834,6 @@ body.is-modal-open {
 }
 
 .client-table-cell-priority-value {
-  display: flex;
-  justify-content: center;
   transform: none;
 }
 
@@ -10109,11 +10130,11 @@ body.clients-page[data-local-client-directory="true"] #client-table-rows > .dire
 }
 
 body.clients-page[data-local-client-directory="true"] .directory-list-shell > .directory-list-header {
-  padding: var(--client-directory-local-table-pad);
+  padding: var(--client-directory-local-table-pad-block) var(--client-directory-local-table-pad-inline);
 }
 
 body.clients-page[data-local-client-directory="true"] #client-table-rows > .directory-list-row {
-  padding: var(--client-directory-local-table-row-pad, var(--client-directory-local-table-pad));
+  padding: var(--client-directory-local-table-row-pad-block, var(--client-directory-local-table-pad-block)) var(--client-directory-local-table-pad-inline);
 }
 
 body.clients-page[data-local-client-directory="true"] .client-items-trigger,
