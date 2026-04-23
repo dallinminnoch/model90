@@ -96,6 +96,7 @@
     escapeHtml,
     formatDateForDirectory,
     getDirectoryCreatedDate,
+    getDirectoryStageDayThresholds,
     formatCurrencyCompact,
     getPoliciesDisplay
   });
@@ -1026,6 +1027,13 @@
 
   function getDirectoryCreatedDate(record) {
     return String(record?.dateProfileCreated || record?.lastReview || "").trim();
+  }
+
+  function getDirectoryStageDayThresholds() {
+    return {
+      warning: 7,
+      danger: 14
+    };
   }
 
   function formatCurrencyCompact(value) {

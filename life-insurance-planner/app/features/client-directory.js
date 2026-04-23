@@ -94,8 +94,8 @@
       document.querySelectorAll("[data-directory-heading-name]").forEach((heading) => {
         heading.textContent = getDirectoryNameHeadingText();
       });
-      document.querySelectorAll("[data-directory-heading-next-action]").forEach((heading) => {
-        heading.textContent = "Next Action";
+      document.querySelectorAll("[data-directory-heading-stage-days]").forEach((heading) => {
+        heading.textContent = "Days in Stage";
       });
       document.querySelectorAll("[data-directory-heading-coverage]").forEach((heading) => {
         heading.textContent = "Coverage Gap";
@@ -108,9 +108,9 @@
           <div class="client-table-cell" data-directory-heading-name>${getDirectoryNameHeadingText()}</div>
           <div class="client-table-cell client-table-cell-members-title">Members</div>
           <div class="client-table-cell client-table-cell-close-index-title">Close Index</div>
-          <div class="client-table-cell client-table-cell-next-action-title" data-directory-heading-next-action>Next Action</div>
-          <div class="client-table-cell client-table-cell-priority-title">Priority</div>
           <div class="client-table-cell client-table-cell-nowrap client-table-cell-coverage-amount-title" data-directory-heading-coverage>Coverage Gap</div>
+          <div class="client-table-cell client-table-cell-priority-title">Priority</div>
+          <div class="client-table-cell client-table-cell-stage-days-title" data-directory-heading-stage-days>Days in Stage</div>
         </div>
       `;
     }
@@ -937,28 +937,13 @@
     return Boolean(record?.pmiCompleted) || hasDirectoryAnalysisCompleted(record);
   }
 
-  function getDirectoryNextAction(record) {
-    if (!hasDirectoryProfileCreated(record)) {
-      return "Create Profile";
+  function getDaysBetween(startDate, endDate) {
+    if (!(startDate instanceof Date) || Number.isNaN(startDate.getTime())) {
+      return null;
     }
 
-    if (!hasDirectoryPreliminaryCompleted(record)) {
-      return "Preliminary Underwriting";
-    }
-
-    if (!hasDirectoryPmiCompleted(record)) {
-      return "Protection Modeling Inputs";
-    }
-
-    if (!hasDirectoryAnalysisCompleted(record)) {
-      return "Complete Analysis";
-    }
-
-    if (record?.statusGroup === "coverage-placed") {
-      return "Policy Delivered";
-    }
-
-    return "Workflow Complete";
+    const end = endDate instanceof Date ? endDate : new Date();
+    return Math.max(0, Math.round((end.getTime() - startDate.getTime()) / 86400000));
   }
 
   function getLatestProtectionModelingPayload(record) {
@@ -1074,6 +1059,40 @@
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
 
+  function getDirectoryDaysInStage(record) {
+    const stageDate = getRecordTimelineDate(record);
+    const days = getDaysBetween(stageDate, new Date());
+    return Number.isFinite(days) ? String(days) : "--";
+  }
+
+  function getDirectoryDaysInStagePresentation(record) {
+    const { getDirectoryStageDayThresholds } = getDirectoryHelpers();
+    const rawDays = getDirectoryDaysInStage(record);
+    const numericDays = Number.parseInt(rawDays, 10);
+
+    if (!Number.isFinite(numericDays)) {
+      return {
+        text: "--",
+        toneClass: "is-empty"
+      };
+    }
+
+    const thresholds = typeof getDirectoryStageDayThresholds === "function"
+      ? getDirectoryStageDayThresholds()
+      : { warning: 7, danger: 14 };
+    const warningThreshold = Number.isFinite(Number(thresholds?.warning)) ? Number(thresholds.warning) : 7;
+    const dangerThreshold = Number.isFinite(Number(thresholds?.danger)) ? Number(thresholds.danger) : 14;
+
+    return {
+      text: `${numericDays} ${numericDays === 1 ? "day" : "days"}`,
+      toneClass: numericDays >= dangerThreshold
+        ? "is-danger"
+        : numericDays >= warningThreshold
+          ? "is-warning"
+          : ""
+    };
+  }
+
   function getDirectoryOpportunityScoreResult(record) {
     const opportunityScoreEngine = window.LipOpportunityScore;
     if (!opportunityScoreEngine || typeof opportunityScoreEngine.calculate !== "function") {
@@ -1097,6 +1116,53 @@
       timelineDate: getRecordTimelineDate(record),
       reviewDate: getRecordReviewDate(record)
     });
+  }
+
+  function getDirectoryCloseIndexDescriptor(scoreResult) {
+    const tier = String(scoreResult?.tier || "").trim();
+
+    if (tier === "is-premium") {
+      return "Excellent";
+    }
+
+    if (tier === "is-building") {
+      return "High";
+    }
+
+    if (tier === "is-caution") {
+      return "Average";
+    }
+
+    return "Low";
+  }
+
+  function getDirectoryPriorityDetailLabel(priority, scoreResult) {
+    if (!priority) {
+      return "Unassigned";
+    }
+
+    if (priority === "high") {
+      return "Urgent";
+    }
+
+    if (priority === "low") {
+      return "Low opportunity";
+    }
+
+    return Number(scoreResult?.score || 0) >= 31 && Number(scoreResult?.uncoveredGap || 0) > 0
+      ? "Opportunity"
+      : "Routine";
+  }
+
+  function getDirectoryCoverageAdequacyPercent(scoreResult) {
+    const modeledNeed = Number(scoreResult?.modeledNeed || 0);
+    const currentCoverage = Number(scoreResult?.currentCoverage || 0);
+
+    if (!(modeledNeed > 0)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.min(100, Math.round((currentCoverage / modeledNeed) * 100)));
   }
 
     function getClientTypePresentation(record) {
@@ -1123,6 +1189,7 @@
     }
 
     function renderDirectoryMemberAvatars(record) {
+      const { escapeHtml } = getDirectoryHelpers();
       const members = Array.isArray(record?.directoryMembers) ? record.directoryMembers : [];
       const visibleMembers = members.slice(0, 2);
 
@@ -1132,17 +1199,20 @@
 
       return `
         <span class="client-household-members" aria-label="Members">
-          ${visibleMembers.map((member) => {
-            const avatarPresentation = getAvatarPresentation(member?.age, member?.dateOfBirth);
-            const avatarStyle = avatarPresentation
-              ? ` style="background: ${avatarPresentation.background}; color: ${avatarPresentation.color};"`
-              : "";
-            return `
-              <span class="client-household-member-avatar"${avatarStyle} title="${member.displayName}">
-                ${getInitials(member.displayName, member.viewType, member.lastName)}
-              </span>
-            `;
-          }).join("")}
+          <span class="client-household-members-stack">
+            ${visibleMembers.map((member) => {
+              const avatarPresentation = getAvatarPresentation(member?.age, member?.dateOfBirth);
+              const avatarStyle = avatarPresentation
+                ? ` style="background: ${avatarPresentation.background}; color: ${avatarPresentation.color};"`
+                : "";
+              return `
+                <span class="client-household-member-avatar"${avatarStyle} title="${escapeHtml(member.displayName)}">
+                  ${getInitials(member.displayName, member.viewType, member.lastName)}
+                </span>
+              `;
+            }).join("")}
+          </span>
+          ${members.length > 1 ? `<span class="client-household-members-count">${members.length}</span>` : ""}
         </span>
       `;
     }
@@ -1159,6 +1229,11 @@
     const typePresentation = getClientTypePresentation(record);
     const householdMembersMarkup = renderDirectoryMemberAvatars(record);
     const isPinned = getRecordPinnedState(record);
+    const uncoveredGapValue = getRecordUncoveredGapValue(record);
+    const closeIndexDescriptor = getDirectoryCloseIndexDescriptor(opportunityScore);
+    const priorityDetailLabel = getDirectoryPriorityDetailLabel(priority, opportunityScore);
+    const coverageAdequacyPercent = getDirectoryCoverageAdequacyPercent(opportunityScore);
+    const daysInStagePresentation = getDirectoryDaysInStagePresentation(record);
 
       return `
         <div class="client-table client-table-clickable directory-list-row" role="row" tabindex="0" data-client-open="${record.id}">
@@ -1182,21 +1257,40 @@
             </span>
           <div class="directory-person__body">
             <strong class="directory-person__name">${record.displayName}</strong>
+            <span class="directory-person__category">${escapeHtml(typePresentation.label)}</span>
           </div>
         </div>
         <div class="client-table-cell client-table-cell-members-value">
           ${householdMembersMarkup}
         </div>
         <div class="client-table-cell client-table-cell-close-index-value client-table-cell-opportunity-score">
-          <span class="client-opportunity-score-pill opportunity-score-pill ${opportunityScore.tier}" aria-label="Close index ${opportunityScore.score}" title="Close Index ${opportunityScore.score}">
-            ${opportunityScore.score}
-          </span>
+          <div class="client-close-index-display">
+            <span class="client-opportunity-score-pill opportunity-score-pill ${opportunityScore.tier}" aria-label="Close index ${opportunityScore.score}" title="Close Index ${opportunityScore.score}">
+              ${opportunityScore.score}
+            </span>
+            <span class="client-close-index-label">${closeIndexDescriptor}</span>
+          </div>
         </div>
-        <div class="client-table-cell client-table-cell-next-action-value"><span class="client-table-cell-next-action-text">${getDirectoryNextAction(record)}</span></div>
+        <div class="client-table-cell client-table-cell-coverage-amount-value">
+          <div class="client-coverage-gap-display">
+            <span class="client-coverage-gap-amount">${formatCurrencyCompact(uncoveredGapValue)}</span>
+            ${uncoveredGapValue > 0
+              ? `
+                <span class="client-coverage-gap-meter" aria-hidden="true">
+                  <span class="client-coverage-gap-meter-fill" style="width: ${coverageAdequacyPercent}%"></span>
+                </span>
+              `
+              : ""}
+          </div>
+        </div>
         <div class="client-table-cell client-table-cell-value client-table-cell-priority-value">
           <div class="client-priority-dropdown" data-priority-dropdown="${record.id}">
-            <button class="client-priority-button priority-pill ${priority ? `client-priority-button-${priority}` : "client-priority-button-unset"}" type="button" data-priority-trigger aria-expanded="false">
-              ${getPriorityDisplay(priority)}
+            <button class="client-priority-button priority-pill ${priority ? `client-priority-button-${priority}` : "client-priority-button-unset"}" type="button" data-priority-trigger aria-expanded="false" aria-label="Priority ${getPriorityDisplay(priority)}${priorityDetailLabel ? `, ${priorityDetailLabel}` : ""}">
+              <span class="client-priority-button-main">
+                <span class="client-priority-dot" aria-hidden="true"></span>
+                <span class="client-priority-button-label">${getPriorityDisplay(priority)}</span>
+              </span>
+              <span class="client-priority-detail-chip">${priorityDetailLabel}</span>
             </button>
             <div class="client-priority-menu priority-menu">
               <button class="client-priority-option priority-menu__option client-priority-option-low ${priority === "low" ? "is-active" : ""}" type="button" data-priority-record="${record.id}" data-priority-option="low">Low</button>
@@ -1205,7 +1299,7 @@
             </div>
           </div>
         </div>
-        <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(getRecordUncoveredGapValue(record))}</div>
+        <div class="client-table-cell client-table-cell-stage-days-value"><span class="client-table-cell-stage-days-text${daysInStagePresentation.toneClass ? ` ${daysInStagePresentation.toneClass}` : ""}">${daysInStagePresentation.text}</span></div>
       </div>
     `;
   }
@@ -1221,16 +1315,16 @@
         record.displayName,
         memberText,
         String(opportunityScore.score),
-        getDirectoryNextAction(record),
+        formatCurrencyCompact(getRecordUncoveredGapValue(record)),
         getClientStatusDisplay(record),
         getPriorityDisplay(normalizePriority(record.priority)),
-        formatCurrencyCompact(getRecordUncoveredGapValue(record))
+        getDirectoryDaysInStage(record)
       ];
     });
   }
 
   function exportClientRecords(records) {
-    const header = ["Client", "Members", "Close Index", "Next Action", "Client Status", "Priority", "Coverage Gap"];
+    const header = ["Client", "Members", "Close Index", "Coverage Gap", "Client Status", "Priority", "Days in Stage"];
     const rows = buildDirectoryExportRows(records);
     const csv = [header, ...rows]
       .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
@@ -1315,10 +1409,10 @@
                 <th>Client</th>
                 <th>Members</th>
                 <th>Close Index</th>
-                <th>Next Action</th>
+                <th>Coverage Gap</th>
                 <th>Client Status</th>
                 <th>Priority</th>
-                <th>Coverage Gap</th>
+                <th>Days in Stage</th>
               </tr>
             </thead>
             <tbody>${rowsMarkup}</tbody>
@@ -1362,7 +1456,7 @@
 
   function buildClientShareSummary(records) {
     const lines = buildDirectoryExportRows(records).map((row) => (
-      `${row[0]} | ${row[1]} | Close Index ${row[2]} | ${row[3]} | ${row[4]} | ${row[5]} | ${row[6]}`
+      `${row[0]} | ${row[1]} | Close Index ${row[2]} | Coverage Gap ${row[3]} | ${row[4]} | ${row[5]} | Days in Stage ${row[6]}`
     ));
 
     return [

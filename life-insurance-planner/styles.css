@@ -2591,10 +2591,6 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
   text-align: center;
 }
 
-.client-profile-sidebar-card-household {
-  padding-bottom: 0.55rem;
-}
-
 .client-profile-name-badge {
   grid-column: 3;
   justify-self: start;
@@ -2657,196 +2653,9 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
   mask-size: contain;
 }
 
-.client-profile-dashboard--overview .client-profile-dashboard-main,
-.client-profile-dashboard--overview .client-detail-card-checklist {
-  width: 100%;
-  max-width: none;
-}
-
 .workspace-side-nav-host.is-collapsed .client-profile-side-tabs-toggle-glyph,
 .client-profile-shell.is-collapsed .client-profile-side-tabs-toggle-glyph {
   transform: rotate(180deg);
-}
-
-.client-profile-hero-grid-lower .client-profile-hero-grid-status,
-.client-profile-hero-grid-lower .client-profile-hero-grid-activity {
-  height: 100%;
-}
-
-.client-profile-hero-grid-overview .client-overview-summary-card {
-  --client-overview-summary-top-gap: 0.95rem;
-  width: 100%;
-  max-width: none;
-  height: 100%;
-  min-height: 0;
-}
-
-.client-profile-hero-grid-details .client-profile-sidebar-card {
-  width: min(100%, var(--client-profile-hero-center-card-width, 20rem));
-  max-width: var(--client-profile-hero-center-card-width, 20rem);
-  min-width: 0;
-  height: 100%;
-  min-height: 0;
-  border-radius: 1rem;
-  background: linear-gradient(180deg, #f7f8fa 0%, #eceff3 100%);
-}
-
-.client-profile-hero-grid-details .client-profile-contact-item strong,
-.client-profile-hero-grid-details .client-profile-contact-value-shell {
-  min-width: 0;
-}
-
-.client-profile-hero-grid-activity .client-notes-widget-card,
-.client-profile-hero-grid-checklist .client-detail-card-checklist {
-  flex: 1 1 auto;
-  width: 100%;
-  height: 100%;
-}
-
-.client-profile-hero-grid-status .client-status-control-card {
-  flex: 1 1 auto;
-  width: 100%;
-  height: 100%;
-}
-
-.client-profile-hero-grid-checklist .client-detail-card-checklist {
-  min-height: 0;
-}
-
-.client-profile-hero-grid-activity .client-notes-widget-card {
-  width: 100%;
-  max-width: none;
-}
-
-.client-profile-hero-grid-activity .client-notes-widget-paper {
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: none;
-}
-
-.client-profile-hero-grid-activity .client-activity-summary-top {
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  row-gap: 0.35rem;
-}
-
-.client-profile-hero-grid-activity .client-activity-summary-metric {
-  white-space: normal;
-  line-height: 1.22;
-}
-
-.client-profile-hero-grid-activity .client-activity-summary-metric:last-child {
-  grid-column: 2;
-}
-
-.client-profile-overview-workflow-grid-activity .client-notes-widget-card {
-  flex: 1 1 auto;
-  height: 100%;
-  min-height: 31rem;
-}
-
-.client-profile-overview-workflow-grid-checklist .client-detail-card-checklist {
-  flex: 1 1 auto;
-  height: 100%;
-}
-
-.client-profile-overview-workflow-grid-activity .client-notes-widget-paper {
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: none;
-}
-
-@media (max-width: 1120px) {
-  .client-profile-workspace-shell,
-  .client-profile-hero-grid,
-  .client-profile-hero-grid-lower,
-  .client-profile-analysis-grid,
-  .client-profile-section-grid,
-  .client-profile-overview-workflow-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .client-profile-hero-grid {
-    grid-template-areas:
-      "details"
-      "overview"
-      "workflow"
-      "lower";
-  }
-
-  .client-profile-hero-grid-status,
-  .client-profile-hero-grid-activity,
-  .client-profile-hero-grid-lower,
-  .client-profile-hero-grid-overview,
-  .client-profile-hero-grid-details,
-  .client-profile-hero-grid-checklist,
-  .client-profile-hero-grid-status .client-status-control-card,
-  .client-profile-hero-grid-activity .client-notes-widget-card,
-  .client-profile-hero-grid-checklist .client-detail-card-checklist {
-    height: auto;
-    min-height: 0;
-  }
-
-  .client-profile-hero-grid-status,
-  .client-profile-hero-grid-activity,
-  .client-profile-hero-grid-overview,
-  .client-profile-hero-grid-checklist {
-    padding-top: 0;
-  }
-
-  .client-profile-hero-grid-lower {
-    padding-top: 0;
-  }
-
-  .client-profile-hero-grid-overview .client-overview-summary-card {
-    --client-overview-summary-top-gap: 1.6rem;
-    width: 100%;
-    max-width: none;
-  }
-
-  .client-profile-hero-grid-details .client-profile-sidebar-card {
-    width: 100%;
-    max-width: none;
-  }
-
-  .client-profile-hero-grid-activity .client-notes-widget-card {
-    width: 100%;
-    max-width: none;
-  }
-
-  .client-profile-hero-grid-activity .client-notes-widget-paper {
-    flex: 0 0 auto;
-    max-height: 14.15rem;
-  }
-
-  .client-profile-hero-grid-activity .client-activity-summary-top {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    row-gap: 0;
-  }
-
-  .client-profile-hero-grid-activity .client-activity-summary-metric {
-    white-space: nowrap;
-    line-height: 1;
-  }
-
-  .client-profile-hero-grid-activity .client-activity-summary-metric:last-child {
-    grid-column: auto;
-  }
-
-  .client-profile-overview-workflow-grid-activity,
-  .client-profile-overview-workflow-grid-checklist,
-  .client-profile-overview-workflow-grid-activity .client-notes-widget-card,
-  .client-profile-overview-workflow-grid-checklist .client-detail-card-checklist {
-    height: auto;
-    min-height: 0;
-  }
-
-  .client-profile-overview-workflow-grid-activity .client-notes-widget-paper {
-    flex: 0 0 auto;
-    max-height: 14.15rem;
-  }
-
 }
 
 .workspace-side-nav-host.is-collapsed .client-profile-side-tabs,
@@ -3023,11 +2832,6 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
 .client-notes-widget-card .client-detail-card-tab {
   left: auto;
   right: 0.95rem;
-}
-
-.client-profile-hero-grid-activity .client-notes-widget-card .client-detail-card-tab {
-  left: 0.95rem;
-  right: auto;
 }
 
 .client-status-control-card .client-detail-card-tab {
@@ -3337,6 +3141,10 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
   font-size: 1.02rem;
   font-weight: 550;
   font-family: inherit;
+}
+
+.client-notes-widget-title {
+  display: none;
 }
 
 .client-notes-widget-last-contact {
@@ -3862,9 +3670,215 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
   transform: translateY(0);
 }
 
+.client-profile-viewer-top-band .client-detail-card {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.client-profile-viewer-top-band .client-overview-summary-card,
+.client-profile-viewer-top-band .client-profile-sidebar-card {
+  padding-top: 1rem;
+}
+
+.client-profile-viewer-top-band .client-overview-summary-card {
+  --client-overview-summary-top-gap: 2.4rem;
+  margin-top: 0;
+  background: transparent;
+}
+
+.client-profile-viewer-top-band .client-overview-summary-tab {
+  top: 0;
+  left: 0;
+  right: auto;
+  min-height: 0;
+  padding: 0 0 0.58rem;
+  border-radius: 0;
+  transform: none;
+  background: transparent;
+  color: #5649d2;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  border-bottom: 3px solid #5649d2;
+}
+
+.client-profile-viewer-top-band .client-overview-summary-body {
+  gap: 1.1rem;
+}
+
+.client-profile-viewer-top-band .client-overview-summary-body > * + * {
+  margin-top: 0.95rem;
+  padding-top: 0.95rem;
+  border-top: 1px solid rgba(223, 229, 238, 0.95);
+}
+
+.client-profile-viewer-top-band .client-profile-avatar-wrap {
+  grid-column: 1;
+  grid-row: 1;
+  justify-content: flex-start;
+  align-self: start;
+  margin: 0;
+  padding-top: 0.05rem;
+}
+
+.client-profile-viewer-top-band .client-profile-sidebar-copy {
+  grid-column: 2;
+  grid-row: 1;
+  text-align: left;
+  align-content: start;
+  gap: 0.2rem;
+  margin: 0;
+  padding-top: 0.05rem;
+}
+
+.client-profile-viewer-top-band .client-profile-contact-list {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  gap: 0.82rem;
+  margin-top: 0.35rem;
+}
+
+.client-profile-viewer-top-band .client-profile-sidebar-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: start;
+  align-items: start;
+  column-gap: 1rem;
+  row-gap: 0.85rem;
+}
+
+.client-profile-viewer-top-band .client-profile-sidebar-overline {
+  color: #6d7a90;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+
+.client-profile-viewer-top-band .client-profile-sidebar-name {
+  font-size: 1.04rem;
+  font-weight: 620;
+}
+
+.client-profile-viewer-top-band .client-profile-sidebar-copy p {
+  font-size: 0.92rem;
+}
+
+.client-profile-viewer-top-band .client-profile-sidebar-avatar {
+  width: 2.95rem;
+  height: 2.95rem;
+  font-size: 1.02rem;
+  box-shadow: none;
+}
+
+.client-profile-viewer-top-band .client-profile-contact-item {
+  gap: 0.78rem;
+  align-items: start;
+}
+
+.client-profile-viewer-top-band .client-profile-contact-item span {
+  line-height: 1.1;
+}
+
+.client-profile-viewer-top-band .client-profile-contact-copy {
+  gap: 0.08rem;
+}
+
+.client-profile-viewer-top-band .client-profile-contact-key {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.client-profile-viewer-top-band .client-profile-contact-item strong,
+.client-profile-viewer-top-band .client-profile-contact-value-shell {
+  font-size: 0.88rem;
+  font-weight: 560;
+}
+
+.client-profile-viewer-secondary-grid .client-detail-card {
+  min-height: 100%;
+}
+
 .client-notes-widget-card:has(.client-activity-drawer.is-open) .client-activity-overview-card,
 .client-notes-widget-card:has(.client-activity-drawer.is-open) .client-notes-widget-paper {
   box-shadow: none;
+}
+
+.client-profile-viewer-activity-rail .client-notes-widget-card {
+  gap: 1rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.client-profile-viewer-activity-rail .client-detail-card-tab {
+  display: none;
+}
+
+.client-profile-viewer-activity-rail .client-notes-widget-topline {
+  min-height: 2.8rem;
+  padding: 0 0 0.25rem;
+  border-bottom: 1px solid rgba(223, 229, 238, 0.95);
+}
+
+.client-profile-viewer-activity-rail .client-notes-widget-title {
+  display: block;
+  color: #17212e;
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.1;
+}
+
+.client-profile-viewer-activity-rail .client-notes-widget-body {
+  gap: 0;
+}
+
+.client-profile-viewer-activity-rail .client-activity-overview-card,
+.client-profile-viewer-activity-rail .client-notes-widget-paper {
+  background: transparent;
+  border-radius: 0;
+}
+
+.client-profile-viewer-activity-rail .client-activity-overview-card {
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  padding: 0 0 1rem;
+  border-bottom: 1px solid rgba(223, 229, 238, 0.95);
+}
+
+.client-profile-viewer-activity-rail .client-activity-summary-top {
+  padding: 0 0 0.78rem;
+}
+
+.client-profile-viewer-activity-rail .client-activity-overview-bottom {
+  padding: 0.82rem 0 0;
+}
+
+.client-profile-viewer-activity-rail .client-notes-widget-paper {
+  min-height: 0;
+  max-height: none;
+  padding: 1rem 0 0;
+  border-top: 0;
+}
+
+.client-profile-viewer-activity-rail .client-activity-section-title {
+  padding-bottom: 0.72rem;
+}
+
+.client-profile-viewer-activity-rail .client-notes-widget-list {
+  height: auto;
+  min-height: 0;
+  max-height: none;
+}
+
+.client-profile-viewer-activity-rail .client-notes-widget-actions {
+  margin-top: 0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(223, 229, 238, 0.95);
 }
 
 .client-activity-menu[hidden],
@@ -7654,7 +7668,7 @@ body.clients-page.is-a11y-large-text .client-table-cell-client > div > strong {
 }
 
 body.clients-page.is-a11y-large-text .client-table-cell-client > div > span,
-body.clients-page.is-a11y-large-text .client-table-cell-next-action-value {
+body.clients-page.is-a11y-large-text .client-table-cell-stage-days-value {
   font-size: 0.94rem !important;
   line-height: 1.35;
 }
@@ -7698,7 +7712,7 @@ body.clients-page.is-a11y-high-contrast .client-directory-summary-list-label,
 body.clients-page.is-a11y-high-contrast .client-directory-summary-progress-head,
 body.clients-page.is-a11y-high-contrast .client-directory-summary-progress-foot,
 body.clients-page.is-a11y-high-contrast .client-table-cell-client > div > span,
-body.clients-page.is-a11y-high-contrast .client-table-cell-next-action-value,
+body.clients-page.is-a11y-high-contrast .client-table-cell-stage-days-value,
 body.clients-page.is-a11y-high-contrast .client-rail-button,
 body.clients-page.is-a11y-high-contrast .client-directory-app-section-label {
   color: #334155 !important;

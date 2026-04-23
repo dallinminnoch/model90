@@ -4056,7 +4056,7 @@
           <section class="client-detail-card client-detail-card-compact client-notes-widget-card client-detail-card-tabbed"${widgetTargets ? ` data-client-nav-section="${escapeHtml(widgetTargets)}"` : ""}>
             <div class="client-detail-card-tab">${escapeHtml(widgetTitle)}</div>
             <div class="client-notes-widget-topline">
-              <h2 class="sr-only">${escapeHtml(widgetTitle)}</h2>
+              <h2 class="client-notes-widget-title">${escapeHtml(widgetTitle)}</h2>
             </div>
             <div class="client-notes-widget-body">
               <div data-activity-overview>
@@ -4859,28 +4859,31 @@
             <section class="client-profile-main client-profile-main--viewer">
               <div class="client-profile-viewer-shell">
                 <div class="client-profile-viewer-header" data-client-profile-sticky-header>
-                  <div class="client-profile-workspace-action-row client-profile-workspace-action-row--viewer" data-primary-action-panel-host>
-                    ${renderPrimaryActionPanel(record, checklistItems)}
-                  </div>
+                  <div class="client-profile-viewer-header-blank" aria-hidden="true"></div>
                 </div>
                 <div class="client-profile-viewer-body">
                   <div class="client-profile-viewer-main" data-client-profile-scroll-pane data-client-profile-workspace>
-                    <div class="client-profile-viewer-summary-grid">
-                      <div class="client-profile-viewer-summary-card client-profile-viewer-summary-card--overview">
+                    <div class="client-profile-workspace-action-row client-profile-workspace-action-row--viewer" data-primary-action-panel-host>
+                      ${renderPrimaryActionPanel(record, checklistItems)}
+                    </div>
+                    <div class="client-profile-viewer-top-band">
+                      <div class="client-profile-viewer-top-panel client-profile-viewer-top-panel--overview">
                         ${renderOverviewSummaryCard(record)}
                       </div>
-                      <div class="client-profile-viewer-summary-card client-profile-viewer-summary-card--details">
+                      <div class="client-profile-viewer-top-panel client-profile-viewer-top-panel--details">
                         ${renderClientProfileSidebar(record, subtitleParts)}
-                      </div>
-                      <div class="client-profile-viewer-summary-card client-profile-viewer-summary-card--workflow">
-                        ${renderChecklistCard("Planning Workflow", checklistItems, record)}
-                      </div>
-                      <div class="client-profile-viewer-summary-card client-profile-viewer-summary-card--status">
-                        ${renderStatusControlPanel(record)}
                       </div>
                     </div>
                     <div class="client-profile-workspace-main client-profile-workspace-main--sections">
                       <div class="client-profile-workspace">
+                      <div class="client-profile-viewer-secondary-grid client-profile-viewer-secondary-grid--workspace">
+                        <div class="client-profile-viewer-secondary-card client-profile-viewer-secondary-card--workflow">
+                          ${renderChecklistCard("Planning Workflow", checklistItems, record)}
+                        </div>
+                        <div class="client-profile-viewer-secondary-card client-profile-viewer-secondary-card--status">
+                          ${renderStatusControlPanel(record)}
+                        </div>
+                      </div>
 
                       ${renderProfileWorkspaceSection({
                         sectionTargets: "analysis",
@@ -4978,7 +4981,7 @@
                     </div>
                   </div>
                   <aside class="client-profile-viewer-activity-rail">
-                    ${renderNotesWidget(record, "Activity Tracker", "activity activity-log")}
+                    ${renderNotesWidget(record, "Activity", "activity activity-log")}
                   </aside>
                 </div>
               </div>

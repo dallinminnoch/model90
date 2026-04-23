@@ -153,10 +153,27 @@
                           <span class="client-directory-accessibility-option-note">Adds more visible focus rings to buttons, inputs, rows, and controls.</span>
                         </span>
                       </label>
+                      <div class="client-directory-accessibility-option client-directory-accessibility-threshold-card" role="group" aria-labelledby="client-directory-stage-threshold-title">
+                        <span class="client-directory-accessibility-option-copy">
+                          <span class="client-directory-accessibility-option-title" id="client-directory-stage-threshold-title">Days in Stage Color Thresholds</span>
+                          <span class="client-directory-accessibility-option-note">Choose when the Days in Stage column turns yellow and red. Colors apply at or beyond each day count.</span>
+                        </span>
+                        <div class="client-directory-accessibility-thresholds">
+                          <label class="client-directory-accessibility-threshold-field">
+                            <span class="client-directory-accessibility-threshold-label">Yellow at</span>
+                            <input class="client-directory-accessibility-threshold-input" type="number" min="0" step="1" inputmode="numeric" data-accessibility-stage-warning aria-label="Turn Days in Stage yellow at this many days">
+                          </label>
+                          <label class="client-directory-accessibility-threshold-field">
+                            <span class="client-directory-accessibility-threshold-label">Red at</span>
+                            <input class="client-directory-accessibility-threshold-input" type="number" min="0" step="1" inputmode="numeric" data-accessibility-stage-danger aria-label="Turn Days in Stage red at this many days">
+                          </label>
+                          <button class="client-directory-accessibility-threshold-reset client-directory-accessibility-reset" type="button" data-directory-stage-threshold-reset>Reset Thresholds</button>
+                        </div>
+                      </div>
                     </div>
                     <div class="client-directory-accessibility-actions">
                       <p class="client-directory-accessibility-footnote">Changes apply immediately and stay with your advisor profile.</p>
-                      <button class="client-directory-accessibility-reset" type="button" data-directory-accessibility-reset>Reset</button>
+                      <button class="client-directory-accessibility-reset" type="button" data-directory-accessibility-reset>Reset All</button>
                     </div>
                   </div>
                 </div>
@@ -977,6 +994,9 @@
       const directoryAccessibilityCloseButtons = Array.from(document.querySelectorAll("[data-directory-accessibility-close]"));
       const directoryAccessibilityToggles = Array.from(document.querySelectorAll("[data-accessibility-setting]"));
       const directoryAccessibilityResetButton = document.querySelector("[data-directory-accessibility-reset]");
+      const directoryStageWarningInput = document.querySelector("[data-accessibility-stage-warning]");
+      const directoryStageDangerInput = document.querySelector("[data-accessibility-stage-danger]");
+      const directoryStageThresholdResetButton = document.querySelector("[data-directory-stage-threshold-reset]");
       const directorySidebarHost = document.querySelector('[data-workspace-side-nav="directory"]');
       const directorySidebarLayout = document.querySelector("[data-directory-sidebar-layout]");
       const directorySidebarToggle = document.querySelector("[data-directory-sidebar-toggle]");
@@ -1300,13 +1320,27 @@
 
       const initialProfileViewerIntent = readProfileViewerIntentFromUrl();
 
+      const DEFAULT_STAGE_DAY_THRESHOLDS = Object.freeze({
+        warning: 7,
+        danger: 14
+      });
+
       const DEFAULT_ACCESSIBILITY_SETTINGS = Object.freeze({
         "large-text": false,
         "high-contrast": false,
         "soft-avatars": false,
         "reduced-motion": false,
-        "focus-assist": false
+        "focus-assist": false,
+        stageDayThresholds: DEFAULT_STAGE_DAY_THRESHOLDS
       });
+
+      const ACCESSIBILITY_TOGGLE_KEYS = Object.freeze([
+        "large-text",
+        "high-contrast",
+        "soft-avatars",
+        "reduced-motion",
+        "focus-assist"
+      ]);
 
       const ACCESSIBILITY_CLASS_BY_KEY = {
         "large-text": "is-a11y-large-text",
@@ -1337,15 +1371,49 @@
         }
       }
 
+      function clampStageDayThreshold(value, fallback) {
+        const numericValue = Number.parseInt(value, 10);
+        if (!Number.isFinite(numericValue)) {
+          return fallback;
+        }
+
+        return Math.max(0, Math.min(3650, numericValue));
+      }
+
+      function normalizeStageDayThresholds(value) {
+        const warning = clampStageDayThreshold(value?.warning, DEFAULT_STAGE_DAY_THRESHOLDS.warning);
+        const danger = clampStageDayThreshold(value?.danger, DEFAULT_STAGE_DAY_THRESHOLDS.danger);
+
+        return {
+          warning: warning,
+          danger: Math.max(warning, danger)
+        };
+      }
+
+      function createDefaultAccessibilitySettings() {
+        return {
+          "large-text": false,
+          "high-contrast": false,
+          "soft-avatars": false,
+          "reduced-motion": false,
+          "focus-assist": false,
+          stageDayThresholds: { ...DEFAULT_STAGE_DAY_THRESHOLDS }
+        };
+      }
+
       function normalizeAccessibilitySettings(value) {
-        const normalized = { ...DEFAULT_ACCESSIBILITY_SETTINGS };
+        const normalized = createDefaultAccessibilitySettings();
         if (!value || typeof value !== "object") {
           return normalized;
         }
 
-        Object.keys(normalized).forEach(function (key) {
+        ACCESSIBILITY_TOGGLE_KEYS.forEach(function (key) {
           normalized[key] = Boolean(value[key]);
         });
+
+        normalized.stageDayThresholds = normalizeStageDayThresholds(
+          value.stageDayThresholds || value["stage-day-thresholds"]
+        );
 
         return normalized;
       }
@@ -1354,7 +1422,7 @@
         try {
           return normalizeAccessibilitySettings(loadJson(localStorage, directoryAccessibilityStorageKey));
         } catch (error) {
-          return { ...DEFAULT_ACCESSIBILITY_SETTINGS };
+          return createDefaultAccessibilitySettings();
         }
       }
 
@@ -1367,9 +1435,21 @@
       }
 
       function hasActiveAccessibilitySetting() {
-        return Object.keys(DEFAULT_ACCESSIBILITY_SETTINGS).some(function (key) {
+        const hasActiveToggle = ACCESSIBILITY_TOGGLE_KEYS.some(function (key) {
           return Boolean(accessibilitySettings && accessibilitySettings[key]);
         });
+
+        if (hasActiveToggle) {
+          return true;
+        }
+
+        const thresholds = normalizeStageDayThresholds(accessibilitySettings?.stageDayThresholds);
+        return thresholds.warning !== DEFAULT_STAGE_DAY_THRESHOLDS.warning
+          || thresholds.danger !== DEFAULT_STAGE_DAY_THRESHOLDS.danger;
+      }
+
+      function getDirectoryStageDayThresholds() {
+        return normalizeStageDayThresholds(accessibilitySettings?.stageDayThresholds);
       }
 
       function syncAccessibilitySettings() {
@@ -1383,12 +1463,22 @@
 
         directoryAccessibilityToggles.forEach(function (toggle) {
           const key = String(toggle.dataset.accessibilitySetting || "").trim();
-          if (!key || !(key in DEFAULT_ACCESSIBILITY_SETTINGS)) {
+          if (!key || !ACCESSIBILITY_TOGGLE_KEYS.includes(key)) {
             return;
           }
 
           toggle.checked = Boolean(accessibilitySettings && accessibilitySettings[key]);
         });
+
+        const thresholds = getDirectoryStageDayThresholds();
+
+        if (directoryStageWarningInput instanceof HTMLInputElement) {
+          directoryStageWarningInput.value = String(thresholds.warning);
+        }
+
+        if (directoryStageDangerInput instanceof HTMLInputElement) {
+          directoryStageDangerInput.value = String(thresholds.danger);
+        }
 
         if (directoryAccessibilityTrigger instanceof HTMLElement) {
           directoryAccessibilityTrigger.classList.toggle("is-active", hasActiveAccessibilitySetting());
@@ -1397,10 +1487,19 @@
         if (directoryAccessibilityResetButton instanceof HTMLButtonElement) {
           directoryAccessibilityResetButton.disabled = !hasActiveAccessibilitySetting();
         }
+
+        if (directoryStageThresholdResetButton instanceof HTMLButtonElement) {
+          directoryStageThresholdResetButton.disabled = thresholds.warning === DEFAULT_STAGE_DAY_THRESHOLDS.warning
+            && thresholds.danger === DEFAULT_STAGE_DAY_THRESHOLDS.danger;
+        }
       }
 
       sortOrder = loadDirectoryOrder();
       accessibilitySettings = loadAccessibilitySettings();
+      window.LensApp = window.LensApp || {};
+      window.LensApp.clientDirectoryHelpers = Object.assign(window.LensApp.clientDirectoryHelpers || {}, {
+        getDirectoryStageDayThresholds: getDirectoryStageDayThresholds
+      });
 
       function toStorageCompatibleRecord(record) {
         if (!record || typeof record !== "object") {
@@ -1507,30 +1606,6 @@
 
       function hasDirectoryPmiCompleted(record) {
         return Boolean(record?.pmiCompleted) || hasDirectoryAnalysisCompleted(record);
-      }
-
-      function getDirectoryNextAction(record) {
-        if (!hasDirectoryProfileCreated(record)) {
-          return "Create Profile";
-        }
-
-        if (!hasDirectoryPreliminaryCompleted(record)) {
-          return "Preliminary Underwriting";
-        }
-
-        if (!hasDirectoryPmiCompleted(record)) {
-          return "Protection Modeling Inputs";
-        }
-
-        if (!hasDirectoryAnalysisCompleted(record)) {
-          return "Complete Analysis";
-        }
-
-        if (record?.statusGroup === "coverage-placed") {
-          return "Policy Delivered";
-        }
-
-        return "Workflow Complete";
       }
 
       function normalizeCaseRef(value) {
@@ -4219,7 +4294,7 @@
       directoryAccessibilityToggles.forEach(function (toggle) {
         toggle.addEventListener("change", function () {
           const key = String(toggle.dataset.accessibilitySetting || "").trim();
-          if (!key || !(key in DEFAULT_ACCESSIBILITY_SETTINGS)) {
+          if (!key || !ACCESSIBILITY_TOGGLE_KEYS.includes(key)) {
             return;
           }
 
@@ -4230,8 +4305,47 @@
         });
       });
 
+      function updateStageDayThresholdSetting(changes, sourceKey) {
+        const nextThresholds = normalizeStageDayThresholds({
+          ...accessibilitySettings?.stageDayThresholds,
+          ...changes
+        });
+
+        if (sourceKey === "warning" && nextThresholds.warning > nextThresholds.danger) {
+          nextThresholds.danger = nextThresholds.warning;
+        }
+
+        if (sourceKey === "danger" && nextThresholds.danger < nextThresholds.warning) {
+          nextThresholds.warning = nextThresholds.danger;
+        }
+
+        accessibilitySettings.stageDayThresholds = nextThresholds;
+        persistAccessibilitySettings();
+        syncAccessibilitySettings();
+        renderDirectory();
+      }
+
+      directoryStageWarningInput?.addEventListener("change", function () {
+        updateStageDayThresholdSetting({
+          warning: directoryStageWarningInput.value
+        }, "warning");
+      });
+
+      directoryStageDangerInput?.addEventListener("change", function () {
+        updateStageDayThresholdSetting({
+          danger: directoryStageDangerInput.value
+        }, "danger");
+      });
+
+      directoryStageThresholdResetButton?.addEventListener("click", function () {
+        accessibilitySettings.stageDayThresholds = { ...DEFAULT_STAGE_DAY_THRESHOLDS };
+        persistAccessibilitySettings();
+        syncAccessibilitySettings();
+        renderDirectory();
+      });
+
       directoryAccessibilityResetButton?.addEventListener("click", function () {
-        accessibilitySettings = { ...DEFAULT_ACCESSIBILITY_SETTINGS };
+        accessibilitySettings = createDefaultAccessibilitySettings();
         persistAccessibilitySettings();
         syncAccessibilitySettings();
         renderDirectory();
