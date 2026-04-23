@@ -40,7 +40,7 @@
 
     ensureClientRecords();
     mergePendingClientRecords();
-    let allRecords = getClientRecords();
+    let allRecords = buildCanonicalDirectoryRecords(getClientRecords());
     const selectedRecordIds = new Set();
     const collapsedGroupKeys = new Set();
     let activeLetter = "all";
@@ -50,7 +50,7 @@
     const shouldRestoreClientView = navigationEntry?.type === "reload";
     const forcedClientView = sessionStorage.getItem(STORAGE_KEYS.clientViewIntent);
     let activeView = normalizeDirectoryView(
-      forcedClientView || (shouldRestoreClientView ? (sessionStorage.getItem(STORAGE_KEYS.clientView) || "individuals") : "individuals")
+      forcedClientView || (shouldRestoreClientView ? (sessionStorage.getItem(STORAGE_KEYS.clientView) || "all") : "all")
     );
     let sortOrder = loadPersistedDirectoryOrder();
     let externalRecordFilter = null;
@@ -91,7 +91,7 @@
 
     function syncTableHeadings() {
       if (nameHeading) {
-        nameHeading.textContent = activeView === "households" ? "Household" : activeView === "businesses" ? "Business" : "Client";
+        nameHeading.textContent = activeView === "households" ? "Household" : activeView === "businesses" ? "Business" : activeView === "all" ? "Profile" : "Client";
       }
       if (nextActionHeading) {
         nextActionHeading.textContent = "Next Action";
@@ -154,6 +154,7 @@
         const matchesExternal = typeof externalRecordFilter === "function" ? externalRecordFilter(record) : true;
         const matchesSearch = !query
           || String(record.displayName || "").toLowerCase().includes(query)
+          || String(record.directorySearchText || "").toLowerCase().includes(query)
           || String(record.summary || "").toLowerCase().includes(query)
           || String(record.caseRef || "").toLowerCase().includes(query);
 
@@ -318,7 +319,7 @@
     }
 
     function renderDirectory() {
-      allRecords = getClientRecords();
+      allRecords = buildCanonicalDirectoryRecords(getClientRecords());
       const filteredRecords = sortDirectoryRecords(getFilteredRecords());
       const visibleRecords = filteredRecords;
       const renderableGroups = buildRenderableDirectoryGroups(visibleRecords, filteredRecords);
@@ -489,7 +490,7 @@
     viewButtons.forEach((button) => {
       button.classList.toggle("is-active", normalizeDirectoryView(button.dataset.clientView) === activeView);
       button.addEventListener("click", () => {
-        activeView = normalizeDirectoryView(button.dataset.clientView || "individuals");
+        activeView = normalizeDirectoryView(button.dataset.clientView || "all");
         sessionStorage.setItem(STORAGE_KEYS.clientView, activeView);
         viewButtons.forEach((item) => {
           item.classList.toggle("is-active", normalizeDirectoryView(item.dataset.clientView) === activeView);
@@ -619,15 +620,15 @@
         };
       },
       getAllRecords() {
-        allRecords = getClientRecords();
+        allRecords = buildCanonicalDirectoryRecords(getClientRecords());
         return allRecords.slice();
       },
       getFilteredRecords() {
-        allRecords = getClientRecords();
+        allRecords = buildCanonicalDirectoryRecords(getClientRecords());
         return sortDirectoryRecords(getFilteredRecords()).slice();
       },
       getSelectedRecords() {
-        allRecords = getClientRecords();
+        allRecords = buildCanonicalDirectoryRecords(getClientRecords());
         return getSelectedRecords().slice();
       },
       clearSelection() {
@@ -687,13 +688,16 @@
 
   function normalizeDirectoryView(value) {
     const normalized = String(value || "").trim().toLowerCase();
+    if (normalized === "all") {
+      return "all";
+    }
     if (normalized === "companies") {
       return "businesses";
     }
 
-    return ["individuals", "households", "businesses"].includes(normalized)
+    return ["all", "individuals", "households", "businesses"].includes(normalized)
       ? normalized
-      : "individuals";
+      : "all";
   }
 
   function getDirectoryRecordView(record) {
@@ -701,7 +705,214 @@
   }
 
   function doesRecordMatchDirectoryView(record, activeView) {
+    if (normalizeDirectoryView(activeView) === "all") {
+      return true;
+    }
     return getDirectoryRecordView(record) === normalizeDirectoryView(activeView);
+  }
+
+  function getDirectoryPreferredFirstName(record) {
+    const preferredName = String(record?.preferredName || "").trim();
+    if (preferredName) {
+      return preferredName;
+    }
+
+    const firstName = String(record?.firstName || "").trim();
+    if (firstName) {
+      return firstName;
+    }
+
+    const displayName = String(record?.displayName || "").trim();
+    if (!displayName) {
+      return "";
+    }
+
+    if (displayName.includes(",")) {
+      return String(displayName.split(",").slice(1).join(",") || "").trim().split(/\s+/).filter(Boolean)[0] || "";
+    }
+
+    const parts = displayName.split(/\s+/).filter(Boolean);
+    const lastName = String(record?.lastName || "").trim().toLowerCase();
+    if (parts.length > 1 && lastName && parts[parts.length - 1].toLowerCase() === lastName) {
+      return parts.slice(0, -1).join(" ").trim();
+    }
+
+    return parts[0] || "";
+  }
+
+  function buildCanonicalIndividualDisplayName(record) {
+    const lastName = String(record?.lastName || "").trim();
+    const firstName = getDirectoryPreferredFirstName(record);
+    if (lastName && firstName) {
+      return `${lastName}, ${firstName}`;
+    }
+
+    return String(record?.displayName || "").trim() || [lastName, firstName].filter(Boolean).join(", ").trim();
+  }
+
+  function buildDirectorySearchText(record, extras) {
+    return [
+      record?.displayName,
+      record?.firstName,
+      record?.preferredName,
+      record?.lastName,
+      record?.summary,
+      record?.householdName,
+      ...(Array.isArray(extras) ? extras : [])
+    ]
+      .map((value) => String(value || "").trim())
+      .filter(Boolean)
+      .join(" ");
+  }
+
+  function sortDirectoryGroupMemberEntries(memberEntries, groupRecord) {
+    const primaryLastName = String(groupRecord?.lastName || "").trim().toLowerCase();
+    return memberEntries.slice().sort((left, right) => {
+      const leftPrimaryRank = primaryLastName && String(left?.record?.lastName || "").trim().toLowerCase() === primaryLastName ? 0 : 1;
+      const rightPrimaryRank = primaryLastName && String(right?.record?.lastName || "").trim().toLowerCase() === primaryLastName ? 0 : 1;
+      if (leftPrimaryRank !== rightPrimaryRank) {
+        return leftPrimaryRank - rightPrimaryRank;
+      }
+
+      return left.index - right.index;
+    });
+  }
+
+  function buildProjectedGroupRecord(groupRecord, memberEntries) {
+    const sortedMemberEntries = sortDirectoryGroupMemberEntries(memberEntries, groupRecord);
+    const memberRecords = sortedMemberEntries.map((entry) => entry.record);
+    const memberDisplayNames = memberRecords.map((record) => buildCanonicalIndividualDisplayName(record));
+    const primaryLastName = String(groupRecord?.lastName || memberRecords[0]?.lastName || "").trim();
+    const firstTwoNames = memberRecords
+      .map((record) => getDirectoryPreferredFirstName(record))
+      .filter(Boolean)
+      .slice(0, 2);
+    const displayName = primaryLastName && firstTwoNames.length
+      ? `${primaryLastName}, ${firstTwoNames.join(" & ")}`
+      : String(groupRecord?.displayName || "").trim();
+
+    return {
+      ...groupRecord,
+      displayName,
+      lastName: primaryLastName,
+      householdName: "",
+      directorySearchText: buildDirectorySearchText(groupRecord, memberDisplayNames)
+    };
+  }
+
+  function buildProjectedIndividualRecord(record) {
+    const displayName = buildCanonicalIndividualDisplayName(record);
+    return {
+      ...record,
+      displayName,
+      householdName: "",
+      directorySearchText: buildDirectorySearchText(record, [displayName])
+    };
+  }
+
+  function buildCanonicalDirectoryRecords(records) {
+    const safeRecords = Array.isArray(records)
+      ? records.filter((record) => record && typeof record === "object")
+      : [];
+
+    const groupRecordsById = new Map();
+    const memberEntriesByGroupId = new Map();
+    const standaloneEntries = [];
+    const projectedEntries = [];
+
+    safeRecords.forEach((record, index) => {
+      const rawViewType = String(record?.viewType || "").trim().toLowerCase();
+      const normalizedRawView = rawViewType === "businesses" ? "companies" : rawViewType;
+      const recordId = String(record?.id || "").trim();
+      const groupId = String(record?.householdId || "").trim();
+
+      if ((normalizedRawView === "households" || normalizedRawView === "companies") && recordId) {
+        groupRecordsById.set(recordId, {
+          index,
+          record: {
+            ...record,
+            viewType: normalizedRawView
+          }
+        });
+        return;
+      }
+
+      if (normalizedRawView === "individuals" && groupId) {
+        const existingEntries = memberEntriesByGroupId.get(groupId) || [];
+        existingEntries.push({ index, record });
+        memberEntriesByGroupId.set(groupId, existingEntries);
+        return;
+      }
+
+      standaloneEntries.push({
+        index,
+        record: normalizedRawView === "individuals"
+          ? record
+          : {
+            ...record,
+            viewType: normalizedRawView === "companies" ? "companies" : record.viewType
+          }
+      });
+    });
+
+    groupRecordsById.forEach((groupEntry, groupId) => {
+      const memberEntries = memberEntriesByGroupId.get(groupId) || [];
+
+      if (memberEntries.length > 1) {
+        projectedEntries.push({
+          index: groupEntry.index,
+          record: buildProjectedGroupRecord(groupEntry.record, memberEntries)
+        });
+        return;
+      }
+
+      if (memberEntries.length === 1) {
+        projectedEntries.push({
+          index: memberEntries[0].index,
+          record: buildProjectedIndividualRecord(memberEntries[0].record)
+        });
+        return;
+      }
+
+      projectedEntries.push({
+        index: groupEntry.index,
+        record: {
+          ...groupEntry.record,
+          householdName: "",
+          directorySearchText: buildDirectorySearchText(groupEntry.record, [])
+        }
+      });
+    });
+
+    memberEntriesByGroupId.forEach((memberEntries, groupId) => {
+      if (groupRecordsById.has(groupId)) {
+        return;
+      }
+
+      memberEntries.forEach((entry) => {
+        projectedEntries.push({
+          index: entry.index,
+          record: buildProjectedIndividualRecord(entry.record)
+        });
+      });
+    });
+
+    standaloneEntries.forEach((entry) => {
+      projectedEntries.push({
+        index: entry.index,
+        record: String(entry.record?.viewType || "").trim().toLowerCase() === "individuals"
+          ? buildProjectedIndividualRecord(entry.record)
+          : {
+            ...entry.record,
+            householdName: "",
+            directorySearchText: buildDirectorySearchText(entry.record, [])
+          }
+      });
+    });
+
+    return projectedEntries
+      .sort((left, right) => left.index - right.index)
+      .map((entry) => entry.record);
   }
 
   function buildStatusCounts(records, activeView) {
@@ -950,6 +1161,7 @@
       ? ` style="background: ${avatarPresentation.background}; color: ${avatarPresentation.color};"`
       : "";
     const isFlagged = Boolean(record.isFlagged);
+    const subtitle = getClientDirectorySubtitle(record);
 
       const rowFlagIconSrc = isFlagged ? "../Images/flat-row-selected.svg" : "../Images/flat-row.svg";
 
@@ -968,7 +1180,7 @@
             <span class="${avatarClasses} directory-person__avatar"${avatarStyle}>${getInitials(record.displayName, record.viewType, record.lastName)}</span>
           <div class="directory-person__body">
             <strong class="directory-person__name">${record.displayName}</strong>
-            <span class="directory-person__subtitle">${getClientDirectorySubtitle(record)}</span>
+            ${subtitle ? `<span class="directory-person__subtitle">${subtitle}</span>` : ""}
           </div>
         </div>
         <div class="client-table-cell client-table-cell-case-ref-value">${record.caseRef || "--"}</div>
@@ -1278,16 +1490,7 @@
   }
 
   function getClientDirectorySubtitle(record) {
-    const assignmentName = String(record.householdName || "").trim();
-    if (assignmentName) {
-      return assignmentName;
-    }
-
-    if (record.viewType === "households" || record.viewType === "companies") {
-      return String(record.summary || "").trim() || "Profile";
-    }
-
-    return "No household linked";
+    return "";
   }
 
   function getDependentsDisplay(record) {

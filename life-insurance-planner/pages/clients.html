@@ -1140,7 +1140,7 @@
       };
 
       let activeLetter = "all";
-      let activeView = "individuals";
+      let activeView = "all";
       let activeStatus = "all";
       let activeScope = "all";
       let activePriority = "all";
@@ -1190,7 +1190,7 @@
           : directoryCoreApi.getState();
 
         activeLetter = String(coreState.activeLetter || "all").trim() || "all";
-        activeView = String(coreState.activeView || "individuals").trim() || "individuals";
+        activeView = String(coreState.activeView || "all").trim() || "all";
         activeStatus = String(coreState.activeStatus || "all").trim() || "all";
         sortOrder = String(coreState.sortOrder || "opportunity-score").trim() || "opportunity-score";
         records = loadRecords();
@@ -3902,7 +3902,7 @@
           let isActive = false;
 
           if (action === "all") {
-            isActive = activeLetter === "all" && activeStatus === "all" && activeScope === "all" && activePriority === "all";
+            isActive = activeView === "all" && activeLetter === "all" && activeStatus === "all" && activeScope === "all" && activePriority === "all";
           } else if (action === "households") {
             isActive = activeView === "households";
           } else if (action === "individuals") {
@@ -3931,7 +3931,7 @@
 
       function setDirectoryView(nextView) {
         const normalizedView = String(nextView || "").trim();
-        if (normalizedView !== "households" && normalizedView !== "individuals" && normalizedView !== "businesses") {
+        if (normalizedView !== "all" && normalizedView !== "households" && normalizedView !== "individuals" && normalizedView !== "businesses") {
           return false;
         }
 
@@ -3967,6 +3967,7 @@
       }
 
       function resetDirectoryToAll() {
+        activeView = "all";
         activeLetter = "all";
         activeStatus = "all";
         activeScope = "all";
@@ -3980,7 +3981,7 @@
           activeView: activeView,
           activeScope: activeScope,
           activePriority: activePriority,
-          isAllActive: activeLetter === "all" && activeStatus === "all" && activeScope === "all" && activePriority === "all"
+          isAllActive: activeView === "all" && activeLetter === "all" && activeStatus === "all" && activeScope === "all" && activePriority === "all"
         };
       }
 

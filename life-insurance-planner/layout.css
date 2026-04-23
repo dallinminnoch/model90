@@ -89,7 +89,7 @@
     --client-directory-summary-note-max: 17em;
     --client-directory-summary-card-min-height: 13em;
     --client-directory-next-action-max: 12.2em;
-    --client-directory-row-avatar-size: calc((1.78rem + (0.86rem * var(--client-directory-density-scale))) / 2.1);
+    --client-directory-row-avatar-size: calc((1.78rem + (0.86rem * var(--client-directory-density-scale))) / 1.6);
     --client-directory-row-avatar-font-size: calc(var(--client-directory-row-avatar-size) * 0.39);
     --client-directory-row-name-size: calc(0.99em + (0.14em * var(--client-directory-density-scale)));
     --client-directory-row-subtitle-size: calc(0.91em + (0.11em * var(--client-directory-density-scale)));
@@ -160,7 +160,7 @@
     --client-directory-local-table-gap: 0.45em;
     --client-directory-local-table-pad-block: 0.92em;
     --client-directory-local-table-pad-inline: 1em;
-    --client-directory-local-table-row-pad-block: 0;
+    --client-directory-local-table-row-pad-block: 0.38rem;
   }
 
   body.clients-page:not(.workspace-side-nav-collapsed)[data-local-client-directory="true"] .client-directory-workspace {
