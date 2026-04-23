@@ -1725,47 +1725,174 @@ select option:disabled {
 }
 
 body[data-page="existing-coverage-details"] .prospect-empty-panel {
-  gap: 1.25rem;
+  max-width: min(100%, 73rem);
+  margin: 0 auto;
+  gap: 1.55rem;
+  padding: clamp(1.45rem, 2.8vw, 2rem);
+}
+
+.existing-coverage-page-header {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  padding-top: 0.15rem;
+}
+
+.existing-coverage-page-heading {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  max-width: 46rem;
+  text-align: center;
+}
+
+.existing-coverage-page-heading h1 {
+  margin: 0;
+  color: #20283a;
+  font-size: clamp(2rem, 3.25vw, 2.7rem);
+  font-weight: 800;
+  line-height: 1.08;
+}
+
+.existing-coverage-page-heading .helper-text {
+  margin: 0;
+  color: #5f6e84;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.existing-coverage-return-button {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.95rem;
+  padding: 0 1rem;
+  border: 1px solid rgba(220, 226, 237, 0.95);
+  border-radius: 0.85rem;
+  background: #ffffff;
+  color: #263144;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(24, 39, 75, 0.05);
+}
+
+.existing-coverage-return-icon {
+  width: 1rem;
+  height: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.existing-coverage-return-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .existing-coverage-summary-section,
 .existing-coverage-form-shell {
   margin: 0;
+  padding: 1.2rem 1.25rem 1.3rem;
+  border: 1px solid rgba(221, 227, 238, 0.98);
+  border-radius: 1.2rem;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(29, 42, 63, 0.05);
+}
+
+.existing-coverage-section-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem 1rem;
+  align-items: start;
+}
+
+.existing-coverage-section-heading h2 {
+  margin: 0;
+  color: #20283a;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.existing-coverage-section-heading p {
+  margin: 0;
+  color: #627188;
+  font-size: 0.96rem;
+  line-height: 1.45;
+  text-align: right;
 }
 
 .existing-coverage-summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1.15fr 1fr 1fr;
   gap: 1rem;
+  margin-top: 0.95rem;
 }
 
 .existing-coverage-summary-card {
   display: grid;
-  gap: 0.3rem;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 6.3rem;
   padding: 1rem 1.05rem;
-  border: 1px solid rgba(220, 226, 235, 0.92);
-  border-radius: 0.95rem;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 248, 252, 0.96) 100%);
+  border: 1px solid rgba(222, 228, 238, 0.98);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(249, 251, 255, 0.98) 100%);
+}
+
+.existing-coverage-summary-card-client {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.9rem;
+}
+
+.existing-coverage-summary-avatar {
+  width: 3.1rem;
+  height: 3.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #eeecff;
+  color: #6a59df;
+}
+
+.existing-coverage-summary-avatar svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: block;
+}
+
+.existing-coverage-summary-copy {
+  display: grid;
+  gap: 0.18rem;
 }
 
 .existing-coverage-summary-label {
   color: #708197;
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .existing-coverage-summary-value {
-  color: #172230;
-  font-size: 1.25rem;
+  color: #1b2334;
+  font-size: 1.35rem;
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.16;
+}
+
+.existing-coverage-summary-card-client .existing-coverage-summary-value {
+  font-size: 1.05rem;
 }
 
 .existing-coverage-summary-meta {
-  color: #677488;
-  font-size: 0.86rem;
+  color: #66758a;
+  font-size: 0.9rem;
   line-height: 1.45;
 }
 
@@ -1774,26 +1901,110 @@ body[data-page="existing-coverage-details"] .prospect-empty-panel {
   gap: 1rem;
 }
 
+.existing-coverage-form-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.85rem 1rem;
+  align-items: start;
+}
+
 .existing-coverage-toolbar {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.8rem;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
 }
 
-.existing-coverage-feedback {
-  min-height: 1.2rem;
-  margin: 0;
-  color: #576476;
-  font-size: 0.9rem;
+.existing-coverage-add-button {
+  min-height: 2.8rem;
+  border-radius: 999px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding-inline: 1rem 1.15rem;
+  border: 1px solid rgba(220, 226, 237, 0.98);
+  background: #ffffff;
+  color: #5c4fd7;
+  box-shadow: none;
+}
+
+.existing-coverage-add-button:hover,
+.existing-coverage-add-button:focus-visible {
+  background: #f8f7ff;
+  border-color: rgba(123, 104, 238, 0.28);
+  color: #5547d6;
+}
+
+.existing-coverage-add-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.existing-coverage-inline-note {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 0.95rem;
+  border: 1px solid rgba(222, 228, 238, 0.98);
+  border-radius: 0.95rem;
+  background: #fafbfe;
+  color: #67758a;
+  font-size: 0.92rem;
   line-height: 1.45;
 }
 
+.existing-coverage-inline-note-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: #6d7b92;
+}
+
+.existing-coverage-inline-note-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.existing-coverage-required-note {
+  margin-left: 0.35rem;
+  color: #8a95a8;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.existing-coverage-feedback {
+  display: none;
+  margin: 0;
+  padding: 0.82rem 0.95rem;
+  border-radius: 0.95rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.existing-coverage-feedback:not(:empty) {
+  display: block;
+}
+
 .existing-coverage-feedback.is-success {
-  color: #1f6a3e;
+  background: #edf8f1;
+  color: #236742;
 }
 
 .existing-coverage-feedback.is-error {
+  background: #fff0f0;
   color: #a03d3d;
 }
 
@@ -1802,14 +2013,86 @@ body[data-page="existing-coverage-details"] .prospect-empty-panel {
   gap: 1rem;
 }
 
+.existing-coverage-wizard-shell,
+.existing-coverage-saved-shell {
+  margin: 0;
+  border: 1px solid rgba(222, 228, 238, 0.98);
+  border-radius: 1.1rem;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.existing-coverage-wizard-shell {
+  padding: 1.3rem 1.3rem 1.15rem;
+}
+
+.existing-coverage-wizard-shell[hidden] {
+  display: none !important;
+}
+
+.existing-coverage-wizard-heading {
+  gap: 0.35rem;
+  padding-bottom: 0.15rem;
+}
+
+.existing-coverage-wizard-heading h3 {
+  margin: 0;
+  color: #1d2636;
+  font-size: 1.22rem;
+  font-weight: 800;
+}
+
+.existing-coverage-wizard-heading p {
+  margin: 0;
+  color: #66758a;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.existing-coverage-widget-feedback {
+  color: #8a4b4b;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.existing-coverage-widget-actions {
+  padding-top: 0.75rem;
+}
+
+.existing-coverage-saved-shell {
+  display: grid;
+  gap: 0.95rem;
+  padding: 1.2rem 1.25rem;
+}
+
+.existing-coverage-saved-heading {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0;
+}
+
+.existing-coverage-saved-heading h3 {
+  margin: 0;
+  color: #1d2636;
+  font-size: 1.04rem;
+  font-weight: 800;
+}
+
+.existing-coverage-saved-heading p {
+  margin: 0;
+  color: #67758a;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
 .existing-coverage-empty {
   display: grid;
   justify-items: start;
-  gap: 0.65rem;
+  gap: 0.7rem;
   padding: 1.2rem 1.25rem;
-  border: 1px dashed rgba(201, 209, 222, 0.95);
-  border-radius: 0.95rem;
-  background: #fbfcfe;
+  border: 1px dashed rgba(205, 213, 226, 0.98);
+  border-radius: 1rem;
+  background: #fbfcff;
 }
 
 .existing-coverage-empty strong {
@@ -1819,51 +2102,179 @@ body[data-page="existing-coverage-details"] .prospect-empty-panel {
 
 .existing-coverage-empty p {
   margin: 0;
-  color: #647285;
+  color: #657385;
 }
 
-.existing-coverage-policy-card {
-  margin: 0;
-}
-
-.existing-coverage-policy-card-heading {
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-}
-
-.existing-coverage-policy-card-heading p {
-  margin: 0.25rem 0 0;
-  color: #677488;
-  font-size: 0.86rem;
-}
-
-.existing-coverage-remove-button {
-  min-height: 2.6rem;
-}
-
-.existing-coverage-policy-grid {
-  gap: 1rem 1.15rem;
-}
-
-.existing-coverage-policy-card .profile-currency-field {
+.existing-coverage-saved-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.55rem;
-  width: 100%;
+  gap: 0.9rem 1rem;
+  margin: 0;
+  padding: 1rem 1.05rem;
+  border: 1px solid rgba(222, 228, 238, 0.98);
+  border-radius: 1rem;
+  background: #ffffff;
 }
 
-.existing-coverage-policy-card .profile-currency-field input {
-  width: 100%;
+.existing-coverage-draft-card {
+  border-style: dashed;
+  background: #fcfbff;
+}
+
+.existing-coverage-draft-card.is-active {
+  border-color: rgba(92, 79, 215, 0.42);
+  background: #f8f6ff;
+}
+
+.existing-coverage-saved-card-copy {
+  display: grid;
+  gap: 0.25rem;
   min-width: 0;
 }
 
-.existing-coverage-policy-card textarea {
-  min-height: 7rem;
-  resize: vertical;
+.existing-coverage-saved-card-copy strong {
+  margin: 0;
+  color: #1d2636;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.existing-coverage-saved-card-copy span {
+  color: #657385;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.existing-coverage-draft-flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 1.7rem;
+  padding: 0 0.7rem;
+  border-radius: 999px;
+  background: #f0ecff;
+  color: #5c4fd7;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.existing-coverage-saved-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  align-self: start;
+}
+
+.existing-coverage-saved-action {
+  min-height: 2.45rem;
+  padding: 0 0.95rem;
+  border-radius: 0.78rem;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.existing-coverage-saved-delete {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #e55854;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.existing-coverage-saved-delete:hover,
+.existing-coverage-saved-delete:focus-visible {
+  color: #cf4844;
+  outline: none;
+}
+
+.existing-coverage-status-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(224, 228, 242, 0.98);
+  border-radius: 1rem;
+  background: #f6f4ff;
+}
+
+.existing-coverage-status-icon {
+  width: 2.15rem;
+  height: 2.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #5b49d9;
+}
+
+.existing-coverage-status-icon svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  display: block;
+}
+
+.existing-coverage-status-copy {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.existing-coverage-status-copy strong {
+  color: #2b3750;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.existing-coverage-status-copy span {
+  color: #627088;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 980px) {
+  .existing-coverage-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .existing-coverage-summary-card-client {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 860px) {
+  body[data-page="existing-coverage-details"] .prospect-empty-panel {
+    padding: 1rem;
+  }
+
+  .existing-coverage-page-header {
+    justify-items: start;
+    gap: 0.7rem;
+  }
+
+  .existing-coverage-page-heading {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .existing-coverage-return-button {
+    position: static;
+  }
+
+  .existing-coverage-section-heading,
+  .existing-coverage-form-header {
+    grid-template-columns: 1fr;
+  }
+
+  .existing-coverage-section-heading p {
+    text-align: left;
+  }
+
   .existing-coverage-summary-grid {
     grid-template-columns: 1fr;
   }
@@ -1874,6 +2285,15 @@ body[data-page="existing-coverage-details"] .prospect-empty-panel {
 
   .existing-coverage-toolbar .btn {
     width: 100%;
+  }
+
+  .existing-coverage-saved-card {
+    grid-template-columns: 1fr;
+  }
+
+  .existing-coverage-saved-card-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }
 
