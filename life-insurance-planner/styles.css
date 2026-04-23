@@ -31,7 +31,7 @@
   --space-xl: clamp(1.25rem, 2.2vw, 1.75rem);
   --space-2xl: clamp(1.5rem, 3vw, 2.5rem);
   --control-height: clamp(2.5rem, 4vw, 3rem);
-  --app-side-nav-width: 20.5rem;
+  --app-side-nav-width: 17.75rem;
   --app-side-nav-collapsed-width: 4.75rem;
   --app-side-nav-gap: 1rem;
   --app-side-nav-screen-gap: 0.5rem;
@@ -2475,42 +2475,6 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
 
 .workspace-side-nav-host.is-collapsed .client-directory-app-sidebar-toggle {
   color: #526074;
-}
-
-.client-directory-title-menu-trigger:hover .client-directory-title-chevron,
-.client-directory-title-menu-trigger:focus-visible .client-directory-title-chevron,
-.client-directory-title-menu.is-open .client-directory-title-chevron {
-  color: #3a4050;
-}
-
-.client-directory-title-menu-trigger:focus-visible {
-  outline: none;
-}
-
-.client-directory-title-menu:hover .client-directory-title-block-compact,
-.client-directory-title-menu:focus-within .client-directory-title-block-compact,
-.client-directory-title-menu.is-open .client-directory-title-block-compact {
-  background: #f2f5f9;
-  box-shadow: none;
-}
-
-.client-directory-title-menu-option:hover,
-.client-directory-title-menu-option:focus-visible {
-  background: rgba(92, 63, 214, 0.08);
-  color: #5c3fd6;
-  outline: none;
-}
-
-.client-directory-title-menu-option:disabled,
-.client-directory-title-menu-option.is-disabled {
-  color: #a7afbf;
-  cursor: default;
-}
-
-.client-directory-title-menu-option:disabled:hover,
-.client-directory-title-menu-option.is-disabled:hover {
-  background: transparent;
-  color: #a7afbf;
 }
 
 .client-status-tabs::-webkit-scrollbar {
@@ -7734,10 +7698,6 @@ body[data-step] .step-item:focus-visible .step-title {
 
 }
 
-body.clients-page.is-a11y-large-text .client-directory-title-block.client-directory-title-block-compact h1 {
-  font-size: 1.3rem !important;
-}
-
 body.clients-page.is-a11y-large-text .client-table-search input,
 body.clients-page.is-a11y-large-text .client-toolbar-button,
 body.clients-page.is-a11y-large-text .client-status-tab,
@@ -7795,7 +7755,6 @@ body.clients-page.is-a11y-high-contrast .client-rail-button {
   box-shadow: none !important;
 }
 
-body.clients-page.is-a11y-high-contrast .client-directory-title-block.client-directory-title-block-compact h1,
 body.clients-page.is-a11y-high-contrast .client-table-header,
 body.clients-page.is-a11y-high-contrast .client-table-cell,
 body.clients-page.is-a11y-high-contrast .client-status-tab,
@@ -7809,7 +7768,6 @@ body.clients-page.is-a11y-high-contrast .client-opportunity-score-pill {
   border: 1px solid rgba(148, 163, 184, 0.95);
 }
 
-body.clients-page.is-a11y-high-contrast .client-directory-title-block p,
 body.clients-page.is-a11y-high-contrast .client-directory-summary-note,
 body.clients-page.is-a11y-high-contrast .client-directory-summary-kicker,
 body.clients-page.is-a11y-high-contrast .client-directory-summary-list-label,
@@ -8031,10 +7989,6 @@ body.clients-page.is-a11y-reduced-motion .client-rail-button:focus-visible {
     display: block;
     width: auto;
     opacity: 1;
-  }
-
-  .client-rail-spacer {
-    display: none;
   }
 
   .client-directory-filter-bar,

@@ -79,137 +79,10 @@
   <main class="home-shell app-home-shell client-directory-shell">
     <section class="client-directory-shell-layout" data-directory-sidebar-layout>
       <section class="client-directory-workspace workspace-visible-pane">
-        <aside class="client-directory-rail" aria-label="Browse clients by last name letter">
-          <button class="client-rail-button is-active" type="button" data-client-letter="all">All</button>
-          <button class="client-rail-button" type="button" data-client-letter="A">A</button>
-          <button class="client-rail-button" type="button" data-client-letter="B">B</button>
-          <button class="client-rail-button" type="button" data-client-letter="C">C</button>
-          <button class="client-rail-button" type="button" data-client-letter="D">D</button>
-          <button class="client-rail-button" type="button" data-client-letter="E">E</button>
-          <button class="client-rail-button" type="button" data-client-letter="F">F</button>
-          <button class="client-rail-button" type="button" data-client-letter="G">G</button>
-          <button class="client-rail-button" type="button" data-client-letter="H">H</button>
-          <button class="client-rail-button" type="button" data-client-letter="I">I</button>
-          <button class="client-rail-button" type="button" data-client-letter="J">J</button>
-          <button class="client-rail-button" type="button" data-client-letter="K">K</button>
-          <button class="client-rail-button" type="button" data-client-letter="L">L</button>
-          <button class="client-rail-button" type="button" data-client-letter="M">M</button>
-          <button class="client-rail-button" type="button" data-client-letter="N">N</button>
-          <button class="client-rail-button" type="button" data-client-letter="O">O</button>
-          <button class="client-rail-button" type="button" data-client-letter="P">P</button>
-          <button class="client-rail-button" type="button" data-client-letter="Q">Q</button>
-          <button class="client-rail-button" type="button" data-client-letter="R">R</button>
-          <button class="client-rail-button" type="button" data-client-letter="S">S</button>
-          <button class="client-rail-button" type="button" data-client-letter="T">T</button>
-          <button class="client-rail-button" type="button" data-client-letter="U">U</button>
-          <button class="client-rail-button" type="button" data-client-letter="V">V</button>
-          <button class="client-rail-button" type="button" data-client-letter="W">W</button>
-          <button class="client-rail-button" type="button" data-client-letter="X">X</button>
-          <button class="client-rail-button" type="button" data-client-letter="Y">Y</button>
-          <button class="client-rail-button" type="button" data-client-letter="Z">Z</button>
-        </aside>
-
         <section class="client-directory-main">
         <header class="client-directory-header">
           <div class="client-directory-header-main">
-            <div class="client-directory-title-menu directory-menu" data-directory-title-menu>
-              <div class="client-directory-title-block client-directory-title-block-compact" data-directory-title-menu-surface>
-                <span class="client-directory-title-icon" aria-hidden="true">
-                  <img src="../Images/clientdirectory.svg" alt="" />
-                </span>
-                <h1>Client Directory</h1>
-                <button class="client-directory-title-menu-trigger directory-menu__trigger" type="button" data-directory-title-menu-trigger aria-expanded="false" aria-haspopup="menu" aria-label="Open client directory menu">
-                  <span class="client-directory-title-chevron" aria-hidden="true">
-                    <svg viewBox="0 0 16 16" fill="none">
-                      <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </span>
-                </button>
-              </div>
-              <div class="client-directory-title-menu-panel directory-menu__panel" role="menu" aria-label="Client directory actions">
-                <div class="client-directory-title-menu-section">
-                  <button class="client-directory-title-menu-option directory-menu__option" type="button" data-directory-title-menu-action="new-individual" role="menuitem">
-                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 20 20" fill="none">
-                        <circle cx="10" cy="6.5" r="2.35" stroke="currentColor" stroke-width="1.55"/>
-                        <path d="M5.2 15.2c.56-2.34 2.35-3.75 4.8-3.75s4.24 1.41 4.8 3.75" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-                      </svg>
-                    </span>
-                    <span>New Individual</span>
-                  </button>
-                  <button class="client-directory-title-menu-option directory-menu__option" type="button" data-directory-title-menu-action="new-household" role="menuitem">
-                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 20 20" fill="none">
-                        <path d="M3.7 8.4 10 3.7l6.3 4.7v7.1a1.3 1.3 0 0 1-1.3 1.3H5a1.3 1.3 0 0 1-1.3-1.3V8.4Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
-                        <path d="M7.65 16.8v-4.15h4.7v4.15" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
-                      </svg>
-                    </span>
-                    <span>New Household</span>
-                  </button>
-                  <button class="client-directory-title-menu-option directory-menu__option" type="button" data-directory-title-menu-action="new-business" role="menuitem">
-                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 20 20" fill="none">
-                        <path d="M4.2 16.75V7.55a1.2 1.2 0 0 1 1.2-1.2h9.2a1.2 1.2 0 0 1 1.2 1.2v9.2" stroke="currentColor" stroke-width="1.55"/>
-                        <path d="M7 6.35V4.7a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1.65" stroke="currentColor" stroke-width="1.55"/>
-                        <path d="M8 10.05h1.5M8 12.95h1.5M11.55 10.05h1.45M11.55 12.95h1.45" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-                      </svg>
-                    </span>
-                    <span>New Business</span>
-                  </button>
-                </div>
-                <div class="client-directory-title-menu-section">
-                  <button class="client-directory-title-menu-option directory-menu__option" type="button" data-directory-title-menu-action="import-package" role="menuitem">
-                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 20 20" fill="none">
-                        <path d="M10 3.85v8.35" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-                        <path d="m6.6 8.9 3.4 3.4 3.4-3.4" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M4 15.35h12" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-                      </svg>
-                    </span>
-                    <span>Import Advisor Package</span>
-                  </button>
-                  <button class="client-directory-title-menu-option directory-menu__option" type="button" data-directory-title-menu-action="export-view" role="menuitem">
-                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 20 20" fill="none">
-                        <path d="M10 12.45V4.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-                        <path d="m13.4 7.5-3.4-3.4-3.4 3.4" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M4 15.35h12" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-                      </svg>
-                    </span>
-                    <span>Export Current View</span>
-                  </button>
-                  <button class="client-directory-title-menu-option directory-menu__option" type="button" data-directory-title-menu-action="export-selected" data-directory-export-selected role="menuitem">
-                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 20 20" fill="none">
-                        <path d="M4.6 10.1 7.85 13.2 15.4 5.65" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M16.1 10.55v4.5a1.2 1.2 0 0 1-1.2 1.2H5.1a1.2 1.2 0 0 1-1.2-1.2V5.25a1.2 1.2 0 0 1 1.2-1.2h6.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                    </span>
-                    <span>Export Selected Profiles</span>
-                  </button>
-                  <button class="client-directory-title-menu-option directory-menu__option" type="button" data-directory-title-menu-action="flag-selected" data-directory-flag-selected role="menuitem">
-                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 20 20" fill="none">
-                        <path d="M5.25 3.55v12.9" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-                        <path d="M6.2 4.2h7.1l-1.45 2.55 1.45 2.45H6.2" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
-                      </svg>
-                    </span>
-                    <span>Flag Selected Profiles</span>
-                  </button>
-                  <button class="client-directory-title-menu-option directory-menu__option" type="button" data-directory-title-menu-action="unflag-selected" data-directory-unflag-selected role="menuitem">
-                    <span class="client-directory-title-menu-option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 20 20" fill="none">
-                        <path d="M5.25 3.55v12.9" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-                        <path d="M6.2 4.2h7.1l-1.45 2.55 1.45 2.45H6.2" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
-                        <path d="m8.15 8.15 4.25 4.25M12.4 8.15l-4.25 4.25" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"/>
-                      </svg>
-                    </span>
-                    <span>Remove Flag from Selected</span>
-                  </button>
-                </div>
-              </div>
-              <input class="client-directory-import-input" type="file" accept=".json,application/json" data-directory-import-input hidden>
-            </div>
+            <input class="client-directory-import-input" type="file" accept=".json,application/json" data-directory-import-input hidden>
             <div class="client-directory-utility-actions" aria-label="Client directory utilities">
               <button class="client-directory-utility-button" type="button" data-directory-utility="trash" data-label="Trash" aria-label="Trash">
                 <span class="client-directory-utility-icon" aria-hidden="true">
@@ -864,10 +737,57 @@
             <div class="client-directory-toolbar-actions">
               <div class="client-export-dropdown" data-export-dropdown>
                 <button class="client-header-action client-header-action-secondary" type="button" data-export-button aria-expanded="false">Export</button>
-                <div class="client-export-menu">
-                  <button class="client-export-option" type="button" data-export-action="print">Print</button>
-                  <button class="client-export-option" type="button" data-export-action="save">Save</button>
-                  <button class="client-export-option" type="button" data-export-action="share">Share</button>
+                <div class="client-export-menu directory-menu__panel" role="menu" aria-label="Export actions">
+                  <div class="directory-command-menu-section">
+                    <button class="directory-menu__option" type="button" data-directory-command-action="import-package" role="menuitem">
+                      <span class="directory-command-option-icon" aria-hidden="true">
+                        <svg viewBox="0 0 20 20" fill="none">
+                          <path d="M10 3.85v8.35" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                          <path d="m6.6 8.9 3.4 3.4 3.4-3.4" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M4 15.35h12" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                        </svg>
+                      </span>
+                      <span>Import Advisor Package</span>
+                    </button>
+                    <button class="directory-menu__option" type="button" data-directory-command-action="export-view" role="menuitem">
+                      <span class="directory-command-option-icon" aria-hidden="true">
+                        <svg viewBox="0 0 20 20" fill="none">
+                          <path d="M10 12.45V4.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                          <path d="m13.4 7.5-3.4-3.4-3.4 3.4" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M4 15.35h12" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                        </svg>
+                      </span>
+                      <span>Export Current View</span>
+                    </button>
+                    <button class="directory-menu__option" type="button" data-directory-command-action="export-selected" data-directory-export-selected role="menuitem">
+                      <span class="directory-command-option-icon" aria-hidden="true">
+                        <svg viewBox="0 0 20 20" fill="none">
+                          <path d="M4.6 10.1 7.85 13.2 15.4 5.65" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M16.1 10.55v4.5a1.2 1.2 0 0 1-1.2 1.2H5.1a1.2 1.2 0 0 1-1.2-1.2V5.25a1.2 1.2 0 0 1 1.2-1.2h6.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                      <span>Export Selected Profiles</span>
+                    </button>
+                    <button class="directory-menu__option" type="button" data-directory-command-action="flag-selected" data-directory-flag-selected role="menuitem">
+                      <span class="directory-command-option-icon" aria-hidden="true">
+                        <svg viewBox="0 0 20 20" fill="none">
+                          <path d="M5.25 3.55v12.9" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                          <path d="M6.2 4.2h7.1l-1.45 2.55 1.45 2.45H6.2" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                      <span>Flag Selected Profiles</span>
+                    </button>
+                    <button class="directory-menu__option" type="button" data-directory-command-action="unflag-selected" data-directory-unflag-selected role="menuitem">
+                      <span class="directory-command-option-icon" aria-hidden="true">
+                        <svg viewBox="0 0 20 20" fill="none">
+                          <path d="M5.25 3.55v12.9" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                          <path d="M6.2 4.2h7.1l-1.45 2.55 1.45 2.45H6.2" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+                          <path d="m8.15 8.15 4.25 4.25M12.4 8.15l-4.25 4.25" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"/>
+                        </svg>
+                      </span>
+                      <span>Remove Flag from Selected</span>
+                    </button>
+                  </div>
                 </div>
               </div>
               <!-- CODE NOTE: Directory sort controls now prioritize the shared Close Index engine. -->
@@ -880,24 +800,81 @@
                   <button class="client-items-option" type="button" data-order-option="alphabetical">Alphabetical</button>
                 </div>
               </div>
-              <button class="client-header-action client-header-action-primary" type="button" data-add-client-button>
-                <span class="client-add-icon" aria-hidden="true">+</span>
-                <span>Add New</span>
-              </button>
+              <div class="client-add-dropdown" data-add-client-dropdown>
+                <button class="client-header-action client-header-action-primary" type="button" data-add-client-trigger aria-expanded="false">
+                  <span class="client-add-icon" aria-hidden="true">+</span>
+                  <span>Add New</span>
+                </button>
+                <div class="client-add-menu directory-menu__panel" role="menu" aria-label="Add new profile">
+                  <div class="directory-command-menu-section">
+                    <button class="directory-menu__option" type="button" data-directory-command-action="new-individual" role="menuitem">
+                      <span class="directory-command-option-icon" aria-hidden="true">
+                        <svg viewBox="0 0 20 20" fill="none">
+                          <circle cx="10" cy="6.5" r="2.35" stroke="currentColor" stroke-width="1.55"/>
+                          <path d="M5.2 15.2c.56-2.34 2.35-3.75 4.8-3.75s4.24 1.41 4.8 3.75" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                        </svg>
+                      </span>
+                      <span>New Individual</span>
+                    </button>
+                    <button class="directory-menu__option" type="button" data-directory-command-action="new-household" role="menuitem">
+                      <span class="directory-command-option-icon" aria-hidden="true">
+                        <svg viewBox="0 0 20 20" fill="none">
+                          <path d="M3.7 8.4 10 3.7l6.3 4.7v7.1a1.3 1.3 0 0 1-1.3 1.3H5a1.3 1.3 0 0 1-1.3-1.3V8.4Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+                          <path d="M7.65 16.8v-4.15h4.7v4.15" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                      <span>New Household</span>
+                    </button>
+                    <button class="directory-menu__option" type="button" data-directory-command-action="new-business" role="menuitem">
+                      <span class="directory-command-option-icon" aria-hidden="true">
+                        <svg viewBox="0 0 20 20" fill="none">
+                          <path d="M4.2 16.75V7.55a1.2 1.2 0 0 1 1.2-1.2h9.2a1.2 1.2 0 0 1 1.2 1.2v9.2" stroke="currentColor" stroke-width="1.55"/>
+                          <path d="M7 6.35V4.7a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1.65" stroke="currentColor" stroke-width="1.55"/>
+                          <path d="M8 10.05h1.5M8 12.95h1.5M11.55 10.05h1.45M11.55 12.95h1.45" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+                        </svg>
+                      </span>
+                      <span>New Business</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-          <section class="client-table-card directory-list-shell">
-            <div class="client-table client-table-header directory-list-header" role="row">
-              <div class="client-table-cell" id="client-table-heading-name">Client</div>
-              <div class="client-table-cell client-table-cell-case-ref-title">Case Ref</div>
-              <!-- CODE NOTE: Close Index column replaced the legacy Date Created column. -->
-            <div class="client-table-cell client-table-cell-close-index-title">Close Index</div>
-            <div class="client-table-cell client-table-cell-next-action-title" id="client-table-heading-next-action">Next Action</div>
-            <div class="client-table-cell client-table-cell-nowrap client-table-cell-coverage-amount-title" id="client-table-heading-coverage">Coverage Gap</div>
-            <div class="client-table-cell client-table-cell-priority-title">Priority</div>
+        <nav class="client-directory-rail" aria-label="Browse clients by last name letter">
+          <div class="client-directory-rail-chip">
+            <button class="client-rail-button is-active" type="button" data-client-letter="all">All</button>
+            <button class="client-rail-button" type="button" data-client-letter="A">A</button>
+            <button class="client-rail-button" type="button" data-client-letter="B">B</button>
+            <button class="client-rail-button" type="button" data-client-letter="C">C</button>
+            <button class="client-rail-button" type="button" data-client-letter="D">D</button>
+            <button class="client-rail-button" type="button" data-client-letter="E">E</button>
+            <button class="client-rail-button" type="button" data-client-letter="F">F</button>
+            <button class="client-rail-button" type="button" data-client-letter="G">G</button>
+            <button class="client-rail-button" type="button" data-client-letter="H">H</button>
+            <button class="client-rail-button" type="button" data-client-letter="I">I</button>
+            <button class="client-rail-button" type="button" data-client-letter="J">J</button>
+            <button class="client-rail-button" type="button" data-client-letter="K">K</button>
+            <button class="client-rail-button" type="button" data-client-letter="L">L</button>
+            <button class="client-rail-button" type="button" data-client-letter="M">M</button>
+            <button class="client-rail-button" type="button" data-client-letter="N">N</button>
+            <button class="client-rail-button" type="button" data-client-letter="O">O</button>
+            <button class="client-rail-button" type="button" data-client-letter="P">P</button>
+            <button class="client-rail-button" type="button" data-client-letter="Q">Q</button>
+            <button class="client-rail-button" type="button" data-client-letter="R">R</button>
+            <button class="client-rail-button" type="button" data-client-letter="S">S</button>
+            <button class="client-rail-button" type="button" data-client-letter="T">T</button>
+            <button class="client-rail-button" type="button" data-client-letter="U">U</button>
+            <button class="client-rail-button" type="button" data-client-letter="V">V</button>
+            <button class="client-rail-button" type="button" data-client-letter="W">W</button>
+            <button class="client-rail-button" type="button" data-client-letter="X">X</button>
+            <button class="client-rail-button" type="button" data-client-letter="Y">Y</button>
+            <button class="client-rail-button" type="button" data-client-letter="Z">Z</button>
           </div>
+        </nav>
+
+          <section class="client-table-card directory-list-shell">
           <div class="client-table-body">
             <div class="directory-group-list" id="client-table-rows"></div>
             <div class="client-empty-state" id="client-empty-state" hidden>No Results</div>
@@ -908,10 +885,10 @@
     </section>
   </main>
 
-  <div class="client-add-modal" data-add-client-modal hidden>
-    <div class="client-add-modal-backdrop" data-add-client-modal-close></div>
+  <div class="client-add-modal" data-directory-add-client-modal hidden>
+    <div class="client-add-modal-backdrop" data-directory-add-client-modal-close></div>
     <div class="client-add-modal-panel" role="dialog" aria-modal="true" aria-labelledby="add-client-modal-title">
-      <button class="client-add-modal-close" type="button" aria-label="Close" data-add-client-modal-close>&times;</button>
+      <button class="client-add-modal-close" type="button" aria-label="Close" data-directory-add-client-modal-close>&times;</button>
       <div class="client-add-modal-content">
         <h2 id="add-client-modal-title">Choose a Form to Continue</h2>
       </div>
@@ -924,8 +901,6 @@
           <span class="client-add-modal-option-label">PMI Simplified</span>
           <span class="entry-mode-help client-add-modal-help" tabindex="0" aria-hidden="true" data-entry-mode-help="A simplified version of the protection modeling inputs form for clients who already know their total expenses, debts, and earnings.">?</span>
         </a>
-        <button class="client-header-action client-header-action-primary client-add-modal-continue client-add-modal-secondary" type="button">Create New Household</button>
-        <button class="client-header-action client-header-action-primary client-add-modal-continue client-add-modal-secondary" type="button">Create New Company Profile</button>
       </div>
     </div>
   </div>
@@ -949,16 +924,12 @@
     (function () {
       const rowsHost = document.getElementById("client-table-rows");
       const emptyState = document.getElementById("client-empty-state");
-      const letterButtons = Array.from(document.querySelectorAll("[data-client-letter]"));
       const viewButtons = Array.from(document.querySelectorAll("[data-client-view]"));
       const statusButtons = Array.from(document.querySelectorAll("[data-client-status]"));
       const searchField = document.querySelector(".client-table-search input");
       const orderDropdown = document.querySelector("[data-order-dropdown]");
       const orderTrigger = document.querySelector("[data-order-trigger]");
       const orderOptions = Array.from(document.querySelectorAll("[data-order-option]"));
-      const nameHeading = document.getElementById("client-table-heading-name");
-      const nextActionHeading = document.getElementById("client-table-heading-next-action");
-      const coverageHeading = document.getElementById("client-table-heading-coverage");
       const directorySummaryHost = document.querySelector("[data-directory-summary]");
       const summaryCardElements = {
         "recommended-actions": document.querySelector('[data-summary-card="recommended-actions"]'),
@@ -1112,15 +1083,17 @@
       const directorySidebarButtons = Array.from(document.querySelectorAll("[data-directory-nav-action]"));
       const directorySidebarScopeButtons = Array.from(document.querySelectorAll("[data-directory-scope-action]"));
       const directorySidebarPriorityButtons = Array.from(document.querySelectorAll("[data-directory-priority-action]"));
-      const directoryAddButton = document.querySelector("[data-add-client-button]");
-      const directoryTitleMenu = document.querySelector("[data-directory-title-menu]");
-      const directoryTitleMenuSurface = document.querySelector("[data-directory-title-menu-surface]");
-      const directoryTitleMenuTrigger = document.querySelector("[data-directory-title-menu-trigger]");
-      const directoryTitleMenuActions = Array.from(document.querySelectorAll("[data-directory-title-menu-action]"));
+      const toolbarExportDropdown = document.querySelector("[data-export-dropdown]");
+      const toolbarExportButton = document.querySelector("[data-export-button]");
+      const addClientDropdown = document.querySelector("[data-add-client-dropdown]");
+      const addClientTrigger = document.querySelector("[data-add-client-trigger]");
+      const directoryCommandActionButtons = Array.from(document.querySelectorAll("[data-directory-command-action]"));
       const directoryImportInput = document.querySelector("[data-directory-import-input]");
-      const directoryExportSelectedButton = document.querySelector("[data-directory-export-selected]");
-      const directoryFlagSelectedButton = document.querySelector("[data-directory-flag-selected]");
-      const directoryUnflagSelectedButton = document.querySelector("[data-directory-unflag-selected]");
+      const directoryExportSelectedButtons = Array.from(document.querySelectorAll("[data-directory-export-selected]"));
+      const directoryFlagSelectedButtons = Array.from(document.querySelectorAll("[data-directory-flag-selected]"));
+      const directoryUnflagSelectedButtons = Array.from(document.querySelectorAll("[data-directory-unflag-selected]"));
+      const addClientModal = document.querySelector("[data-directory-add-client-modal]");
+      const addClientModalCloseTargets = Array.from(document.querySelectorAll("[data-directory-add-client-modal-close]"));
 
       if (summaryCustomizeDialog instanceof HTMLElement && summaryCustomizeDialog.parentElement !== document.body) {
         document.body.appendChild(summaryCustomizeDialog);
@@ -1139,7 +1112,6 @@
         accessibility: "clientDirectoryAccessibility"
       };
 
-      let activeLetter = "all";
       let activeView = "all";
       let activeStatus = "all";
       let activeScope = "all";
@@ -1170,6 +1142,24 @@
         return window.LensApp?.clientDirectory || {};
       }
 
+      function normalizeDirectoryLetter(value) {
+        const normalized = String(value || "all").trim().toUpperCase();
+        if (normalized === "ALL") {
+          return "all";
+        }
+
+        return /^[A-Z]$/.test(normalized) ? normalized : "all";
+      }
+
+      function getDirectoryLetterState() {
+        const directoryCoreApi = getDirectoryCoreApi();
+        if (!directoryCoreApi || typeof directoryCoreApi.getState !== "function") {
+          return "all";
+        }
+
+        return normalizeDirectoryLetter(directoryCoreApi.getState().activeLetter);
+      }
+
       const directoryHelpers = getDirectoryHelpers();
       const directoryFeatureApi = getDirectoryFeatureApi();
       const normalizePriority = directoryHelpers.normalizePriority;
@@ -1189,7 +1179,6 @@
           ? event.detail
           : directoryCoreApi.getState();
 
-        activeLetter = String(coreState.activeLetter || "all").trim() || "all";
         activeView = String(coreState.activeView || "all").trim() || "all";
         activeStatus = String(coreState.activeStatus || "all").trim() || "all";
         sortOrder = String(coreState.sortOrder || "opportunity-score").trim() || "opportunity-score";
@@ -1206,7 +1195,7 @@
           }
         });
 
-        syncDirectoryTitleMenuState();
+        syncDirectoryCommandActionState();
         syncDirectorySidebarButtons();
         syncSummaryCardVisibility();
       }
@@ -1620,6 +1609,7 @@
         const config = options && typeof options === "object" ? options : {};
         const includeStatus = Boolean(config.includeStatus);
         const query = String(searchField?.value || "").trim().toLowerCase();
+        const activeLetter = getDirectoryLetterState();
         return records.filter(function (record) {
           const matchesView = record.viewType === activeView;
           const matchesLetter = activeLetter === "all" || getLastInitial(record.lastName) === activeLetter;
@@ -3593,31 +3583,61 @@
         });
       }
 
-      function setDirectoryTitleMenuOpen(isOpen) {
-        if (!directoryTitleMenu || !directoryTitleMenuTrigger) {
+      function setToolbarCommandMenuOpen(dropdown, trigger, isOpen) {
+        if (!(dropdown instanceof HTMLElement) || !(trigger instanceof HTMLButtonElement)) {
           return;
         }
 
-        directoryTitleMenu.classList.toggle("is-open", isOpen);
-        directoryTitleMenuTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        dropdown.classList.toggle("is-open", isOpen);
+        trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
       }
 
-      function syncDirectoryTitleMenuState() {
-        if (!(directoryExportSelectedButton instanceof HTMLButtonElement)) {
+      function closeToolbarCommandMenus() {
+        setToolbarCommandMenuOpen(toolbarExportDropdown, toolbarExportButton, false);
+        setToolbarCommandMenuOpen(addClientDropdown, addClientTrigger, false);
+      }
+
+      function openDirectoryFormChooser() {
+        if (!(addClientModal instanceof HTMLElement)) {
+          return false;
+        }
+
+        closeToolbarCommandMenus();
+        addClientModal.hidden = false;
+        addClientModal.classList.add("is-open");
+        document.body.classList.add("is-modal-open");
+        return true;
+      }
+
+      function closeDirectoryFormChooser() {
+        if (!(addClientModal instanceof HTMLElement)) {
+          return false;
+        }
+
+        addClientModal.hidden = true;
+        addClientModal.classList.remove("is-open");
+        document.body.classList.remove("is-modal-open");
+        return true;
+      }
+
+      function syncDirectoryCommandActionState() {
+        if (!directoryExportSelectedButtons.length) {
           return;
         }
 
         const hasSelectedRecords = getSelectedRecords().length > 0;
-        directoryExportSelectedButton.disabled = !hasSelectedRecords;
-        directoryExportSelectedButton.classList.toggle("is-disabled", !hasSelectedRecords);
-        if (directoryFlagSelectedButton instanceof HTMLButtonElement) {
-          directoryFlagSelectedButton.disabled = !hasSelectedRecords;
-          directoryFlagSelectedButton.classList.toggle("is-disabled", !hasSelectedRecords);
-        }
-        if (directoryUnflagSelectedButton instanceof HTMLButtonElement) {
-          directoryUnflagSelectedButton.disabled = !hasSelectedRecords;
-          directoryUnflagSelectedButton.classList.toggle("is-disabled", !hasSelectedRecords);
-        }
+        directoryExportSelectedButtons.forEach(function (button) {
+          button.disabled = !hasSelectedRecords;
+          button.classList.toggle("is-disabled", !hasSelectedRecords);
+        });
+        directoryFlagSelectedButtons.forEach(function (button) {
+          button.disabled = !hasSelectedRecords;
+          button.classList.toggle("is-disabled", !hasSelectedRecords);
+        });
+        directoryUnflagSelectedButtons.forEach(function (button) {
+          button.disabled = !hasSelectedRecords;
+          button.classList.toggle("is-disabled", !hasSelectedRecords);
+        });
       }
 
       function downloadJsonFile(filename, payload) {
@@ -3641,7 +3661,7 @@
           scope: String(scope || "current-view"),
           filters: {
             view: activeView,
-            letter: activeLetter,
+            letter: getDirectoryLetterState(),
             status: activeStatus,
             scope: activeScope,
             priority: activePriority
@@ -3738,11 +3758,10 @@
         shouldClearCoreSelection = true;
         persistRecords(nextRecords);
         activeView = isBusiness ? "businesses" : "households";
-        activeLetter = "all";
         activeStatus = "all";
         activeScope = "all";
         activePriority = "all";
-        renderDirectory();
+        renderDirectory({ resetLetter: true });
         return true;
       }
 
@@ -3821,41 +3840,35 @@
         selectedRecordIds.clear();
         shouldClearCoreSelection = true;
         persistRecords(mergeResult.records);
-        activeLetter = "all";
         activeStatus = "all";
         activeScope = "all";
         activePriority = "all";
-        renderDirectory();
+        renderDirectory({ resetLetter: true });
         window.alert(`${mergeResult.createdCount} profile${mergeResult.createdCount === 1 ? "" : "s"} added and ${mergeResult.updatedCount} updated.`);
         return true;
       }
 
-      function handleDirectoryTitleMenuAction(action) {
+      function handleDirectoryCommandAction(action) {
         const normalizedAction = String(action || "").trim();
         if (!normalizedAction) {
           return false;
         }
 
+        closeToolbarCommandMenus();
+
         if (normalizedAction === "new-individual") {
-          setDirectoryTitleMenuOpen(false);
-          window.location.href = "profile-only-form.html";
-          return true;
+          return openDirectoryFormChooser();
         }
 
         if (normalizedAction === "new-household") {
-          const createdHousehold = createGroupRecord("household");
-          setDirectoryTitleMenuOpen(false);
-          return createdHousehold;
+          return createGroupRecord("household");
         }
 
         if (normalizedAction === "new-business") {
-          const createdBusiness = createGroupRecord("business");
-          setDirectoryTitleMenuOpen(false);
-          return createdBusiness;
+          return createGroupRecord("business");
         }
 
         if (normalizedAction === "import-package") {
-          setDirectoryTitleMenuOpen(false);
           if (directoryImportInput) {
             directoryImportInput.value = "";
             directoryImportInput.click();
@@ -3865,33 +3878,26 @@
         }
 
         if (normalizedAction === "export-view") {
-          const exportedView = exportAdvisorPackage("current-view", getFilteredRecords());
-          setDirectoryTitleMenuOpen(false);
-          return exportedView;
+          return exportAdvisorPackage("current-view", getFilteredRecords());
         }
 
         if (normalizedAction === "export-selected") {
-          const exportedSelected = exportAdvisorPackage("selected-profiles", getSelectedRecords());
-          setDirectoryTitleMenuOpen(false);
-          return exportedSelected;
+          return exportAdvisorPackage("selected-profiles", getSelectedRecords());
         }
 
         if (normalizedAction === "flag-selected") {
-          const flaggedSelected = setSelectedRecordsFlagState(true);
-          setDirectoryTitleMenuOpen(false);
-          return flaggedSelected;
+          return setSelectedRecordsFlagState(true);
         }
 
         if (normalizedAction === "unflag-selected") {
-          const unflaggedSelected = setSelectedRecordsFlagState(false);
-          setDirectoryTitleMenuOpen(false);
-          return unflaggedSelected;
+          return setSelectedRecordsFlagState(false);
         }
 
         return false;
       }
 
       function syncDirectorySidebarButtons() {
+        const activeLetter = getDirectoryLetterState();
         directorySidebarGroups.forEach(function (group) {
           const groupKey = String(group.dataset.directoryContextGroupKey || "").trim();
           group.classList.toggle("is-expanded", groupKey === activeView);
@@ -3968,15 +3974,15 @@
 
       function resetDirectoryToAll() {
         activeView = "all";
-        activeLetter = "all";
         activeStatus = "all";
         activeScope = "all";
         activePriority = "all";
-        renderDirectory();
+        renderDirectory({ resetLetter: true });
         return true;
       }
 
       function getDirectorySidebarState() {
+        const activeLetter = getDirectoryLetterState();
         return {
           activeView: activeView,
           activeScope: activeScope,
@@ -3985,12 +3991,14 @@
         };
       }
 
-      function openDirectoryAddModal() {
-        if (!(directoryAddButton instanceof HTMLElement)) {
+      function openDirectoryAddMenu() {
+        if (!(addClientDropdown instanceof HTMLElement) || !(addClientTrigger instanceof HTMLButtonElement)) {
           return false;
         }
 
-        directoryAddButton.click();
+        closeToolbarCommandMenus();
+        setToolbarCommandMenuOpen(toolbarExportDropdown, toolbarExportButton, false);
+        setToolbarCommandMenuOpen(addClientDropdown, addClientTrigger, true);
         return true;
       }
 
@@ -4019,7 +4027,7 @@
         }
 
         if (normalizedAction === "add") {
-          return openDirectoryAddModal();
+          return openDirectoryAddMenu();
         }
 
         return false;
@@ -4049,11 +4057,12 @@
         };
       }
 
-      function renderDirectory() {
+      function renderDirectory(options) {
+        const config = options && typeof options === "object" ? options : {};
         const directoryCoreApi = getDirectoryCoreApi();
         if (!directoryCoreApi || typeof directoryCoreApi.applyShellState !== "function") {
           records = loadRecords();
-          syncDirectoryTitleMenuState();
+          syncDirectoryCommandActionState();
           syncDirectorySidebarButtons();
           syncSummaryCardVisibility();
           return;
@@ -4061,14 +4070,19 @@
 
         const clearSelection = shouldClearCoreSelection;
         shouldClearCoreSelection = false;
-        directoryCoreApi.applyShellState({
+        const nextShellState = {
           activeView: activeView,
-          activeLetter: activeLetter,
           activeStatus: activeStatus,
           sortOrder: sortOrder,
           externalRecordFilter: buildShellExternalRecordFilter(),
           clearSelection: clearSelection
-        });
+        };
+
+        if (config.resetLetter) {
+          nextShellState.resetLetter = true;
+        }
+
+        directoryCoreApi.applyShellState(nextShellState);
       }
 
       if (directorySidebarLayout && directorySidebarToggle) {
@@ -4115,26 +4129,31 @@
         });
       });
 
-      directoryTitleMenuTrigger?.addEventListener("click", function (event) {
+      toolbarExportButton?.addEventListener("click", function (event) {
         event.stopPropagation();
-        const willOpen = !directoryTitleMenu?.classList.contains("is-open");
-        setDirectoryTitleMenuOpen(Boolean(willOpen));
+        setToolbarCommandMenuOpen(addClientDropdown, addClientTrigger, false);
+        const willOpen = !toolbarExportDropdown?.classList.contains("is-open");
+        setToolbarCommandMenuOpen(toolbarExportDropdown, toolbarExportButton, Boolean(willOpen));
       });
 
-      directoryTitleMenuSurface?.addEventListener("click", function (event) {
-        if (event.target.closest("[data-directory-title-menu-trigger]")) {
-          return;
-        }
-
+      addClientTrigger?.addEventListener("click", function (event) {
         event.stopPropagation();
-        const willOpen = !directoryTitleMenu?.classList.contains("is-open");
-        setDirectoryTitleMenuOpen(Boolean(willOpen));
+        setToolbarCommandMenuOpen(toolbarExportDropdown, toolbarExportButton, false);
+        const willOpen = !addClientDropdown?.classList.contains("is-open");
+        setToolbarCommandMenuOpen(addClientDropdown, addClientTrigger, Boolean(willOpen));
       });
 
-      directoryTitleMenuActions.forEach(function (button) {
+      directoryCommandActionButtons.forEach(function (button) {
         button.addEventListener("click", function (event) {
           event.stopPropagation();
-          handleDirectoryTitleMenuAction(button.dataset.directoryTitleMenuAction);
+          handleDirectoryCommandAction(button.dataset.directoryCommandAction);
+        });
+      });
+
+      addClientModalCloseTargets.forEach(function (target) {
+        target.addEventListener("click", function (event) {
+          event.stopPropagation();
+          closeDirectoryFormChooser();
         });
       });
 
@@ -4387,8 +4406,8 @@
         setView: setDirectoryView,
         getState: getDirectorySidebarState,
         refresh: renderDirectory,
-        openAddClientModal: function () {
-          return openDirectoryAddModal();
+        openAddClientMenu: function () {
+          return openDirectoryAddMenu();
         }
       };
 
@@ -4399,8 +4418,12 @@
           });
         }
 
-        if (!event.target.closest("[data-directory-title-menu]")) {
-          setDirectoryTitleMenuOpen(false);
+        if (!event.target.closest("[data-export-dropdown]")) {
+          setToolbarCommandMenuOpen(toolbarExportDropdown, toolbarExportButton, false);
+        }
+
+        if (!event.target.closest("[data-add-client-dropdown]")) {
+          setToolbarCommandMenuOpen(addClientDropdown, addClientTrigger, false);
         }
 
         if (!event.target.closest("[data-directory-accessibility]")) {
@@ -4467,11 +4490,25 @@
         return;
       }
 
-      const directoryTitleMenu = document.querySelector("[data-directory-title-menu]");
-      const directoryTitleMenuTrigger = document.querySelector("[data-directory-title-menu-trigger]");
-      if (directoryTitleMenu && directoryTitleMenuTrigger) {
-        directoryTitleMenu.classList.remove("is-open");
-        directoryTitleMenuTrigger.setAttribute("aria-expanded", "false");
+      const toolbarExportDropdown = document.querySelector("[data-export-dropdown]");
+      const toolbarExportButton = document.querySelector("[data-export-button]");
+      if (toolbarExportDropdown && toolbarExportButton) {
+        toolbarExportDropdown.classList.remove("is-open");
+        toolbarExportButton.setAttribute("aria-expanded", "false");
+      }
+
+      const addClientDropdown = document.querySelector("[data-add-client-dropdown]");
+      const addClientTrigger = document.querySelector("[data-add-client-trigger]");
+      if (addClientDropdown && addClientTrigger) {
+        addClientDropdown.classList.remove("is-open");
+        addClientTrigger.setAttribute("aria-expanded", "false");
+      }
+
+      const addClientModal = document.querySelector("[data-directory-add-client-modal]");
+      if (addClientModal) {
+        addClientModal.hidden = true;
+        addClientModal.classList.remove("is-open");
+        document.body.classList.remove("is-modal-open");
       }
 
       const directoryAccessibility = document.querySelector("[data-directory-accessibility]");

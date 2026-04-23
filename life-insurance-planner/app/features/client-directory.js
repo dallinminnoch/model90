@@ -20,20 +20,11 @@
     const rowsHost = document.getElementById("client-table-rows");
     const emptyState = document.getElementById("client-empty-state");
     const searchField = document.querySelector(".client-table-search input");
-    const exportDropdown = document.querySelector("[data-export-dropdown]");
-    const exportButton = document.querySelector("[data-export-button]");
-    const exportOptions = document.querySelectorAll("[data-export-action]");
-    const addClientButton = document.querySelector("[data-add-client-button]");
     const viewButtons = document.querySelectorAll("[data-client-view]");
     const statusButtons = document.querySelectorAll("[data-client-status]");
     const orderDropdown = document.querySelector("[data-order-dropdown]");
     const orderTrigger = document.querySelector("[data-order-trigger]");
     const orderOptions = document.querySelectorAll("[data-order-option]");
-    const nameHeading = document.getElementById("client-table-heading-name");
-    const nextActionHeading = document.getElementById("client-table-heading-next-action");
-    const coverageHeading = document.getElementById("client-table-heading-coverage");
-    const addClientModal = document.querySelector("[data-add-client-modal]");
-    const addClientModalCloseTargets = document.querySelectorAll("[data-add-client-modal-close]");
     if (!letterButtons.length || !rowsHost) {
       return;
     }
@@ -89,54 +80,39 @@
       });
     }
 
+    function getDirectoryNameHeadingText() {
+      return activeView === "households"
+        ? "Household"
+        : activeView === "businesses"
+          ? "Business"
+          : activeView === "all"
+            ? "Profile"
+            : "Client";
+    }
+
     function syncTableHeadings() {
-      if (nameHeading) {
-        nameHeading.textContent = activeView === "households" ? "Household" : activeView === "businesses" ? "Business" : activeView === "all" ? "Profile" : "Client";
-      }
-      if (nextActionHeading) {
-        nextActionHeading.textContent = "Next Action";
-      }
-      if (coverageHeading) {
-        coverageHeading.textContent = "Coverage Gap";
-      }
+      document.querySelectorAll("[data-directory-heading-name]").forEach((heading) => {
+        heading.textContent = getDirectoryNameHeadingText();
+      });
+      document.querySelectorAll("[data-directory-heading-next-action]").forEach((heading) => {
+        heading.textContent = "Next Action";
+      });
+      document.querySelectorAll("[data-directory-heading-coverage]").forEach((heading) => {
+        heading.textContent = "Coverage Gap";
+      });
     }
 
-    function syncExportButtonState() {
-      if (!exportButton) {
-        return;
-      }
-
-      const hasSelection = selectedRecordIds.size > 0;
-      exportButton.classList.toggle("is-active", hasSelection);
-
-      if (!hasSelection && exportDropdown) {
-        exportDropdown.classList.remove("is-open");
-        exportButton.setAttribute("aria-expanded", "false");
-      }
-
-      if (addClientButton) {
-        addClientButton.classList.toggle("is-inactive", hasSelection);
-      }
-    }
-
-    function openAddClientModal() {
-      if (!addClientModal) {
-        return;
-      }
-
-      addClientModal.hidden = false;
-      addClientModal.classList.add("is-open");
-      document.body.classList.add("is-modal-open");
-    }
-
-    function closeAddClientModal() {
-      if (!addClientModal) {
-        return;
-      }
-
-      addClientModal.hidden = true;
-      addClientModal.classList.remove("is-open");
-      document.body.classList.remove("is-modal-open");
+    function renderDirectoryGroupColumnHeader() {
+      return `
+        <div class="client-table client-table-header directory-list-header client-directory-group-column-header" role="row">
+          <div class="client-table-cell" data-directory-heading-name>${getDirectoryNameHeadingText()}</div>
+          <div class="client-table-cell client-table-cell-case-ref-title">Case Ref</div>
+          <div class="client-table-cell client-table-cell-close-index-title">Close Index</div>
+          <div class="client-table-cell client-table-cell-next-action-title" data-directory-heading-next-action>Next Action</div>
+          <div class="client-table-cell client-table-cell-nowrap client-table-cell-coverage-amount-title" data-directory-heading-coverage>Coverage Gap</div>
+          <div class="client-table-cell client-table-cell-priority-title">Priority</div>
+        </div>
+      `;
     }
 
     function getSelectedRecords() {
@@ -312,6 +288,7 @@
             </button>
           </header>
           <div class="client-directory-group-body" id="${bodyId}" role="rowgroup"${isCollapsed ? " hidden" : ""}>
+            ${renderDirectoryGroupColumnHeader()}
             ${group.records.map((record) => renderClientRow(record, selectedRecordIds.has(String(record.id || "").trim()))).join("")}
           </div>
         </section>
@@ -371,7 +348,6 @@
           } else {
             selectedRecordIds.delete(recordId);
           }
-          syncExportButtonState();
         });
       });
 
@@ -465,7 +441,6 @@
       syncViewButtons();
       syncStatusButtons();
       syncDirectoryOrder();
-      syncExportButtonState();
       dispatchDirectoryCoreRender();
     }
 
@@ -531,72 +506,8 @@
       });
     }
 
-    if (addClientButton) {
-      addClientButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        openAddClientModal();
-      });
-    }
-
-    addClientModalCloseTargets.forEach((target) => {
-      target.addEventListener("click", closeAddClientModal);
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        closeAddClientModal();
-      }
-    });
-
-    if (addClientModal) {
-      addClientModal.addEventListener("click", (event) => {
-        if (event.target === addClientModal) {
-          closeAddClientModal();
-        }
-      });
-    }
-
-    if (exportButton && exportDropdown) {
-      exportButton.addEventListener("click", (event) => {
-        event.stopPropagation();
-        if (!selectedRecordIds.size) {
-          return;
-        }
-
-        const isOpen = exportDropdown.classList.toggle("is-open");
-        exportButton.setAttribute("aria-expanded", String(isOpen));
-      });
-    }
-
-    exportOptions.forEach((option) => {
-      option.addEventListener("click", async (event) => {
-        event.stopPropagation();
-        const selectedRecords = getSelectedRecords();
-        if (!selectedRecords.length) {
-          return;
-        }
-
-        const action = option.dataset.exportAction;
-        if (action === "print") {
-          printClientRecords(selectedRecords);
-        } else if (action === "share") {
-          await shareClientRecords(selectedRecords);
-        } else {
-          exportClientRecords(selectedRecords);
-        }
-
-        exportDropdown?.classList.remove("is-open");
-        exportButton?.setAttribute("aria-expanded", "false");
-      });
-    });
-
     document.addEventListener("click", (event) => {
       const target = event.target;
-      if (!target.closest("[data-export-dropdown]")) {
-        exportDropdown?.classList.remove("is-open");
-        exportButton?.setAttribute("aria-expanded", "false");
-      }
-
       if (!target.closest("[data-order-dropdown]")) {
         setOrderMenuOpen(false);
       }
@@ -643,7 +554,9 @@
           sessionStorage.setItem(STORAGE_KEYS.clientView, activeView);
         }
 
-        if (Object.prototype.hasOwnProperty.call(state, "activeLetter")) {
+        if (state.resetLetter) {
+          activeLetter = "all";
+        } else if (Object.prototype.hasOwnProperty.call(state, "activeLetter")) {
           const normalizedLetter = String(state.activeLetter || "all").trim().toUpperCase();
           activeLetter = normalizedLetter === "ALL" ? "all" : (/^[A-Z]$/.test(normalizedLetter) ? normalizedLetter : "all");
         }
