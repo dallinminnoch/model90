@@ -9457,6 +9457,65 @@ body.is-modal-open {
   transform: scale(1.04);
 }
 
+.client-detail-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.34);
+  backdrop-filter: blur(8px);
+}
+
+.client-detail-overlay-shell {
+  background: #ffffff;
+  border: 1px solid rgba(214, 223, 235, 0.88);
+  border-radius: 1.35rem;
+  box-shadow: 0 28px 72px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+}
+
+.client-detail-overlay-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #f8fafc;
+}
+
+.client-detail-overlay-host {
+  width: 100%;
+  height: 100%;
+  background: #f8fafc;
+}
+
+.client-detail-overlay-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+  width: 2.6rem;
+  height: 2.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(214, 223, 235, 0.92);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #344054;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+}
+
+.client-detail-overlay-close:hover,
+.client-detail-overlay-close:focus-visible {
+  color: #101828;
+  background: #ffffff;
+}
+
+.client-detail-overlay-close:focus-visible {
+  outline: 2px solid rgba(124, 58, 237, 0.28);
+  outline-offset: 0.16rem;
+}
+
 .row-select-checkbox {
   width: var(--client-directory-control-box-size, var(--client-directory-check-size, 1.95em));
   height: var(--client-directory-control-box-size, var(--client-directory-check-size, 1.95em));

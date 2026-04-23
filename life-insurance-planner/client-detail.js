@@ -1,9 +1,28 @@
 ﻿    (function () {
-      const host = document.querySelector("[data-client-detail-host]");
+      const LensApp = window.LensApp || (window.LensApp = {});
 
-      if (!host) {
-        return;
-      }
+      function mountClientProfileViewer(options) {
+        const viewerOptions = options && typeof options === "object" ? options : {};
+        const host = viewerOptions.host || document.querySelector("[data-client-detail-host]");
+
+        if (!host) {
+          return null;
+        }
+
+        if (typeof host.__clientProfileViewerCleanup === "function") {
+          host.__clientProfileViewerCleanup();
+        }
+
+        const requestParamsOverride = viewerOptions.requestParams instanceof URLSearchParams
+          ? new URLSearchParams(viewerOptions.requestParams.toString())
+          : viewerOptions.requestParams && typeof viewerOptions.requestParams === "object"
+            ? new URLSearchParams(viewerOptions.requestParams)
+            : null;
+        const requestedRecordId = String(viewerOptions.recordId || "").trim();
+        const requestedCaseRef = String(viewerOptions.caseRef || "").trim().toUpperCase();
+        const requestedTabOverride = String(viewerOptions.tab || "").trim().toLowerCase();
+        const isOverlayViewer = String(viewerOptions.mode || "").trim().toLowerCase() === "overlay";
+        const handleViewerClose = typeof viewerOptions.onClose === "function" ? viewerOptions.onClose : null;
 
       const STORAGE_KEYS = {
         authSession: "lipPlannerAuthSession",
@@ -32,12 +51,28 @@
         return `${STORAGE_KEYS.accessibility}:${getStorageIdentity()}`;
       }
 
-      function getClientDetailRequestUrl() {
-        return new URL(window.location.href);
-      }
-
       function getClientDetailRequestParams() {
-        return getClientDetailRequestUrl().searchParams;
+        if (requestParamsOverride || requestedRecordId || requestedCaseRef || requestedTabOverride) {
+          const params = requestParamsOverride
+            ? new URLSearchParams(requestParamsOverride.toString())
+            : new URLSearchParams();
+
+          if (requestedRecordId && !params.has("id")) {
+            params.set("id", requestedRecordId);
+          }
+
+          if (requestedCaseRef && !params.has("caseRef")) {
+            params.set("caseRef", requestedCaseRef);
+          }
+
+          if (requestedTabOverride && !params.has("tab")) {
+            params.set("tab", requestedTabOverride);
+          }
+
+          return params;
+        }
+
+        return new URL(window.location.href).searchParams;
       }
 
       function escapeHtml(value) {
@@ -49,7 +84,31 @@
           .replace(/'/g, "&#39;");
       }
 
+      function closeViewerOrReturnToDirectory() {
+        if (handleViewerClose) {
+          handleViewerClose();
+          return;
+        }
+
+        window.location.href = "clients.html";
+      }
+
+      function createViewerMountCleanup() {
+        const cleanup = function () {
+          delete host.__clientProfileViewerCleanup;
+        };
+        host.__clientProfileViewerCleanup = cleanup;
+        return cleanup;
+      }
+
       const clientDirectoryHelpers = window.LensApp?.clientDirectoryHelpers || {};
+      const clientRecordsApi = window.LensApp?.clientRecords || {};
+      const getClientRecordByReference = typeof clientRecordsApi.getClientRecordByReference === "function"
+        ? clientRecordsApi.getClientRecordByReference
+        : null;
+      const mergePendingClientRecords = typeof clientRecordsApi.mergePendingClientRecords === "function"
+        ? clientRecordsApi.mergePendingClientRecords
+        : null;
       const normalizePriority = clientDirectoryHelpers.normalizePriority;
       const getClientLifecycleStatus = clientDirectoryHelpers.getClientLifecycleStatus;
       const getClientStatusDisplay = clientDirectoryHelpers.getClientStatusDisplay;
@@ -1515,6 +1574,16 @@
         const params = getClientDetailRequestParams();
         const recordId = String(params.get("id") || "").trim();
         const caseRef = String(params.get("caseRef") || "").trim().toUpperCase();
+
+        if (mergePendingClientRecords) {
+          mergePendingClientRecords();
+        }
+
+        if (getClientRecordByReference) {
+          const matchedRecord = getClientRecordByReference(recordId, caseRef);
+          return matchedRecord ? synchronizeRecordCoverageFields(matchedRecord) : null;
+        }
+
         const records = loadJson(localStorage, getRecordsStorageKey());
         if (!Array.isArray(records)) {
           return null;
@@ -4513,14 +4582,14 @@
             ? linkedHouseholdMembers.map(function (member) {
               const avatarPresentation = getAvatarPresentation(member.age, member.dateOfBirth);
               return `
-                <a class="client-household-member-button" href="client-detail.html?id=${escapeHtml(String(member.id || "").trim())}">
+                <${isOverlayViewer ? "button" : "a"} class="client-household-member-button"${isOverlayViewer ? ` type="button" data-overlay-record-open="${escapeHtml(String(member.id || "").trim())}"` : ` href="clients.html?profileId=${encodeURIComponent(String(member.id || "").trim())}"`}>
                   <span class="client-household-member-avatar" style="background:${escapeHtml(avatarPresentation.background)};color:${escapeHtml(avatarPresentation.color)};box-shadow:${escapeHtml(avatarPresentation.boxShadow)};">${escapeHtml(getInitials(formatValue(member.displayName)))}</span>
                   <span class="client-household-member-button-copy">
                     <strong>${escapeHtml(formatValue(member.displayName))}</strong>
                     <em>${escapeHtml(formatValue(member.caseRef))}</em>
                   </span>
                   <span class="client-household-member-button-role">${escapeHtml(formatValue(member.householdRole))}</span>
-                </a>
+                </${isOverlayViewer ? "button" : "a"}>
               `;
             }).join("")
             : `
@@ -4536,9 +4605,9 @@
           return `
             <div class="client-profile-shell client-profile-shell-household">
               <section class="client-profile-main client-profile-main-household client-profile-main-household-single">
-                <a class="client-profile-backlink client-profile-backlink-household" href="clients.html">
+                <${isOverlayViewer ? "button" : "a"} class="client-profile-backlink client-profile-backlink-household"${isOverlayViewer ? ' type="button" data-overlay-viewer-close' : ' href="clients.html"'}>
                   <span>Return to Client Directory</span>
-                </a>
+                </${isOverlayViewer ? "button" : "a"}>
                 <section class="client-detail-card client-household-top-card">
                   <div class="client-household-top-card-copy">
                     <h2 class="client-profile-household-title">
@@ -4786,129 +4855,131 @@
         }
 
         return `
-          <div class="client-profile-shell${document.body.classList.contains("workspace-side-nav-collapsed") ? " is-collapsed" : ""}" data-client-sidebar-layout>
-            <section class="client-profile-main">
-              <div class="client-profile-workspace-shell">
-                <div class="client-profile-workspace-action-row" data-primary-action-panel-host data-client-nav-section="overview">
-                  ${renderPrimaryActionPanel(record, checklistItems)}
+          <div class="client-profile-shell client-profile-shell--viewer${document.body.classList.contains("workspace-side-nav-collapsed") ? " is-collapsed" : ""}" data-client-sidebar-layout>
+            <section class="client-profile-main client-profile-main--viewer">
+              <div class="client-profile-viewer-shell">
+                <div class="client-profile-viewer-header" data-client-profile-sticky-header>
+                  <div class="client-profile-workspace-action-row client-profile-workspace-action-row--viewer" data-primary-action-panel-host>
+                    ${renderPrimaryActionPanel(record, checklistItems)}
+                  </div>
                 </div>
-                <div class="client-profile-workspace-wide-row client-profile-workspace-wide-row--hero" data-client-profile-workspace>
-                  <div class="client-profile-hero-grid">
-                    <div class="client-profile-hero-grid-overview">
-                      ${renderOverviewSummaryCard(record)}
-                    </div>
-                    <div class="client-profile-hero-grid-details">
-                      ${renderClientProfileSidebar(record, subtitleParts)}
-                    </div>
-                    <div class="client-profile-hero-grid-checklist">
-                      ${renderChecklistCard("Planning Workflow", checklistItems, record)}
-                    </div>
-                    <div class="client-profile-hero-grid-lower">
-                      <div class="client-profile-hero-grid-status">
+                <div class="client-profile-viewer-body">
+                  <div class="client-profile-viewer-main" data-client-profile-scroll-pane data-client-profile-workspace>
+                    <div class="client-profile-viewer-summary-grid">
+                      <div class="client-profile-viewer-summary-card client-profile-viewer-summary-card--overview">
+                        ${renderOverviewSummaryCard(record)}
+                      </div>
+                      <div class="client-profile-viewer-summary-card client-profile-viewer-summary-card--details">
+                        ${renderClientProfileSidebar(record, subtitleParts)}
+                      </div>
+                      <div class="client-profile-viewer-summary-card client-profile-viewer-summary-card--workflow">
+                        ${renderChecklistCard("Planning Workflow", checklistItems, record)}
+                      </div>
+                      <div class="client-profile-viewer-summary-card client-profile-viewer-summary-card--status">
                         ${renderStatusControlPanel(record)}
                       </div>
-                      <div class="client-profile-hero-grid-activity">
-                        ${renderNotesWidget(record, "Activity Tracker", "activity activity-log")}
+                    </div>
+                    <div class="client-profile-workspace-main client-profile-workspace-main--sections">
+                      <div class="client-profile-workspace">
+
+                      ${renderProfileWorkspaceSection({
+                        sectionTargets: "analysis",
+                        sectionClassName: "client-profile-workspace-section--analysis",
+                        eyebrow: "Case Progression",
+                        title: "Analysis",
+                        description: "Use this as the main planning workspace for inputs, modeled need, and advisor recommendation.",
+                        body: `
+                          <div class="client-profile-analysis-grid">
+                            <div class="client-profile-analysis-subsection" data-client-nav-section="modeling-inputs">
+                              ${renderPmiEntryCard(record)}
+                            </div>
+                            <div class="client-profile-analysis-subsection" data-client-nav-section="needs-analysis">
+                              ${renderAnalysisPreviewCard(record)}
+                            </div>
+                            <div class="client-profile-analysis-subsection" data-client-nav-section="recommendation">
+                              ${renderRecommendationSummaryCard(record)}
+                            </div>
+                          </div>
+                        `
+                      })}
+
+                      ${renderProfileWorkspaceSection({
+                        sectionTargets: "underwriting",
+                        sectionClassName: "client-profile-workspace-section--underwriting",
+                        eyebrow: "Case Progression",
+                        title: "Underwriting",
+                        description: "Track risk inputs and preliminary underwriting details without leaving the case workspace.",
+                        body: `
+                          <div class="client-profile-section-grid">
+                            <div class="client-profile-section-grid-main">
+                              ${renderRiskAnalysisCard(record)}
+                            </div>
+                            <div class="client-profile-section-grid-side">
+                              ${renderPreliminaryResultsCard(record)}
+                            </div>
+                          </div>
+                        `
+                      })}
+
+                      ${renderProfileWorkspaceSection({
+                        sectionTargets: "placement",
+                        sectionClassName: "client-profile-workspace-section--placement",
+                        eyebrow: "Case Progression",
+                        title: "Placement",
+                        description: "Keep delivery moving by reviewing placed coverage, premium detail, and missing final records.",
+                        body: `<div data-placement-summary-card>${renderPlacementSummaryCard(record)}</div>`
+                      })}
+
+                      ${renderProfileWorkspaceSection({
+                        sectionTargets: "household",
+                        sectionClassName: "client-profile-workspace-section--client-data",
+                        eyebrow: "Client Data",
+                        title: "Household",
+                        description: "Reference the household context, assignment, and advisory positioning behind the case.",
+                        body: renderHouseholdInsightCard(record, householdDisplay, priority)
+                      })}
+
+                      ${renderProfileWorkspaceSection({
+                        sectionTargets: "financial-snapshot",
+                        sectionClassName: "client-profile-workspace-section--client-data",
+                        eyebrow: "Client Data",
+                        title: "Financial Snapshot",
+                        description: "Review the latest saved income, spending, and debt inputs supporting the analysis.",
+                        body: renderFinancialSnapshotCard(record)
+                      })}
+
+                      ${renderProfileWorkspaceSection({
+                        sectionTargets: "policies",
+                        sectionClassName: "client-profile-workspace-section--client-data",
+                        eyebrow: "Client Data",
+                        title: "Policies",
+                        description: "Review the live policy inventory, premium view, and coverage details on file.",
+                        body: renderCoverageCard(record)
+                      })}
+
+                      ${renderProfileWorkspaceSection({
+                        sectionTargets: "notes",
+                        sectionClassName: "client-profile-workspace-section--support",
+                        eyebrow: "Activity / Support",
+                        title: "Notes",
+                        description: "Keep advisor notes visible as part of the case workspace instead of hiding them on a separate page.",
+                        body: `<div data-notes-summary-card>${renderNotesSummaryCard(record)}</div>`
+                      })}
+
+                      ${renderProfileWorkspaceSection({
+                        sectionTargets: "documents",
+                        sectionClassName: "client-profile-workspace-section--support",
+                        eyebrow: "Activity / Support",
+                        title: "Documents",
+                        description: "Review document coverage and illustration support without leaving the profile workspace.",
+                        body: `<div data-documents-summary-card>${renderDocumentsSummaryCard(record)}</div>`
+                      })}
                       </div>
                     </div>
                   </div>
-                </div>
-                <div class="client-profile-workspace-main client-profile-workspace-main--sections">
-                  <div class="client-profile-workspace">
-
-                    ${renderProfileWorkspaceSection({
-                      sectionTargets: "analysis",
-                      sectionClassName: "client-profile-workspace-section--analysis",
-                      eyebrow: "Case Progression",
-                      title: "Analysis",
-                      description: "Use this as the main planning workspace for inputs, modeled need, and advisor recommendation.",
-                      body: `
-                        <div class="client-profile-analysis-grid">
-                          <div class="client-profile-analysis-subsection" data-client-nav-section="modeling-inputs">
-                            ${renderPmiEntryCard(record)}
-                          </div>
-                          <div class="client-profile-analysis-subsection" data-client-nav-section="needs-analysis">
-                            ${renderAnalysisPreviewCard(record)}
-                          </div>
-                          <div class="client-profile-analysis-subsection" data-client-nav-section="recommendation">
-                            ${renderRecommendationSummaryCard(record)}
-                          </div>
-                        </div>
-                      `
-                    })}
-
-                    ${renderProfileWorkspaceSection({
-                      sectionTargets: "underwriting",
-                      sectionClassName: "client-profile-workspace-section--underwriting",
-                      eyebrow: "Case Progression",
-                      title: "Underwriting",
-                      description: "Track risk inputs and preliminary underwriting details without leaving the case workspace.",
-                      body: `
-                        <div class="client-profile-section-grid">
-                          <div class="client-profile-section-grid-main">
-                            ${renderRiskAnalysisCard(record)}
-                          </div>
-                          <div class="client-profile-section-grid-side">
-                            ${renderPreliminaryResultsCard(record)}
-                          </div>
-                        </div>
-                      `
-                    })}
-
-                    ${renderProfileWorkspaceSection({
-                      sectionTargets: "placement",
-                      sectionClassName: "client-profile-workspace-section--placement",
-                      eyebrow: "Case Progression",
-                      title: "Placement",
-                      description: "Keep delivery moving by reviewing placed coverage, premium detail, and missing final records.",
-                      body: `<div data-placement-summary-card>${renderPlacementSummaryCard(record)}</div>`
-                    })}
-
-                    ${renderProfileWorkspaceSection({
-                      sectionTargets: "household",
-                      sectionClassName: "client-profile-workspace-section--client-data",
-                      eyebrow: "Client Data",
-                      title: "Household",
-                      description: "Reference the household context, assignment, and advisory positioning behind the case.",
-                      body: renderHouseholdInsightCard(record, householdDisplay, priority)
-                    })}
-
-                    ${renderProfileWorkspaceSection({
-                      sectionTargets: "financial-snapshot",
-                      sectionClassName: "client-profile-workspace-section--client-data",
-                      eyebrow: "Client Data",
-                      title: "Financial Snapshot",
-                      description: "Review the latest saved income, spending, and debt inputs supporting the analysis.",
-                      body: renderFinancialSnapshotCard(record)
-                    })}
-
-                    ${renderProfileWorkspaceSection({
-                      sectionTargets: "policies",
-                      sectionClassName: "client-profile-workspace-section--client-data",
-                      eyebrow: "Client Data",
-                      title: "Policies",
-                      description: "Review the live policy inventory, premium view, and coverage details on file.",
-                      body: renderCoverageCard(record)
-                    })}
-
-                    ${renderProfileWorkspaceSection({
-                      sectionTargets: "notes",
-                      sectionClassName: "client-profile-workspace-section--support",
-                      eyebrow: "Activity / Support",
-                      title: "Notes",
-                      description: "Keep advisor notes visible as part of the case workspace instead of hiding them on a separate page.",
-                      body: `<div data-notes-summary-card>${renderNotesSummaryCard(record)}</div>`
-                    })}
-
-                    ${renderProfileWorkspaceSection({
-                      sectionTargets: "documents",
-                      sectionClassName: "client-profile-workspace-section--support",
-                      eyebrow: "Activity / Support",
-                      title: "Documents",
-                      description: "Review document coverage and illustration support without leaving the profile workspace.",
-                      body: `<div data-documents-summary-card>${renderDocumentsSummaryCard(record)}</div>`
-                    })}
-                  </div>
+                  <aside class="client-profile-viewer-activity-rail">
+                    ${renderNotesWidget(record, "Activity Tracker", "activity activity-log")}
+                  </aside>
                 </div>
               </div>
 
@@ -5137,28 +5208,11 @@
             <p class="client-detail-empty">No saved client matched this record id.</p>
           </section>
         `;
-        return;
+        return createViewerMountCleanup();
       }
-
-      host.innerHTML = renderProfile(record);
 
       const clientWorkspaceSidebarTitle = getClientWorkspaceSidebarTitle(record);
-      const clientWorkspaceSideNavTitle = "Client Board";
-      document.body.setAttribute("data-workspace-current-title", clientWorkspaceSideNavTitle);
-      document.documentElement.setAttribute("data-workspace-current-title", clientWorkspaceSideNavTitle);
-
-      const profileSidebarMountHost = document.querySelector('[data-workspace-side-nav="client-detail"]');
-      if (profileSidebarMountHost) {
-        profileSidebarMountHost.setAttribute("data-workspace-side-nav-title", clientWorkspaceSideNavTitle);
-        const sidebarTitleNode = profileSidebarMountHost.querySelector(".workspace-side-nav-copy strong");
-        if (sidebarTitleNode) {
-          sidebarTitleNode.textContent = clientWorkspaceSideNavTitle;
-        } else if (window.WorkspaceSideNav) {
-          profileSidebarMountHost.innerHTML = window.WorkspaceSideNav.render("client-detail", {
-            title: clientWorkspaceSideNavTitle
-          });
-        }
-      }
+      host.innerHTML = renderProfile(record);
 
       function saveRecordField(fieldName, nextValue) {
         const records = loadJson(localStorage, getRecordsStorageKey());
@@ -5277,7 +5331,8 @@
       const profileNavAnalysisPanel = document.querySelector('[data-client-nav-branch-panel="analysis"]');
       const profilePanels = host.querySelectorAll("[data-client-panel]");
       const isContinuousProfileWorkspace = Boolean(host.querySelector("[data-client-profile-workspace]"));
-      const profileSidebarHost = document.querySelector('[data-workspace-side-nav="client-detail"]');
+      const profileScrollContainer = host.querySelector("[data-client-profile-scroll-pane]");
+      const profileSidebarHost = host.closest("[data-workspace-side-nav-host]");
       const profileSidebarLayout = host.querySelector("[data-client-sidebar-layout]");
       const profileSidebarToggle = document.querySelector("[data-client-side-tabs-toggle]");
       const policyModal = host.querySelector("[data-policy-modal]");
@@ -7443,6 +7498,12 @@
           return false;
         }
 
+        if (hasInternalProfileScrollContainer()) {
+          const containerRect = profileScrollContainer.getBoundingClientRect();
+          const statsRect = statsRow.getBoundingClientRect();
+          return (statsRect.bottom - containerRect.top) <= (getProfileScrollOffset() + 8);
+        }
+
         // CODE NOTE: Once the top coverage stat row has moved above the sticky
         // header stack, mirror those values into the auxiliary banner so
         // current coverage and modeled need stay visible while scrolling.
@@ -7588,7 +7649,15 @@
         }) || null;
       }
 
+      function hasInternalProfileScrollContainer() {
+        return profileScrollContainer instanceof HTMLElement;
+      }
+
       function getProfileScrollOffset() {
+        if (hasInternalProfileScrollContainer()) {
+          return 16;
+        }
+
         let offset = 18;
         const topbar = document.querySelector(".workspace-page-topbar");
         if (topbar instanceof HTMLElement) {
@@ -7601,6 +7670,41 @@
         }
 
         return offset;
+      }
+
+      function getProfileScrollTop() {
+        return hasInternalProfileScrollContainer()
+          ? profileScrollContainer.scrollTop
+          : window.scrollY;
+      }
+
+      function getProfileScrollViewportHeight() {
+        return hasInternalProfileScrollContainer()
+          ? profileScrollContainer.clientHeight
+          : window.innerHeight;
+      }
+
+      function getProfileScrollHeight() {
+        return hasInternalProfileScrollContainer()
+          ? profileScrollContainer.scrollHeight
+          : document.documentElement.scrollHeight;
+      }
+
+      function getProfileSectionAbsoluteTop(targetSection) {
+        if (!(targetSection instanceof HTMLElement)) {
+          return 0;
+        }
+
+        if (hasInternalProfileScrollContainer()) {
+          if (!profileScrollContainer.contains(targetSection)) {
+            return profileScrollContainer.scrollTop;
+          }
+          const containerRect = profileScrollContainer.getBoundingClientRect();
+          return profileScrollContainer.scrollTop
+            + (targetSection.getBoundingClientRect().top - containerRect.top);
+        }
+
+        return window.scrollY + targetSection.getBoundingClientRect().top;
       }
 
       // CODE NOTE: Sidebar workflow items now scroll within one continuous
@@ -7617,9 +7721,19 @@
           return false;
         }
 
-        const absoluteTop = window.scrollY + targetSection.getBoundingClientRect().top - getProfileScrollOffset();
+        const absoluteTop = getProfileSectionAbsoluteTop(targetSection) - getProfileScrollOffset();
+        const nextTop = Math.max(0, absoluteTop);
+
+        if (hasInternalProfileScrollContainer()) {
+          profileScrollContainer.scrollTo({
+            top: nextTop,
+            behavior: String(options?.behavior || "smooth")
+          });
+          return true;
+        }
+
         window.scrollTo({
-          top: Math.max(0, absoluteTop),
+          top: nextTop,
           behavior: String(options?.behavior || "smooth")
         });
         return true;
@@ -7630,7 +7744,10 @@
         const sections = [];
 
         const analysisSection = findProfileNavSection("analysis");
-        if (analysisSection instanceof HTMLElement) {
+        if (
+          analysisSection instanceof HTMLElement
+          && (!hasInternalProfileScrollContainer() || profileScrollContainer.contains(analysisSection))
+        ) {
           sections.push({
             navKey: "analysis",
             targetKey: "analysis",
@@ -7643,7 +7760,12 @@
           const navKey = String(button.dataset.clientNavKey || "").trim();
           const targetKey = String(button.dataset.clientNavTarget || navKey).trim();
           const section = findProfileNavSection(targetKey);
-          if (!navKey || !(section instanceof HTMLElement) || seen.has(navKey)) {
+          if (
+            !navKey
+            || !(section instanceof HTMLElement)
+            || seen.has(navKey)
+            || (hasInternalProfileScrollContainer() && !profileScrollContainer.contains(section))
+          ) {
             return;
           }
 
@@ -7669,14 +7791,25 @@
         const activationLine = getProfileScrollOffset() + 42;
         let activeNav = sections[0].navKey;
 
-        sections.forEach(function (section) {
-          const rect = section.element.getBoundingClientRect();
-          if (rect.top <= activationLine) {
-            activeNav = section.navKey;
-          }
-        });
+        if (hasInternalProfileScrollContainer()) {
+          const containerRect = profileScrollContainer.getBoundingClientRect();
+          sections.forEach(function (section) {
+            const rect = section.element.getBoundingClientRect();
+            const relativeTop = rect.top - containerRect.top;
+            if (relativeTop <= activationLine) {
+              activeNav = section.navKey;
+            }
+          });
+        } else {
+          sections.forEach(function (section) {
+            const rect = section.element.getBoundingClientRect();
+            if (rect.top <= activationLine) {
+              activeNav = section.navKey;
+            }
+          });
+        }
 
-        if ((window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 8)) {
+        if ((getProfileScrollViewportHeight() + getProfileScrollTop()) >= (getProfileScrollHeight() - 8)) {
           return sections[sections.length - 1].navKey;
         }
 
@@ -7821,7 +7954,11 @@
       const handleWindowScroll = function () {
         scheduleProfileScrollspySync();
       };
-      window.addEventListener("scroll", handleWindowScroll, { passive: true });
+      if (hasInternalProfileScrollContainer()) {
+        profileScrollContainer.addEventListener("scroll", handleWindowScroll, { passive: true });
+      } else {
+        window.addEventListener("scroll", handleWindowScroll, { passive: true });
+      }
 
       host.addEventListener("click", function (event) {
         const profileDeleteTrigger = event.target.closest("[data-profile-delete-toggle]");
@@ -9242,7 +9379,7 @@
           if (!wasDeleted) {
             return;
           }
-          window.location.href = "clients.html";
+          closeViewerOrReturnToDirectory();
         });
       }
 
@@ -9347,10 +9484,33 @@
         });
       }
 
-      host.addEventListener("click", async function (event) {
+      const handleHostClick = async function (event) {
         const clickedInsidePolicyDocumentMenu = policyDocumentMenu?.contains(event.target) || false;
         if (policyDocumentMenu && !policyDocumentMenu.hidden && !clickedInsidePolicyDocumentMenu) {
           closePolicyDocumentMenu();
+        }
+
+        const overlayViewerClose = event.target.closest("[data-overlay-viewer-close]");
+        if (overlayViewerClose && host.contains(overlayViewerClose)) {
+          event.preventDefault();
+          closeViewerOrReturnToDirectory();
+          return;
+        }
+
+        const overlayRecordOpen = event.target.closest("[data-overlay-record-open]");
+        if (overlayRecordOpen && host.contains(overlayRecordOpen)) {
+          event.preventDefault();
+          const nextRecordId = String(overlayRecordOpen.getAttribute("data-overlay-record-open") || "").trim();
+          if (!nextRecordId) {
+            return;
+          }
+          mountClientProfileViewer({
+            host: host,
+            recordId: nextRecordId,
+            mode: isOverlayViewer ? "overlay" : "standalone",
+            onClose: handleViewerClose
+          });
+          return;
         }
 
         const policyDocumentAction = event.target.closest("[data-policy-document-action]");
@@ -9467,9 +9627,10 @@
           }
           return;
         }
-      });
+      };
+      host.addEventListener("click", handleHostClick);
 
-      host.addEventListener("contextmenu", function (event) {
+      const handleHostContextMenu = function (event) {
         const policyDocumentEntry = event.target.closest("[data-policy-document-entry]");
         if (policyDocumentEntry && host.contains(policyDocumentEntry)) {
           event.preventDefault();
@@ -9483,9 +9644,10 @@
         if (!event.target.closest("[data-policy-document-menu]")) {
           closePolicyDocumentMenu();
         }
-      });
+      };
+      host.addEventListener("contextmenu", handleHostContextMenu);
 
-      host.addEventListener("keydown", function (event) {
+      const handleHostKeydown = function (event) {
         if (event.key === "Escape" && policyDocumentMenu && !policyDocumentMenu.hidden) {
           closePolicyDocumentMenu();
         }
@@ -9513,7 +9675,8 @@
           }
           return;
         }
-      });
+      };
+      host.addEventListener("keydown", handleHostKeydown);
 
       const handleDocumentClick = function (event) {
         if (!event.target.closest(".workspace-page-menu")) {
@@ -9585,6 +9748,43 @@
           refreshActivityTracker();
         });
       }
+
+      const cleanup = function () {
+        if (coverageStatResizeObserver && typeof coverageStatResizeObserver.disconnect === "function") {
+          coverageStatResizeObserver.disconnect();
+        }
+
+        if (coverageAdequacyAnimationFrame) {
+          window.cancelAnimationFrame(coverageAdequacyAnimationFrame);
+          coverageAdequacyAnimationFrame = 0;
+        }
+
+        if (profileScrollSpyFrame) {
+          window.cancelAnimationFrame(profileScrollSpyFrame);
+          profileScrollSpyFrame = 0;
+        }
+
+        window.removeEventListener("resize", handleWindowResize);
+        if (hasInternalProfileScrollContainer()) {
+          profileScrollContainer.removeEventListener("scroll", handleWindowScroll);
+        } else {
+          window.removeEventListener("scroll", handleWindowScroll);
+        }
+        document.removeEventListener("click", handleDocumentClick);
+        document.removeEventListener("keydown", handleDocumentKeydown);
+        host.removeEventListener("click", handleHostClick);
+        host.removeEventListener("contextmenu", handleHostContextMenu);
+        host.removeEventListener("keydown", handleHostKeydown);
+        delete host.__clientProfileViewerCleanup;
+      };
+
+      host.__clientProfileViewerCleanup = cleanup;
+      return cleanup;
+      }
+
+      LensApp.clientProfileViewer = Object.assign({}, LensApp.clientProfileViewer, {
+        mount: mountClientProfileViewer
+      });
 
     })();
   

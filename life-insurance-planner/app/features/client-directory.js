@@ -433,7 +433,10 @@
             return;
           }
 
-          window.location.href = `client-detail.html?id=${encodeURIComponent(recordId)}`;
+          const openedOverlay = window.ClientDirectoryShellApi?.openProfileViewer?.(recordId);
+          if (!openedOverlay) {
+            window.location.href = `clients.html?profileId=${encodeURIComponent(recordId)}`;
+          }
         });
 
         row.addEventListener("keydown", (event) => {
@@ -451,7 +454,10 @@
             return;
           }
 
-          window.location.href = `client-detail.html?id=${encodeURIComponent(recordId)}`;
+          const openedOverlay = window.ClientDirectoryShellApi?.openProfileViewer?.(recordId);
+          if (!openedOverlay) {
+            window.location.href = `clients.html?profileId=${encodeURIComponent(recordId)}`;
+          }
         });
       });
 

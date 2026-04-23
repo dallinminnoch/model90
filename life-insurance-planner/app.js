@@ -139,7 +139,6 @@
     safeInitialize("client-creation-form", initializeClientCreationForm);
     safeInitialize("survivorship-adjustments", initializeSurvivorshipAdjustments);
     safeInitialize("client-directory", initializeClientDirectory);
-    safeInitialize("client-detail-page", initializeClientDetailPage);
   });
 
   function initializeHomepage() {
@@ -251,7 +250,6 @@
     const isHomePage = document.body.classList.contains("app-home");
     const isWorkspacePage =
       document.body.classList.contains("clients-page") ||
-      document.body.classList.contains("client-detail-page") ||
       document.body.classList.contains("lens-page") ||
       document.body.classList.contains("settings-page");
 
@@ -437,186 +435,6 @@
     notesField.addEventListener("input", () => {
       localStorage.setItem(STORAGE_KEYS.notes, notesField.value);
     });
-  }
-
-  function initializeClientDetailPage() {
-    const host = document.querySelector("[data-client-detail-host]");
-    const title = document.querySelector("[data-client-detail-title]");
-    const subtitle = document.querySelector("[data-client-detail-subtitle]");
-
-    if (!host || !title || !subtitle) {
-      return;
-    }
-
-    const params = new URLSearchParams(window.location.search);
-    const recordId = String(params.get("id") || "").trim();
-    const record = getClientRecords().find((item) => item.id === recordId);
-
-    if (!record) {
-      title.textContent = "Client Not Found";
-      subtitle.textContent = "The requested client record is not available in this advisor workspace.";
-      host.innerHTML = `
-        <section class="client-detail-card">
-          <p class="client-detail-empty">No saved client matched this record id.</p>
-        </section>
-      `;
-      return;
-    }
-
-    const isHousehold = record.viewType === "households";
-    const dependentsCount = Number(record.dependentsCount || 0);
-    const membersCount = Number(record.insured || 0);
-    const householdMembersDisplay = Number.isFinite(membersCount) && membersCount > 0
-      ? String(membersCount)
-      : "Not provided";
-    const policiesDisplay = getPoliciesDisplay(record);
-    const dependentAgesDisplay = String(record.dependentAges || "").trim() || "Not provided";
-
-    function buildIndividualSections(currentRecord) {
-      return [
-        {
-          title: "Overview",
-          fields: [
-            ["Client", currentRecord.displayName],
-            ["Case Ref", currentRecord.caseRef],
-              ["Client Status", getClientStatusDisplay(currentRecord)],
-            ["Priority", getPriorityDisplay(currentRecord.priority)],
-            ["Source", currentRecord.source],
-            ["Date Created", formatDateForDirectory(getDirectoryCreatedDate(currentRecord))],
-            ["Coverage Amount", formatCurrencyCompact(currentRecord.coverageAmount)],
-            ["Coverage Gap", formatCurrencyCompact(currentRecord.coverageGap)]
-          ]
-        },
-        {
-          title: "Profile Information",
-          fields: [
-            ["First Name", currentRecord.firstName],
-            ["Middle Name", currentRecord.middleName],
-            ["Last Name", currentRecord.lastName],
-            ["Preferred Name", currentRecord.preferredName],
-            ["Date of Birth", formatDateForDirectory(currentRecord.dateOfBirth)],
-            ["Age", currentRecord.age],
-            ["Insurance Rating Sex", currentRecord.insuranceRatingSex],
-            ["Marital Status", currentRecord.maritalStatus],
-            ["Spouse/Partner Date of Birth", formatDateForDirectory(currentRecord.spouseDateOfBirth)],
-            ["Spouse/Partner Age", currentRecord.spouseAge]
-          ]
-        },
-        {
-          title: "Contact",
-          fields: [
-            ["Email Address", currentRecord.emailAddress],
-            ["Phone Number", currentRecord.phoneNumber],
-            ["Preferred Contact Method", currentRecord.preferredContactMethod],
-            ["Street Address", currentRecord.streetAddress],
-            ["City", currentRecord.city],
-            ["State", currentRecord.state],
-            ["ZIP Code", currentRecord.zipCode],
-            ["Country", currentRecord.country]
-          ]
-        },
-        {
-          title: "Household and Advisory",
-          fields: [
-            ["Household / Company Role", currentRecord.householdRole],
-            ["Business Type", currentRecord.businessType],
-            ["Business Planning Focus", currentRecord.businessPlanningFocus],
-            ["Ownership %", currentRecord.ownershipPercent],
-            ["Buy-Sell / Key Person Relevant?", currentRecord.businessCoverageRelevance],
-            ["Assignment Name", currentRecord.householdName],
-            ["Assignment Type", currentRecord.profileGroupType],
-            ["Dependents / Children", currentRecord.hasDependents],
-            ["Amount of Dependents / Children", currentRecord.dependentsCount],
-            ["Current Children Ages", currentRecord.dependentAges],
-            ["Projected Dependents / Children", currentRecord.projectedDependents],
-            ["Projected Dependents Count", currentRecord.projectedDependentsCount],
-            ["Advisor Name", currentRecord.advisorName],
-            ["Firm Name", currentRecord.firmName],
-            ["Client Notes", currentRecord.clientNotes]
-          ]
-        }
-      ];
-    }
-
-    function buildHouseholdSections(currentRecord) {
-      return [
-        {
-          title: "Overview",
-          fields: [
-            ["Household", currentRecord.displayName],
-            ["Case Ref", currentRecord.caseRef],
-            ["Date Created", formatDateForDirectory(getDirectoryCreatedDate(currentRecord))],
-            ["Members", householdMembersDisplay],
-            ["Dependents", dependentsCount || "0"],
-            ["Policies", policiesDisplay],
-            ["Coverage Gap", formatCurrencyCompact(currentRecord.coverageGap)],
-            ["Priority", getPriorityDisplay(currentRecord.priority)]
-          ]
-        },
-        {
-          title: "Household Members",
-          fields: [
-            ["Primary Adults", householdMembersDisplay],
-            ["Marital Status", currentRecord.maritalStatus],
-            ["Spouse / Partner Age", currentRecord.spouseAge],
-            ["Current Children Ages", dependentAgesDisplay]
-          ]
-        },
-        {
-          title: "Household Structure",
-          fields: [
-            ["Dependents / Children", currentRecord.hasDependents],
-            ["Current Dependents Count", dependentsCount || "0"],
-            ["Projected Dependents / Children", currentRecord.projectedDependents],
-            ["Projected Dependents Count", currentRecord.projectedDependentsCount],
-            ["Assignment Name", currentRecord.householdName || currentRecord.displayName],
-            ["Assignment Type", currentRecord.profileGroupType]
-          ]
-        },
-        {
-          title: "Coverage and Planning",
-          fields: [
-            ["Coverage Gap", formatCurrencyCompact(currentRecord.coverageGap)],
-            ["Coverage Amount", formatCurrencyCompact(currentRecord.coverageAmount)],
-            ["Policies", policiesDisplay],
-            ["Business Planning Focus", currentRecord.businessPlanningFocus],
-            ["Buy-Sell / Key Person Relevant?", currentRecord.businessCoverageRelevance]
-          ]
-        },
-        {
-          title: "Advisor Notes",
-          fields: [
-            ["Advisor Name", currentRecord.advisorName],
-            ["Firm Name", currentRecord.firmName],
-            ["Source", currentRecord.source],
-            ["Client Notes", currentRecord.clientNotes]
-          ]
-        }
-      ];
-    }
-
-    title.textContent = record.displayName || (isHousehold ? "Household Detail" : "Client Detail");
-    subtitle.textContent = isHousehold
-      ? `Household Profile | ${record.caseRef || "Case ref pending"}`
-        : `${getClientStatusDisplay(record)} | ${record.caseRef || "Case ref pending"}`;
-
-    const sections = isHousehold ? buildHouseholdSections(record) : buildIndividualSections(record);
-
-    host.innerHTML = sections.map((section) => `
-      <section class="client-detail-card">
-        <div class="client-detail-card-header">
-          <h2>${escapeHtml(section.title)}</h2>
-        </div>
-        <div class="client-detail-grid">
-          ${section.fields.map(([label, value]) => `
-            <div class="client-detail-field">
-              <span class="client-detail-label">${escapeHtml(label)}</span>
-              <span class="client-detail-value">${escapeHtml(formatClientDetailValue(value))}</span>
-            </div>
-          `).join("")}
-        </div>
-      </section>
-    `).join("");
   }
 
   function initializeSurvivorshipAdjustments() {

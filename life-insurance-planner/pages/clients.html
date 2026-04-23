@@ -866,6 +866,17 @@
     </section>
   </main>
 
+  <div class="client-detail-overlay" data-client-detail-overlay hidden>
+    <div class="client-detail-overlay-backdrop" data-client-detail-overlay-close></div>
+    <div class="client-detail-overlay-shell" role="dialog" aria-modal="true" aria-labelledby="client-detail-overlay-title">
+      <button class="client-detail-overlay-close" type="button" aria-label="Close profile viewer" data-client-detail-overlay-close>&times;</button>
+      <div class="client-detail-overlay-frame">
+        <h2 id="client-detail-overlay-title" class="sr-only">Client profile viewer</h2>
+        <div class="client-detail-overlay-host" data-client-detail-overlay-host></div>
+      </div>
+    </div>
+  </div>
+
   <div class="client-add-modal" data-directory-add-client-modal hidden>
     <div class="client-add-modal-backdrop" data-directory-add-client-modal-close></div>
     <div class="client-add-modal-panel" role="dialog" aria-modal="true" aria-labelledby="add-client-modal-title">
@@ -901,6 +912,7 @@
   <script src="../app.js"></script>
   <!-- CODE NOTE: Shared Close Index engine is loaded here for standalone Client Directory mode. -->
   <script src="../opportunity-score.js"></script>
+  <script src="../client-detail.js"></script>
   <script>
     (function () {
       const rowsHost = document.getElementById("client-table-rows");
@@ -969,6 +981,11 @@
       const directorySidebarLayout = document.querySelector("[data-directory-sidebar-layout]");
       const directorySidebarToggle = document.querySelector("[data-directory-sidebar-toggle]");
       const directorySidebarGroups = Array.from(document.querySelectorAll("[data-directory-context-group-key]"));
+      const clientDetailOverlay = document.querySelector("[data-client-detail-overlay]");
+      const clientDetailOverlayHost = document.querySelector("[data-client-detail-overlay-host]");
+      const clientDetailOverlayCloseButtons = Array.from(document.querySelectorAll("[data-client-detail-overlay-close]"));
+      let activeClientDetailOverlayCleanup = null;
+      let clientDetailOverlayReturnFocus = null;
       const SUMMARY_CARD_DEFAULT_ORDER = Object.freeze([
         "recommended-actions",
         "high-probability-closers",
@@ -1202,6 +1219,86 @@
       const summaryCardsStorageKey = `${STORAGE_KEYS.summaryCards}:${getStorageIdentity()}`;
       const directoryOrderStorageKey = `${STORAGE_KEYS.directoryOrder}:${getStorageIdentity()}`;
       const directoryAccessibilityStorageKey = `${STORAGE_KEYS.accessibility}:${getStorageIdentity()}`;
+
+      function normalizeProfileViewerTab(value) {
+        const normalized = String(value || "").trim().toLowerCase();
+        return ["overview", "planning", "household", "notes"].includes(normalized) ? normalized : "";
+      }
+
+      function normalizeProfileViewerIntent(value) {
+        if (typeof value === "string") {
+          const recordId = String(value || "").trim();
+          return recordId ? { recordId: recordId, caseRef: "", tab: "" } : null;
+        }
+
+        if (!value || typeof value !== "object") {
+          return null;
+        }
+
+        const recordId = String(value.recordId || value.id || "").trim();
+        const caseRef = String(value.caseRef || "").trim().toUpperCase();
+        const tab = normalizeProfileViewerTab(value.tab);
+
+        if (!recordId && !caseRef) {
+          return null;
+        }
+
+        return {
+          recordId: recordId,
+          caseRef: caseRef,
+          tab: tab
+        };
+      }
+
+      function readProfileViewerIntentFromUrl() {
+        const url = new URL(window.location.href);
+        return normalizeProfileViewerIntent({
+          recordId: url.searchParams.get("profileId") || url.searchParams.get("id") || "",
+          caseRef: url.searchParams.get("profileCaseRef") || url.searchParams.get("caseRef") || "",
+          tab: url.searchParams.get("profileTab") || url.searchParams.get("tab") || ""
+        });
+      }
+
+      function clearProfileViewerIntentParams(params) {
+        [
+          "profileId",
+          "profileCaseRef",
+          "profileTab",
+          "id",
+          "caseRef",
+          "tab"
+        ].forEach(function (key) {
+          params.delete(key);
+        });
+      }
+
+      function writeProfileViewerIntentToUrl(intent) {
+        const normalizedIntent = normalizeProfileViewerIntent(intent);
+        const url = new URL(window.location.href);
+        clearProfileViewerIntentParams(url.searchParams);
+
+        if (normalizedIntent?.recordId) {
+          url.searchParams.set("profileId", normalizedIntent.recordId);
+        }
+
+        if (normalizedIntent?.caseRef) {
+          url.searchParams.set("profileCaseRef", normalizedIntent.caseRef);
+        }
+
+        if (normalizedIntent?.tab) {
+          url.searchParams.set("profileTab", normalizedIntent.tab);
+        }
+
+        window.history.replaceState({}, "", url);
+      }
+
+      function clearProfileViewerIntentFromUrl() {
+        const url = new URL(window.location.href);
+        clearProfileViewerIntentParams(url.searchParams);
+        window.history.replaceState({}, "", url);
+      }
+
+      const initialProfileViewerIntent = readProfileViewerIntentFromUrl();
 
       const DEFAULT_ACCESSIBILITY_SETTINGS = Object.freeze({
         "large-text": false,
@@ -4335,15 +4432,91 @@
         });
       });
 
+      function setClientDetailOverlayOpen(isOpen) {
+        if (!clientDetailOverlay) {
+          return false;
+        }
+
+        clientDetailOverlay.hidden = !isOpen;
+        clientDetailOverlay.classList.toggle("is-open", Boolean(isOpen));
+        document.body.classList.toggle("client-detail-overlay-open", Boolean(isOpen));
+        return true;
+      }
+
+      function closeClientDetailOverlay(options) {
+        const closeOptions = options && typeof options === "object" ? options : {};
+        const shouldRestoreFocus = closeOptions.restoreFocus !== false;
+        if (activeClientDetailOverlayCleanup) {
+          activeClientDetailOverlayCleanup();
+          activeClientDetailOverlayCleanup = null;
+        }
+
+        if (clientDetailOverlayHost) {
+          clientDetailOverlayHost.innerHTML = "";
+        }
+
+        const wasClosed = setClientDetailOverlayOpen(false);
+        if (shouldRestoreFocus && clientDetailOverlayReturnFocus instanceof HTMLElement) {
+          clientDetailOverlayReturnFocus.focus();
+        }
+        if (shouldRestoreFocus) {
+          clientDetailOverlayReturnFocus = null;
+        }
+        clearProfileViewerIntentFromUrl();
+        return wasClosed;
+      }
+
+      function openClientDetailOverlay(value) {
+        const intent = normalizeProfileViewerIntent(value);
+        if (!intent || !clientDetailOverlayHost || !window.LensApp?.clientProfileViewer?.mount) {
+          return false;
+        }
+
+        const nextReturnFocus = document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+        closeClientDetailOverlay({ restoreFocus: false });
+        clientDetailOverlayReturnFocus = nextReturnFocus;
+        activeClientDetailOverlayCleanup = window.LensApp.clientProfileViewer.mount({
+          host: clientDetailOverlayHost,
+          recordId: intent.recordId,
+          caseRef: intent.caseRef,
+          tab: intent.tab,
+          mode: "overlay",
+          onClose: closeClientDetailOverlay
+        });
+
+        if (!activeClientDetailOverlayCleanup) {
+          return false;
+        }
+
+        setClientDetailOverlayOpen(true);
+        writeProfileViewerIntentToUrl(intent);
+        clientDetailOverlay.querySelector(".client-detail-overlay-close")?.focus();
+        return true;
+      }
+
       window.ClientDirectoryShellApi = {
         triggerAction: handleDirectoryNavAction,
         setView: setDirectoryView,
         getState: getDirectorySidebarState,
         refresh: renderDirectory,
+        openProfileViewer: function (recordId) {
+          return openClientDetailOverlay(recordId);
+        },
+        closeProfileViewer: function () {
+          return closeClientDetailOverlay();
+        },
         openAddClientMenu: function () {
           return openDirectoryAddMenu();
         }
       };
+
+      clientDetailOverlayCloseButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          closeClientDetailOverlay();
+        });
+      });
 
       document.addEventListener("click", function (event) {
         if (!event.target.closest(".workspace-page-menu")) {
@@ -4374,6 +4547,9 @@
 
       syncSummaryCardVisibility();
       renderDirectory();
+      if (initialProfileViewerIntent) {
+        openClientDetailOverlay(initialProfileViewerIntent);
+      }
     })();
   </script>
   <script>
@@ -4421,6 +4597,12 @@
       }
 
       if (event.key !== "Escape") {
+        return;
+      }
+
+      const overlayOpen = document.querySelector("[data-client-detail-overlay]");
+      if (overlayOpen && !overlayOpen.hidden) {
+        window.ClientDirectoryShellApi?.closeProfileViewer?.();
         return;
       }
 

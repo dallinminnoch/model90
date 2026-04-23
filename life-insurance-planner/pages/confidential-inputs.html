@@ -3469,11 +3469,11 @@
         const linkedRecordId = String(linkedRecord?.id || getLinkedRecord()?.id || "").trim();
         const linkedCaseRef = String(linkedRecord?.caseRef || getLinkedRecord()?.caseRef || urlLinkedCaseRef || window.getLensLinkedCaseRef?.() || "").trim();
         if (linkedRecordId) {
-          window.location.href = `client-detail.html?id=${encodeURIComponent(linkedRecordId)}&tab=planning`;
+          window.location.href = `clients.html?profileId=${encodeURIComponent(linkedRecordId)}&profileTab=planning`;
           return;
         }
         if (linkedCaseRef) {
-          window.location.href = `client-detail.html?caseRef=${encodeURIComponent(linkedCaseRef)}&tab=planning`;
+          window.location.href = `clients.html?profileCaseRef=${encodeURIComponent(linkedCaseRef)}&profileTab=planning`;
           return;
         }
         window.location.href = "clients.html";
