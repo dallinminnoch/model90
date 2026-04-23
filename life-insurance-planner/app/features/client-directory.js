@@ -29,40 +29,20 @@
     const orderDropdown = document.querySelector("[data-order-dropdown]");
     const orderTrigger = document.querySelector("[data-order-trigger]");
     const orderOptions = document.querySelectorAll("[data-order-option]");
-    const itemsDropdown = document.querySelector("[data-items-dropdown]");
-    const itemsTrigger = document.querySelector("[data-items-trigger]");
-    const itemsOptions = document.querySelectorAll("[data-items-option]");
-    const paginationHost = document.getElementById("client-pagination-numbers");
-    const prevPageButton = document.getElementById("client-prev-page");
-    const nextPageButton = document.getElementById("client-next-page");
     const nameHeading = document.getElementById("client-table-heading-name");
     const nextActionHeading = document.getElementById("client-table-heading-next-action");
     const coverageHeading = document.getElementById("client-table-heading-coverage");
-    const statusHeading = document.getElementById("client-table-heading-status");
     const addClientModal = document.querySelector("[data-add-client-modal]");
     const addClientModalCloseTargets = document.querySelectorAll("[data-add-client-modal-close]");
     if (!letterButtons.length || !rowsHost) {
       return;
     }
 
-    let pendingRevealTarget = null;
-    try {
-      const pendingRecords = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.pendingClientRecords) || "null");
-      const firstPendingRecord = Array.isArray(pendingRecords) ? pendingRecords[0] : null;
-      if (firstPendingRecord && typeof firstPendingRecord === "object") {
-        pendingRevealTarget = {
-          id: String(firstPendingRecord.id || "").trim(),
-          caseRef: String(firstPendingRecord.caseRef || "").trim().toUpperCase()
-        };
-      }
-    } catch (error) {
-      pendingRevealTarget = null;
-    }
-
     ensureClientRecords();
     mergePendingClientRecords();
     let allRecords = getClientRecords();
     const selectedRecordIds = new Set();
+    const collapsedGroupKeys = new Set();
     let activeLetter = "all";
     const navigationEntry = window.performance.getEntriesByType("navigation")[0];
     const shouldRestoreClientStatus = navigationEntry?.type === "reload";
@@ -72,24 +52,8 @@
     let activeView = normalizeDirectoryView(
       forcedClientView || (shouldRestoreClientView ? (sessionStorage.getItem(STORAGE_KEYS.clientView) || "individuals") : "individuals")
     );
-    const shouldResetItemsShown = sessionStorage.getItem(STORAGE_KEYS.clientItemsShownReset) === "true";
-    const shouldRestoreItemsShown = navigationEntry?.type === "reload" && !shouldResetItemsShown;
-    const defaultItemsShown = 10;
     let sortOrder = loadPersistedDirectoryOrder();
     let externalRecordFilter = null;
-
-    function normalizeItemsShownValue(value) {
-      const numericValue = Number(value);
-      if (numericValue === 10 || numericValue === 35 || numericValue === 75 || numericValue === 100) {
-        return numericValue;
-      }
-
-      return defaultItemsShown;
-    }
-    let itemsShown = normalizeItemsShownValue(shouldRestoreItemsShown
-      ? (sessionStorage.getItem(STORAGE_KEYS.clientItemsShown) || String(defaultItemsShown))
-      : defaultItemsShown);
-    let currentPage = 1;
 
     if (!shouldRestoreClientStatus) {
       sessionStorage.setItem(STORAGE_KEYS.clientStatus, "all");
@@ -99,20 +63,7 @@
       sessionStorage.setItem(STORAGE_KEYS.clientView, activeView);
     }
 
-    sessionStorage.setItem(STORAGE_KEYS.clientItemsShown, String(itemsShown));
-
     sessionStorage.removeItem(STORAGE_KEYS.clientViewIntent);
-    sessionStorage.removeItem(STORAGE_KEYS.clientItemsShownReset);
-
-    function syncItemsShownControls() {
-      if (itemsTrigger) {
-        itemsTrigger.textContent = `Items Shown (${itemsShown})`;
-      }
-
-      itemsOptions.forEach((option) => {
-        option.classList.toggle("is-active", Number(option.dataset.itemsOption) === itemsShown);
-      });
-    }
 
     function syncLetterButtons() {
       letterButtons.forEach((button) => {
@@ -148,9 +99,6 @@
       if (coverageHeading) {
         coverageHeading.textContent = "Coverage Gap";
       }
-      if (statusHeading) {
-        statusHeading.textContent = "Client Status";
-      }
     }
 
     function syncExportButtonState() {
@@ -160,8 +108,6 @@
 
       const hasSelection = selectedRecordIds.size > 0;
       exportButton.classList.toggle("is-active", hasSelection);
-      exportButton.disabled = !hasSelection;
-      exportButton.setAttribute("aria-disabled", String(!hasSelection));
 
       if (!hasSelection && exportDropdown) {
         exportDropdown.classList.remove("is-open");
@@ -235,8 +181,6 @@
         activeView,
         activeStatus,
         sortOrder,
-        itemsShown,
-        currentPage,
         searchQuery: String(searchField?.value || ""),
         selectedRecordIds: Array.from(selectedRecordIds)
       };
@@ -309,58 +253,106 @@
       return true;
     }
 
-    function renderPagination(totalPages) {
-      if (!paginationHost || !prevPageButton || !nextPageButton) {
-        return;
-      }
+    const DIRECTORY_PIPELINE_GROUPS = Object.freeze([
+      Object.freeze({ key: "prospecting", label: "Prospecting", toneClass: "client-directory-group-prospecting" }),
+      Object.freeze({ key: "in-progress", label: "In Progress", toneClass: "client-directory-group-in-progress" }),
+      Object.freeze({ key: "underwriting", label: "Underwriting", toneClass: "client-directory-group-underwriting" }),
+      Object.freeze({ key: "placed", label: "Placed", toneClass: "client-directory-group-placed" }),
+      Object.freeze({ key: "closed", label: "Closed", toneClass: "client-directory-group-closed" })
+    ]);
 
-      prevPageButton.disabled = currentPage <= 1;
-      nextPageButton.disabled = currentPage >= totalPages;
-      paginationHost.innerHTML = "";
+    function buildDirectoryStatusBuckets(sourceRecords) {
+      const { getClientLifecycleStatus } = getDirectoryHelpers();
 
-      for (let page = 1; page <= totalPages; page += 1) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "client-page-number";
-        if (page === currentPage) {
-          button.classList.add("is-active");
+      return sourceRecords.reduce((buckets, record) => {
+        const statusKey = getClientLifecycleStatus(record);
+        if (!Array.isArray(buckets[statusKey])) {
+          buckets[statusKey] = [];
         }
-        button.textContent = String(page);
-        button.addEventListener("click", () => {
-          currentPage = page;
-          renderDirectory();
-        });
-        paginationHost.appendChild(button);
-      }
+        buckets[statusKey].push(record);
+        return buckets;
+      }, DIRECTORY_PIPELINE_GROUPS.reduce((buckets, group) => {
+        buckets[group.key] = [];
+        return buckets;
+      }, {}));
+    }
+
+    function buildRenderableDirectoryGroups(visibleRecords, filteredRecords) {
+      const visibleBuckets = buildDirectoryStatusBuckets(visibleRecords);
+      const filteredBuckets = buildDirectoryStatusBuckets(filteredRecords);
+
+      return DIRECTORY_PIPELINE_GROUPS
+        .filter((group) => (visibleBuckets[group.key] || []).length > 0)
+        .map((group) => ({
+          ...group,
+          totalCount: (filteredBuckets[group.key] || []).length,
+          records: visibleBuckets[group.key] || []
+        }));
+    }
+
+    function isDirectoryGroupCollapsed(groupKey) {
+      return collapsedGroupKeys.has(String(groupKey || "").trim());
+    }
+
+    function renderDirectoryGroup(group) {
+      const isCollapsed = isDirectoryGroupCollapsed(group.key);
+      const bodyId = `client-directory-group-body-${group.key}`;
+
+      return `
+        <section class="client-directory-group ${group.toneClass}${isCollapsed ? " is-collapsed" : ""}" data-directory-group="${group.key}">
+          <header class="client-directory-group-header">
+            <button class="client-directory-group-toggle" type="button" data-directory-group-toggle="${group.key}" aria-expanded="${isCollapsed ? "false" : "true"}" aria-controls="${bodyId}">
+              <span class="client-directory-group-toggle-icon" aria-hidden="true"></span>
+              <span class="client-directory-group-heading">
+                <span class="client-directory-group-marker" aria-hidden="true"></span>
+                <span class="client-directory-group-title">${group.label}</span>
+                <span class="client-directory-group-count">${group.totalCount}</span>
+              </span>
+            </button>
+          </header>
+          <div class="client-directory-group-body" id="${bodyId}" role="rowgroup"${isCollapsed ? " hidden" : ""}>
+            ${group.records.map((record) => renderClientRow(record, selectedRecordIds.has(String(record.id || "").trim()))).join("")}
+          </div>
+        </section>
+      `;
     }
 
     function renderDirectory() {
       allRecords = getClientRecords();
       const filteredRecords = sortDirectoryRecords(getFilteredRecords());
-      if (pendingRevealTarget) {
-        const revealIndex = filteredRecords.findIndex((record) => {
-          const normalizedRecordId = String(record?.id || "").trim();
-          const normalizedRecordCaseRef = String(record?.caseRef || "").trim().toUpperCase();
-          return (
-            (pendingRevealTarget.id && normalizedRecordId === pendingRevealTarget.id)
-            || (pendingRevealTarget.caseRef && normalizedRecordCaseRef === pendingRevealTarget.caseRef)
-          );
-        });
+      const visibleRecords = filteredRecords;
+      const renderableGroups = buildRenderableDirectoryGroups(visibleRecords, filteredRecords);
 
-        if (revealIndex >= 0) {
-          currentPage = Math.floor(revealIndex / itemsShown) + 1;
-          pendingRevealTarget = null;
-        }
-      }
-      const totalPages = Math.max(1, Math.ceil(filteredRecords.length / itemsShown));
-      currentPage = Math.min(currentPage, totalPages);
-      const startIndex = (currentPage - 1) * itemsShown;
-      const visibleRecords = filteredRecords.slice(startIndex, startIndex + itemsShown);
-
-      rowsHost.innerHTML = visibleRecords.map((record) => renderClientRow(record, selectedRecordIds.has(String(record.id || "").trim()))).join("");
+      rowsHost.innerHTML = renderableGroups.map(renderDirectoryGroup).join("");
       if (emptyState) {
         emptyState.hidden = visibleRecords.length > 0;
       }
+
+      rowsHost.querySelectorAll("[data-directory-group-toggle]").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const groupKey = String(button.getAttribute("data-directory-group-toggle") || "").trim();
+          if (!groupKey) {
+            return;
+          }
+
+          const willCollapse = !collapsedGroupKeys.has(groupKey);
+          const groupSection = button.closest(".client-directory-group");
+          const groupBody = groupSection?.querySelector(".client-directory-group-body");
+
+          if (willCollapse) {
+            collapsedGroupKeys.add(groupKey);
+          } else {
+            collapsedGroupKeys.delete(groupKey);
+          }
+
+          groupSection?.classList.toggle("is-collapsed", willCollapse);
+          button.setAttribute("aria-expanded", willCollapse ? "false" : "true");
+          if (groupBody) {
+            groupBody.hidden = willCollapse;
+          }
+        });
+      });
 
       rowsHost.querySelectorAll("[data-client-select]").forEach((checkbox) => {
         checkbox.addEventListener("click", (event) => {
@@ -470,7 +462,6 @@
       syncTableHeadings();
       syncLetterButtons();
       syncViewButtons();
-      renderPagination(totalPages);
       syncStatusButtons();
       syncDirectoryOrder();
       syncExportButtonState();
@@ -480,7 +471,6 @@
     letterButtons.forEach((button) => {
       button.addEventListener("click", () => {
         activeLetter = button.dataset.clientLetter || "all";
-        currentPage = 1;
 
         letterButtons.forEach((item) => {
           item.classList.toggle("is-active", item === button);
@@ -492,7 +482,6 @@
 
     if (searchField) {
       searchField.addEventListener("input", () => {
-        currentPage = 1;
         renderDirectory();
       });
     }
@@ -502,7 +491,6 @@
       button.addEventListener("click", () => {
         activeView = normalizeDirectoryView(button.dataset.clientView || "individuals");
         sessionStorage.setItem(STORAGE_KEYS.clientView, activeView);
-        currentPage = 1;
         viewButtons.forEach((item) => {
           item.classList.toggle("is-active", normalizeDirectoryView(item.dataset.clientView) === activeView);
         });
@@ -514,24 +502,7 @@
       button.addEventListener("click", () => {
         activeStatus = button.dataset.clientStatus || "all";
         sessionStorage.setItem(STORAGE_KEYS.clientStatus, activeStatus);
-        currentPage = 1;
         renderDirectory();
-      });
-    });
-
-    itemsOptions.forEach((option) => {
-      option.addEventListener("click", () => {
-        itemsShown = normalizeItemsShownValue(option.dataset.itemsOption);
-        sessionStorage.setItem(STORAGE_KEYS.clientItemsShown, String(itemsShown));
-        currentPage = 1;
-        syncItemsShownControls();
-        renderDirectory();
-        if (itemsDropdown) {
-          itemsDropdown.classList.remove("is-open");
-          itemsTrigger?.setAttribute("aria-expanded", "false");
-        }
-        option.blur();
-        itemsTrigger?.blur();
       });
     });
 
@@ -544,7 +515,6 @@
 
         sortOrder = nextOrder;
         persistDirectoryOrder(sortOrder);
-        currentPage = 1;
         syncDirectoryOrder();
         renderDirectory();
         setOrderMenuOpen(false);
@@ -553,41 +523,10 @@
       });
     });
 
-    if (itemsDropdown && itemsTrigger) {
-      itemsTrigger.addEventListener("click", () => {
-        const isOpen = itemsDropdown.classList.toggle("is-open");
-        itemsTrigger.setAttribute("aria-expanded", String(isOpen));
-      });
-
-      itemsDropdown.addEventListener("mouseleave", () => {
-        itemsDropdown.classList.remove("is-open");
-        itemsTrigger.setAttribute("aria-expanded", "false");
-      });
-    }
-
     if (orderDropdown && orderTrigger) {
       orderTrigger.addEventListener("click", () => {
         const willOpen = !orderDropdown.classList.contains("is-open");
         setOrderMenuOpen(Boolean(willOpen));
-      });
-    }
-
-    if (prevPageButton) {
-      prevPageButton.addEventListener("click", () => {
-        if (currentPage > 1) {
-          currentPage -= 1;
-          renderDirectory();
-        }
-      });
-    }
-
-    if (nextPageButton) {
-      nextPageButton.addEventListener("click", () => {
-        const totalPages = Math.max(1, Math.ceil(getFilteredRecords().length / itemsShown));
-        if (currentPage < totalPages) {
-          currentPage += 1;
-          renderDirectory();
-        }
       });
     }
 
@@ -722,17 +661,6 @@
           persistDirectoryOrder(sortOrder);
         }
 
-        if (Object.prototype.hasOwnProperty.call(state, "itemsShown")) {
-          itemsShown = normalizeItemsShownValue(state.itemsShown);
-          sessionStorage.setItem(STORAGE_KEYS.clientItemsShown, String(itemsShown));
-        }
-
-        if (Object.prototype.hasOwnProperty.call(state, "currentPage")) {
-          currentPage = Math.max(1, Number(state.currentPage) || 1);
-        } else {
-          currentPage = 1;
-        }
-
         if (Object.prototype.hasOwnProperty.call(state, "searchQuery") && searchField) {
           searchField.value = String(state.searchQuery || "");
         }
@@ -753,19 +681,8 @@
       }
     };
 
-    syncItemsShownControls();
     syncDirectoryOrder();
     renderDirectory();
-  }
-
-  function initializeClientDirectoryNavLinks() {
-    const clientDirectoryNavLinks = document.querySelectorAll("[data-client-directory-nav]");
-
-    clientDirectoryNavLinks.forEach((link) => {
-      link.addEventListener("click", () => {
-        sessionStorage.setItem(STORAGE_KEYS.clientItemsShownReset, "true");
-      });
-    });
   }
 
   function normalizeDirectoryView(value) {
@@ -1020,12 +937,10 @@
 
   function renderClientRow(record, isSelected) {
     const {
-      getClientStatusDisplay,
       normalizePriority,
       formatCurrencyCompact,
       getPriorityDisplay
     } = getDirectoryHelpers();
-    const clientStatus = getClientStatusDisplay(record);
     const priority = normalizePriority(record.priority);
     const opportunityScore = getDirectoryOpportunityScoreResult(record);
     const isHouseholdAvatar = record.viewType === "households";
@@ -1036,19 +951,21 @@
       : "";
     const isFlagged = Boolean(record.isFlagged);
 
-    const rowFlagIconSrc = isFlagged ? "../Images/flat-row-selected.svg" : "../Images/flat-row.svg";
+      const rowFlagIconSrc = isFlagged ? "../Images/flat-row-selected.svg" : "../Images/flat-row.svg";
 
-    return `
-      <div class="client-table client-table-clickable directory-list-row" role="row" tabindex="0" data-client-open="${record.id}">
-        <div class="client-table-cell client-table-cell-check"><input class="row-select-checkbox" type="checkbox" aria-label="Select ${record.displayName}" data-client-select="${record.id}"${isSelected ? " checked" : ""}></div>
-        <div class="client-table-cell client-table-cell-pin"><span class="client-row-pin-icon" aria-hidden="true"></span></div>
-        <div class="client-table-cell client-table-cell-flag">
-          <button class="client-row-flag-button row-flag-control${isFlagged ? " is-flagged" : ""}" type="button" data-client-flag-toggle="${record.id}" aria-pressed="${isFlagged ? "true" : "false"}" aria-label="${isFlagged ? `Unflag ${record.displayName}` : `Flag ${record.displayName}`}">
-            <img class="client-row-flag-icon row-flag-control__icon" src="${rowFlagIconSrc}" alt="" aria-hidden="true">
-          </button>
-        </div>
-        <div class="client-table-cell client-table-cell-client directory-person">
-          <span class="${avatarClasses} directory-person__avatar"${avatarStyle}>${getInitials(record.displayName, record.viewType, record.lastName)}</span>
+      return `
+        <div class="client-table client-table-clickable directory-list-row" role="row" tabindex="0" data-client-open="${record.id}">
+          <div class="client-row-controls" role="group" aria-label="Controls for ${record.displayName}">
+            <div class="client-table-cell-check"><input class="row-select-checkbox" type="checkbox" aria-label="Select ${record.displayName}" data-client-select="${record.id}"${isSelected ? " checked" : ""}></div>
+            <div class="client-table-cell-pin"><span class="client-row-pin-icon" aria-hidden="true"></span></div>
+            <div class="client-table-cell-flag">
+              <button class="client-row-flag-button row-flag-control${isFlagged ? " is-flagged" : ""}" type="button" data-client-flag-toggle="${record.id}" aria-pressed="${isFlagged ? "true" : "false"}" aria-label="${isFlagged ? `Unflag ${record.displayName}` : `Flag ${record.displayName}`}">
+                <img class="client-row-flag-icon row-flag-control__icon" src="${rowFlagIconSrc}" alt="" aria-hidden="true">
+              </button>
+            </div>
+          </div>
+          <div class="client-table-cell client-table-cell-client directory-person">
+            <span class="${avatarClasses} directory-person__avatar"${avatarStyle}>${getInitials(record.displayName, record.viewType, record.lastName)}</span>
           <div class="directory-person__body">
             <strong class="directory-person__name">${record.displayName}</strong>
             <span class="directory-person__subtitle">${getClientDirectorySubtitle(record)}</span>
@@ -1061,7 +978,6 @@
           </span>
         </div>
         <div class="client-table-cell client-table-cell-next-action-value"><span class="client-table-cell-next-action-text">${getDirectoryNextAction(record)}</span></div>
-        <div class="client-table-cell client-table-cell-status-value">${clientStatus}</div>
         <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(getRecordUncoveredGapValue(record))}</div>
         <div class="client-table-cell client-table-cell-value client-table-cell-priority-value">
           <div class="client-priority-dropdown" data-priority-dropdown="${record.id}">
@@ -1385,7 +1301,6 @@
 
   LensApp.clientDirectory = Object.assign(LensApp.clientDirectory || {}, {
     initializeClientDirectory,
-    initializeClientDirectoryNavLinks,
     buildStatusCounts,
     getLastInitial,
     renderClientRow,

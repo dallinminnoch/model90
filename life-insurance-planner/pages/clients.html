@@ -418,20 +418,14 @@
                 </div>
               </div>
             </div>
-          </div>
-          <div class="client-directory-header-actions">
-            <div class="client-export-dropdown" data-export-dropdown>
-              <button class="client-header-action client-header-action-secondary" type="button" data-export-button aria-expanded="false">Export</button>
-              <div class="client-export-menu">
-                <button class="client-export-option" type="button" data-export-action="print">Print</button>
-                <button class="client-export-option" type="button" data-export-action="save">Save</button>
-                <button class="client-export-option" type="button" data-export-action="share">Share</button>
-              </div>
-            </div>
-            <button class="client-header-action client-header-action-primary" type="button" data-add-client-button>
-              <span class="client-add-icon" aria-hidden="true">+</span>
-              <span>Add New</span>
-            </button>
+            <nav class="client-status-tabs status-tabs" aria-label="Client status filters">
+              <button class="client-status-tab status-tabs__item is-active" type="button" data-client-status="all"><span class="client-status-tab-label status-tabs__label">All Cases</span><span class="client-status-tab-count status-tabs__count" data-status-count="all">0</span></button>
+              <button class="client-status-tab status-tabs__item" type="button" data-client-status="prospecting"><span class="client-status-tab-label status-tabs__label">Prospecting</span><span class="client-status-tab-count status-tabs__count" data-status-count="prospecting">0</span></button>
+              <button class="client-status-tab status-tabs__item" type="button" data-client-status="in-progress"><span class="client-status-tab-label status-tabs__label">In Progress</span><span class="client-status-tab-count status-tabs__count" data-status-count="in-progress">0</span></button>
+              <button class="client-status-tab status-tabs__item" type="button" data-client-status="underwriting"><span class="client-status-tab-label status-tabs__label">Underwriting</span><span class="client-status-tab-count status-tabs__count" data-status-count="underwriting">0</span></button>
+              <button class="client-status-tab status-tabs__item" type="button" data-client-status="placed"><span class="client-status-tab-label status-tabs__label">Placed</span><span class="client-status-tab-count status-tabs__count" data-status-count="placed">0</span></button>
+              <button class="client-status-tab status-tabs__item" type="button" data-client-status="closed"><span class="client-status-tab-label status-tabs__label">Closed</span><span class="client-status-tab-count status-tabs__count" data-status-count="closed">0</span></button>
+            </nav>
           </div>
         </header>
 
@@ -863,21 +857,19 @@
         </section>
 
         <section class="client-directory-toolbar">
-          <div class="client-directory-toolbar-spacer" aria-hidden="true"></div>
           <form class="client-table-search" role="search">
             <input class="client-table-search-input" type="text" placeholder="Search for Clients">
           </form>
-          <div class="client-directory-toolbar-search-spacer" aria-hidden="true"></div>
-            <nav class="client-status-tabs status-tabs" aria-label="Client status filters">
-                <button class="client-status-tab status-tabs__item is-active" type="button" data-client-status="all"><span class="client-status-tab-label status-tabs__label">All Cases</span><span class="client-status-tab-count status-tabs__count" data-status-count="all">0</span></button>
-            <button class="client-status-tab status-tabs__item" type="button" data-client-status="prospecting"><span class="client-status-tab-label status-tabs__label">Prospecting</span><span class="client-status-tab-count status-tabs__count" data-status-count="prospecting">0</span></button>
-            <button class="client-status-tab status-tabs__item" type="button" data-client-status="in-progress"><span class="client-status-tab-label status-tabs__label">In Progress</span><span class="client-status-tab-count status-tabs__count" data-status-count="in-progress">0</span></button>
-            <button class="client-status-tab status-tabs__item" type="button" data-client-status="underwriting"><span class="client-status-tab-label status-tabs__label">Underwriting</span><span class="client-status-tab-count status-tabs__count" data-status-count="underwriting">0</span></button>
-            <button class="client-status-tab status-tabs__item" type="button" data-client-status="placed"><span class="client-status-tab-label status-tabs__label">Placed</span><span class="client-status-tab-count status-tabs__count" data-status-count="placed">0</span></button>
-            <button class="client-status-tab status-tabs__item" type="button" data-client-status="closed"><span class="client-status-tab-label status-tabs__label">Closed</span><span class="client-status-tab-count status-tabs__count" data-status-count="closed">0</span></button>
-            </nav>
           <div class="client-directory-filter-bar">
             <div class="client-directory-toolbar-actions">
+              <div class="client-export-dropdown" data-export-dropdown>
+                <button class="client-header-action client-header-action-secondary" type="button" data-export-button aria-expanded="false">Export</button>
+                <div class="client-export-menu">
+                  <button class="client-export-option" type="button" data-export-action="print">Print</button>
+                  <button class="client-export-option" type="button" data-export-action="save">Save</button>
+                  <button class="client-export-option" type="button" data-export-action="share">Share</button>
+                </div>
+              </div>
               <!-- CODE NOTE: Directory sort controls now prioritize the shared Close Index engine. -->
               <div class="client-items-dropdown client-order-dropdown" data-order-dropdown>
                 <button class="client-toolbar-button client-order-trigger" type="button" data-order-trigger aria-expanded="false">
@@ -888,45 +880,28 @@
                   <button class="client-items-option" type="button" data-order-option="alphabetical">Alphabetical</button>
                 </div>
               </div>
-              <div class="client-items-dropdown" data-items-dropdown>
-                <button class="client-toolbar-button client-items-trigger" type="button" data-items-trigger aria-expanded="false">
-                  Items Shown (10)
-                </button>
-                <div class="client-items-menu">
-                  <button class="client-items-option is-active" type="button" data-items-option="10">10</button>
-                  <button class="client-items-option" type="button" data-items-option="35">35</button>
-                  <button class="client-items-option" type="button" data-items-option="75">75</button>
-                  <button class="client-items-option" type="button" data-items-option="100">100</button>
-                </div>
-              </div>
+              <button class="client-header-action client-header-action-primary" type="button" data-add-client-button>
+                <span class="client-add-icon" aria-hidden="true">+</span>
+                <span>Add New</span>
+              </button>
             </div>
           </div>
         </section>
 
-        <section class="client-table-card directory-list-shell">
-          <div class="client-table client-table-header directory-list-header" role="row">
-            <div class="client-table-cell client-table-cell-check"></div>
-            <div class="client-table-cell client-table-cell-pin"></div>
-            <div class="client-table-cell client-table-cell-flag"></div>
-            <div class="client-table-cell" id="client-table-heading-name">Client</div>
-            <div class="client-table-cell client-table-cell-case-ref-title">Case Ref</div>
-            <!-- CODE NOTE: Close Index column replaced the legacy Date Created column. -->
+          <section class="client-table-card directory-list-shell">
+            <div class="client-table client-table-header directory-list-header" role="row">
+              <div class="client-table-cell" id="client-table-heading-name">Client</div>
+              <div class="client-table-cell client-table-cell-case-ref-title">Case Ref</div>
+              <!-- CODE NOTE: Close Index column replaced the legacy Date Created column. -->
             <div class="client-table-cell client-table-cell-close-index-title">Close Index</div>
             <div class="client-table-cell client-table-cell-next-action-title" id="client-table-heading-next-action">Next Action</div>
-            <div class="client-table-cell client-table-cell-status-title" id="client-table-heading-status">Client Status</div>
             <div class="client-table-cell client-table-cell-nowrap client-table-cell-coverage-amount-title" id="client-table-heading-coverage">Coverage Gap</div>
             <div class="client-table-cell client-table-cell-priority-title">Priority</div>
           </div>
           <div class="client-table-body">
-            <div id="client-table-rows"></div>
+            <div class="directory-group-list" id="client-table-rows"></div>
             <div class="client-empty-state" id="client-empty-state" hidden>No Results</div>
           </div>
-
-          <footer class="client-table-footer">
-            <button class="client-pagination-button" type="button" id="client-prev-page">Previous</button>
-            <div class="client-pagination-numbers" id="client-pagination-numbers"></div>
-            <button class="client-pagination-button" type="button" id="client-next-page">Next</button>
-          </footer>
         </section>
         </section>
       </section>
@@ -978,19 +953,12 @@
       const viewButtons = Array.from(document.querySelectorAll("[data-client-view]"));
       const statusButtons = Array.from(document.querySelectorAll("[data-client-status]"));
       const searchField = document.querySelector(".client-table-search input");
-      const paginationHost = document.getElementById("client-pagination-numbers");
-      const prevPageButton = document.getElementById("client-prev-page");
-      const nextPageButton = document.getElementById("client-next-page");
       const orderDropdown = document.querySelector("[data-order-dropdown]");
       const orderTrigger = document.querySelector("[data-order-trigger]");
       const orderOptions = Array.from(document.querySelectorAll("[data-order-option]"));
-      const itemsDropdown = document.querySelector("[data-items-dropdown]");
-      const itemsTrigger = document.querySelector("[data-items-trigger]");
-      const itemsOptions = Array.from(document.querySelectorAll("[data-items-option]"));
       const nameHeading = document.getElementById("client-table-heading-name");
       const nextActionHeading = document.getElementById("client-table-heading-next-action");
       const coverageHeading = document.getElementById("client-table-heading-coverage");
-      const statusHeading = document.getElementById("client-table-heading-status");
       const directorySummaryHost = document.querySelector("[data-directory-summary]");
       const summaryCardElements = {
         "recommended-actions": document.querySelector('[data-summary-card="recommended-actions"]'),
@@ -1178,8 +1146,6 @@
       let activePriority = "all";
       // CODE NOTE: Keep the directory defaulted to Close Index so execution-first sorting stays consistent.
       let sortOrder = "opportunity-score";
-      let itemsShown = 10;
-      let currentPage = 1;
       let records = [];
       const selectedRecordIds = new Set();
       let shouldClearCoreSelection = false;
@@ -1227,8 +1193,6 @@
         activeView = String(coreState.activeView || "individuals").trim() || "individuals";
         activeStatus = String(coreState.activeStatus || "all").trim() || "all";
         sortOrder = String(coreState.sortOrder || "opportunity-score").trim() || "opportunity-score";
-        itemsShown = Number(coreState.itemsShown) || 10;
-        currentPage = Math.max(1, Number(coreState.currentPage) || 1);
         records = loadRecords();
 
         selectedRecordIds.clear();
@@ -3680,8 +3644,7 @@
             letter: activeLetter,
             status: activeStatus,
             scope: activeScope,
-            priority: activePriority,
-            itemsShown
+            priority: activePriority
           },
           recordCount: safeRecords.length,
           records: safeRecords
@@ -3779,7 +3742,6 @@
         activeStatus = "all";
         activeScope = "all";
         activePriority = "all";
-        currentPage = 1;
         renderDirectory();
         return true;
       }
@@ -3863,7 +3825,6 @@
         activeStatus = "all";
         activeScope = "all";
         activePriority = "all";
-        currentPage = 1;
         renderDirectory();
         window.alert(`${mergeResult.createdCount} profile${mergeResult.createdCount === 1 ? "" : "s"} added and ${mergeResult.updatedCount} updated.`);
         return true;
@@ -3977,7 +3938,6 @@
         activeView = normalizedView;
         activeScope = "all";
         activePriority = "all";
-        currentPage = 1;
         renderDirectory();
         return true;
       }
@@ -3990,7 +3950,6 @@
 
         activeView = normalizedView;
         activeScope = normalizeDirectoryScope(nextScope);
-        currentPage = 1;
         renderDirectory();
         return true;
       }
@@ -4003,7 +3962,6 @@
 
         activeView = normalizedView;
         activePriority = normalizeDirectoryPriority(nextPriority);
-        currentPage = 1;
         renderDirectory();
         return true;
       }
@@ -4013,7 +3971,6 @@
         activeStatus = "all";
         activeScope = "all";
         activePriority = "all";
-        currentPage = 1;
         renderDirectory();
         return true;
       }
@@ -4108,8 +4065,6 @@
           activeLetter: activeLetter,
           activeStatus: activeStatus,
           sortOrder: sortOrder,
-          itemsShown: itemsShown,
-          currentPage: currentPage,
           externalRecordFilter: buildShellExternalRecordFilter(),
           clearSelection: clearSelection
         });
@@ -4557,13 +4512,6 @@
       if (orderDropdown && orderTrigger) {
         orderDropdown.classList.remove("is-open");
         orderTrigger.setAttribute("aria-expanded", "false");
-      }
-
-      const itemsDropdown = document.querySelector("[data-items-dropdown]");
-      const itemsTrigger = document.querySelector("[data-items-trigger]");
-      if (itemsDropdown && itemsTrigger) {
-        itemsDropdown.classList.remove("is-open");
-        itemsTrigger.setAttribute("aria-expanded", "false");
       }
 
       document.querySelectorAll(".workspace-page-menu[open]").forEach(function (menu) {

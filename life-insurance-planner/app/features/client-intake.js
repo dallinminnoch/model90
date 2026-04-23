@@ -907,7 +907,6 @@
     sessionStorage.setItem(STORAGE_KEYS.clientViewIntent, "individuals");
     sessionStorage.setItem(STORAGE_KEYS.clientView, "individuals");
     sessionStorage.setItem(STORAGE_KEYS.clientStatus, "all");
-    sessionStorage.setItem(STORAGE_KEYS.clientItemsShownReset, "true");
     window.location.href = "clients.html";
     return true;
   }

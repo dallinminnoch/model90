@@ -59,7 +59,6 @@
   } = LensClientIntake;
   const {
     initializeClientDirectory,
-    initializeClientDirectoryNavLinks,
     buildStatusCounts,
     getLastInitial,
     renderClientRow,
@@ -142,7 +141,6 @@
     safeInitialize("survivorship-adjustments", initializeSurvivorshipAdjustments);
     safeInitialize("client-directory", initializeClientDirectory);
     safeInitialize("client-detail-page", initializeClientDetailPage);
-    safeInitialize("client-directory-nav-links", initializeClientDirectoryNavLinks);
   });
 
   function initializeHomepage() {

@@ -1,0 +1,122 @@
+[
+  {
+    "case": {
+      "name": "after-default",
+      "width": 1440,
+      "height": 1280
+    },
+    "metrics": {
+      "summaryHeight": 471.95,
+      "cards": [
+        {
+          "title": "Recommended Actions",
+          "height": 229.08,
+          "minHeight": "153.287px",
+          "scrollHeight": 225,
+          "clientHeight": 225,
+          "clipped": false
+        },
+        {
+          "title": "High-Probability Closers",
+          "height": 229.08,
+          "minHeight": "153.287px",
+          "scrollHeight": 225,
+          "clientHeight": 225,
+          "clipped": false
+        },
+        {
+          "title": "Revenue at Risk",
+          "height": 229.08,
+          "minHeight": "153.287px",
+          "scrollHeight": 225,
+          "clientHeight": 225,
+          "clipped": false
+        },
+        {
+          "title": "Largest Opportunities",
+          "height": 229.08,
+          "minHeight": "153.287px",
+          "scrollHeight": 225,
+          "clientHeight": 225,
+          "clipped": false
+        },
+        {
+          "title": "Blocked / Missing Information",
+          "height": 229.08,
+          "minHeight": "153.287px",
+          "scrollHeight": 225,
+          "clientHeight": 225,
+          "clipped": false
+        },
+        {
+          "title": "Pipeline Bottlenecks",
+          "height": 229.08,
+          "minHeight": "153.287px",
+          "scrollHeight": 225,
+          "clientHeight": 225,
+          "clipped": false
+        }
+      ]
+    }
+  },
+  {
+    "case": {
+      "name": "after-narrow",
+      "width": 1180,
+      "height": 1280
+    },
+    "metrics": {
+      "summaryHeight": 439.7,
+      "cards": [
+        {
+          "title": "Recommended Actions",
+          "height": 213.45,
+          "minHeight": "142.08px",
+          "scrollHeight": 209,
+          "clientHeight": 209,
+          "clipped": false
+        },
+        {
+          "title": "High-Probability Closers",
+          "height": 213.45,
+          "minHeight": "142.08px",
+          "scrollHeight": 209,
+          "clientHeight": 209,
+          "clipped": false
+        },
+        {
+          "title": "Revenue at Risk",
+          "height": 213.45,
+          "minHeight": "142.08px",
+          "scrollHeight": 209,
+          "clientHeight": 209,
+          "clipped": false
+        },
+        {
+          "title": "Largest Opportunities",
+          "height": 213.45,
+          "minHeight": "142.08px",
+          "scrollHeight": 209,
+          "clientHeight": 209,
+          "clipped": false
+        },
+        {
+          "title": "Blocked / Missing Information",
+          "height": 213.45,
+          "minHeight": "142.08px",
+          "scrollHeight": 209,
+          "clientHeight": 209,
+          "clipped": false
+        },
+        {
+          "title": "Pipeline Bottlenecks",
+          "height": 213.45,
+          "minHeight": "142.08px",
+          "scrollHeight": 209,
+          "clientHeight": 209,
+          "clipped": false
+        }
+      ]
+    }
+  }
+]

@@ -10,8 +10,6 @@
     clientStatus: "lensClientStatus",
     clientView: "lensClientView",
     clientViewIntent: "lensClientViewIntent",
-    clientItemsShown: "lensClientItemsShown",
-    clientItemsShownReset: "lensClientItemsShownReset",
     clientRecords: "lensClientRecords",
     authUsers: "lipPlannerAuthUsers",
     authSession: "lipPlannerAuthSession",

@@ -15,7 +15,7 @@
   display: grid;
   grid-template-columns: var(--client-directory-rail-width, 78px) minmax(0, 1fr);
   min-height: 100%;
-  background: transparent;
+  background: #ffffff;
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -28,8 +28,8 @@
   align-items: center;
   gap: 0.35em;
   padding: 0.9em 0.55em;
-  background: linear-gradient(180deg, #fbfcfe 0%, #f4f7fb 100%);
-  border-right: 1px solid rgba(213, 221, 232, 0.7);
+  background: transparent;
+  border-right: 0;
   overflow-y: auto;
 }
 
@@ -42,9 +42,7 @@
     var(--client-directory-main-pad-y, clamp(1rem, 1.5vw, 1.35rem))
     var(--client-directory-main-pad-x, clamp(1.5rem, 2vw, 2rem))
     var(--client-directory-main-pad-bottom, clamp(1.5rem, 2vw, 2rem));
-  background:
-    radial-gradient(circle at top right, rgba(92, 63, 214, 0.06), transparent 22%),
-    linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+  background: #ffffff;
 }
 
 @media (min-width: 721px) {
@@ -77,9 +75,12 @@
     --client-directory-main-pad-bottom: 1.5em;
     --client-directory-flag-aspect-ratio: 1.2835;
     --client-directory-check-size: 1.95em;
-    --client-directory-check-track: calc(var(--client-directory-check-size) + 0.42em);
+    --client-directory-control-box-size: calc(var(--client-directory-check-size) * 0.82);
+    --client-directory-checkbox-visual-scale: 1.22;
     --client-directory-control-track: calc(var(--client-directory-check-size) * 0.64);
-    --client-directory-flag-button-size: var(--client-directory-check-size);
+    --client-directory-row-control-rail-width: calc((var(--client-directory-control-box-size) * var(--client-directory-checkbox-visual-scale, 1)) + (var(--client-directory-check-size) * 0.68) + (var(--client-directory-flag-icon-size) * var(--client-directory-flag-aspect-ratio)) + (var(--client-directory-local-table-gap, 0.45em) * 2));
+    --client-directory-row-control-offset: calc(var(--client-directory-row-control-rail-width) + var(--client-directory-local-table-gap, 0.45em));
+    --client-directory-flag-button-size: var(--client-directory-control-box-size);
     --client-directory-flag-icon-size: calc(var(--client-directory-check-size) * 0.68);
     --client-directory-flag-track: calc((var(--client-directory-flag-icon-size) * var(--client-directory-flag-aspect-ratio)) + 0.12em);
     --client-directory-search-max: 27em;
@@ -87,8 +88,8 @@
     --client-directory-items-trigger-min-width: 9.25em;
     --client-directory-summary-note-max: 17em;
     --client-directory-summary-card-min-height: 13em;
-    --client-directory-next-action-max: 11.25em;
-    --client-directory-row-avatar-size: calc(1.78rem + (0.86rem * var(--client-directory-density-scale)));
+    --client-directory-next-action-max: 12.2em;
+    --client-directory-row-avatar-size: calc((1.78rem + (0.86rem * var(--client-directory-density-scale))) / 2.1);
     --client-directory-row-avatar-font-size: calc(var(--client-directory-row-avatar-size) * 0.39);
     --client-directory-row-name-size: calc(0.99em + (0.14em * var(--client-directory-density-scale)));
     --client-directory-row-subtitle-size: calc(0.91em + (0.11em * var(--client-directory-density-scale)));
@@ -100,10 +101,10 @@
     padding-left: var(--client-directory-rail-width);
     min-height: 0;
     height: auto;
-    background: rgba(255, 255, 255, 0.97);
-    border: 1px solid rgba(213, 221, 232, 0.78);
-    border-radius: 0.35rem;
-    box-shadow: 0 22px 48px rgba(16, 33, 52, 0.08);
+    background: #ffffff;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
     overflow: hidden;
   }
 
@@ -120,8 +121,7 @@
     --client-directory-main-pad-x: 1.18em;
     --client-directory-main-pad-bottom: 1.08em;
     --client-directory-check-size: 1.82em;
-    --client-directory-check-track: calc(var(--client-directory-check-size) + 0.42em);
-    --client-directory-flag-button-size: var(--client-directory-check-size);
+    --client-directory-flag-button-size: var(--client-directory-control-box-size);
     --client-directory-flag-icon-size: calc(var(--client-directory-check-size) * 0.68);
     --client-directory-flag-track: calc((var(--client-directory-flag-icon-size) * var(--client-directory-flag-aspect-ratio)) + 0.12em);
     --client-directory-search-max: 23em;
@@ -129,7 +129,7 @@
     --client-directory-items-trigger-min-width: 8em;
     --client-directory-summary-note-max: 13em;
     --client-directory-summary-card-min-height: 11.5em;
-    --client-directory-next-action-max: 8.8em;
+    --client-directory-next-action-max: 10.1em;
     font-size: clamp(0.8rem, calc(0.46rem + 0.58cqi), 0.95rem);
   }
 
@@ -146,40 +146,31 @@
   }
 
   body.clients-page[data-local-client-directory="true"] .client-directory-workspace {
-    --client-directory-local-control-min-height: 2.05em;
+    --client-directory-local-control-min-height: 3.05em;
     --client-directory-local-control-inline-pad: 0.62em;
     --client-directory-local-control-font-size: 0.84em;
-    --client-directory-local-control-radius: 0.32em;
     --client-directory-local-primary-gap: 0.38em;
     --client-directory-local-table-columns:
-      var(--client-directory-control-track)
-      var(--client-directory-control-track)
-      var(--client-directory-control-track)
-      minmax(calc(10.75em * var(--client-directory-track-scale, 1)), 1.42fr)
-      minmax(calc(6.75em * var(--client-directory-track-scale, 1)), 0.76fr)
-      minmax(calc(6.5em * var(--client-directory-track-scale, 1)), 0.78fr)
-      minmax(calc(9.125em * var(--client-directory-track-scale, 1)), 1fr)
-      minmax(calc(7.375em * var(--client-directory-track-scale, 1)), 0.84fr)
-      minmax(calc(7.25em * var(--client-directory-track-scale, 1)), 0.9fr)
-      minmax(calc(6.375em * var(--client-directory-track-scale, 1)), 0.72fr);
+        minmax(calc(12.35em * var(--client-directory-track-scale, 1)), 1.72fr)
+        minmax(calc(6.35em * var(--client-directory-track-scale, 1)), 0.72fr)
+        minmax(calc(6em * var(--client-directory-track-scale, 1)), 0.72fr)
+        minmax(calc(10.35em * var(--client-directory-track-scale, 1)), 1.06fr)
+        minmax(calc(5.8em * var(--client-directory-track-scale, 1)), 0.74fr)
+        minmax(calc(5.2em * var(--client-directory-track-scale, 1)), 0.56fr);
     --client-directory-local-table-gap: 0.45em;
     --client-directory-local-table-pad-block: 0.92em;
     --client-directory-local-table-pad-inline: 1em;
-    --client-directory-local-table-row-pad-block: calc(0.3em + (0.16em * var(--client-directory-density-scale)));
+    --client-directory-local-table-row-pad-block: 0;
   }
 
   body.clients-page:not(.workspace-side-nav-collapsed)[data-local-client-directory="true"] .client-directory-workspace {
     --client-directory-local-table-columns:
-      var(--client-directory-control-track)
-      var(--client-directory-control-track)
-      var(--client-directory-control-track)
-      minmax(9.875em, 1.48fr)
-      minmax(6.125em, 0.72fr)
-      minmax(5.25em, 0.74fr)
-      minmax(7.625em, 0.96fr)
-      minmax(6.125em, 0.82fr)
-      minmax(5.625em, 0.8fr)
-      minmax(5.25em, 0.68fr);
+        minmax(11.25em, 1.78fr)
+        minmax(5.9em, 0.68fr)
+        minmax(4.95em, 0.7fr)
+        minmax(8.9em, 1fr)
+        minmax(4.65em, 0.66fr)
+        minmax(4.4em, 0.54fr);
     --client-directory-local-table-gap: 0.36em;
     --client-directory-local-table-pad-block: 0.8em;
     --client-directory-local-table-pad-inline: 0.84em;
@@ -195,8 +186,7 @@
       --client-directory-main-pad-x: 1.08em;
       --client-directory-main-pad-bottom: 1em;
       --client-directory-check-size: 1.72em;
-      --client-directory-check-track: calc(var(--client-directory-check-size) + 0.42em);
-      --client-directory-flag-button-size: var(--client-directory-check-size);
+      --client-directory-flag-button-size: var(--client-directory-control-box-size);
       --client-directory-flag-icon-size: calc(var(--client-directory-check-size) * 0.68);
       --client-directory-flag-track: calc((var(--client-directory-flag-icon-size) * var(--client-directory-flag-aspect-ratio)) + 0.12em);
       --client-directory-search-max: 20.5em;
@@ -204,22 +194,18 @@
       --client-directory-items-trigger-min-width: 7.4em;
       --client-directory-summary-note-max: 12.25em;
       --client-directory-summary-card-min-height: 11em;
-      --client-directory-next-action-max: 8.2em;
+      --client-directory-next-action-max: 9em;
       font-size: clamp(0.78rem, calc(0.48rem + 0.5cqi), 0.9rem);
     }
 
     body.clients-page[data-local-client-directory="true"] .client-directory-workspace {
       --client-directory-local-table-columns:
-        var(--client-directory-control-track)
-        var(--client-directory-control-track)
-        var(--client-directory-control-track)
-        minmax(9.75em, 1.42fr)
-        minmax(6em, 0.76fr)
-        minmax(5.75em, 0.78fr)
-        minmax(8.25em, 1fr)
-        minmax(6.5em, 0.84fr)
-        minmax(6.125em, 0.9fr)
-        minmax(5.375em, 0.72fr);
+          minmax(10.85em, 1.68fr)
+          minmax(5.7em, 0.7fr)
+          minmax(5.25em, 0.72fr)
+          minmax(8.75em, 1.02fr)
+          minmax(5.05em, 0.74fr)
+          minmax(4.55em, 0.56fr);
       --client-directory-local-table-gap: 0.38em;
       --client-directory-local-table-pad-block: 0.82em;
       --client-directory-local-table-pad-inline: 0.88em;
@@ -228,10 +214,7 @@
     .client-directory-toolbar {
       grid-template-columns: minmax(0, 1fr);
       grid-template-areas:
-        "spacer"
         "search"
-        "search-gap"
-        "tabs"
         "controls";
       align-items: start;
     }
@@ -251,8 +234,7 @@
       --client-directory-main-pad-x: 0.92em;
       --client-directory-main-pad-bottom: 0.84em;
       --client-directory-check-size: 1.56em;
-      --client-directory-check-track: calc(var(--client-directory-check-size) + 0.42em);
-      --client-directory-flag-button-size: var(--client-directory-check-size);
+      --client-directory-flag-button-size: var(--client-directory-control-box-size);
       --client-directory-flag-icon-size: calc(var(--client-directory-check-size) * 0.68);
       --client-directory-flag-track: calc((var(--client-directory-flag-icon-size) * var(--client-directory-flag-aspect-ratio)) + 0.12em);
       --client-directory-search-max: 15em;
@@ -260,22 +242,18 @@
       --client-directory-items-trigger-min-width: 6.2em;
       --client-directory-summary-note-max: 10em;
       --client-directory-summary-card-min-height: 10em;
-      --client-directory-next-action-max: 7em;
+      --client-directory-next-action-max: 8em;
       font-size: clamp(0.72rem, calc(0.54rem + 0.34cqi), 0.82rem);
     }
 
     body.clients-page[data-local-client-directory="true"] .client-directory-workspace {
       --client-directory-local-table-columns:
-        var(--client-directory-control-track)
-        var(--client-directory-control-track)
-        var(--client-directory-control-track)
-        minmax(9em, 1.38fr)
-        minmax(5.5em, 0.72fr)
-        minmax(5.125em, 0.76fr)
-        minmax(7.375em, 0.94fr)
-        minmax(6em, 0.8fr)
-        minmax(5.5em, 0.84fr)
-        minmax(5em, 0.68fr);
+          minmax(9.75em, 1.58fr)
+          minmax(5.2em, 0.68fr)
+          minmax(4.9em, 0.7fr)
+          minmax(7.55em, 0.96fr)
+          minmax(4.65em, 0.7fr)
+          minmax(4.35em, 0.52fr);
       --client-directory-local-table-gap: 0.32em;
       --client-directory-local-table-pad: 0.74em 0.78em;
     }
@@ -322,15 +300,14 @@ body.clients-page[data-local-client-directory="true"] .client-directory-main {
 .client-directory-header {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: 0.75em 1em;
-  margin: calc(var(--client-directory-main-pad-y) * -1) calc(var(--client-directory-main-pad-x) * -1) 0.2em;
-  padding: var(--client-directory-main-pad-y) var(--client-directory-main-pad-x) 0.82em;
+  gap: 0.55em 1em;
+  margin: 0 0 0.12em;
+  padding: 0;
   border: 0;
-  border-bottom: 1px solid rgba(223, 228, 237, 0.92);
   border-radius: 0;
-  background: #ffffff;
+  background: transparent;
   box-shadow: none;
 }
 
@@ -347,76 +324,37 @@ body.clients-page[data-local-client-directory="true"] .client-directory-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
-    "spacer spacer"
-    "search search"
-    "search-gap search-gap"
-    "tabs controls";
+    "search controls";
   align-items: center;
-  gap: 0.75em 1em;
+  gap: 0.55em 1em;
   margin-bottom: 0;
-  margin-top: 0.95em;
+  margin-top: 0.45em;
   padding-top: 0;
 }
 
-.client-directory-toolbar-spacer {
-  grid-area: spacer;
-  min-height: 0.22em;
-}
-
-.client-directory-toolbar-search-spacer {
-  grid-area: search-gap;
-  min-height: 0.42em;
-}
-
 .client-table-card {
-  margin-top: 0.78em;
-  border: 1px solid rgba(220, 226, 235, 0.92);
-  border-radius: 1em;
-  background: #ffffff;
+  margin-top: 0.56em;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   overflow-x: auto;
   overflow-y: visible;
-  box-shadow: 0 16px 34px rgba(16, 33, 52, 0.05);
+  box-shadow: none;
 }
 
 .client-table-body {
   min-height: 0;
 }
 
-.client-table-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.9em;
-  padding: 1em 1.2em 1.15em;
-  border-top: 1px solid rgba(235, 239, 245, 0.95);
-  background: #ffffff;
-}
-
-.client-pagination-numbers {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.42em;
-  flex-wrap: wrap;
-}
-
 body.clients-page[data-local-client-directory="true"] .client-directory-toolbar {
-  gap: 0.6em 0.9em;
-  margin-top: 0.78em;
-}
-
-body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-spacer {
-  min-height: 0.12em;
-}
-
-body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-search-spacer {
-  min-height: 0.24em;
+  gap: 0.5em 0.85em;
+  margin-top: 0.38em;
 }
 
 body.clients-page[data-local-client-directory="true"] .client-directory-header {
   align-items: center;
-  gap: 0.7em 0.9em;
-  padding: 0.32em var(--client-directory-main-pad-x);
+  gap: 0.55em 0.9em;
+  padding: 0;
 }
 
 @media (max-width: 720px) {
@@ -427,11 +365,9 @@ body.clients-page[data-local-client-directory="true"] .client-directory-header {
   .client-directory-toolbar {
     grid-template-columns: 1fr;
     grid-template-areas:
-      "spacer"
       "search"
-      "search-gap"
-      "tabs"
       "controls";
+    align-items: start;
     gap: 0.72rem;
     padding-top: 0;
   }
