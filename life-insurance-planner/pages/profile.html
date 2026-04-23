@@ -177,7 +177,6 @@
       </div>
       <div class="lens-manual-widget-options">
         <a class="lens-manual-widget-option" href="manual-protection-modeling-inputs.html" data-loading-link>Protection Modeling Inputs</a>
-        <a class="lens-manual-widget-option" href="manual-simplified-pmi.html" data-loading-link>Simplified PMI</a>
         <a class="lens-manual-widget-option" href="manual-minimum-inputs.html" data-loading-link>Minimum Inputs</a>
       </div>
     </div>
@@ -302,7 +301,7 @@
           return "Protection Modeling Inputs";
         }
         if (normalized === "manual-simplified") {
-          return "Simplified PMI";
+          return "Protection Modeling Inputs";
         }
         if (normalized === "manual-minimum-inputs") {
           return "Minimum Inputs";
@@ -560,7 +559,7 @@
 
       function getMissingPmiLinkMessage(record) {
         const displayName = String(record?.displayName || "").trim() || "This client";
-        return `${displayName} can't be linked yet because there is no completed PMI form saved on the profile. Complete Protection Modeling Inputs or Simplified PMI first.`;
+        return `${displayName} can't be linked yet because there is no completed PMI form saved on the profile. Complete Protection Modeling Inputs first.`;
       }
 
       function tryLinkRecord(record, options) {

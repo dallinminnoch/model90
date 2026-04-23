@@ -561,22 +561,12 @@
             <div class="profile-form-section-heading">
               <h2>Education Funding</h2>
             </div>
-            <div class="form-grid">
-              <div class="profile-dependent-row full-width">
+            <div class="form-grid pmi-education-grid">
+              <div class="pmi-education-row pmi-education-row--counts">
                 <div class="field-group">
-                  <label for="has-dependents">Dependents / Children</label>
-                  <select id="has-dependents" class="profile-yes-no-field" name="hasDependents">
-                    <option value="No">No</option>
-                    <option value="Yes">Yes</option>
-                  </select>
-                </div>
-                <div class="field-group">
-                  <label for="children-needing-funding">Amount of Dependents / Children</label>
-                  <input id="children-needing-funding" class="profile-yes-no-field" name="childrenNeedingFunding" type="number" min="0" step="1">
-                </div>
-                <div class="field-group">
-                  <label for="dependent-ages">Current Children Ages</label>
-                  <input id="dependent-ages" class="profile-yes-no-field" name="dependentAges" type="text" placeholder="Example: 4, 8, 12">
+                  <label for="children-needing-funding">Dependents / Children on Linked Profile</label>
+                  <input id="children-needing-funding" class="profile-yes-no-field" name="childrenNeedingFunding" type="number" min="0" step="1" data-number-format="integer" readonly aria-readonly="true">
+                  <p class="underwriting-helper-text underwriting-helper-inline">Pulled from the linked profile.</p>
                 </div>
                 <div class="field-group">
                   <label for="estimated-cost-per-child">Desired Education Funding (Per Dependent)</label>
@@ -603,27 +593,30 @@
                   </datalist>
                 </div>
               </div>
-              <div class="profile-dependent-secondary-row full-width">
+              <label class="settings-toggle-row pmi-education-toggle-row">
+                <span class="settings-toggle-copy">
+                  <span class="settings-toggle-label">Same Education Funding for Desired Children / Dependents?</span>
+                </span>
+                <input type="hidden" name="sameEducationFunding" value="Yes">
+                <span class="settings-switch">
+                  <input
+                    id="same-education-funding-toggle"
+                    type="checkbox"
+                    checked
+                    role="switch"
+                    aria-label="Same education funding for desired children and dependents"
+                    data-same-education-funding-toggle>
+                  <span class="settings-switch-track" aria-hidden="true"></span>
+                </span>
+              </label>
+              <div class="pmi-education-row pmi-education-row--funding">
                 <div class="field-group">
-                  <label for="projected-dependents">Projected Dependents / Children</label>
-                  <select id="projected-dependents" class="profile-yes-no-field" name="projectedDependents">
-                    <option value="No">No</option>
-                    <option value="Yes">Yes</option>
-                  </select>
+                  <label for="projected-dependents-count">Desired Amount of Children</label>
+                  <input id="projected-dependents-count" class="profile-yes-no-field" name="projectedDependentsCount" type="number" min="0" step="1" data-number-format="integer" readonly aria-readonly="true">
+                  <p class="underwriting-helper-text underwriting-helper-inline">Pulled from the linked profile.</p>
                 </div>
                 <div class="field-group">
-                  <label for="projected-dependents-count">Amount of Desired Dependents / Children</label>
-                  <input id="projected-dependents-count" class="profile-yes-no-field" name="projectedDependentsCount" type="number" min="0" step="1">
-                </div>
-                <div class="field-group">
-                  <label for="same-education-funding">Same Education Funding?</label>
-                  <select id="same-education-funding" class="profile-yes-no-field" name="sameEducationFunding">
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                  </select>
-                </div>
-                <div class="field-group">
-                  <label for="projected-education-funding-per-dependent">Desired Education Funding (Per Dependent)</label>
+                  <label for="projected-education-funding-per-dependent">Desired Education Funding (Per Desired Child)</label>
                   <div class="profile-currency-field">
                     <input id="projected-education-funding-per-dependent" class="profile-education-funding-field" name="projectedEducationFundingPerDependent" type="number" min="0" step="5000" list="education-funding-options">
                     <span class="profile-currency-suffix">USD</span>
@@ -1051,7 +1044,7 @@
   </main>
 
   <div class="floating-calculator" id="confidential-calculator" hidden aria-hidden="true">
-    <div class="floating-calculator-header" data-calculator-drag-handle><button class="floating-calculator-close" type="button" aria-label="Close calculator">×</button>
+    <div class="floating-calculator-header" data-calculator-drag-handle><button class="floating-calculator-close" type="button" aria-label="Close calculator">Ã—</button>
     </div>
     <div class="floating-calculator-body">
       <input
@@ -1113,6 +1106,10 @@
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
+      const wholeNumberFormatter = new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      });
       const liveFormatter = new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 0,
         maximumFractionDigits: 2
@@ -1120,8 +1117,17 @@
 
       const numberInputs = Array.from(form.querySelectorAll('input[type="number"]'));
 
-      function sanitizeNumericValue(value) {
-        const cleaned = String(value || "").replace(/[^0-9.]/g, "");
+      function isIntegerFormattedInput(input) {
+        return input.dataset.numberFormat === "integer";
+      }
+
+      function sanitizeNumericValue(value, { allowDecimals = true } = {}) {
+        const cleaned = String(value || "").replace(allowDecimals ? /[^0-9.]/g : /[^0-9]/g, "");
+
+        if (!allowDecimals) {
+          return cleaned;
+        }
+
         const parts = cleaned.split(".");
 
         if (parts.length <= 1) {
@@ -1132,7 +1138,9 @@
       }
 
       function formatNumericValue(input) {
-        const sanitized = sanitizeNumericValue(input.value);
+        const sanitized = sanitizeNumericValue(input.value, {
+          allowDecimals: !isIntegerFormattedInput(input)
+        });
 
         if (!sanitized) {
           input.value = "";
@@ -1146,14 +1154,33 @@
           return;
         }
 
+        if (isIntegerFormattedInput(input)) {
+          input.value = wholeNumberFormatter.format(Math.round(numericValue));
+          return;
+        }
+
         input.value = formatter.format(numericValue);
       }
 
       function formatNumericValueLive(input) {
-        const sanitized = sanitizeNumericValue(input.value);
+        const sanitized = sanitizeNumericValue(input.value, {
+          allowDecimals: !isIntegerFormattedInput(input)
+        });
 
         if (!sanitized) {
           input.value = "";
+          return;
+        }
+
+        if (isIntegerFormattedInput(input)) {
+          const numericValue = Number(sanitized);
+
+          if (!Number.isFinite(numericValue)) {
+            input.value = "";
+            return;
+          }
+
+          input.value = wholeNumberFormatter.format(Math.round(numericValue));
           return;
         }
 
@@ -1172,15 +1199,21 @@
       }
 
       function stripFormatting(input) {
-        input.value = sanitizeNumericValue(input.value);
+        input.value = sanitizeNumericValue(input.value, {
+          allowDecimals: !isIntegerFormattedInput(input)
+        });
       }
 
       numberInputs.forEach((input) => {
         input.type = "text";
-        input.inputMode = "decimal";
+        input.inputMode = isIntegerFormattedInput(input) ? "numeric" : "decimal";
         input.autocomplete = "off";
 
         input.addEventListener("focus", () => {
+          if (input.hasAttribute("readonly")) {
+            return;
+          }
+
           stripFormatting(input);
           input.select();
         });
@@ -1274,14 +1307,10 @@
         "student-loans": "Outstanding student loan balances.",
         "personal-loans": "Other unsecured personal loans.",
         "business-debt": "Business debt that would matter if the client died.",
-        "has-dependents": "Indicate whether education funding is currently relevant because the household already has dependents or children.",
-        "children-needing-funding": "How many current dependents or children you want to include in education planning.",
-        "dependent-ages": "Enter the current ages of each child or dependent you want included in education planning, separated by commas.",
+        "children-needing-funding": "The current dependent count pulled from the linked profile.",
         "estimated-cost-per-child": "Desired education funding target for each current dependent or child.",
-        "projected-dependents": "Use this when future children or dependents should also be included in planning.",
-        "projected-dependents-count": "How many future dependents or children you want to include.",
-        "same-education-funding": "Choose Yes to reuse the same per-dependent education funding amount for projected children.",
-        "projected-education-funding-per-dependent": "Desired education funding target for each projected dependent or child when it differs from the current amount.",
+        "projected-dependents-count": "The desired children count pulled from the linked profile.",
+        "projected-education-funding-per-dependent": "Desired education funding target for each planned child beyond the current linked profile count.",
         "cash-savings": "Cash and savings available to offset need.",
         "emergency-fund": "Emergency reserve funds available.",
         "brokerage-accounts": "Taxable investment accounts that could be used in a survivor plan.",
@@ -1360,6 +1389,12 @@
         help.setAttribute("data-entry-mode-help", helpText);
         help.setAttribute("data-confidential-field-help", "");
         help.textContent = "?";
+        const labelText = document.createElement("span");
+        labelText.className = "entry-mode-label-text";
+        labelText.textContent = String(label.textContent || "").trim();
+        label.textContent = "";
+        label.classList.add("has-entry-mode-help");
+        label.appendChild(labelText);
         label.appendChild(help);
       });
     })();
@@ -1620,12 +1655,11 @@
       const transportationCostField = form.elements.namedItem("transportationCost");
       const travelDiscretionaryCostField = form.elements.namedItem("travelDiscretionaryCost");
       const subscriptionsCostField = form.elements.namedItem("subscriptionsCost");
-      const hasDependentsField = form.elements.namedItem("hasDependents");
-      const dependentAgesField = form.elements.namedItem("dependentAges");
-      const educationFundingPerDependentField = form.elements.namedItem("estimatedCostPerChild");
-      const projectedDependentsField = form.elements.namedItem("projectedDependents");
+      const childrenNeedingFundingField = form.elements.namedItem("childrenNeedingFunding");
       const projectedDependentsCountField = form.elements.namedItem("projectedDependentsCount");
       const sameEducationFundingField = form.elements.namedItem("sameEducationFunding");
+      const sameEducationFundingToggle = form.querySelector("[data-same-education-funding-toggle]");
+      const educationFundingPerDependentField = form.elements.namedItem("estimatedCostPerChild");
       const projectedEducationFundingPerDependentField = form.elements.namedItem("projectedEducationFundingPerDependent");
       const incomeCalculationGrid = form.querySelector(".income-calculation-grid");
       const derivedDraftFieldNames = new Set([
@@ -1645,6 +1679,11 @@
         "mortgageTermRemaining",
         "calculatedMonthlyMortgagePayment",
         "monthlyMaintenanceRecommendation"
+      ]);
+      const persistedReadonlyFieldNames = new Set([
+        "childrenNeedingFunding",
+        "projectedDependentsCount",
+        "projectedEducationFundingPerDependent"
       ]);
       const urlLinkedCaseRef = new URLSearchParams(window.location.search).get("caseRef");
       const federalTaxBracketStorageKey = "lensFederalTaxBrackets";
@@ -1794,30 +1833,82 @@
 
       function hydrateLinkedDependentFacts() {
         const linkedRecord = getLinkedRecord();
-        if (!linkedRecord) {
-          return;
-        }
 
-        if (hasDependentsField && !(hasDependentsField instanceof RadioNodeList)) {
-          hasDependentsField.value = String(linkedRecord.hasDependents || "No");
-        }
-
-        const childrenField = form.elements.namedItem("childrenNeedingFunding");
-        if (childrenField && !(childrenField instanceof RadioNodeList)) {
-          childrenField.value = String(linkedRecord.dependentsCount || "");
-        }
-
-        if (dependentAgesField && !(dependentAgesField instanceof RadioNodeList)) {
-          dependentAgesField.value = String(linkedRecord.dependentAges || "");
-        }
-
-        if (projectedDependentsField && !(projectedDependentsField instanceof RadioNodeList)) {
-          projectedDependentsField.value = String(linkedRecord.projectedDependents || "No");
+        if (childrenNeedingFundingField && !(childrenNeedingFundingField instanceof RadioNodeList)) {
+          const dependentCount = Number(linkedRecord?.dependentsCount);
+          childrenNeedingFundingField.value = Number.isFinite(dependentCount)
+            ? String(Math.max(0, Math.round(dependentCount)))
+            : "0";
         }
 
         if (projectedDependentsCountField && !(projectedDependentsCountField instanceof RadioNodeList)) {
-          projectedDependentsCountField.value = String(linkedRecord.projectedDependentsCount || "");
+          const projectedDependentCount = Number(linkedRecord?.projectedDependentsCount);
+          projectedDependentsCountField.value = Number.isFinite(projectedDependentCount)
+            ? String(Math.max(0, Math.round(projectedDependentCount)))
+            : "0";
         }
+      }
+
+      function useSameProjectedEducationFunding() {
+        if (!sameEducationFundingField) {
+          return true;
+        }
+
+        const selectedValue = sameEducationFundingField instanceof RadioNodeList
+          ? sameEducationFundingField.value
+          : sameEducationFundingField.value;
+
+        return String(selectedValue || "Yes") !== "No";
+      }
+
+      function syncSameEducationFundingToggleFromField() {
+        if (!sameEducationFundingToggle || !sameEducationFundingField || sameEducationFundingField instanceof RadioNodeList) {
+          return;
+        }
+
+        const useSameFunding = useSameProjectedEducationFunding();
+        sameEducationFundingToggle.checked = useSameFunding;
+        sameEducationFundingToggle.setAttribute("aria-checked", useSameFunding ? "true" : "false");
+      }
+
+      function syncSameEducationFundingFieldFromToggle() {
+        if (!sameEducationFundingToggle || !sameEducationFundingField || sameEducationFundingField instanceof RadioNodeList) {
+          return;
+        }
+
+        const useSameFunding = Boolean(sameEducationFundingToggle.checked);
+        sameEducationFundingField.value = useSameFunding ? "Yes" : "No";
+        sameEducationFundingToggle.setAttribute("aria-checked", useSameFunding ? "true" : "false");
+      }
+
+      function syncProjectedEducationFundingState() {
+        if (!educationFundingPerDependentField
+          || educationFundingPerDependentField instanceof RadioNodeList
+          || !projectedEducationFundingPerDependentField
+          || projectedEducationFundingPerDependentField instanceof RadioNodeList) {
+          return;
+        }
+
+        const useSameFunding = useSameProjectedEducationFunding();
+        const currentFundingGroup = educationFundingPerDependentField.closest(".field-group");
+        const projectedFundingGroup = projectedEducationFundingPerDependentField.closest(".field-group");
+
+        if (useSameFunding) {
+          projectedEducationFundingPerDependentField.value = educationFundingPerDependentField.value;
+        }
+
+        educationFundingPerDependentField.removeAttribute("readonly");
+        educationFundingPerDependentField.removeAttribute("aria-readonly");
+
+        projectedEducationFundingPerDependentField.toggleAttribute("readonly", useSameFunding);
+        if (useSameFunding) {
+          projectedEducationFundingPerDependentField.setAttribute("aria-readonly", "true");
+        } else {
+          projectedEducationFundingPerDependentField.removeAttribute("aria-readonly");
+        }
+
+        currentFundingGroup?.classList.remove("is-disabled");
+        projectedFundingGroup?.classList.toggle("is-disabled", useSameFunding);
       }
 
       function getFederalTaxBracketRowsForStatus(filingStatus) {
@@ -3234,84 +3325,6 @@
         });
       }
 
-      function syncDependentsCountField() {
-        if (!hasDependentsField || hasDependentsField instanceof RadioNodeList) {
-          return;
-        }
-
-        const disableCount = String(hasDependentsField.value || "No") !== "Yes";
-        [
-          form.elements.namedItem("childrenNeedingFunding"),
-          dependentAgesField,
-          educationFundingPerDependentField
-        ].forEach((field) => {
-          if (!field || field instanceof RadioNodeList) {
-            return;
-          }
-
-          field.disabled = disableCount;
-          field.closest(".field-group")?.classList.toggle("is-disabled", disableCount);
-          if (disableCount) {
-            field.value = "";
-          }
-        });
-      }
-
-      function setProjectedFieldDisabled(field, disabled, preserveValue) {
-        if (!field || field instanceof RadioNodeList) {
-          return;
-        }
-
-        field.disabled = disabled;
-        field.closest(".field-group")?.classList.toggle("is-disabled", disabled);
-        if (disabled && !preserveValue) {
-          if (field.tagName === "SELECT") {
-            field.selectedIndex = 0;
-          } else {
-            field.value = "";
-          }
-        }
-      }
-
-      function syncProjectedDependentsFields() {
-        if (!projectedDependentsField || projectedDependentsField instanceof RadioNodeList) {
-          return;
-        }
-
-        const hasCurrentDependents = String(hasDependentsField?.value || "No") === "Yes";
-        const hasProjectedDependents = String(projectedDependentsField.value || "No") === "Yes";
-        const projectedCount = Number(projectedDependentsCountField?.value || 0);
-        const hasProjectedCount = projectedCount > 0;
-        const sameEducationFunding = String(sameEducationFundingField?.value || "Yes") === "Yes";
-
-        if (!hasProjectedDependents) {
-          setProjectedFieldDisabled(projectedDependentsCountField, true);
-          setProjectedFieldDisabled(sameEducationFundingField, true);
-          setProjectedFieldDisabled(projectedEducationFundingPerDependentField, true);
-          return;
-        }
-
-        setProjectedFieldDisabled(projectedDependentsCountField, false);
-
-        if (!hasProjectedCount) {
-          setProjectedFieldDisabled(sameEducationFundingField, true);
-          setProjectedFieldDisabled(projectedEducationFundingPerDependentField, true);
-          return;
-        }
-
-        if (!hasCurrentDependents) {
-          setProjectedFieldDisabled(sameEducationFundingField, true);
-          setProjectedFieldDisabled(projectedEducationFundingPerDependentField, false);
-          return;
-        }
-
-        setProjectedFieldDisabled(sameEducationFundingField, false);
-        if (sameEducationFunding && projectedEducationFundingPerDependentField && !(projectedEducationFundingPerDependentField instanceof RadioNodeList) && educationFundingPerDependentField && !(educationFundingPerDependentField instanceof RadioNodeList)) {
-          projectedEducationFundingPerDependentField.value = educationFundingPerDependentField.value;
-        }
-        setProjectedFieldDisabled(projectedEducationFundingPerDependentField, sameEducationFunding, sameEducationFunding);
-      }
-
       function restoreDraft() {
         try {
           const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
@@ -3394,16 +3407,16 @@
             setNetIncomeActionLabel(spouseNetAnnualIncomeField, spouseNetIncomeAction);
           }
           clampCostToFundPercent();
+          syncSameEducationFundingToggleFromField();
           syncLinkedMaritalStatus();
           hydrateLinkedDependentFacts();
+          syncProjectedEducationFundingState();
           syncFilingStatusOptions();
           syncStandardDeductionFields();
           syncDeductionMethodState();
           syncLinkedStateOfResidence();
           syncStateOfResidenceDisplay();
           syncMortgageTermRemainingField();
-          syncDependentsCountField();
-          syncProjectedDependentsFields();
           syncRelocationReserveField();
           syncMaintenanceRecommendationField();
           syncMonthlyMortgagePaymentField();
@@ -3419,7 +3432,7 @@
             return;
           }
 
-          if (derivedDraftFieldNames.has(element.name) || element.hasAttribute("readonly")) {
+          if (derivedDraftFieldNames.has(element.name) || (element.hasAttribute("readonly") && !persistedReadonlyFieldNames.has(element.name))) {
             return;
           }
 
@@ -3638,25 +3651,6 @@
         survivorWorkingSelect.addEventListener("input", syncSurvivorshipAdjustments);
       }
 
-      if (hasDependentsField && !(hasDependentsField instanceof RadioNodeList)) {
-        hasDependentsField.addEventListener("change", () => {
-          syncDependentsCountField();
-          syncProjectedDependentsFields();
-        });
-        hasDependentsField.addEventListener("input", () => {
-          syncDependentsCountField();
-          syncProjectedDependentsFields();
-        });
-      }
-
-      projectedDependentsCountField?.addEventListener("input", syncProjectedDependentsFields);
-      projectedDependentsCountField?.addEventListener("change", syncProjectedDependentsFields);
-      sameEducationFundingField?.addEventListener("change", syncProjectedDependentsFields);
-      educationFundingPerDependentField?.addEventListener("input", syncProjectedDependentsFields);
-      educationFundingPerDependentField?.addEventListener("change", syncProjectedDependentsFields);
-      projectedDependentsField?.addEventListener("input", syncProjectedDependentsFields);
-      projectedDependentsField?.addEventListener("change", syncProjectedDependentsFields);
-
       if (filingStatusField && !(filingStatusField instanceof RadioNodeList)) {
         const syncFederalBracketState = () => {
           syncIncomeCalculationSpouseFields();
@@ -3778,6 +3772,18 @@
         field.addEventListener("input", syncAllTaxDerivedFields);
       });
 
+      if (educationFundingPerDependentField && !(educationFundingPerDependentField instanceof RadioNodeList)) {
+        educationFundingPerDependentField.addEventListener("input", syncProjectedEducationFundingState);
+        educationFundingPerDependentField.addEventListener("change", syncProjectedEducationFundingState);
+      }
+
+      if (sameEducationFundingToggle) {
+        sameEducationFundingToggle.addEventListener("change", () => {
+          syncSameEducationFundingFieldFromToggle();
+          syncProjectedEducationFundingState();
+        });
+      }
+
       if (!resolvedLinkedCaseRef) {
         window.location.replace("protection-modeling-linked.html");
         return;
@@ -3804,6 +3810,8 @@
       syncRelocationReserveField();
       syncMaintenanceRecommendationField();
       syncMonthlyMortgagePaymentField();
+      syncSameEducationFundingToggleFromField();
+      syncProjectedEducationFundingState();
       syncAllTaxDerivedFields();
       syncIncomeCalculationCurrencyFormatting();
       syncSurvivorshipAdjustments();

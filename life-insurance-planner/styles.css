@@ -1599,6 +1599,284 @@ select option:disabled {
   white-space: nowrap;
 }
 
+.pmi-education-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+}
+
+.pmi-education-grid .pmi-education-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 1.2rem 1.75rem;
+  width: 100%;
+}
+
+.pmi-education-grid .pmi-education-row > .field-group,
+.pmi-education-grid .pmi-education-toggle-row {
+  min-width: 0;
+}
+
+.pmi-education-grid .field-group > label {
+  display: block;
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.25;
+}
+
+.pmi-education-grid .field-group > label.has-entry-mode-help {
+  width: auto;
+}
+
+.pmi-education-grid .field-group > label .entry-mode-label-text {
+  display: inline;
+}
+
+.pmi-education-grid .field-group > label .entry-mode-help {
+  display: inline-flex;
+  vertical-align: text-top;
+  margin-left: 0.38rem;
+}
+
+.pmi-education-grid .underwriting-helper-inline {
+  position: static;
+  margin: 0;
+}
+
+.pmi-education-grid .profile-yes-no-field,
+.pmi-education-grid .profile-education-funding-field {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+.pmi-education-grid .pmi-education-toggle-row {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 1.3rem 0;
+  border-top: 1px solid rgba(223, 228, 236, 0.96);
+  border-bottom: 1px solid rgba(223, 228, 236, 0.96);
+}
+
+.pmi-education-grid .pmi-education-toggle-row .settings-toggle-copy {
+  gap: 0;
+}
+
+.pmi-education-grid .pmi-education-toggle-row .settings-toggle-label {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.pmi-education-grid .profile-currency-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
+}
+
+.pmi-education-grid .profile-education-funding-field {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.pmi-education-grid .profile-currency-suffix {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 5rem;
+  padding: 0 1.15rem;
+  border: 1px solid rgba(213, 221, 232, 0.95);
+  border-left: 0;
+  border-top-right-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+  background: #f6f8fc;
+  color: #5f6f84;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pmi-education-grid .field-group.is-disabled > label {
+  color: #a8b3c2;
+}
+
+.pmi-education-grid .field-group.is-disabled .entry-mode-help {
+  opacity: 0.7;
+}
+
+.pmi-education-grid .field-group.is-disabled .profile-education-funding-field[readonly] {
+  background: #f3f6fa;
+  color: #7a8798;
+  cursor: default;
+}
+
+.pmi-education-grid .field-group.is-disabled .profile-currency-suffix {
+  background: #eef2f7;
+  color: #7a8798;
+}
+
+@media (max-width: 860px) {
+  .pmi-education-grid .pmi-education-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+body[data-page="existing-coverage-details"] .prospect-empty-panel {
+  gap: 1.25rem;
+}
+
+.existing-coverage-summary-section,
+.existing-coverage-form-shell {
+  margin: 0;
+}
+
+.existing-coverage-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.existing-coverage-summary-card {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem 1.05rem;
+  border: 1px solid rgba(220, 226, 235, 0.92);
+  border-radius: 0.95rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 248, 252, 0.96) 100%);
+}
+
+.existing-coverage-summary-label {
+  color: #708197;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.existing-coverage-summary-value {
+  color: #172230;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.existing-coverage-summary-meta {
+  color: #677488;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.existing-coverage-form-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.existing-coverage-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.existing-coverage-feedback {
+  min-height: 1.2rem;
+  margin: 0;
+  color: #576476;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.existing-coverage-feedback.is-success {
+  color: #1f6a3e;
+}
+
+.existing-coverage-feedback.is-error {
+  color: #a03d3d;
+}
+
+.existing-coverage-policy-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.existing-coverage-empty {
+  display: grid;
+  justify-items: start;
+  gap: 0.65rem;
+  padding: 1.2rem 1.25rem;
+  border: 1px dashed rgba(201, 209, 222, 0.95);
+  border-radius: 0.95rem;
+  background: #fbfcfe;
+}
+
+.existing-coverage-empty strong {
+  color: #1d2838;
+  font-size: 1rem;
+}
+
+.existing-coverage-empty p {
+  margin: 0;
+  color: #647285;
+}
+
+.existing-coverage-policy-card {
+  margin: 0;
+}
+
+.existing-coverage-policy-card-heading {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.existing-coverage-policy-card-heading p {
+  margin: 0.25rem 0 0;
+  color: #677488;
+  font-size: 0.86rem;
+}
+
+.existing-coverage-remove-button {
+  min-height: 2.6rem;
+}
+
+.existing-coverage-policy-grid {
+  gap: 1rem 1.15rem;
+}
+
+.existing-coverage-policy-card .profile-currency-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+}
+
+.existing-coverage-policy-card .profile-currency-field input {
+  width: 100%;
+  min-width: 0;
+}
+
+.existing-coverage-policy-card textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+@media (max-width: 860px) {
+  .existing-coverage-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .existing-coverage-toolbar {
+    justify-content: stretch;
+  }
+
+  .existing-coverage-toolbar .btn {
+    width: 100%;
+  }
+}
+
 .profile-dependent-builder {
   display: grid;
   gap: 0.9rem;
@@ -2064,6 +2342,7 @@ select option:disabled {
 
 body[data-page="preliminary-linked"] .prospect-empty-panel,
 body[data-page="protection-modeling-linked"] .prospect-empty-panel,
+body[data-page="existing-coverage-linked"] .prospect-empty-panel,
 body[data-page="protection-modeling-inputs"] .prospect-empty-panel {
   min-height: 0;
   max-width: min(100%, 68rem);
@@ -2084,6 +2363,7 @@ body[data-page="preliminary-linked"] .prospect-empty-panel {
 
 body[data-page="preliminary-linked"] .prospect-panel-header,
 body[data-page="protection-modeling-linked"] .prospect-panel-header,
+body[data-page="existing-coverage-linked"] .prospect-panel-header,
 body[data-page="protection-modeling-inputs"] .prospect-panel-header {
   margin-bottom: 0.25rem;
   min-height: 0;
@@ -2091,6 +2371,7 @@ body[data-page="protection-modeling-inputs"] .prospect-panel-header {
 
 body[data-page="preliminary-linked"] .prospect-empty-panel h1,
 body[data-page="protection-modeling-linked"] .prospect-empty-panel h1,
+body[data-page="existing-coverage-linked"] .prospect-empty-panel h1,
 body[data-page="protection-modeling-inputs"] .prospect-empty-panel h1 {
   font-size: clamp(2rem, 3.2vw, 2.55rem);
 }
@@ -2101,9 +2382,11 @@ body[data-page="preliminary-linked"] .prospect-empty-panel h1 {
 
 body[data-page="preliminary-linked"] .preliminary-link-search-button,
 body[data-page="protection-modeling-linked"] .preliminary-link-search-button,
+body[data-page="existing-coverage-linked"] .preliminary-link-search-button,
 body[data-page="protection-modeling-inputs"] .preliminary-link-search-button,
 body[data-page="preliminary-linked"] .preliminary-link-grid input,
 body[data-page="protection-modeling-linked"] .preliminary-link-grid input,
+body[data-page="existing-coverage-linked"] .preliminary-link-grid input,
 body[data-page="protection-modeling-inputs"] .preliminary-link-grid input {
   min-height: 3.45rem;
   font-size: 1rem;
@@ -2111,12 +2394,14 @@ body[data-page="protection-modeling-inputs"] .preliminary-link-grid input {
 
 body[data-page="preliminary-linked"] .preliminary-link-button-primary,
 body[data-page="protection-modeling-linked"] .preliminary-link-button-primary,
+body[data-page="existing-coverage-linked"] .preliminary-link-button-primary,
 body[data-page="protection-modeling-inputs"] .preliminary-link-button-primary {
   font-size: 1.18rem;
 }
 
 body[data-page="preliminary-linked"] .field-group > label,
 body[data-page="protection-modeling-linked"] .field-group > label,
+body[data-page="existing-coverage-linked"] .field-group > label,
 body[data-page="protection-modeling-inputs"] .field-group > label {
   font-size: 0.94rem;
 }
@@ -2124,12 +2409,14 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
 @media (max-width: 720px) {
   body[data-page="preliminary-linked"] .prospect-empty-panel,
   body[data-page="protection-modeling-linked"] .prospect-empty-panel,
+  body[data-page="existing-coverage-linked"] .prospect-empty-panel,
   body[data-page="protection-modeling-inputs"] .prospect-empty-panel {
     padding: 1rem;
   }
 
   body[data-page="preliminary-linked"] .prospect-panel-header,
   body[data-page="protection-modeling-linked"] .prospect-panel-header,
+  body[data-page="existing-coverage-linked"] .prospect-panel-header,
   body[data-page="protection-modeling-inputs"] .prospect-panel-header {
     justify-items: start;
     gap: 0.35rem;
@@ -2139,6 +2426,7 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
 
   body[data-page="preliminary-linked"] .prospect-empty-panel h1,
   body[data-page="protection-modeling-linked"] .prospect-empty-panel h1,
+  body[data-page="existing-coverage-linked"] .prospect-empty-panel h1,
   body[data-page="protection-modeling-inputs"] .prospect-empty-panel h1 {
     width: 100%;
     text-align: left;

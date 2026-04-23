@@ -3083,7 +3083,7 @@
 
         if (navKey === "modeling-inputs") {
           return {
-            href: `protection-modeling-inputs.html?caseRef=${encodedCaseRef}`,
+            href: `protection-modeling-linked.html?caseRef=${encodedCaseRef}`,
             label: "Open Inputs"
           };
         }

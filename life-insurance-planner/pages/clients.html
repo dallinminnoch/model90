@@ -906,10 +906,7 @@
         <a class="client-header-action client-header-action-primary client-add-modal-continue client-add-modal-secondary" href="profile-only-form.html" data-loading-link>Create Profile</a>
         <a class="client-header-action client-header-action-primary client-add-modal-continue client-add-modal-secondary" href="preliminary-linked.html" data-loading-link>Preliminary Underwriting</a>
         <a class="client-header-action client-header-action-primary client-add-modal-continue client-add-modal-secondary" href="protection-modeling-linked.html" data-loading-link>Protection Modeling Inputs</a>
-        <a class="client-header-action client-header-action-primary client-add-modal-continue client-add-modal-secondary client-add-modal-option" href="protection-modeling-inputs.html" data-loading-link>
-          <span class="client-add-modal-option-label">PMI Simplified</span>
-          <span class="entry-mode-help client-add-modal-help" tabindex="0" aria-hidden="true" data-entry-mode-help="A simplified version of the protection modeling inputs form for clients who already know their total expenses, debts, and earnings.">?</span>
-        </a>
+        <a class="client-header-action client-header-action-primary client-add-modal-continue client-add-modal-secondary" href="existing-coverage-linked.html" data-loading-link>Existing Coverage Details</a>
       </div>
     </div>
   </div>
@@ -2154,10 +2151,21 @@
           return "Needs Modeled";
         }
 
+        const modeledEducationFunding = readSummaryNumber(modelingData.educationFundingTotal)
+          || (
+            (
+              (readSummaryNumber(modelingData.estimatedCostPerChild)
+                * Math.max(0, readSummaryNumber(modelingData.childrenNeedingFunding)))
+              + (readSummaryNumber(modelingData.projectedEducationFundingPerDependent)
+                * Math.max(0, readSummaryNumber(modelingData.projectedDependentsCount)))
+            )
+            * ((Math.max(0, Math.min(100, readSummaryNumber(modelingData.costToFundPercent) || 100))) / 100)
+          );
+
         if (
           readSummaryNumber(modelingData.mortgageBalance) > 0
           || readSummaryNumber(modelingData.finalExpensesTotal) > 0
-          || readSummaryNumber(modelingData.educationFundingTotal) > 0
+          || modeledEducationFunding > 0
         ) {
           return "Needs Modeled";
         }

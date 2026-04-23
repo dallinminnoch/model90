@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Existing Coverage Details | LENS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body class="home-page prospect-page profile-creation-page" data-page="existing-coverage-details">
+  <main class="home-shell app-home-shell prospect-shell">
+    <section class="prospect-stage">
+      <div class="entry-page-viewport">
+        <section class="prospect-empty-panel">
+          <div class="prospect-panel-header">
+            <a class="prospect-return-button" href="existing-coverage-linked.html" data-loading-link>Previous</a>
+            <h1>Existing Coverage Details</h1>
+            <p class="helper-text">Capture the linked client&apos;s placed policy details here so coverage on file stays structured and reviewable.</p>
+          </div>
+
+          <section class="profile-form-section existing-coverage-summary-section">
+            <div class="profile-form-section-heading">
+              <h2>Linked Profile</h2>
+              <p data-existing-coverage-linked-copy>Saving here updates the linked client record and existing coverage inventory.</p>
+            </div>
+            <div class="existing-coverage-summary-grid">
+              <div class="existing-coverage-summary-card">
+                <span class="existing-coverage-summary-label">Client</span>
+                <strong class="existing-coverage-summary-value" data-existing-coverage-client-name>--</strong>
+                <span class="existing-coverage-summary-meta" data-existing-coverage-case-ref>--</span>
+              </div>
+              <div class="existing-coverage-summary-card">
+                <span class="existing-coverage-summary-label">Policies on Form</span>
+                <strong class="existing-coverage-summary-value" data-existing-coverage-policy-count>0</strong>
+                <span class="existing-coverage-summary-meta">Counted from non-empty policy entries</span>
+              </div>
+              <div class="existing-coverage-summary-card">
+                <span class="existing-coverage-summary-label">Coverage Total</span>
+                <strong class="existing-coverage-summary-value" data-existing-coverage-total>$0</strong>
+                <span class="existing-coverage-summary-meta">Summed from face amounts on this page</span>
+              </div>
+            </div>
+          </section>
+
+          <form class="profile-form-section existing-coverage-form-shell" data-existing-coverage-form novalidate>
+            <div class="profile-form-section-heading">
+              <h2>Policies on File</h2>
+              <p>Add, edit, or remove placed policy details for this linked profile.</p>
+            </div>
+            <div class="existing-coverage-toolbar">
+              <button class="btn btn-secondary" type="button" data-existing-coverage-add-policy>Add Policy</button>
+              <button class="btn btn-primary" type="submit">Save Coverage Details</button>
+            </div>
+            <p class="helper-text">Saved policies update the linked profile&apos;s current coverage and can fill linked analysis coverage when no separate total is entered in PMI.</p>
+            <p class="existing-coverage-feedback" data-existing-coverage-feedback aria-live="polite"></p>
+            <div class="existing-coverage-policy-list" data-existing-coverage-policy-list></div>
+          </form>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="../data.js"></script>
+  <script src="../calculations.js"></script>
+  <script src="../charts.js"></script>
+  <script src="../site-header.js"></script>
+  <script src="../app/core/config.js"></script>
+  <script src="../app/core/storage.js"></script>
+  <script src="../app/core/i18n.js"></script>
+  <script src="../app/features/auth.js"></script>
+  <script src="../app/features/client-records.js"></script>
+  <script src="../app/features/client-intake.js"></script>
+  <script src="../app/features/client-directory.js"></script>
+  <script src="../app.js"></script>
+  <script>
+    (function () {
+      const clientRecordsApi = window.LensApp?.clientRecords || {};
+      const urlParams = new URLSearchParams(window.location.search);
+      const normalizeCaseRef = clientRecordsApi.normalizeCaseRef;
+      const resolvedCaseRef = typeof normalizeCaseRef === "function"
+        ? normalizeCaseRef(urlParams.get("caseRef") || clientRecordsApi.getLinkedCaseRef?.() || "")
+        : String(urlParams.get("caseRef") || clientRecordsApi.getLinkedCaseRef?.() || "").trim().toUpperCase();
+      const getClientRecordByReference = clientRecordsApi.getClientRecordByReference;
+      const updateClientRecordByCaseRef = clientRecordsApi.updateClientRecordByCaseRef;
+      const clientNameValue = document.querySelector("[data-existing-coverage-client-name]");
+      const caseRefValue = document.querySelector("[data-existing-coverage-case-ref]");
+      const policyCountValue = document.querySelector("[data-existing-coverage-policy-count]");
+      const coverageTotalValue = document.querySelector("[data-existing-coverage-total]");
+      const feedback = document.querySelector("[data-existing-coverage-feedback]");
+      const form = document.querySelector("[data-existing-coverage-form]");
+      const policyList = document.querySelector("[data-existing-coverage-policy-list]");
+      const addPolicyButton = document.querySelector("[data-existing-coverage-add-policy]");
+      const previousLink = document.querySelector('.prospect-return-button[href="existing-coverage-linked.html"]');
+      const POLICY_TYPE_OPTIONS = [
+        "",
+        "Term",
+        "Whole Life",
+        "Universal Life",
+        "Indexed Universal Life",
+        "Variable Universal Life",
+        "Final Expense",
+        "Group Life",
+        "Other"
+      ];
+      const PREMIUM_MODE_OPTIONS = [
+        "",
+        "Monthly",
+        "Quarterly",
+        "Semi-Annual",
+        "Annual",
+        "Single Premium",
+        "Flexible Premium",
+        "Graded Premium",
+        "Modified Premium"
+      ];
+      const UNDERWRITING_CLASS_OPTIONS = [
+        "",
+        "Preferred Plus",
+        "Preferred",
+        "Standard Plus",
+        "Standard",
+        "Table Rated",
+        "Substandard",
+        "Simplified Issue",
+        "Guaranteed Issue",
+        "Other"
+      ];
+      let policyDraftSequence = 0;
+      let linkedRecord = typeof getClientRecordByReference === "function"
+        ? getClientRecordByReference(clientRecordsApi.getLinkedRecordId?.(), resolvedCaseRef)
+        : null;
+      let policyDrafts = [];
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function normalizeCoverageCurrencyValue(value) {
+        const normalized = String(value || "").replace(/[^0-9.]/g, "");
+        const firstDot = normalized.indexOf(".");
+        const cleaned = firstDot === -1
+          ? normalized
+          : `${normalized.slice(0, firstDot + 1)}${normalized.slice(firstDot + 1).replace(/\./g, "")}`;
+
+        if (!cleaned) {
+          return "";
+        }
+
+        const numericValue = Number(cleaned);
+        if (!Number.isFinite(numericValue)) {
+          return "";
+        }
+
+        return numericValue.toFixed(2);
+      }
+
+      function parseCurrencyNumber(value) {
+        const normalized = normalizeCoverageCurrencyValue(value);
+        return normalized ? Number(normalized) : 0;
+      }
+
+      function formatCurrencyInput(value) {
+        const normalized = normalizeCoverageCurrencyValue(value);
+        if (!normalized) {
+          return "";
+        }
+
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }).format(Number(normalized));
+      }
+
+      function formatCurrencyDisplay(value) {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        }).format(Math.max(0, Number(value || 0)));
+      }
+
+      function isCoveragePermanentPolicyType(value) {
+        return [
+          "Whole Life",
+          "Universal Life",
+          "Indexed Universal Life",
+          "Variable Universal Life",
+          "Final Expense"
+        ].includes(String(value || "").trim());
+      }
+
+      function buildDraft(policy) {
+        const currentPolicy = policy || {};
+        policyDraftSequence += 1;
+        return {
+          draftId: String(currentPolicy.id || `draft-${Date.now()}-${policyDraftSequence}`),
+          id: String(currentPolicy.id || "").trim(),
+          savedAt: String(currentPolicy.savedAt || "").trim(),
+          policyCarrier: String(currentPolicy.policyCarrier || "").trim(),
+          policyType: String(currentPolicy.policyType || "").trim(),
+          insuredName: String(currentPolicy.insuredName || "").trim(),
+          ownerName: String(currentPolicy.ownerName || "").trim(),
+          faceAmount: normalizeCoverageCurrencyValue(currentPolicy.faceAmount),
+          premiumMode: String(currentPolicy.premiumMode || "").trim(),
+          premiumAmount: normalizeCoverageCurrencyValue(currentPolicy.premiumAmount),
+          termLength: String(currentPolicy.termLength || "").trim(),
+          policyNumber: String(currentPolicy.policyNumber || "").trim(),
+          effectiveDate: String(currentPolicy.effectiveDate || "").trim(),
+          underwritingClass: String(currentPolicy.underwritingClass || "").trim(),
+          beneficiaryName: String(currentPolicy.beneficiaryName || "").trim(),
+          policyNotes: String(currentPolicy.policyNotes || "").trim()
+        };
+      }
+
+      function buildEmptyDraft() {
+        return buildDraft({});
+      }
+
+      function policyDraftHasAnyValue(draft) {
+        return [
+          draft.policyCarrier,
+          draft.policyType,
+          draft.insuredName,
+          draft.ownerName,
+          draft.faceAmount,
+          draft.premiumMode,
+          draft.premiumAmount,
+          draft.termLength,
+          draft.policyNumber,
+          draft.effectiveDate,
+          draft.underwritingClass,
+          draft.beneficiaryName,
+          draft.policyNotes
+        ].some(function (value) {
+          return String(value || "").trim() !== "";
+        });
+      }
+
+      function renderOptions(options, selectedValue, placeholderText) {
+        return options.map(function (option) {
+          const label = option || placeholderText;
+          const isSelected = String(option || "").trim() === String(selectedValue || "").trim();
+          return `<option value="${escapeHtml(option)}"${isSelected ? " selected" : ""}>${escapeHtml(label)}</option>`;
+        }).join("");
+      }
+
+      function getPolicyDraftById(draftId) {
+        return policyDrafts.find(function (draft) {
+          return draft.draftId === draftId;
+        }) || null;
+      }
+
+      function syncSummary() {
+        const activeDrafts = policyDrafts.filter(policyDraftHasAnyValue);
+        const totalCoverage = activeDrafts.reduce(function (sum, draft) {
+          return sum + parseCurrencyNumber(draft.faceAmount);
+        }, 0);
+
+        if (policyCountValue) {
+          policyCountValue.textContent = String(activeDrafts.length);
+        }
+
+        if (coverageTotalValue) {
+          coverageTotalValue.textContent = formatCurrencyDisplay(totalCoverage);
+        }
+      }
+
+      function renderPolicies() {
+        if (!policyList) {
+          return;
+        }
+
+        if (!policyDrafts.length) {
+          policyList.innerHTML = `
+            <div class="existing-coverage-empty">
+              <strong>No policy entries are on this form yet.</strong>
+              <p>Add the first policy to start building existing coverage details for this linked profile.</p>
+              <button class="btn btn-secondary" type="button" data-existing-coverage-add-policy-inline>Add Policy</button>
+            </div>
+          `;
+          syncSummary();
+          return;
+        }
+
+        policyList.innerHTML = policyDrafts.map(function (draft, index) {
+          const permanentPolicyType = isCoveragePermanentPolicyType(draft.policyType);
+          const renderedTermLength = permanentPolicyType ? "Permanent Coverage" : String(draft.termLength || "");
+
+          return `
+            <section class="profile-form-section existing-coverage-policy-card" data-policy-card data-draft-id="${escapeHtml(draft.draftId)}">
+              <div class="profile-form-section-heading existing-coverage-policy-card-heading">
+                <div>
+                  <h2>Policy ${index + 1}</h2>
+                  <p>${draft.savedAt ? `Saved ${escapeHtml(draft.savedAt)}` : "New policy entry"}</p>
+                </div>
+                <button class="btn btn-secondary existing-coverage-remove-button" type="button" data-existing-coverage-remove>Remove</button>
+              </div>
+              <div class="form-grid existing-coverage-policy-grid">
+                <div class="field-group">
+                  <label>Policy Carrier</label>
+                  <input type="text" name="policyCarrier" value="${escapeHtml(draft.policyCarrier)}" maxlength="140">
+                </div>
+                <div class="field-group">
+                  <label>Policy Type</label>
+                  <select name="policyType">
+                    ${renderOptions(POLICY_TYPE_OPTIONS, draft.policyType, "Select policy type")}
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Insured Name</label>
+                  <input type="text" name="insuredName" value="${escapeHtml(draft.insuredName)}" maxlength="160">
+                </div>
+                <div class="field-group">
+                  <label>Policy Owner</label>
+                  <input type="text" name="ownerName" value="${escapeHtml(draft.ownerName)}" maxlength="160">
+                </div>
+                <div class="field-group">
+                  <label>Face Amount</label>
+                  <div class="profile-currency-field">
+                    <input type="text" name="faceAmount" inputmode="decimal" value="${escapeHtml(formatCurrencyInput(draft.faceAmount))}">
+                    <span class="profile-currency-suffix">USD</span>
+                  </div>
+                </div>
+                <div class="field-group">
+                  <label>Premium Mode</label>
+                  <select name="premiumMode">
+                    ${renderOptions(PREMIUM_MODE_OPTIONS, draft.premiumMode, "Select premium mode")}
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Premium Amount</label>
+                  <div class="profile-currency-field">
+                    <input type="text" name="premiumAmount" inputmode="decimal" value="${escapeHtml(formatCurrencyInput(draft.premiumAmount))}">
+                    <span class="profile-currency-suffix">USD</span>
+                  </div>
+                </div>
+                <div class="field-group">
+                  <label>Term Length</label>
+                  <input type="text" name="termLength" value="${escapeHtml(renderedTermLength)}" placeholder="Example: 30 Years"${permanentPolicyType ? " readonly aria-readonly=\"true\"" : ""}>
+                </div>
+                <div class="field-group">
+                  <label>Policy Number</label>
+                  <input type="text" name="policyNumber" value="${escapeHtml(draft.policyNumber)}" maxlength="80">
+                </div>
+                <div class="field-group">
+                  <label>Effective Date</label>
+                  <input type="date" name="effectiveDate" value="${escapeHtml(draft.effectiveDate)}">
+                </div>
+                <div class="field-group">
+                  <label>Underwriting Class</label>
+                  <select name="underwritingClass">
+                    ${renderOptions(UNDERWRITING_CLASS_OPTIONS, draft.underwritingClass, "Select underwriting class")}
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label>Primary Beneficiary</label>
+                  <input type="text" name="beneficiaryName" value="${escapeHtml(draft.beneficiaryName)}" maxlength="160">
+                </div>
+                <div class="field-group full-width">
+                  <label>Policy Notes</label>
+                  <textarea name="policyNotes" rows="4" maxlength="1200" placeholder="Optional coverage notes, rider details, or review reminders.">${escapeHtml(draft.policyNotes)}</textarea>
+                </div>
+              </div>
+            </section>
+          `;
+        }).join("");
+
+        syncSummary();
+      }
+
+      function showFeedback(message, tone) {
+        if (!feedback) {
+          return;
+        }
+
+        feedback.textContent = String(message || "").trim();
+        feedback.classList.toggle("is-success", tone === "success");
+        feedback.classList.toggle("is-error", tone === "error");
+      }
+
+      function clearFeedback() {
+        showFeedback("", "");
+      }
+
+      function collectPoliciesForSave() {
+        const activeDrafts = policyDrafts.filter(policyDraftHasAnyValue);
+
+        for (let index = 0; index < activeDrafts.length; index += 1) {
+          const draft = activeDrafts[index];
+          const missingLabel = [
+            ["premiumMode", "Premium Mode"],
+            ["policyCarrier", "Policy Carrier"],
+            ["policyType", "Policy Type"],
+            ["insuredName", "Insured Name"],
+            ["ownerName", "Policy Owner"],
+            ["faceAmount", "Face Amount"]
+          ].find(function (entry) {
+            return String(draft[entry[0]] || "").trim() === "";
+          });
+
+          if (missingLabel) {
+            return {
+              error: `Policy ${index + 1} is missing ${missingLabel[1]}.`
+            };
+          }
+        }
+
+        return {
+          policies: activeDrafts.map(function (draft, index) {
+            const existingPolicies = Array.isArray(linkedRecord?.coveragePolicies) ? linkedRecord.coveragePolicies : [];
+            const existingPolicy = existingPolicies.find(function (policy) {
+              return String(policy?.id || "").trim() === String(draft.id || "").trim();
+            }) || {};
+            const policyId = String(existingPolicy.id || draft.id || `policy-${Date.now()}-${index + 1}`).trim();
+            const policyType = String(draft.policyType || "").trim();
+
+            return {
+              ...existingPolicy,
+              id: policyId,
+              savedAt: String(existingPolicy.savedAt || new Date().toISOString().slice(0, 10)).trim(),
+              policyCarrier: String(draft.policyCarrier || "").trim(),
+              policyType,
+              insuredName: String(draft.insuredName || "").trim(),
+              ownerName: String(draft.ownerName || "").trim(),
+              faceAmount: normalizeCoverageCurrencyValue(draft.faceAmount),
+              premiumMode: String(draft.premiumMode || "").trim(),
+              premiumAmount: normalizeCoverageCurrencyValue(draft.premiumAmount),
+              termLength: isCoveragePermanentPolicyType(policyType)
+                ? "Permanent Coverage"
+                : String(draft.termLength || "").trim(),
+              policyNumber: String(draft.policyNumber || "").trim(),
+              effectiveDate: String(draft.effectiveDate || "").trim(),
+              underwritingClass: String(draft.underwritingClass || "").trim(),
+              beneficiaryName: String(draft.beneficiaryName || "").trim(),
+              policyNotes: String(draft.policyNotes || "").trim()
+            };
+          })
+        };
+      }
+
+      function syncLinkedProfileSummary() {
+        if (!linkedRecord) {
+          return;
+        }
+
+        if (clientNameValue) {
+          clientNameValue.textContent = String(linkedRecord.displayName || linkedRecord.firstName || "Linked Client").trim();
+        }
+
+        if (caseRefValue) {
+          caseRefValue.textContent = String(linkedRecord.caseRef || resolvedCaseRef || "--").trim();
+        }
+      }
+
+      function loadDraftsFromRecord() {
+        const existingPolicies = Array.isArray(linkedRecord?.coveragePolicies) ? linkedRecord.coveragePolicies : [];
+        policyDrafts = existingPolicies.length
+          ? existingPolicies.map(buildDraft)
+          : [buildEmptyDraft()];
+      }
+
+      function addPolicyDraft() {
+        policyDrafts.push(buildEmptyDraft());
+        renderPolicies();
+        clearFeedback();
+      }
+
+      function updateDraftField(card, fieldName, rawValue) {
+        const draftId = String(card?.dataset?.draftId || "").trim();
+        const draft = getPolicyDraftById(draftId);
+        if (!draft) {
+          return;
+        }
+
+        const normalizedField = String(fieldName || "").trim();
+        let nextValue = rawValue;
+
+        if (normalizedField === "faceAmount" || normalizedField === "premiumAmount") {
+          nextValue = normalizeCoverageCurrencyValue(rawValue);
+        }
+
+        if (normalizedField === "policyType") {
+          draft.policyType = String(nextValue || "").trim();
+          if (isCoveragePermanentPolicyType(draft.policyType)) {
+            draft.termLength = "Permanent Coverage";
+          } else if (draft.termLength === "Permanent Coverage") {
+            draft.termLength = "";
+          }
+        } else {
+          draft[normalizedField] = String(nextValue || "");
+        }
+
+        syncSummary();
+      }
+
+      if (!resolvedCaseRef || !linkedRecord) {
+        window.location.replace("existing-coverage-linked.html");
+        return;
+      }
+
+      clientRecordsApi.setLinkedCaseRef?.(resolvedCaseRef);
+      clientRecordsApi.setLinkedRecordId?.(linkedRecord.id);
+      if (previousLink) {
+        previousLink.href = `existing-coverage-linked.html?caseRef=${encodeURIComponent(resolvedCaseRef)}`;
+      }
+
+      syncLinkedProfileSummary();
+      loadDraftsFromRecord();
+      renderPolicies();
+
+      addPolicyButton?.addEventListener("click", function () {
+        addPolicyDraft();
+      });
+
+      policyList?.addEventListener("click", function (event) {
+        const addInlineButton = event.target.closest("[data-existing-coverage-add-policy-inline]");
+        if (addInlineButton) {
+          addPolicyDraft();
+          return;
+        }
+
+        const removeButton = event.target.closest("[data-existing-coverage-remove]");
+        if (!removeButton) {
+          return;
+        }
+
+        const card = removeButton.closest("[data-policy-card]");
+        const draftId = String(card?.dataset?.draftId || "").trim();
+        policyDrafts = policyDrafts.filter(function (draft) {
+          return draft.draftId !== draftId;
+        });
+        renderPolicies();
+        clearFeedback();
+      });
+
+      policyList?.addEventListener("input", function (event) {
+        const target = event.target;
+        const card = target.closest("[data-policy-card]");
+        if (!card || !(target instanceof HTMLInputElement) && !(target instanceof HTMLTextAreaElement) && !(target instanceof HTMLSelectElement)) {
+          return;
+        }
+
+        updateDraftField(card, target.name, target.value);
+
+        if (target instanceof HTMLInputElement && (target.name === "faceAmount" || target.name === "premiumAmount")) {
+          target.value = String(target.value || "").replace(/[^0-9.]/g, "");
+        }
+
+        if (target instanceof HTMLSelectElement && target.name === "policyType") {
+          const termLengthField = card.querySelector('input[name="termLength"]');
+          const permanentPolicyType = isCoveragePermanentPolicyType(target.value);
+          if (termLengthField instanceof HTMLInputElement) {
+            if (permanentPolicyType) {
+              termLengthField.value = "Permanent Coverage";
+              termLengthField.setAttribute("readonly", "true");
+              termLengthField.setAttribute("aria-readonly", "true");
+            } else {
+              if (termLengthField.value === "Permanent Coverage") {
+                termLengthField.value = "";
+              }
+              termLengthField.removeAttribute("readonly");
+              termLengthField.removeAttribute("aria-readonly");
+            }
+          }
+        }
+      });
+
+      policyList?.addEventListener("focusout", function (event) {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement) || (target.name !== "faceAmount" && target.name !== "premiumAmount")) {
+          return;
+        }
+
+        const card = target.closest("[data-policy-card]");
+        if (!card) {
+          return;
+        }
+
+        updateDraftField(card, target.name, target.value);
+        const draft = getPolicyDraftById(String(card.dataset.draftId || "").trim());
+        if (!draft) {
+          return;
+        }
+
+        target.value = formatCurrencyInput(draft[target.name]);
+      });
+
+      form?.addEventListener("submit", function (event) {
+        event.preventDefault();
+        clearFeedback();
+
+        const savePayload = collectPoliciesForSave();
+        if (savePayload.error) {
+          showFeedback(savePayload.error, "error");
+          return;
+        }
+
+        const nextPolicies = Array.isArray(savePayload.policies) ? savePayload.policies : [];
+        const nextCoverageTotal = nextPolicies.reduce(function (sum, policy) {
+          return sum + parseCurrencyNumber(policy.faceAmount);
+        }, 0);
+        const today = new Date().toISOString().slice(0, 10);
+        const updatedRecord = typeof updateClientRecordByCaseRef === "function"
+          ? updateClientRecordByCaseRef(resolvedCaseRef, function (currentRecord) {
+              return {
+                ...currentRecord,
+                coveragePolicies: nextPolicies,
+                currentCoverage: nextCoverageTotal,
+                coverageAmount: nextCoverageTotal,
+                policyCount: nextPolicies.length,
+                lastUpdatedDate: today,
+                lastReview: today
+              };
+            })
+          : null;
+
+        if (!updatedRecord) {
+          showFeedback("Unable to save coverage details for this linked profile right now.", "error");
+          return;
+        }
+
+        linkedRecord = updatedRecord;
+        clientRecordsApi.setLinkedRecordId?.(updatedRecord.id);
+        loadDraftsFromRecord();
+        syncLinkedProfileSummary();
+        renderPolicies();
+        showFeedback(`Saved ${nextPolicies.length === 1 ? "1 policy" : `${nextPolicies.length} policies`} totaling ${formatCurrencyDisplay(nextCoverageTotal)}.`, "success");
+      });
+    })();
+  </script>
+</body>
+</html>

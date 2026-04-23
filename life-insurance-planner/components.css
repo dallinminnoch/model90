@@ -883,12 +883,14 @@ input.search-bar__input {
 
 body[data-page="preliminary-linked"] .entry-page-link-card .profile-form-section-heading h2,
 body[data-page="protection-modeling-linked"] .entry-page-link-card .profile-form-section-heading h2,
+body[data-page="existing-coverage-linked"] .entry-page-link-card .profile-form-section-heading h2,
 body[data-page="protection-modeling-inputs"] .entry-page-link-card .profile-form-section-heading h2 {
   font-size: 1.35rem;
 }
 
 body[data-page="preliminary-linked"] .entry-page-action-card .entry-mode-actions,
 body[data-page="protection-modeling-linked"] .entry-page-action-card .entry-mode-actions,
+body[data-page="existing-coverage-linked"] .entry-page-action-card .entry-mode-actions,
 body[data-page="protection-modeling-inputs"] .entry-page-action-card .entry-mode-actions {
   display: grid;
   gap: 0.95rem;
@@ -897,6 +899,7 @@ body[data-page="protection-modeling-inputs"] .entry-page-action-card .entry-mode
 
 body[data-page="preliminary-linked"] .entry-page-action-card .entry-mode-button,
 body[data-page="protection-modeling-linked"] .entry-page-action-card .entry-mode-button,
+body[data-page="existing-coverage-linked"] .entry-page-action-card .entry-mode-button,
 body[data-page="protection-modeling-inputs"] .entry-page-action-card .entry-mode-button {
   width: 100%;
   min-width: 0;
@@ -904,11 +907,13 @@ body[data-page="protection-modeling-inputs"] .entry-page-action-card .entry-mode
   font-size: 1rem;
 }
 
-body[data-page="preliminary-linked"] .entry-page-action-card--single .entry-mode-option {
+body[data-page="preliminary-linked"] .entry-page-action-card--single .entry-mode-option,
+body[data-page="existing-coverage-linked"] .entry-page-action-card--single .entry-mode-option {
   grid-template-columns: minmax(0, 1fr);
 }
 
-body[data-page="preliminary-linked"] .entry-page-action-card--single .entry-mode-option .entry-mode-button {
+body[data-page="preliminary-linked"] .entry-page-action-card--single .entry-mode-option .entry-mode-button,
+body[data-page="existing-coverage-linked"] .entry-page-action-card--single .entry-mode-option .entry-mode-button {
   grid-column: 1;
   width: 100%;
   min-width: 0;
@@ -952,6 +957,7 @@ body[data-page="protection-modeling-inputs"] .entry-page-action-card .entry-mode
 }
 
 body[data-page="protection-modeling-linked"] .entry-page-action-card .entry-mode-note,
+body[data-page="existing-coverage-linked"] .entry-page-action-card .entry-mode-note,
 body[data-page="protection-modeling-inputs"] .entry-page-action-card .entry-mode-note {
   max-width: none;
   text-align: left;
@@ -1002,6 +1008,7 @@ body[data-page="protection-modeling-inputs"] .entry-page-action-card .entry-mode
 
 body[data-page="preliminary-linked"] .preliminary-link-helper,
 body[data-page="protection-modeling-linked"] .preliminary-link-helper,
+body[data-page="existing-coverage-linked"] .preliminary-link-helper,
 body[data-page="protection-modeling-inputs"] .preliminary-link-helper {
   text-align: left;
   margin-top: 0.25rem;
@@ -1011,6 +1018,7 @@ body[data-page="protection-modeling-inputs"] .preliminary-link-helper {
 
 body[data-page="preliminary-linked"] .preliminary-link-grid,
 body[data-page="protection-modeling-linked"] .preliminary-link-grid,
+body[data-page="existing-coverage-linked"] .preliminary-link-grid,
 body[data-page="protection-modeling-inputs"] .preliminary-link-grid {
   gap: 0.95rem;
 }
@@ -1163,6 +1171,7 @@ body[data-page="protection-modeling-inputs"] .preliminary-link-grid {
 @media (max-width: 720px) {
   body[data-page="preliminary-linked"] .preliminary-link-grid,
   body[data-page="protection-modeling-linked"] .preliminary-link-grid,
+  body[data-page="existing-coverage-linked"] .preliminary-link-grid,
   body[data-page="protection-modeling-inputs"] .preliminary-link-grid {
     grid-template-columns: 1fr;
   }

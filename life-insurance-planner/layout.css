@@ -565,12 +565,14 @@ body.settings-page .workspace-page-topbar {
 
 body[data-page="preliminary-linked"],
 body[data-page="protection-modeling-linked"],
+body[data-page="existing-coverage-linked"],
 body[data-page="protection-modeling-inputs"] {
   --entry-page-max-width: 1080px;
 }
 
 body[data-page="preliminary-linked"] .prospect-stage,
 body[data-page="protection-modeling-linked"] .prospect-stage,
+body[data-page="existing-coverage-linked"] .prospect-stage,
 body[data-page="protection-modeling-inputs"] .prospect-stage {
   max-width: calc(var(--entry-page-max-width) + 6rem);
   margin: 0 auto;
@@ -589,6 +591,7 @@ body[data-page="preliminary-linked"] .prospect-stage {
 
 body[data-page="preliminary-linked"] .entry-page-viewport,
 body[data-page="protection-modeling-linked"] .entry-page-viewport,
+body[data-page="existing-coverage-linked"] .entry-page-viewport,
 body[data-page="protection-modeling-inputs"] .entry-page-viewport {
   min-height: clamp(38rem, 82vh, 56rem);
   padding-block: clamp(0.75rem, 2vw, 1.5rem);
@@ -613,6 +616,7 @@ body[data-page="preliminary-linked"] .entry-page-viewport {
 @media (max-width: 720px) {
   body[data-page="preliminary-linked"] .prospect-stage,
   body[data-page="protection-modeling-linked"] .prospect-stage,
+  body[data-page="existing-coverage-linked"] .prospect-stage,
   body[data-page="protection-modeling-inputs"] .prospect-stage {
     min-height: 0;
     padding-block: 0;
@@ -620,6 +624,7 @@ body[data-page="preliminary-linked"] .entry-page-viewport {
 
   body[data-page="preliminary-linked"] .entry-page-viewport,
   body[data-page="protection-modeling-linked"] .entry-page-viewport,
+  body[data-page="existing-coverage-linked"] .entry-page-viewport,
   body[data-page="protection-modeling-inputs"] .entry-page-viewport {
     min-height: 0;
     padding-block: 0;

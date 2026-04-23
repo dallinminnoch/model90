@@ -7,7 +7,6 @@
     return [
       "profile.html",
       "manual-protection-modeling-inputs.html",
-      "manual-simplified-pmi.html",
       "manual-minimum-inputs.html",
       "income-loss-impact.html",
       "analysis-estimate.html",
@@ -240,7 +239,6 @@
         const isLensDestination = isAnalysisToolPage() && [
           "profile.html",
           "manual-protection-modeling-inputs.html",
-          "manual-simplified-pmi.html",
           "manual-minimum-inputs.html",
           "income-loss-impact.html",
           "analysis-estimate.html",

@@ -365,24 +365,28 @@
         });
       });
 
-      rowsHost.querySelectorAll("[data-client-delete]").forEach((button) => {
-        button.addEventListener("click", (event) => {
-          event.stopPropagation();
-          const recordId = String(button.getAttribute("data-client-delete") || "").trim();
-          const recordName = String(button.getAttribute("data-client-delete-name") || "this profile").trim();
+        rowsHost.querySelectorAll("[data-client-delete]").forEach((button) => {
+          button.addEventListener("click", (event) => {
+            event.stopPropagation();
+            const recordId = String(button.getAttribute("data-client-delete") || "").trim();
+            const recordName = String(button.getAttribute("data-client-delete-name") || "this profile").trim();
           if (!recordId) {
             return;
           }
 
           const confirmed = window.confirm(`Delete ${recordName}? This action cannot be undone.`);
-          if (!confirmed) {
-            return;
-          }
+            if (!confirmed) {
+              return;
+            }
 
-          deleteClientRecord(recordId);
-          renderDirectory();
+            const deletedRecordIds = deleteClientRecord(recordId);
+            deletedRecordIds.forEach((deletedRecordId) => {
+              selectedRecordIds.delete(String(deletedRecordId || "").trim());
+            });
+            selectedRecordIds.delete(recordId);
+            renderDirectory();
+          });
         });
-      });
 
       rowsHost.querySelectorAll("[data-priority-trigger]").forEach((button) => {
         button.addEventListener("click", (event) => {
@@ -731,6 +735,12 @@
       const memberRecords = sortedMemberEntries.map((entry) => entry.record);
       const memberDisplayNames = memberRecords.map((record) => buildCanonicalIndividualDisplayName(record));
       const directoryMembers = memberRecords.map(buildDirectoryMemberProfile);
+      const directorySourceRecordIds = Array.from(new Set([
+        groupRecord?.id,
+        ...memberRecords.map((record) => record?.id)
+      ]
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)));
       const primaryLastName = String(groupRecord?.lastName || memberRecords[0]?.lastName || "").trim();
       const firstTwoNames = memberRecords
         .map((record) => getDirectoryPreferredFirstName(record))
@@ -746,17 +756,25 @@
         lastName: primaryLastName,
         householdName: "",
         directoryMembers,
+        directorySourceRecordIds,
         directorySearchText: buildDirectorySearchText(groupRecord, memberDisplayNames)
       };
     }
 
-    function buildProjectedIndividualRecord(record) {
+    function buildProjectedIndividualRecord(record, relatedSourceRecordIds) {
       const displayName = buildCanonicalIndividualDisplayName(record);
+      const directorySourceRecordIds = Array.from(new Set([
+        record?.id,
+        ...(Array.isArray(relatedSourceRecordIds) ? relatedSourceRecordIds : [])
+      ]
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)));
       return {
         ...record,
         displayName,
         householdName: "",
         directoryMembers: [buildDirectoryMemberProfile(record)],
+        directorySourceRecordIds,
         directorySearchText: buildDirectorySearchText(record, [displayName])
       };
     }
@@ -820,7 +838,7 @@
       if (memberEntries.length === 1) {
         projectedEntries.push({
           index: memberEntries[0].index,
-          record: buildProjectedIndividualRecord(memberEntries[0].record)
+          record: buildProjectedIndividualRecord(memberEntries[0].record, [groupEntry.record?.id])
         });
         return;
       }
@@ -831,6 +849,7 @@
           ...groupEntry.record,
           householdName: "",
           directoryMembers: [],
+          directorySourceRecordIds: [String(groupEntry.record?.id || "").trim()].filter(Boolean),
           directorySearchText: buildDirectorySearchText(groupEntry.record, [])
         }
       });
@@ -858,6 +877,7 @@
             ...entry.record,
             householdName: "",
             directoryMembers: [],
+            directorySourceRecordIds: [String(entry.record?.id || "").trim()].filter(Boolean),
             directorySearchText: buildDirectorySearchText(entry.record, [])
           }
       });
@@ -1246,7 +1266,7 @@
             </div>
           </div>
           <div class="client-row-delete-control">
-            <button class="client-row-delete-button" type="button" data-client-delete="${record.id}" data-client-delete-name="${escapeHtml(record.displayName)}" aria-label="Delete ${record.displayName}">
+            <button class="client-row-delete-button" type="button" data-client-delete="${record.id}" data-client-delete-name="${escapeHtml(record.displayName)}" aria-label="Delete ${escapeHtml(record.displayName)}">
               <span class="client-row-delete-icon" aria-hidden="true"></span>
             </button>
           </div>
@@ -1531,10 +1551,19 @@
 
   function deleteClientRecord(recordId) {
     const { getClientRecords, writeClientRecords } = getClientRecordsApi();
+    const currentRecords = getClientRecords();
     const normalizedRecordId = String(recordId || "").trim();
-    selectedRecordIds.delete(normalizedRecordId);
-    const nextRecords = getClientRecords().filter((record) => String(record?.id || "").trim() !== normalizedRecordId);
+    const canonicalRecord = buildCanonicalDirectoryRecords(currentRecords)
+      .find((record) => String(record?.id || "").trim() === normalizedRecordId);
+    const normalizedSourceRecordIds = new Set(
+      (Array.isArray(canonicalRecord?.directorySourceRecordIds) ? canonicalRecord.directorySourceRecordIds : [normalizedRecordId])
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+    );
+
+    const nextRecords = currentRecords.filter((record) => !normalizedSourceRecordIds.has(String(record?.id || "").trim()));
     writeClientRecords(nextRecords);
+    return Array.from(normalizedSourceRecordIds);
   }
 
   function getInitials(name, viewType, lastName) {

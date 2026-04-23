@@ -639,7 +639,10 @@
       data.otherAssetsAvailable
     ].some(hasEnteredMoneyValue);
     const educationFundingTotal = parseMoneyValue(data.educationFundingTotal)
-      || ((parseMoneyValue(data.estimatedCostPerChild) * Math.max(0, parseMoneyValue(data.childrenNeedingFunding))) * (clampPercentValue(data.costToFundPercent || 100) / 100));
+      || ((
+        (parseMoneyValue(data.estimatedCostPerChild) * Math.max(0, parseMoneyValue(data.childrenNeedingFunding)))
+        + (parseMoneyValue(data.projectedEducationFundingPerDependent) * Math.max(0, parseMoneyValue(data.projectedDependentsCount)))
+      ) * (clampPercentValue(data.costToFundPercent || 100) / 100));
     const finalExpensesTotal = parseMoneyValue(data.finalExpensesTotal)
       || parseMoneyValue(data.funeralBurialEstimate)
       + parseMoneyValue(data.medicalEndOfLifeCosts)
@@ -748,12 +751,24 @@
     const linkedRecord = getClientRecordByReference(getLinkedRecordId(), getLinkedCaseRef());
     const modelingPayload = getLatestProtectionModelingPayload(linkedRecord);
     const linkedData = modelingPayload?.data || {};
+    const linkedCoverageFallback = parseMoneyValue(linkedRecord?.currentCoverage) || parseMoneyValue(linkedRecord?.coverageAmount);
+    const hasExplicitModeledCoverage = hasEnteredMoneyValue(linkedData.existingCoverageTotal)
+      || hasEnteredMoneyValue(linkedData.individualDeathBenefit)
+      || hasEnteredMoneyValue(linkedData.groupLifeCoverage)
+      || hasEnteredMoneyValue(linkedData.currentCoverageAmount)
+      || hasEnteredMoneyValue(linkedData.currentLifeInsuranceCoverage);
+    const linkedAnalysisData = !hasExplicitModeledCoverage && linkedCoverageFallback > 0
+      ? {
+          ...linkedData,
+          existingCoverageTotal: String(linkedCoverageFallback)
+        }
+      : linkedData;
 
     return {
       sourceType: "linked",
       session: null,
       record: linkedRecord,
-      buckets: buildAnalysisBucketsFromData(linkedData, {
+      buckets: buildAnalysisBucketsFromData(linkedAnalysisData, {
         currentAge: parseMoneyValue(linkedRecord?.age) || calculateAgeFromDate(linkedRecord?.dateOfBirth),
         variant: String(modelingPayload?.variant || "").trim()
       }),
@@ -1094,7 +1109,6 @@
   const ANALYSIS_TOOL_PATHS = new Set([
     "profile.html",
     "manual-protection-modeling-inputs.html",
-    "manual-simplified-pmi.html",
     "manual-minimum-inputs.html",
     "income-loss-impact.html",
     "analysis-estimate.html",
