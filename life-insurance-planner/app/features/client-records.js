@@ -72,6 +72,8 @@
     return records
       .filter((record) => record && typeof record === "object")
       .map((record, index) => {
+        const nextRecord = { ...record };
+        delete nextRecord.isFlagged;
         const preferredName = String(record.preferredName || "").trim();
         const firstName = String(record.firstName || "").trim();
         const lastName = String(record.lastName || "").trim();
@@ -112,7 +114,7 @@
           );
 
         return {
-          ...record,
+          ...nextRecord,
           id: String(record.id || `cl-normalized-${index}`),
           viewType,
           displayName,

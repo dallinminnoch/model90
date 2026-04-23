@@ -60,7 +60,6 @@
 
   function getDirectoryScopeIcon(key) {
     const assetMap = {
-      flagged: "../Images/flat.svg",
       "recently-viewed": "../Images/recentlyviewed.svg",
       "recently-added": "../Images/recentlyadded.svg",
       incomplete: "../Images/incomplete.svg"
@@ -490,7 +489,6 @@
       { key: "low", label: "Low Priority" }
     ];
     const scopeItems = [
-      { key: "flagged", label: "Flagged" },
       { key: "recently-viewed", label: "Recently Viewed" },
       { key: "recently-added", label: "Recently Added" },
       { key: "incomplete", label: "Incomplete Profiles" }

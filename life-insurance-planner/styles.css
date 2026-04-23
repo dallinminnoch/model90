@@ -2580,11 +2580,6 @@ body[data-page="protection-modeling-inputs"] .field-group > label {
   justify-content: center;
 }
 
-.client-table-cell-flag {
-  display: flex;
-  justify-content: center;
-}
-
 .client-table-cell-check input {
   width: 1.1rem;
   height: 1.1rem;

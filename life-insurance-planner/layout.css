@@ -81,22 +81,19 @@
     --client-directory-main-pad-y: 1em;
     --client-directory-main-pad-x: 1.5em;
     --client-directory-main-pad-bottom: 1.5em;
-    --client-directory-flag-aspect-ratio: 1.2835;
     --client-directory-check-size: 1.95em;
     --client-directory-control-box-size: calc(var(--client-directory-check-size) * 0.82);
     --client-directory-checkbox-visual-scale: 1.22;
+    --client-directory-pin-visual-scale: 0.84;
     --client-directory-control-track: calc(var(--client-directory-check-size) * 0.64);
-    --client-directory-row-control-rail-width: calc((var(--client-directory-control-box-size) * var(--client-directory-checkbox-visual-scale, 1)) + (var(--client-directory-check-size) * 0.68) + (var(--client-directory-flag-icon-size) * var(--client-directory-flag-aspect-ratio)) + (var(--client-directory-local-table-gap, 0.45em) * 2));
+    --client-directory-row-control-rail-width: calc((var(--client-directory-control-box-size) * var(--client-directory-checkbox-visual-scale, 1)) + (var(--client-directory-check-size) * var(--client-directory-pin-visual-scale, 0.84)) + var(--client-directory-local-table-gap, 0.45em));
     --client-directory-row-control-offset: calc(var(--client-directory-row-control-rail-width) + var(--client-directory-local-table-gap, 0.45em));
-    --client-directory-flag-button-size: var(--client-directory-control-box-size);
-    --client-directory-flag-icon-size: calc(var(--client-directory-check-size) * 0.68);
-    --client-directory-flag-track: calc((var(--client-directory-flag-icon-size) * var(--client-directory-flag-aspect-ratio)) + 0.12em);
+    --client-directory-row-delete-rail-width: calc(var(--client-directory-control-box-size) + 0.4em);
     --client-directory-search-max: 27em;
     --client-directory-order-trigger-min-width: 12.4em;
     --client-directory-items-trigger-min-width: 9.25em;
     --client-directory-summary-note-max: 17em;
     --client-directory-summary-card-min-height: 13em;
-    --client-directory-next-action-max: 12.2em;
     --client-directory-row-avatar-size: calc((1.78rem + (0.86rem * var(--client-directory-density-scale))) / 1.6);
     --client-directory-row-avatar-font-size: calc(var(--client-directory-row-avatar-size) * 0.39);
     --client-directory-row-name-size: calc(0.99em + (0.14em * var(--client-directory-density-scale)));
@@ -126,15 +123,11 @@
     --client-directory-main-pad-x: 1.18em;
     --client-directory-main-pad-bottom: 1.08em;
     --client-directory-check-size: 1.82em;
-    --client-directory-flag-button-size: var(--client-directory-control-box-size);
-    --client-directory-flag-icon-size: calc(var(--client-directory-check-size) * 0.68);
-    --client-directory-flag-track: calc((var(--client-directory-flag-icon-size) * var(--client-directory-flag-aspect-ratio)) + 0.12em);
     --client-directory-search-max: 23em;
     --client-directory-order-trigger-min-width: 10.6em;
     --client-directory-items-trigger-min-width: 8em;
     --client-directory-summary-note-max: 13em;
     --client-directory-summary-card-min-height: 11.5em;
-    --client-directory-next-action-max: 10.1em;
     font-size: clamp(0.8rem, calc(0.46rem + 0.58cqi), 0.95rem);
   }
 
@@ -150,11 +143,11 @@
     --client-directory-local-primary-gap: 0.38em;
     --client-directory-local-table-columns:
         minmax(calc(12.35em * var(--client-directory-track-scale, 1)), 1.72fr)
-        minmax(calc(6.35em * var(--client-directory-track-scale, 1)), 0.72fr)
-        minmax(calc(6em * var(--client-directory-track-scale, 1)), 0.72fr)
-        minmax(calc(10.35em * var(--client-directory-track-scale, 1)), 1.06fr)
-        minmax(calc(5.8em * var(--client-directory-track-scale, 1)), 0.74fr)
-        minmax(calc(5.2em * var(--client-directory-track-scale, 1)), 0.56fr);
+        minmax(calc(6em * var(--client-directory-track-scale, 1)), 0.68fr)
+        minmax(calc(5.7em * var(--client-directory-track-scale, 1)), 0.68fr)
+        minmax(calc(13.4em * var(--client-directory-track-scale, 1)), 1.2fr)
+        minmax(calc(4.95em * var(--client-directory-track-scale, 1)), 0.54fr)
+        minmax(calc(5.45em * var(--client-directory-track-scale, 1)), 0.7fr);
     --client-directory-local-table-gap: 0.45em;
     --client-directory-local-table-pad-block: 0.92em;
     --client-directory-local-table-pad-inline: 1em;
@@ -164,11 +157,11 @@
   body.clients-page:not(.workspace-side-nav-collapsed)[data-local-client-directory="true"] .client-directory-workspace {
     --client-directory-local-table-columns:
         minmax(11.25em, 1.78fr)
-        minmax(5.9em, 0.68fr)
-        minmax(4.95em, 0.7fr)
-        minmax(8.9em, 1fr)
-        minmax(4.65em, 0.66fr)
-        minmax(4.4em, 0.54fr);
+        minmax(5.5em, 0.66fr)
+        minmax(4.75em, 0.68fr)
+        minmax(11.4em, 1.08fr)
+        minmax(4.3em, 0.52fr)
+        minmax(4.5em, 0.64fr);
     --client-directory-local-table-gap: 0.36em;
     --client-directory-local-table-pad-block: 0.8em;
     --client-directory-local-table-pad-inline: 0.84em;
@@ -183,26 +176,22 @@
       --client-directory-main-pad-x: 1.08em;
       --client-directory-main-pad-bottom: 1em;
       --client-directory-check-size: 1.72em;
-      --client-directory-flag-button-size: var(--client-directory-control-box-size);
-      --client-directory-flag-icon-size: calc(var(--client-directory-check-size) * 0.68);
-      --client-directory-flag-track: calc((var(--client-directory-flag-icon-size) * var(--client-directory-flag-aspect-ratio)) + 0.12em);
       --client-directory-search-max: 20.5em;
       --client-directory-order-trigger-min-width: 10em;
       --client-directory-items-trigger-min-width: 7.4em;
       --client-directory-summary-note-max: 12.25em;
       --client-directory-summary-card-min-height: 11em;
-      --client-directory-next-action-max: 9em;
       font-size: clamp(0.78rem, calc(0.48rem + 0.5cqi), 0.9rem);
     }
 
     body.clients-page[data-local-client-directory="true"] .client-directory-workspace {
       --client-directory-local-table-columns:
           minmax(10.85em, 1.68fr)
-          minmax(5.7em, 0.7fr)
-          minmax(5.25em, 0.72fr)
-          minmax(8.75em, 1.02fr)
-          minmax(5.05em, 0.74fr)
-          minmax(4.55em, 0.56fr);
+          minmax(5.35em, 0.68fr)
+          minmax(5em, 0.7fr)
+          minmax(10.75em, 1.08fr)
+          minmax(4.45em, 0.54fr)
+          minmax(4.8em, 0.7fr);
       --client-directory-local-table-gap: 0.38em;
       --client-directory-local-table-pad-block: 0.82em;
       --client-directory-local-table-pad-inline: 0.88em;
@@ -230,26 +219,22 @@
       --client-directory-main-pad-x: 0.92em;
       --client-directory-main-pad-bottom: 0.84em;
       --client-directory-check-size: 1.56em;
-      --client-directory-flag-button-size: var(--client-directory-control-box-size);
-      --client-directory-flag-icon-size: calc(var(--client-directory-check-size) * 0.68);
-      --client-directory-flag-track: calc((var(--client-directory-flag-icon-size) * var(--client-directory-flag-aspect-ratio)) + 0.12em);
       --client-directory-search-max: 15em;
       --client-directory-order-trigger-min-width: 8.4em;
       --client-directory-items-trigger-min-width: 6.2em;
       --client-directory-summary-note-max: 10em;
       --client-directory-summary-card-min-height: 10em;
-      --client-directory-next-action-max: 8em;
       font-size: clamp(0.72rem, calc(0.54rem + 0.34cqi), 0.82rem);
     }
 
     body.clients-page[data-local-client-directory="true"] .client-directory-workspace {
       --client-directory-local-table-columns:
           minmax(9.75em, 1.58fr)
-          minmax(5.2em, 0.68fr)
-          minmax(4.9em, 0.7fr)
-          minmax(7.55em, 0.96fr)
-          minmax(4.65em, 0.7fr)
-          minmax(4.35em, 0.52fr);
+          minmax(4.9em, 0.66fr)
+          minmax(4.7em, 0.68fr)
+          minmax(9.45em, 1fr)
+          minmax(4.2em, 0.5fr)
+          minmax(4.45em, 0.68fr);
       --client-directory-local-table-gap: 0.32em;
       --client-directory-local-table-pad: 0.74em 0.78em;
     }

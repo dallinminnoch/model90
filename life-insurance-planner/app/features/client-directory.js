@@ -106,11 +106,11 @@
       return `
         <div class="client-table client-table-header directory-list-header client-directory-group-column-header" role="row">
           <div class="client-table-cell" data-directory-heading-name>${getDirectoryNameHeadingText()}</div>
-          <div class="client-table-cell client-table-cell-case-ref-title">Case Ref</div>
+          <div class="client-table-cell client-table-cell-members-title">Members</div>
           <div class="client-table-cell client-table-cell-close-index-title">Close Index</div>
           <div class="client-table-cell client-table-cell-next-action-title" data-directory-heading-next-action>Next Action</div>
-          <div class="client-table-cell client-table-cell-nowrap client-table-cell-coverage-amount-title" data-directory-heading-coverage>Coverage Gap</div>
           <div class="client-table-cell client-table-cell-priority-title">Priority</div>
+          <div class="client-table-cell client-table-cell-nowrap client-table-cell-coverage-amount-title" data-directory-heading-coverage>Coverage Gap</div>
         </div>
       `;
     }
@@ -185,15 +185,38 @@
       });
     }
 
+    function compareDirectoryRecordsByPinned(firstRecord, secondRecord) {
+      const firstPinned = getRecordPinnedState(firstRecord);
+      const secondPinned = getRecordPinnedState(secondRecord);
+
+      if (firstPinned === secondPinned) {
+        return 0;
+      }
+
+      return firstPinned ? -1 : 1;
+    }
+
     function sortDirectoryRecords(sourceRecords) {
       if (sortOrder === "alphabetical") {
-        return sourceRecords.slice().sort(compareDirectoryRecordsAlphabetically);
+        return sourceRecords.slice().sort((firstRecord, secondRecord) => {
+          const pinnedDifference = compareDirectoryRecordsByPinned(firstRecord, secondRecord);
+          if (pinnedDifference !== 0) {
+            return pinnedDifference;
+          }
+
+          return compareDirectoryRecordsAlphabetically(firstRecord, secondRecord);
+        });
       }
 
       return sourceRecords.map((record) => ({
         record,
         scoreResult: getDirectoryOpportunityScoreResult(record)
       })).sort((firstEntry, secondEntry) => {
+        const pinnedDifference = compareDirectoryRecordsByPinned(firstEntry.record, secondEntry.record);
+        if (pinnedDifference !== 0) {
+          return pinnedDifference;
+        }
+
         const scoreDifference = secondEntry.scoreResult.score - firstEntry.scoreResult.score;
         if (scoreDifference !== 0) {
           return scoreDifference;
@@ -206,28 +229,6 @@
 
         return compareDirectoryRecordsAlphabetically(firstEntry.record, secondEntry.record);
       }).map((entry) => entry.record);
-    }
-
-    function toggleRecordFlag(recordId) {
-      const normalizedRecordId = String(recordId || "").trim();
-      if (!normalizedRecordId) {
-        return false;
-      }
-
-      const nextRecords = getClientRecords().map((record) => {
-        const currentRecordId = String(record.id || "").trim();
-        if (currentRecordId !== normalizedRecordId) {
-          return record;
-        }
-
-        return {
-          ...record,
-          isFlagged: !Boolean(record.isFlagged)
-        };
-      });
-
-      writeClientRecords(nextRecords);
-      return true;
     }
 
     const DIRECTORY_PIPELINE_GROUPS = Object.freeze([
@@ -351,6 +352,38 @@
         });
       });
 
+      rowsHost.querySelectorAll("[data-client-pin-toggle]").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const recordId = String(button.getAttribute("data-client-pin-toggle") || "").trim();
+          if (!recordId) {
+            return;
+          }
+
+          toggleClientPinned(recordId);
+          renderDirectory();
+        });
+      });
+
+      rowsHost.querySelectorAll("[data-client-delete]").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const recordId = String(button.getAttribute("data-client-delete") || "").trim();
+          const recordName = String(button.getAttribute("data-client-delete-name") || "this profile").trim();
+          if (!recordId) {
+            return;
+          }
+
+          const confirmed = window.confirm(`Delete ${recordName}? This action cannot be undone.`);
+          if (!confirmed) {
+            return;
+          }
+
+          deleteClientRecord(recordId);
+          renderDirectory();
+        });
+      });
+
       rowsHost.querySelectorAll("[data-priority-trigger]").forEach((button) => {
         button.addEventListener("click", (event) => {
           event.stopPropagation();
@@ -389,23 +422,9 @@
         });
       });
 
-      rowsHost.querySelectorAll("[data-client-flag-toggle]").forEach((button) => {
-        button.addEventListener("click", (event) => {
-          event.stopPropagation();
-          const recordId = String(button.getAttribute("data-client-flag-toggle") || "").trim();
-          if (!recordId) {
-            return;
-          }
-
-          if (toggleRecordFlag(recordId)) {
-            renderDirectory();
-          }
-        });
-      });
-
       rowsHost.querySelectorAll("[data-client-open]").forEach((row) => {
         row.addEventListener("click", (event) => {
-          if (event.target.closest("input") || event.target.closest("[data-priority-dropdown]") || event.target.closest("[data-client-flag-toggle]")) {
+          if (event.target.closest("input") || event.target.closest("[data-priority-dropdown]") || event.target.closest("[data-client-pin-toggle]") || event.target.closest("[data-client-delete]")) {
             return;
           }
 
@@ -422,7 +441,7 @@
             return;
           }
 
-          if (event.target.closest("input") || event.target.closest("[data-priority-dropdown]") || event.target.closest("[data-client-flag-toggle]")) {
+          if (event.target.closest("input") || event.target.closest("[data-priority-dropdown]") || event.target.closest("[data-client-pin-toggle]") || event.target.closest("[data-client-delete]")) {
             return;
           }
 
@@ -653,15 +672,25 @@
     return parts[0] || "";
   }
 
-  function buildCanonicalIndividualDisplayName(record) {
-    const lastName = String(record?.lastName || "").trim();
-    const firstName = getDirectoryPreferredFirstName(record);
-    if (lastName && firstName) {
-      return `${lastName}, ${firstName}`;
+    function buildCanonicalIndividualDisplayName(record) {
+      const lastName = String(record?.lastName || "").trim();
+      const firstName = getDirectoryPreferredFirstName(record);
+      if (lastName && firstName) {
+        return `${lastName}, ${firstName}`;
     }
 
-    return String(record?.displayName || "").trim() || [lastName, firstName].filter(Boolean).join(", ").trim();
-  }
+      return String(record?.displayName || "").trim() || [lastName, firstName].filter(Boolean).join(", ").trim();
+    }
+
+    function buildDirectoryMemberProfile(record) {
+      return {
+        displayName: buildCanonicalIndividualDisplayName(record),
+        lastName: String(record?.lastName || "").trim(),
+        age: record?.age,
+        dateOfBirth: record?.dateOfBirth,
+        viewType: "individuals"
+      };
+    }
 
   function buildDirectorySearchText(record, extras) {
     return [
@@ -691,37 +720,40 @@
     });
   }
 
-  function buildProjectedGroupRecord(groupRecord, memberEntries) {
-    const sortedMemberEntries = sortDirectoryGroupMemberEntries(memberEntries, groupRecord);
-    const memberRecords = sortedMemberEntries.map((entry) => entry.record);
-    const memberDisplayNames = memberRecords.map((record) => buildCanonicalIndividualDisplayName(record));
-    const primaryLastName = String(groupRecord?.lastName || memberRecords[0]?.lastName || "").trim();
-    const firstTwoNames = memberRecords
-      .map((record) => getDirectoryPreferredFirstName(record))
-      .filter(Boolean)
+    function buildProjectedGroupRecord(groupRecord, memberEntries) {
+      const sortedMemberEntries = sortDirectoryGroupMemberEntries(memberEntries, groupRecord);
+      const memberRecords = sortedMemberEntries.map((entry) => entry.record);
+      const memberDisplayNames = memberRecords.map((record) => buildCanonicalIndividualDisplayName(record));
+      const directoryMembers = memberRecords.map(buildDirectoryMemberProfile);
+      const primaryLastName = String(groupRecord?.lastName || memberRecords[0]?.lastName || "").trim();
+      const firstTwoNames = memberRecords
+        .map((record) => getDirectoryPreferredFirstName(record))
+        .filter(Boolean)
       .slice(0, 2);
     const displayName = primaryLastName && firstTwoNames.length
       ? `${primaryLastName}, ${firstTwoNames.join(" & ")}`
       : String(groupRecord?.displayName || "").trim();
 
-    return {
-      ...groupRecord,
-      displayName,
-      lastName: primaryLastName,
-      householdName: "",
-      directorySearchText: buildDirectorySearchText(groupRecord, memberDisplayNames)
-    };
-  }
+      return {
+        ...groupRecord,
+        displayName,
+        lastName: primaryLastName,
+        householdName: "",
+        directoryMembers,
+        directorySearchText: buildDirectorySearchText(groupRecord, memberDisplayNames)
+      };
+    }
 
-  function buildProjectedIndividualRecord(record) {
-    const displayName = buildCanonicalIndividualDisplayName(record);
-    return {
-      ...record,
-      displayName,
-      householdName: "",
-      directorySearchText: buildDirectorySearchText(record, [displayName])
-    };
-  }
+    function buildProjectedIndividualRecord(record) {
+      const displayName = buildCanonicalIndividualDisplayName(record);
+      return {
+        ...record,
+        displayName,
+        householdName: "",
+        directoryMembers: [buildDirectoryMemberProfile(record)],
+        directorySearchText: buildDirectorySearchText(record, [displayName])
+      };
+    }
 
   function buildCanonicalDirectoryRecords(records) {
     const safeRecords = Array.isArray(records)
@@ -792,6 +824,7 @@
         record: {
           ...groupEntry.record,
           householdName: "",
+          directoryMembers: [],
           directorySearchText: buildDirectorySearchText(groupEntry.record, [])
         }
       });
@@ -818,6 +851,7 @@
           : {
             ...entry.record,
             householdName: "",
+            directoryMembers: [],
             directorySearchText: buildDirectorySearchText(entry.record, [])
           }
       });
@@ -1059,51 +1093,100 @@
     });
   }
 
+    function getClientTypePresentation(record) {
+      const viewType = String(record?.viewType || "").trim().toLowerCase();
+
+      if (viewType === "households") {
+        return {
+          key: "household",
+          label: "Household"
+        };
+      }
+
+      if (viewType === "businesses" || viewType === "companies") {
+        return {
+          key: "business",
+          label: "Business"
+        };
+      }
+
+      return {
+        key: "individual",
+        label: "Individual"
+      };
+    }
+
+    function renderDirectoryMemberAvatars(record) {
+      const members = Array.isArray(record?.directoryMembers) ? record.directoryMembers : [];
+      const visibleMembers = members.slice(0, 2);
+
+      if (!visibleMembers.length) {
+        return `<span class="client-household-members-empty">--</span>`;
+      }
+
+      return `
+        <span class="client-household-members" aria-label="Members">
+          ${visibleMembers.map((member) => {
+            const avatarPresentation = getAvatarPresentation(member?.age, member?.dateOfBirth);
+            const avatarStyle = avatarPresentation
+              ? ` style="background: ${avatarPresentation.background}; color: ${avatarPresentation.color};"`
+              : "";
+            return `
+              <span class="client-household-member-avatar"${avatarStyle} title="${member.displayName}">
+                ${getInitials(member.displayName, member.viewType, member.lastName)}
+              </span>
+            `;
+          }).join("")}
+        </span>
+      `;
+    }
+
   function renderClientRow(record, isSelected) {
     const {
       normalizePriority,
       formatCurrencyCompact,
-      getPriorityDisplay
+      getPriorityDisplay,
+      escapeHtml
     } = getDirectoryHelpers();
     const priority = normalizePriority(record.priority);
     const opportunityScore = getDirectoryOpportunityScoreResult(record);
-    const isHouseholdAvatar = record.viewType === "households";
-    const avatarClasses = `client-avatar${isHouseholdAvatar ? " client-avatar-household" : ""}`;
-    const avatarPresentation = isHouseholdAvatar ? null : getAvatarPresentation(record.age, record.dateOfBirth);
-    const avatarStyle = avatarPresentation
-      ? ` style="background: ${avatarPresentation.background}; color: ${avatarPresentation.color};"`
-      : "";
-    const isFlagged = Boolean(record.isFlagged);
-    const subtitle = getClientDirectorySubtitle(record);
-
-      const rowFlagIconSrc = isFlagged ? "../Images/flat-row-selected.svg" : "../Images/flat-row.svg";
+    const typePresentation = getClientTypePresentation(record);
+    const householdMembersMarkup = renderDirectoryMemberAvatars(record);
+    const isPinned = getRecordPinnedState(record);
 
       return `
         <div class="client-table client-table-clickable directory-list-row" role="row" tabindex="0" data-client-open="${record.id}">
           <div class="client-row-controls" role="group" aria-label="Controls for ${record.displayName}">
             <div class="client-table-cell-check"><input class="row-select-checkbox" type="checkbox" aria-label="Select ${record.displayName}" data-client-select="${record.id}"${isSelected ? " checked" : ""}></div>
-            <div class="client-table-cell-pin"><span class="client-row-pin-icon" aria-hidden="true"></span></div>
-            <div class="client-table-cell-flag">
-              <button class="client-row-flag-button row-flag-control${isFlagged ? " is-flagged" : ""}" type="button" data-client-flag-toggle="${record.id}" aria-pressed="${isFlagged ? "true" : "false"}" aria-label="${isFlagged ? `Unflag ${record.displayName}` : `Flag ${record.displayName}`}">
-                <img class="client-row-flag-icon row-flag-control__icon" src="${rowFlagIconSrc}" alt="" aria-hidden="true">
+            <div class="client-table-cell-pin${isPinned ? " is-pinned" : ""}">
+              <button class="client-row-pin-button${isPinned ? " is-pinned" : ""}" type="button" data-client-pin-toggle="${record.id}" aria-pressed="${isPinned ? "true" : "false"}" aria-label="${isPinned ? `Unpin ${record.displayName}` : `Pin ${record.displayName}`}">
+                <span class="client-row-pin-icon" aria-hidden="true"></span>
               </button>
             </div>
           </div>
+          <div class="client-row-delete-control">
+            <button class="client-row-delete-button" type="button" data-client-delete="${record.id}" data-client-delete-name="${escapeHtml(record.displayName)}" aria-label="Delete ${record.displayName}">
+              <span class="client-row-delete-icon" aria-hidden="true"></span>
+            </button>
+          </div>
           <div class="client-table-cell client-table-cell-client directory-person">
-            <span class="${avatarClasses} directory-person__avatar"${avatarStyle}>${getInitials(record.displayName, record.viewType, record.lastName)}</span>
+            <span class="directory-person__open-indicator" aria-hidden="true"></span>
+            <span class="directory-person__avatar directory-person__avatar-classification directory-person__avatar-classification-${typePresentation.key}" aria-label="${typePresentation.label}">
+              <span class="directory-person__avatar-classification-icon" aria-hidden="true"></span>
+            </span>
           <div class="directory-person__body">
             <strong class="directory-person__name">${record.displayName}</strong>
-            ${subtitle ? `<span class="directory-person__subtitle">${subtitle}</span>` : ""}
           </div>
         </div>
-        <div class="client-table-cell client-table-cell-case-ref-value">${record.caseRef || "--"}</div>
+        <div class="client-table-cell client-table-cell-members-value">
+          ${householdMembersMarkup}
+        </div>
         <div class="client-table-cell client-table-cell-close-index-value client-table-cell-opportunity-score">
           <span class="client-opportunity-score-pill opportunity-score-pill ${opportunityScore.tier}" aria-label="Close index ${opportunityScore.score}" title="Close Index ${opportunityScore.score}">
             ${opportunityScore.score}
           </span>
         </div>
         <div class="client-table-cell client-table-cell-next-action-value"><span class="client-table-cell-next-action-text">${getDirectoryNextAction(record)}</span></div>
-        <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(getRecordUncoveredGapValue(record))}</div>
         <div class="client-table-cell client-table-cell-value client-table-cell-priority-value">
           <div class="client-priority-dropdown" data-priority-dropdown="${record.id}">
             <button class="client-priority-button priority-pill ${priority ? `client-priority-button-${priority}` : "client-priority-button-unset"}" type="button" data-priority-trigger aria-expanded="false">
@@ -1116,6 +1199,7 @@
             </div>
           </div>
         </div>
+        <div class="client-table-cell client-table-cell-coverage-amount-value">${formatCurrencyCompact(getRecordUncoveredGapValue(record))}</div>
       </div>
     `;
   }
@@ -1125,21 +1209,22 @@
 
     return records.map((record) => {
       const opportunityScore = getDirectoryOpportunityScoreResult(record);
+      const memberText = getDirectoryMembersExportText(record);
 
       return [
         record.displayName,
-        record.caseRef || "--",
+        memberText,
         String(opportunityScore.score),
         getDirectoryNextAction(record),
         getClientStatusDisplay(record),
-        formatCurrencyCompact(getRecordUncoveredGapValue(record)),
-        getPriorityDisplay(normalizePriority(record.priority))
+        getPriorityDisplay(normalizePriority(record.priority)),
+        formatCurrencyCompact(getRecordUncoveredGapValue(record))
       ];
     });
   }
 
   function exportClientRecords(records) {
-    const header = ["Client", "Case Ref", "Close Index", "Next Action", "Client Status", "Coverage Gap", "Priority"];
+    const header = ["Client", "Members", "Close Index", "Next Action", "Client Status", "Priority", "Coverage Gap"];
     const rows = buildDirectoryExportRows(records);
     const csv = [header, ...rows]
       .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
@@ -1222,12 +1307,12 @@
             <thead>
               <tr>
                 <th>Client</th>
-                <th>Case Ref</th>
+                <th>Members</th>
                 <th>Close Index</th>
                 <th>Next Action</th>
                 <th>Client Status</th>
-                <th>Coverage Gap</th>
                 <th>Priority</th>
+                <th>Coverage Gap</th>
               </tr>
             </thead>
             <tbody>${rowsMarkup}</tbody>
@@ -1322,6 +1407,36 @@
     writeClientRecords(records);
   }
 
+  function getRecordPinnedState(record) {
+    const value = record?.isPinned;
+    if (typeof value === "string") {
+      const normalized = value.trim().toLowerCase();
+      return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on";
+    }
+
+    return Boolean(value);
+  }
+
+  function toggleClientPinned(recordId) {
+    const { getClientRecords, writeClientRecords } = getClientRecordsApi();
+    const normalizedRecordId = String(recordId || "").trim();
+    const records = getClientRecords().map((record) => (
+      String(record?.id || "").trim() === normalizedRecordId
+        ? { ...record, isPinned: !getRecordPinnedState(record) }
+        : record
+    ));
+
+    writeClientRecords(records);
+  }
+
+  function deleteClientRecord(recordId) {
+    const { getClientRecords, writeClientRecords } = getClientRecordsApi();
+    const normalizedRecordId = String(recordId || "").trim();
+    selectedRecordIds.delete(normalizedRecordId);
+    const nextRecords = getClientRecords().filter((record) => String(record?.id || "").trim() !== normalizedRecordId);
+    writeClientRecords(nextRecords);
+  }
+
   function getInitials(name, viewType, lastName) {
     if (viewType === "households") {
       const householdLastInitial = getLastInitial(lastName);
@@ -1402,8 +1517,13 @@
     };
   }
 
-  function getClientDirectorySubtitle(record) {
-    return "";
+  function getDirectoryMembersExportText(record) {
+    const members = Array.isArray(record?.directoryMembers) ? record.directoryMembers : [];
+    const memberNames = members
+      .map((member) => String(member?.displayName || "").trim())
+      .filter(Boolean);
+
+    return memberNames.length ? memberNames.join(" & ") : "--";
   }
 
   function getDependentsDisplay(record) {
@@ -1431,7 +1551,7 @@
     interpolateNumber,
     getAvatarHue,
     getAvatarPresentation,
-    getClientDirectorySubtitle,
+    getDirectoryMembersExportText,
     getDependentsDisplay
   });
 })();

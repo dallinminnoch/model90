@@ -73,7 +73,6 @@
     interpolateNumber,
     getAvatarHue,
     getAvatarPresentation,
-    getClientDirectorySubtitle,
     getDependentsDisplay
   } = LensClientDirectory;
 

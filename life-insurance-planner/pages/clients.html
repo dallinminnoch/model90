@@ -768,25 +768,6 @@
                       </span>
                       <span>Export Selected Profiles</span>
                     </button>
-                    <button class="directory-menu__option" type="button" data-directory-command-action="flag-selected" data-directory-flag-selected role="menuitem">
-                      <span class="directory-command-option-icon" aria-hidden="true">
-                        <svg viewBox="0 0 20 20" fill="none">
-                          <path d="M5.25 3.55v12.9" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-                          <path d="M6.2 4.2h7.1l-1.45 2.55 1.45 2.45H6.2" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
-                      <span>Flag Selected Profiles</span>
-                    </button>
-                    <button class="directory-menu__option" type="button" data-directory-command-action="unflag-selected" data-directory-unflag-selected role="menuitem">
-                      <span class="directory-command-option-icon" aria-hidden="true">
-                        <svg viewBox="0 0 20 20" fill="none">
-                          <path d="M5.25 3.55v12.9" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
-                          <path d="M6.2 4.2h7.1l-1.45 2.55 1.45 2.45H6.2" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
-                          <path d="m8.15 8.15 4.25 4.25M12.4 8.15l-4.25 4.25" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"/>
-                        </svg>
-                      </span>
-                      <span>Remove Flag from Selected</span>
-                    </button>
                   </div>
                 </div>
               </div>
@@ -1090,8 +1071,6 @@
       const directoryCommandActionButtons = Array.from(document.querySelectorAll("[data-directory-command-action]"));
       const directoryImportInput = document.querySelector("[data-directory-import-input]");
       const directoryExportSelectedButtons = Array.from(document.querySelectorAll("[data-directory-export-selected]"));
-      const directoryFlagSelectedButtons = Array.from(document.querySelectorAll("[data-directory-flag-selected]"));
-      const directoryUnflagSelectedButtons = Array.from(document.querySelectorAll("[data-directory-unflag-selected]"));
       const addClientModal = document.querySelector("[data-directory-add-client-modal]");
       const addClientModalCloseTargets = Array.from(document.querySelectorAll("[data-directory-add-client-modal-close]"));
 
@@ -1332,6 +1311,7 @@
         }
 
         const nextRecord = { ...record };
+        delete nextRecord.isFlagged;
         const coverageFields = deriveRecordCoverageFields(nextRecord);
         if (String(nextRecord.viewType || "").trim() === "businesses") {
           nextRecord.viewType = "companies";
@@ -1394,7 +1374,7 @@
 
       function normalizeDirectoryScope(value) {
         const normalized = String(value || "").trim().toLowerCase();
-        return ["all", "flagged", "recently-viewed", "recently-added", "incomplete"].includes(normalized)
+        return ["all", "recently-viewed", "recently-added", "incomplete"].includes(normalized)
           ? normalized
           : "all";
       }
@@ -1516,6 +1496,8 @@
       }
 
       function normalizeRecord(record, index) {
+        const nextRecord = { ...record };
+        delete nextRecord.isFlagged;
         const preferredName = String(record.preferredName || "").trim();
         const firstName = String(record.firstName || "").trim();
         const lastName = String(record.lastName || "").trim();
@@ -1525,7 +1507,7 @@
         const coverageFields = deriveRecordCoverageFields(record);
 
         return {
-          ...record,
+          ...nextRecord,
           id: String(record.id || `cl-local-${index}`),
           viewType: (function () {
             const normalizedViewType = String(record.viewType || "").trim();
@@ -1564,7 +1546,6 @@
               : "prospects";
           })(),
           priority: normalizePriority(record.priority),
-          isFlagged: Boolean(record.isFlagged),
           lastViewedAt: String(record.lastViewedAt || "").trim(),
           currentCoverage: coverageFields.currentCoverage,
           modeledNeed: coverageFields.modeledNeed,
@@ -1702,10 +1683,6 @@
       }
 
       function matchesDirectoryScope(record) {
-        if (activeScope === "flagged") {
-          return Boolean(record.isFlagged);
-        }
-
         if (activeScope === "recently-viewed") {
           return isDateWithinDays(getRecordViewedDate(record), 7);
         }
@@ -3630,14 +3607,6 @@
           button.disabled = !hasSelectedRecords;
           button.classList.toggle("is-disabled", !hasSelectedRecords);
         });
-        directoryFlagSelectedButtons.forEach(function (button) {
-          button.disabled = !hasSelectedRecords;
-          button.classList.toggle("is-disabled", !hasSelectedRecords);
-        });
-        directoryUnflagSelectedButtons.forEach(function (button) {
-          button.disabled = !hasSelectedRecords;
-          button.classList.toggle("is-disabled", !hasSelectedRecords);
-        });
       }
 
       function downloadJsonFile(filename, payload) {
@@ -3682,33 +3651,6 @@
         const scopeLabel = String(scope || "view").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
         const filename = `model90-${scopeLabel}-${todayLabel}.json`;
         downloadJsonFile(filename, buildAdvisorPackagePayload(exportRecords, scope));
-        return true;
-      }
-
-      function setSelectedRecordsFlagState(nextFlagged) {
-        const selectedIds = new Set(getSelectedRecords().map(function (record) {
-          return String(record.id || "").trim();
-        }).filter(Boolean));
-        if (!selectedIds.size) {
-          window.alert("Select at least one profile first.");
-          return false;
-        }
-
-        const nextRecords = loadRecords().map(function (record, index) {
-          const normalizedRecord = normalizeRecord(record, index);
-          const recordId = String(normalizedRecord.id || "").trim();
-          if (!selectedIds.has(recordId)) {
-            return normalizedRecord;
-          }
-
-          return {
-            ...normalizedRecord,
-            isFlagged: Boolean(nextFlagged)
-          };
-        });
-
-        persistRecords(nextRecords);
-        renderDirectory();
         return true;
       }
 
@@ -3885,14 +3827,6 @@
           return exportAdvisorPackage("selected-profiles", getSelectedRecords());
         }
 
-        if (normalizedAction === "flag-selected") {
-          return setSelectedRecordsFlagState(true);
-        }
-
-        if (normalizedAction === "unflag-selected") {
-          return setSelectedRecordsFlagState(false);
-        }
-
         return false;
       }
 
@@ -4021,7 +3955,7 @@
           return setDirectoryPriority(priorityMatch[1], priorityMatch[2]);
         }
 
-        const scopeMatch = normalizedAction.match(/^(individuals|households|businesses):scope:(all|flagged|recently-viewed|recently-added|incomplete)$/);
+        const scopeMatch = normalizedAction.match(/^(individuals|households|businesses):scope:(all|recently-viewed|recently-added|incomplete)$/);
         if (scopeMatch) {
           return setDirectoryScope(scopeMatch[1], scopeMatch[2]);
         }
