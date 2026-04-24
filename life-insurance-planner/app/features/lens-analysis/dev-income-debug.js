@@ -17,6 +17,7 @@
   const NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID = lensAnalysis.NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID || "non-housing-ongoing-support";
   const EDUCATION_SUPPORT_BLOCK_ID = lensAnalysis.EDUCATION_SUPPORT_BLOCK_ID || "education-support";
   const FINAL_EXPENSES_BLOCK_ID = lensAnalysis.FINAL_EXPENSES_BLOCK_ID || "final-expenses";
+  const TRANSITION_NEEDS_BLOCK_ID = lensAnalysis.TRANSITION_NEEDS_BLOCK_ID || "transition-needs";
 
   const HOUSING_RUNTIME_ONLY_DEBUG_FIELDS = Object.freeze([
     Object.freeze({
@@ -313,6 +314,29 @@
     })
   ]);
 
+  const TRANSITION_NEEDS_DEBUG_FIELDS = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "survivorLiquidityBuffer",
+      destinationField: "survivorLiquidityBuffer"
+    }),
+    Object.freeze({
+      sourceOutputKey: "desiredEmergencyFund",
+      destinationField: "desiredEmergencyFund"
+    }),
+    Object.freeze({
+      sourceOutputKey: "housingTransitionReserve",
+      destinationField: "housingTransitionReserve"
+    }),
+    Object.freeze({
+      sourceOutputKey: "otherTransitionNeeds",
+      destinationField: "otherTransitionNeeds"
+    }),
+    Object.freeze({
+      sourceOutputKey: "totalTransitionNeed",
+      destinationField: "totalTransitionNeed"
+    })
+  ]);
+
   function isLensIncomeDebugEnabled(locationLike) {
     const search = locationLike && typeof locationLike.search === "string" ? locationLike.search : "";
     const value = new URLSearchParams(search).get(DEBUG_QUERY_PARAM);
@@ -526,12 +550,21 @@
       fields: FINAL_EXPENSES_DEBUG_FIELDS
     });
 
+    appendBucketInspectionRows(rows, {
+      blockOutput: safeBlockOutputs[TRANSITION_NEEDS_BLOCK_ID],
+      normalizedBucket: lensModel && lensModel.transitionNeeds,
+      normalizationMetadata: lensModel && lensModel.normalizationMetadata && lensModel.normalizationMetadata.transitionNeeds,
+      runtimeSection: "Runtime transition-needs",
+      normalizedSection: "Normalized transitionNeeds",
+      fields: TRANSITION_NEEDS_DEBUG_FIELDS
+    });
+
     return rows;
   }
 
   function createSummaryText(blockOutputs, lensModel) {
     const safeBlockOutputs = blockOutputs && typeof blockOutputs === "object" ? blockOutputs : {};
-    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID, NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID, EDUCATION_SUPPORT_BLOCK_ID, FINAL_EXPENSES_BLOCK_ID].filter(function (blockId) {
+    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID, NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID, EDUCATION_SUPPORT_BLOCK_ID, FINAL_EXPENSES_BLOCK_ID, TRANSITION_NEEDS_BLOCK_ID].filter(function (blockId) {
       return safeBlockOutputs[blockId];
     });
     return "Runtime blocks: " + (availableBlocks.length ? availableBlocks.join(", ") : "none");
@@ -684,6 +717,7 @@
       ongoingSupport: lensModel.ongoingSupport,
       educationSupport: lensModel.educationSupport,
       finalExpenses: lensModel.finalExpenses,
+      transitionNeeds: lensModel.transitionNeeds,
       debtPayoff: lensModel.debtPayoff,
       normalizationMetadata: lensModel.normalizationMetadata || null
     };

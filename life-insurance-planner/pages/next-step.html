@@ -318,14 +318,6 @@
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
-              <div class="field-group" data-housing-visibility="renter">
-                <label for="relocation-reserve">Relocation Reserve</label>
-                <div class="profile-currency-field" id="relocation-reserve-shell">
-                  <input id="relocation-reserve" name="relocationReserve" type="number" min="0" step="50">
-                  <span class="profile-currency-suffix">USD</span>
-                  <span class="profile-recommended-label">(Recommended minimum)</span>
-                </div>
-              </div>
               <div class="field-group" data-housing-visibility="homeowner">
                 <label for="mortgage-balance">Mortgage Balance</label>
                 <div class="profile-currency-field">
@@ -426,80 +418,7 @@
                 </div>
               </div>
                 </div>
-              </section>
-
-              <section class="profile-form-section profile-form-subsection">
-                <div class="profile-form-section-heading">
-                  <h2>Debts and Liabilities</h2>
-                </div>
-                <div class="form-grid">
-              <div class="field-group">
-                <label for="other-real-estate-loans">HELOC / Second Mortgage / Other Property Loans</label>
-                <div class="profile-currency-field">
-                  <input id="other-real-estate-loans" name="otherRealEstateLoans" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="auto-loans">Remaining Auto Loan Balances</label>
-                <div class="profile-currency-field">
-                  <input id="auto-loans" name="autoLoans" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="credit-card-debt">Revolving Credit Card Debt</label>
-                <div class="profile-currency-field">
-                  <input id="credit-card-debt" name="creditCardDebt" type="number" min="0" step="100">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="student-loans">Remaining Student Loan Balances</label>
-                <div class="profile-currency-field">
-                  <input id="student-loans" name="studentLoans" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="personal-loans">Remaining Personal Loan Balances</label>
-                <div class="profile-currency-field">
-                  <input id="personal-loans" name="personalLoans" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="tax-liabilities">Tax Liabilities / IRS or State Tax Debt</label>
-                <div class="profile-currency-field">
-                  <input id="tax-liabilities" name="taxLiabilities" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="business-debt">Business Loan / Credit Obligations</label>
-                <div class="profile-currency-field">
-                  <input id="business-debt" name="businessDebt" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="other-loan-obligations">Other Loan Obligations</label>
-                <div class="profile-currency-field">
-                  <input id="other-loan-obligations" name="otherLoanObligations" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group full-width field-group--centered-result debt-payoff-total-group">
-                <label for="total-debt-payoff-need">Total Debt Payoff Need</label>
-                <div class="profile-currency-field">
-                  <input id="total-debt-payoff-need" type="text" inputmode="decimal" readonly>
-                  <button class="net-income-action" type="button" data-debt-total-action="primary">Edit</button>
-                </div>
-              </div>
-                </div>
-              </section>
-
-              <section class="profile-form-section profile-form-subsection">
+              </section><section class="profile-form-section profile-form-subsection">
                 <div class="profile-form-section-heading">
                   <h2>Expenses and Lifestyle</h2>
                 </div>
@@ -585,6 +504,352 @@
               </div>
                 </div>
               </section>
+
+              <section class="profile-form-section">
+                <div class="profile-form-section-heading">
+                  <h2>Assets and Existing Coverage</h2>
+                  <p class="helper-text">Asset availability settings are saved for future offset modeling only. No calculations are applied in this form.</p>
+                </div>
+                <div class="form-grid">
+                  <div class="field-group">
+                    <label for="cash-savings">Cash / Savings</label>
+                    <div class="profile-currency-field">
+                      <input id="cash-savings" name="cashSavings" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="emergency-fund">Current Emergency Fund</label>
+                    <div class="profile-currency-field">
+                      <input id="emergency-fund" name="emergencyFund" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="brokerage-accounts">Brokerage Accounts</label>
+                    <div class="profile-currency-field">
+                      <input id="brokerage-accounts" name="brokerageAccounts" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="retirement-assets">401(k), IRA Balances</label>
+                    <div class="profile-currency-field">
+                      <input id="retirement-assets" name="retirementAssets" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="real-estate-equity">Real Estate Equity</label>
+                    <div class="profile-currency-field">
+                      <input id="real-estate-equity" name="realEstateEquity" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="business-value">Business Value</label>
+                    <div class="profile-currency-field">
+                      <input id="business-value" name="businessValue" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="assets-confidence-level">Asset Data Confidence</label>
+                    <select id="assets-confidence-level" name="assetsConfidenceLevel">
+                      <option value="">Optional</option>
+                      <option value="Exact">Exact</option>
+                      <option value="Estimated">Estimated</option>
+                      <option value="Unknown">Unknown</option>
+                    </select>
+                  </div>
+                  <div class="field-group full-width">
+                    <label>Cash / Savings Availability for Survivor Needs</label>
+                    <div class="profile-subgrid">
+                      <div class="field-group">
+                        <label for="cash-savings-include-in-offset">Include in Death Benefit Offset?</label>
+                        <select id="cash-savings-include-in-offset" name="cashSavingsIncludeInOffset">
+                          <option value="">Please select</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      </div>
+                      <div class="field-group">
+                        <label for="cash-savings-liquidity-type">Liquidity Type</label>
+                        <select id="cash-savings-liquidity-type" name="cashSavingsLiquidityType">
+                          <option value="">Please select</option>
+                          <option value="Fully Liquid">Fully Liquid</option>
+                          <option value="Partially Liquid">Partially Liquid</option>
+                          <option value="Illiquid">Illiquid</option>
+                        </select>
+                      </div>
+                      <div class="field-group">
+                        <label for="cash-savings-percent-available">Percent Available for Survivor Needs</label>
+                        <div class="profile-currency-field">
+                          <input id="cash-savings-percent-available" class="profile-small-number-field" name="cashSavingsPercentAvailable" type="number" min="0" max="100" step="1">
+                          <span class="profile-currency-suffix">%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field-group full-width">
+                    <label>Emergency Fund Availability for Survivor Needs</label>
+                    <div class="profile-subgrid">
+                      <div class="field-group">
+                        <label for="emergency-fund-include-in-offset">Include in Death Benefit Offset?</label>
+                        <select id="emergency-fund-include-in-offset" name="emergencyFundIncludeInOffset">
+                          <option value="">Please select</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      </div>
+                      <div class="field-group">
+                        <label for="emergency-fund-liquidity-type">Liquidity Type</label>
+                        <select id="emergency-fund-liquidity-type" name="emergencyFundLiquidityType">
+                          <option value="">Please select</option>
+                          <option value="Fully Liquid">Fully Liquid</option>
+                          <option value="Partially Liquid">Partially Liquid</option>
+                          <option value="Illiquid">Illiquid</option>
+                        </select>
+                      </div>
+                      <div class="field-group">
+                        <label for="emergency-fund-percent-available">Percent Available for Survivor Needs</label>
+                        <div class="profile-currency-field">
+                          <input id="emergency-fund-percent-available" class="profile-small-number-field" name="emergencyFundPercentAvailable" type="number" min="0" max="100" step="1">
+                          <span class="profile-currency-suffix">%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field-group full-width">
+                    <label>Brokerage Accounts Availability for Survivor Needs</label>
+                    <div class="profile-subgrid">
+                      <div class="field-group">
+                        <label for="brokerage-accounts-include-in-offset">Include in Death Benefit Offset?</label>
+                        <select id="brokerage-accounts-include-in-offset" name="brokerageAccountsIncludeInOffset">
+                          <option value="">Please select</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      </div>
+                      <div class="field-group">
+                        <label for="brokerage-accounts-liquidity-type">Liquidity Type</label>
+                        <select id="brokerage-accounts-liquidity-type" name="brokerageAccountsLiquidityType">
+                          <option value="">Please select</option>
+                          <option value="Fully Liquid">Fully Liquid</option>
+                          <option value="Partially Liquid">Partially Liquid</option>
+                          <option value="Illiquid">Illiquid</option>
+                        </select>
+                      </div>
+                      <div class="field-group">
+                        <label for="brokerage-accounts-percent-available">Percent Available for Survivor Needs</label>
+                        <div class="profile-currency-field">
+                          <input id="brokerage-accounts-percent-available" class="profile-small-number-field" name="brokerageAccountsPercentAvailable" type="number" min="0" max="100" step="1">
+                          <span class="profile-currency-suffix">%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field-group full-width">
+                    <label>401(k), IRA Balances Availability for Survivor Needs</label>
+                    <div class="profile-subgrid">
+                      <div class="field-group">
+                        <label for="retirement-assets-include-in-offset">Include in Death Benefit Offset?</label>
+                        <select id="retirement-assets-include-in-offset" name="retirementAssetsIncludeInOffset">
+                          <option value="">Please select</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      </div>
+                      <div class="field-group">
+                        <label for="retirement-assets-liquidity-type">Liquidity Type</label>
+                        <select id="retirement-assets-liquidity-type" name="retirementAssetsLiquidityType">
+                          <option value="">Please select</option>
+                          <option value="Fully Liquid">Fully Liquid</option>
+                          <option value="Partially Liquid">Partially Liquid</option>
+                          <option value="Illiquid">Illiquid</option>
+                        </select>
+                      </div>
+                      <div class="field-group">
+                        <label for="retirement-assets-percent-available">Percent Available for Survivor Needs</label>
+                        <div class="profile-currency-field">
+                          <input id="retirement-assets-percent-available" class="profile-small-number-field" name="retirementAssetsPercentAvailable" type="number" min="0" max="100" step="1">
+                          <span class="profile-currency-suffix">%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field-group full-width">
+                    <label>Real Estate Equity Availability for Survivor Needs</label>
+                    <div class="profile-subgrid">
+                      <div class="field-group">
+                        <label for="real-estate-equity-include-in-offset">Include in Death Benefit Offset?</label>
+                        <select id="real-estate-equity-include-in-offset" name="realEstateEquityIncludeInOffset">
+                          <option value="">Please select</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      </div>
+                      <div class="field-group">
+                        <label for="real-estate-equity-liquidity-type">Liquidity Type</label>
+                        <select id="real-estate-equity-liquidity-type" name="realEstateEquityLiquidityType">
+                          <option value="">Please select</option>
+                          <option value="Fully Liquid">Fully Liquid</option>
+                          <option value="Partially Liquid">Partially Liquid</option>
+                          <option value="Illiquid">Illiquid</option>
+                        </select>
+                      </div>
+                      <div class="field-group">
+                        <label for="real-estate-equity-percent-available">Percent Available for Survivor Needs</label>
+                        <div class="profile-currency-field">
+                          <input id="real-estate-equity-percent-available" class="profile-small-number-field" name="realEstateEquityPercentAvailable" type="number" min="0" max="100" step="1">
+                          <span class="profile-currency-suffix">%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field-group full-width">
+                    <label>Business Value Availability for Survivor Needs</label>
+                    <div class="profile-subgrid">
+                      <div class="field-group">
+                        <label for="business-value-include-in-offset">Include in Death Benefit Offset?</label>
+                        <select id="business-value-include-in-offset" name="businessValueIncludeInOffset">
+                          <option value="">Please select</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      </div>
+                      <div class="field-group">
+                        <label for="business-value-liquidity-type">Liquidity Type</label>
+                        <select id="business-value-liquidity-type" name="businessValueLiquidityType">
+                          <option value="">Please select</option>
+                          <option value="Fully Liquid">Fully Liquid</option>
+                          <option value="Partially Liquid">Partially Liquid</option>
+                          <option value="Illiquid">Illiquid</option>
+                        </select>
+                      </div>
+                      <div class="field-group">
+                        <label for="business-value-percent-available">Percent Available for Survivor Needs</label>
+                        <div class="profile-currency-field">
+                          <input id="business-value-percent-available" class="profile-small-number-field" name="businessValuePercentAvailable" type="number" min="0" max="100" step="1">
+                          <span class="profile-currency-suffix">%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="profile-form-section profile-form-subsection">
+                <div class="profile-form-section-heading">
+                  <h2>Survivor Transition Needs</h2>
+                  <p class="helper-text">One-time survivor needs and reserves only. Current assets stay in Assets and Existing Coverage.</p>
+                </div>
+                <div class="form-grid">
+              <div class="field-group">
+                <label for="immediate-liquidity-buffer">Survivor Liquidity Buffer</label>
+                <div class="profile-currency-field">
+                  <input id="immediate-liquidity-buffer" name="immediateLiquidityBuffer" type="number" min="0" step="1000">
+                  <span class="profile-currency-suffix">USD</span>
+                  <span class="profile-recommended-label">(Suggested)</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="desired-emergency-fund">Desired Emergency Fund</label>
+                <div class="profile-currency-field">
+                  <input id="desired-emergency-fund" name="desiredEmergencyFund" type="number" min="0" step="1000">
+                  <span class="profile-currency-suffix">USD</span>
+                  <span class="profile-recommended-label">(Suggested)</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="relocation-reserve">Housing Transition / Relocation Reserve</label>
+                <div class="profile-currency-field" id="relocation-reserve-shell">
+                  <input id="relocation-reserve" name="relocationReserve" type="number" min="0" step="50">
+                  <span class="profile-currency-suffix">USD</span>
+                  <span class="profile-recommended-label">(Suggested)</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="other-transition-needs">Other Survivor Transition Needs</label>
+                <div class="profile-currency-field">
+                  <input id="other-transition-needs" name="otherTransitionNeeds" type="number" min="0" step="1000">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+                </div>
+              </section>
+
+              <section class="profile-form-section profile-form-subsection">
+                <div class="profile-form-section-heading">
+                  <h2>Debts and Liabilities</h2>
+                </div>
+                <div class="form-grid">
+              <div class="field-group">
+                <label for="other-real-estate-loans">HELOC / Second Mortgage / Other Property Loans</label>
+                <div class="profile-currency-field">
+                  <input id="other-real-estate-loans" name="otherRealEstateLoans" type="number" min="0" step="1000">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="auto-loans">Remaining Auto Loan Balances</label>
+                <div class="profile-currency-field">
+                  <input id="auto-loans" name="autoLoans" type="number" min="0" step="1000">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="credit-card-debt">Revolving Credit Card Debt</label>
+                <div class="profile-currency-field">
+                  <input id="credit-card-debt" name="creditCardDebt" type="number" min="0" step="100">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="student-loans">Remaining Student Loan Balances</label>
+                <div class="profile-currency-field">
+                  <input id="student-loans" name="studentLoans" type="number" min="0" step="1000">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="personal-loans">Remaining Personal Loan Balances</label>
+                <div class="profile-currency-field">
+                  <input id="personal-loans" name="personalLoans" type="number" min="0" step="1000">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="tax-liabilities">Tax Liabilities / IRS or State Tax Debt</label>
+                <div class="profile-currency-field">
+                  <input id="tax-liabilities" name="taxLiabilities" type="number" min="0" step="1000">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="business-debt">Business Loan / Credit Obligations</label>
+                <div class="profile-currency-field">
+                  <input id="business-debt" name="businessDebt" type="number" min="0" step="1000">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="other-loan-obligations">Other Loan Obligations</label>
+                <div class="profile-currency-field">
+                  <input id="other-loan-obligations" name="otherLoanObligations" type="number" min="0" step="1000">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group full-width field-group--centered-result debt-payoff-total-group">
+                <label for="total-debt-payoff-need">Total Debt Payoff Need</label>
+                <div class="profile-currency-field">
+                  <input id="total-debt-payoff-need" type="text" inputmode="decimal" readonly>
+                  <button class="net-income-action" type="button" data-debt-total-action="primary">Edit</button>
+                </div>
+              </div>
+                </div>
+              </section>
+
             </div>
           </section>
 
@@ -651,247 +916,6 @@
                   <div class="profile-currency-field">
                     <input id="projected-education-funding-per-dependent" class="profile-education-funding-field" name="projectedEducationFundingPerDependent" type="number" min="0" step="5000" list="education-funding-options">
                     <span class="profile-currency-suffix">USD</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section class="profile-form-section">
-            <div class="profile-form-section-heading">
-              <h2>Assets and Existing Coverage</h2>
-              <p class="helper-text">Asset availability settings are saved for future offset modeling only. No calculations are applied in this form.</p>
-            </div>
-            <div class="form-grid">
-              <div class="field-group">
-                <label for="cash-savings">Cash / Savings</label>
-                <div class="profile-currency-field">
-                  <input id="cash-savings" name="cashSavings" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="emergency-fund">Emergency Fund</label>
-                <div class="profile-currency-field">
-                  <input id="emergency-fund" name="emergencyFund" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="brokerage-accounts">Brokerage Accounts</label>
-                <div class="profile-currency-field">
-                  <input id="brokerage-accounts" name="brokerageAccounts" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="retirement-assets">401(k), IRA Balances</label>
-                <div class="profile-currency-field">
-                  <input id="retirement-assets" name="retirementAssets" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="real-estate-equity">Real Estate Equity</label>
-                <div class="profile-currency-field">
-                  <input id="real-estate-equity" name="realEstateEquity" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="business-value">Business Value</label>
-                <div class="profile-currency-field">
-                  <input id="business-value" name="businessValue" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="assets-confidence-level">Asset Data Confidence</label>
-                <select id="assets-confidence-level" name="assetsConfidenceLevel">
-                  <option value="">Optional</option>
-                  <option value="Exact">Exact</option>
-                  <option value="Estimated">Estimated</option>
-                  <option value="Unknown">Unknown</option>
-                </select>
-              </div>
-              <div class="field-group">
-                <label for="immediate-liquidity-buffer">Immediate Liquidity Buffer</label>
-                <div class="profile-currency-field">
-                  <input id="immediate-liquidity-buffer" name="immediateLiquidityBuffer" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group full-width">
-                <label>Cash / Savings Availability for Survivor Needs</label>
-                <div class="profile-subgrid">
-                  <div class="field-group">
-                    <label for="cash-savings-include-in-offset">Include in Death Benefit Offset?</label>
-                    <select id="cash-savings-include-in-offset" name="cashSavingsIncludeInOffset">
-                      <option value="">Please select</option>
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                    </select>
-                  </div>
-                  <div class="field-group">
-                    <label for="cash-savings-liquidity-type">Liquidity Type</label>
-                    <select id="cash-savings-liquidity-type" name="cashSavingsLiquidityType">
-                      <option value="">Please select</option>
-                      <option value="Fully Liquid">Fully Liquid</option>
-                      <option value="Partially Liquid">Partially Liquid</option>
-                      <option value="Illiquid">Illiquid</option>
-                    </select>
-                  </div>
-                  <div class="field-group">
-                    <label for="cash-savings-percent-available">Percent Available for Survivor Needs</label>
-                    <div class="profile-currency-field">
-                      <input id="cash-savings-percent-available" class="profile-small-number-field" name="cashSavingsPercentAvailable" type="number" min="0" max="100" step="1">
-                      <span class="profile-currency-suffix">%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="field-group full-width">
-                <label>Emergency Fund Availability for Survivor Needs</label>
-                <div class="profile-subgrid">
-                  <div class="field-group">
-                    <label for="emergency-fund-include-in-offset">Include in Death Benefit Offset?</label>
-                    <select id="emergency-fund-include-in-offset" name="emergencyFundIncludeInOffset">
-                      <option value="">Please select</option>
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                    </select>
-                  </div>
-                  <div class="field-group">
-                    <label for="emergency-fund-liquidity-type">Liquidity Type</label>
-                    <select id="emergency-fund-liquidity-type" name="emergencyFundLiquidityType">
-                      <option value="">Please select</option>
-                      <option value="Fully Liquid">Fully Liquid</option>
-                      <option value="Partially Liquid">Partially Liquid</option>
-                      <option value="Illiquid">Illiquid</option>
-                    </select>
-                  </div>
-                  <div class="field-group">
-                    <label for="emergency-fund-percent-available">Percent Available for Survivor Needs</label>
-                    <div class="profile-currency-field">
-                      <input id="emergency-fund-percent-available" class="profile-small-number-field" name="emergencyFundPercentAvailable" type="number" min="0" max="100" step="1">
-                      <span class="profile-currency-suffix">%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="field-group full-width">
-                <label>Brokerage Accounts Availability for Survivor Needs</label>
-                <div class="profile-subgrid">
-                  <div class="field-group">
-                    <label for="brokerage-accounts-include-in-offset">Include in Death Benefit Offset?</label>
-                    <select id="brokerage-accounts-include-in-offset" name="brokerageAccountsIncludeInOffset">
-                      <option value="">Please select</option>
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                    </select>
-                  </div>
-                  <div class="field-group">
-                    <label for="brokerage-accounts-liquidity-type">Liquidity Type</label>
-                    <select id="brokerage-accounts-liquidity-type" name="brokerageAccountsLiquidityType">
-                      <option value="">Please select</option>
-                      <option value="Fully Liquid">Fully Liquid</option>
-                      <option value="Partially Liquid">Partially Liquid</option>
-                      <option value="Illiquid">Illiquid</option>
-                    </select>
-                  </div>
-                  <div class="field-group">
-                    <label for="brokerage-accounts-percent-available">Percent Available for Survivor Needs</label>
-                    <div class="profile-currency-field">
-                      <input id="brokerage-accounts-percent-available" class="profile-small-number-field" name="brokerageAccountsPercentAvailable" type="number" min="0" max="100" step="1">
-                      <span class="profile-currency-suffix">%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="field-group full-width">
-                <label>401(k), IRA Balances Availability for Survivor Needs</label>
-                <div class="profile-subgrid">
-                  <div class="field-group">
-                    <label for="retirement-assets-include-in-offset">Include in Death Benefit Offset?</label>
-                    <select id="retirement-assets-include-in-offset" name="retirementAssetsIncludeInOffset">
-                      <option value="">Please select</option>
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                    </select>
-                  </div>
-                  <div class="field-group">
-                    <label for="retirement-assets-liquidity-type">Liquidity Type</label>
-                    <select id="retirement-assets-liquidity-type" name="retirementAssetsLiquidityType">
-                      <option value="">Please select</option>
-                      <option value="Fully Liquid">Fully Liquid</option>
-                      <option value="Partially Liquid">Partially Liquid</option>
-                      <option value="Illiquid">Illiquid</option>
-                    </select>
-                  </div>
-                  <div class="field-group">
-                    <label for="retirement-assets-percent-available">Percent Available for Survivor Needs</label>
-                    <div class="profile-currency-field">
-                      <input id="retirement-assets-percent-available" class="profile-small-number-field" name="retirementAssetsPercentAvailable" type="number" min="0" max="100" step="1">
-                      <span class="profile-currency-suffix">%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="field-group full-width">
-                <label>Real Estate Equity Availability for Survivor Needs</label>
-                <div class="profile-subgrid">
-                  <div class="field-group">
-                    <label for="real-estate-equity-include-in-offset">Include in Death Benefit Offset?</label>
-                    <select id="real-estate-equity-include-in-offset" name="realEstateEquityIncludeInOffset">
-                      <option value="">Please select</option>
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                    </select>
-                  </div>
-                  <div class="field-group">
-                    <label for="real-estate-equity-liquidity-type">Liquidity Type</label>
-                    <select id="real-estate-equity-liquidity-type" name="realEstateEquityLiquidityType">
-                      <option value="">Please select</option>
-                      <option value="Fully Liquid">Fully Liquid</option>
-                      <option value="Partially Liquid">Partially Liquid</option>
-                      <option value="Illiquid">Illiquid</option>
-                    </select>
-                  </div>
-                  <div class="field-group">
-                    <label for="real-estate-equity-percent-available">Percent Available for Survivor Needs</label>
-                    <div class="profile-currency-field">
-                      <input id="real-estate-equity-percent-available" class="profile-small-number-field" name="realEstateEquityPercentAvailable" type="number" min="0" max="100" step="1">
-                      <span class="profile-currency-suffix">%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="field-group full-width">
-                <label>Business Value Availability for Survivor Needs</label>
-                <div class="profile-subgrid">
-                  <div class="field-group">
-                    <label for="business-value-include-in-offset">Include in Death Benefit Offset?</label>
-                    <select id="business-value-include-in-offset" name="businessValueIncludeInOffset">
-                      <option value="">Please select</option>
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                    </select>
-                  </div>
-                  <div class="field-group">
-                    <label for="business-value-liquidity-type">Liquidity Type</label>
-                    <select id="business-value-liquidity-type" name="businessValueLiquidityType">
-                      <option value="">Please select</option>
-                      <option value="Fully Liquid">Fully Liquid</option>
-                      <option value="Partially Liquid">Partially Liquid</option>
-                      <option value="Illiquid">Illiquid</option>
-                    </select>
-                  </div>
-                  <div class="field-group">
-                    <label for="business-value-percent-available">Percent Available for Survivor Needs</label>
-                    <div class="profile-currency-field">
-                      <input id="business-value-percent-available" class="profile-small-number-field" name="businessValuePercentAvailable" type="number" min="0" max="100" step="1">
-                      <span class="profile-currency-suffix">%</span>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1074,6 +1098,7 @@
   <script src="../app/features/lens-analysis/blocks/non-housing-ongoing-support.js"></script>
   <script src="../app/features/lens-analysis/blocks/education-support.js"></script>
   <script src="../app/features/lens-analysis/blocks/final-expenses.js"></script>
+  <script src="../app/features/lens-analysis/blocks/transition-needs.js"></script>
   <script src="../app/features/lens-analysis/normalize-lens-model.js"></script>
   <script src="../app/features/lens-analysis/dev-income-debug.js"></script>
   <script src="../app.js"></script>
@@ -1307,14 +1332,17 @@
         "estimated-cost-per-child": "Desired education funding target for each current dependent or child.",
         "projected-dependents-count": "The desired children count pulled from the linked profile.",
         "projected-education-funding-per-dependent": "Desired education funding target for each planned child beyond the current linked profile count.",
+        "relocation-reserve": "One-time reserve for moving, lease changes, deposits, temporary housing, downsizing, or other housing transition costs.",
+        "immediate-liquidity-buffer": "Short-term survivor cash need for the immediate aftermath of death, including near-term bills, disruption, delays, or transition cash flow.",
+        "desired-emergency-fund": "Longer-term survivor emergency reserve target after the initial transition period.",
+        "other-transition-needs": "Other one-time survivor transition needs not captured by liquidity buffer, desired emergency fund, or housing transition reserve. Do not include debt payoff, final expenses, education, ongoing monthly support, or relocation if already entered.",
         "cash-savings": "Cash and savings available to offset need.",
-        "emergency-fund": "Emergency reserve funds available.",
+        "emergency-fund": "Existing emergency fund asset currently available today. This is an asset/offset, not a survivor need.",
         "brokerage-accounts": "Taxable investment accounts that could be used in a survivor plan.",
         "retirement-assets": "Retirement account balances, which may be discounted in planning.",
         "real-estate-equity": "Home or other property equity available to support the plan.",
         "business-value": "Estimated business value or ownership value.",
         "assets-confidence-level": "Confidence level for the asset values entered in this section.",
-        "immediate-liquidity-buffer": "Immediate cash reserve the survivor may need right away after death, in addition to the amounts entered in Final Expenses and Assumptions.",
         "cash-savings-include-in-offset": "Whether cash and savings should later reduce the death benefit need.",
         "cash-savings-liquidity-type": "How quickly cash and savings could realistically be used.",
         "cash-savings-percent-available": "Percent of cash and savings realistically available for survivor needs.",
@@ -1650,6 +1678,9 @@
       const monthlyHousingCostField = form.elements.namedItem("monthlyHousingCost");
       const utilitiesCostField = form.elements.namedItem("utilitiesCost");
       const relocationReserveField = form.elements.namedItem("relocationReserve");
+      const immediateLiquidityBufferField = form.elements.namedItem("immediateLiquidityBuffer");
+      const desiredEmergencyFundField = form.elements.namedItem("desiredEmergencyFund");
+      const otherTransitionNeedsField = form.elements.namedItem("otherTransitionNeeds");
       const housingInsuranceCostField = form.elements.namedItem("housingInsuranceCost");
       const mortgageInterestRateField = form.elements.namedItem("mortgageInterestRate");
       const propertyTaxField = form.elements.namedItem("propertyTax");
@@ -3316,6 +3347,177 @@
         }
       }
 
+      function calculateMonthlyNonHousingEssentialSupportCostForTransitionSuggestions() {
+        const sourceFields = [
+          insuranceCostField,
+          healthcareOutOfPocketCostField,
+          foodCostField,
+          transportationCostField,
+          childcareDependentCareCostField,
+          phoneInternetCostField,
+          householdSuppliesCostField,
+          otherHouseholdExpensesField
+        ];
+        const normalizedValues = sourceFields.map((field) =>
+          parseOptionalCurrencyLikeNumber(getLensBlockSourceFieldValue(field))
+        );
+        const hasAnyValue = normalizedValues.some((value) => value != null);
+
+        if (!hasAnyValue) {
+          return null;
+        }
+
+        return normalizedValues.reduce((total, value) => total + (value == null ? 0 : value), 0);
+      }
+
+      function calculateMonthlyTotalEssentialSupportCostForTransitionSuggestions() {
+        const monthlyHousingSupportCost = getMonthlyHousingSupportCostForTransitionSuggestions();
+        const monthlyNonHousingEssentialSupportCost = calculateMonthlyNonHousingEssentialSupportCostForTransitionSuggestions();
+
+        if (monthlyHousingSupportCost == null && monthlyNonHousingEssentialSupportCost == null) {
+          return null;
+        }
+
+        return (monthlyHousingSupportCost == null ? 0 : monthlyHousingSupportCost)
+          + (monthlyNonHousingEssentialSupportCost == null ? 0 : monthlyNonHousingEssentialSupportCost);
+      }
+
+      function getMonthlyHousingSupportCostForTransitionSuggestions() {
+        if (!monthlyMortgagePaymentField || monthlyMortgagePaymentField instanceof RadioNodeList) {
+          return calculateMonthlyBurdenAmount();
+        }
+
+        if (isManualOverrideActive(monthlyMortgagePaymentField)) {
+          return parseOptionalCurrencyLikeNumber(monthlyMortgagePaymentField.dataset.manualValue);
+        }
+
+        const visibleHousingSupportCost = parseOptionalCurrencyLikeNumber(monthlyMortgagePaymentField.value);
+        return visibleHousingSupportCost == null ? calculateMonthlyBurdenAmount() : visibleHousingSupportCost;
+      }
+
+      function getSurvivorLiquidityBufferSuggestedAmount() {
+        const monthlyTotalEssentialSupportCost = calculateMonthlyTotalEssentialSupportCostForTransitionSuggestions();
+        if (monthlyTotalEssentialSupportCost != null) {
+          return monthlyTotalEssentialSupportCost * 3;
+        }
+
+        const monthlyNonHousingEssentialSupportCost = calculateMonthlyNonHousingEssentialSupportCostForTransitionSuggestions();
+        return monthlyNonHousingEssentialSupportCost == null ? null : monthlyNonHousingEssentialSupportCost * 3;
+      }
+
+      function getDesiredEmergencyFundSuggestedAmount() {
+        const monthlyTotalEssentialSupportCost = calculateMonthlyTotalEssentialSupportCostForTransitionSuggestions();
+        return monthlyTotalEssentialSupportCost == null ? null : monthlyTotalEssentialSupportCost * 6;
+      }
+
+      function markTransitionFieldUserEdited(field) {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        if (String(field.value || "").trim() === "") {
+          delete field.dataset.userEdited;
+          delete field.dataset.suggestedValue;
+          if (field === relocationReserveField) {
+            delete field.dataset.manualEdited;
+          }
+          field.closest(".profile-currency-field")?.classList.remove("is-recommended");
+          return;
+        }
+
+        const currentValue = parseOptionalCurrencyLikeNumber(field.value);
+        const existingSuggestedValue = parseOptionalCurrencyLikeNumber(field.dataset.suggestedValue);
+        if (currentValue != null && existingSuggestedValue != null && Math.abs(currentValue - existingSuggestedValue) <= 0.5) {
+          return;
+        }
+
+        field.dataset.userEdited = "true";
+        if (field === relocationReserveField) {
+          field.dataset.manualEdited = "true";
+        }
+        field.closest(".profile-currency-field")?.classList.remove("is-recommended");
+      }
+
+      function applyTransitionFieldSuggestion(field, suggestedAmount) {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        const shell = field.closest(".profile-currency-field");
+        const currentRawValue = String(field.value || "").trim();
+        const currentValue = parseOptionalCurrencyLikeNumber(currentRawValue);
+        const previousSuggestedValue = parseOptionalCurrencyLikeNumber(field.dataset.suggestedValue);
+        const hasCurrentValue = currentRawValue !== "";
+
+        if (!hasCurrentValue) {
+          delete field.dataset.userEdited;
+          if (field === relocationReserveField) {
+            delete field.dataset.manualEdited;
+          }
+        }
+
+        const hasUserEditedValue = field.dataset.userEdited === "true" || field.dataset.manualEdited === "true";
+
+        if (!Number.isFinite(suggestedAmount) || suggestedAmount < 0) {
+          shell?.classList.remove("is-recommended");
+          if (!hasCurrentValue) {
+            delete field.dataset.suggestedValue;
+          }
+          return;
+        }
+
+        const roundedSuggestion = Math.round(suggestedAmount);
+
+        if (hasUserEditedValue) {
+          shell?.classList.remove("is-recommended");
+          return;
+        }
+
+        if (hasCurrentValue && previousSuggestedValue != null && currentValue != null && Math.abs(currentValue - previousSuggestedValue) > 0.5) {
+          markTransitionFieldUserEdited(field);
+          return;
+        }
+
+        if (hasCurrentValue && previousSuggestedValue == null) {
+          markTransitionFieldUserEdited(field);
+          return;
+        }
+
+        field.value = String(roundedSuggestion);
+        field.dataset.suggestedValue = String(roundedSuggestion);
+        shell?.classList.add("is-recommended");
+      }
+
+      function syncTransitionNeedsSuggestions() {
+        // These are convenience suggestions only; current assets/offsets stay out of transitionNeeds.
+        applyTransitionFieldSuggestion(immediateLiquidityBufferField, getSurvivorLiquidityBufferSuggestedAmount());
+        applyTransitionFieldSuggestion(desiredEmergencyFundField, getDesiredEmergencyFundSuggestedAmount());
+        syncRelocationReserveField();
+      }
+
+      function syncTransitionNeedsBlockOutput() {
+        const createTransitionNeedsBlockOutput = window.LensApp?.lensAnalysis?.createTransitionNeedsBlockOutput;
+        const upsertRuntimeBlockOutput = window.LensApp?.lensAnalysis?.upsertRuntimeBlockOutput;
+        const refreshLensIncomeDebugPanel = window.LensApp?.lensAnalysisDev?.refreshLensIncomeDebugPanel;
+        syncTransitionNeedsSuggestions();
+
+        if (typeof createTransitionNeedsBlockOutput !== "function" || typeof upsertRuntimeBlockOutput !== "function") {
+          return;
+        }
+
+        const runtimeNamespace = window.LensApp.lensAnalysisRuntime || (window.LensApp.lensAnalysisRuntime = {});
+        const blockOutput = createTransitionNeedsBlockOutput({
+          immediateLiquidityBuffer: getLensBlockSourceFieldValue(immediateLiquidityBufferField),
+          desiredEmergencyFund: getLensBlockSourceFieldValue(desiredEmergencyFundField),
+          relocationReserve: getLensBlockSourceFieldValue(relocationReserveField),
+          otherTransitionNeeds: getLensBlockSourceFieldValue(otherTransitionNeedsField)
+        });
+        upsertRuntimeBlockOutput(runtimeNamespace, blockOutput);
+        if (typeof refreshLensIncomeDebugPanel === "function") {
+          refreshLensIncomeDebugPanel(runtimeNamespace);
+        }
+      }
+
       function syncMortgageTermRemainingField() {
         if (!mortgageTermRemainingField || mortgageTermRemainingField instanceof RadioNodeList) {
           return;
@@ -3351,8 +3553,8 @@
           return null;
         }
 
-        const monthlyRent = parseCurrencyLikeNumber(form.elements.namedItem("monthlyHousingCost")?.value);
-        if (!monthlyRent) {
+        const monthlyRent = parseOptionalCurrencyLikeNumber(form.elements.namedItem("monthlyHousingCost")?.value);
+        if (!Number.isFinite(monthlyRent) || monthlyRent <= 0) {
           return null;
         }
 
@@ -3360,35 +3562,7 @@
       }
 
       function syncRelocationReserveField() {
-        if (!relocationReserveField || relocationReserveField instanceof RadioNodeList) {
-          return;
-        }
-
-        const shell = relocationReserveField.closest(".profile-currency-field");
-        const recommendedAmount = getRecommendedRelocationReserveAmount();
-        const currentValue = parseCurrencyLikeNumber(relocationReserveField.value);
-
-        if (!Number.isFinite(recommendedAmount) || recommendedAmount <= 0) {
-          shell?.classList.remove("is-recommended");
-          if (relocationReserveField.dataset.manualEdited !== "true" && !currentValue) {
-            relocationReserveField.value = "";
-          }
-          return;
-        }
-
-        if (relocationReserveField.dataset.manualEdited === "true") {
-          shell?.classList.remove("is-recommended");
-          return;
-        }
-
-        if (currentValue && Math.abs(currentValue - Math.round(recommendedAmount)) > 0.5) {
-          relocationReserveField.dataset.manualEdited = "true";
-          shell?.classList.remove("is-recommended");
-          return;
-        }
-
-        relocationReserveField.value = String(Math.round(recommendedAmount));
-        shell?.classList.add("is-recommended");
+        applyTransitionFieldSuggestion(relocationReserveField, getRecommendedRelocationReserveAmount());
       }
 
       function getMaintenanceAgeBand(ageYears) {
@@ -3703,6 +3877,17 @@
         });
       }
 
+      function shouldSkipRestoredImmediateLiquidityBufferValue(name, value) {
+        if (name !== "immediateLiquidityBuffer") {
+          return false;
+        }
+
+        // Legacy/stale zeroes from when this field lived with asset-style inputs
+        // block the transition suggestion. There is no reliable saved signal that
+        // a restored zero was intentional, so restore it as blank.
+        return parseOptionalCurrencyLikeNumber(value) === 0;
+      }
+
       function restoreDraft() {
         try {
           const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
@@ -3719,6 +3904,10 @@
             }
 
             if (value === "" || value == null) {
+              return;
+            }
+
+            if (shouldSkipRestoredImmediateLiquidityBufferValue(name, value)) {
               return;
             }
 
@@ -3914,14 +4103,17 @@
         field.addEventListener("input", () => {
           syncMortgageTermRemainingField();
           syncMonthlyMortgagePaymentField();
+          syncTransitionNeedsBlockOutput();
         });
         field.addEventListener("change", () => {
           syncMortgageTermRemainingField();
           syncMonthlyMortgagePaymentField();
+          syncTransitionNeedsBlockOutput();
         });
         field.addEventListener("blur", () => {
           syncMortgageTermRemainingField();
           syncMonthlyMortgagePaymentField();
+          syncTransitionNeedsBlockOutput();
         });
       });
 
@@ -3930,7 +4122,6 @@
         form.elements.namedItem("mortgageInterestRate"),
         form.elements.namedItem("monthlyHousingCost"),
         form.elements.namedItem("propertyTax"),
-        relocationReserveField,
         utilitiesCostField,
         housingInsuranceCostField,
         monthlyHoaCostField,
@@ -3942,37 +4133,27 @@
         }
 
         field.addEventListener("input", () => {
-          if (field === relocationReserveField) {
-            relocationReserveField.dataset.manualEdited = "true";
-            relocationReserveField.closest(".profile-currency-field")?.classList.remove("is-recommended");
-          }
-          if (field !== homeAgeYearsField) {
-            syncRelocationReserveField();
-          }
           syncMaintenanceRecommendationField();
           syncMonthlyMortgagePaymentField();
+          syncTransitionNeedsBlockOutput();
           syncDebtPayoffBlockOutput();
         });
         field.addEventListener("change", () => {
-          if (field === relocationReserveField) {
-            relocationReserveField.dataset.manualEdited = "true";
-            relocationReserveField.closest(".profile-currency-field")?.classList.remove("is-recommended");
-          }
           if (field === homeAgeYearsField) {
             normalizeHomeAgeYearsValue();
           }
-          syncRelocationReserveField();
           syncMaintenanceRecommendationField();
           syncMonthlyMortgagePaymentField();
+          syncTransitionNeedsBlockOutput();
           syncDebtPayoffBlockOutput();
         });
         field.addEventListener("blur", () => {
           if (field === homeAgeYearsField) {
             normalizeHomeAgeYearsValue();
           }
-          syncRelocationReserveField();
           syncMaintenanceRecommendationField();
           syncMonthlyMortgagePaymentField();
+          syncTransitionNeedsBlockOutput();
           syncDebtPayoffBlockOutput();
         });
       });
@@ -4012,6 +4193,26 @@
       });
 
       [
+        immediateLiquidityBufferField,
+        desiredEmergencyFundField,
+        relocationReserveField,
+        otherTransitionNeedsField
+      ].forEach((field) => {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        const syncTransitionNeedsUserEdit = () => {
+          markTransitionFieldUserEdited(field);
+          syncTransitionNeedsBlockOutput();
+        };
+
+        field.addEventListener("input", syncTransitionNeedsUserEdit);
+        field.addEventListener("change", syncTransitionNeedsUserEdit);
+        field.addEventListener("blur", syncTransitionNeedsBlockOutput);
+      });
+
+      [
         utilitiesCostField,
         foodCostField,
         insuranceCostField,
@@ -4026,12 +4227,15 @@
 
         field.addEventListener("input", () => {
           syncNonHousingOngoingSupportBlockOutput();
+          syncTransitionNeedsBlockOutput();
         });
         field.addEventListener("change", () => {
           syncNonHousingOngoingSupportBlockOutput();
+          syncTransitionNeedsBlockOutput();
         });
         field.addEventListener("blur", () => {
           syncNonHousingOngoingSupportBlockOutput();
+          syncTransitionNeedsBlockOutput();
         });
       });
 
@@ -4046,9 +4250,18 @@
           return;
         }
 
-        field.addEventListener("input", syncNonHousingOngoingSupportBlockOutput);
-        field.addEventListener("change", syncNonHousingOngoingSupportBlockOutput);
-        field.addEventListener("blur", syncNonHousingOngoingSupportBlockOutput);
+        field.addEventListener("input", () => {
+          syncNonHousingOngoingSupportBlockOutput();
+          syncTransitionNeedsBlockOutput();
+        });
+        field.addEventListener("change", () => {
+          syncNonHousingOngoingSupportBlockOutput();
+          syncTransitionNeedsBlockOutput();
+        });
+        field.addEventListener("blur", () => {
+          syncNonHousingOngoingSupportBlockOutput();
+          syncTransitionNeedsBlockOutput();
+        });
       });
 
       [
@@ -4082,6 +4295,7 @@
             }
             if (field === maintenanceRecommendationField || field === mortgagePaymentOnlyField || field === associatedMonthlyCostsField || field === monthlyMortgagePaymentField) {
               syncMonthlyMortgagePaymentField();
+              syncTransitionNeedsBlockOutput();
             }
             return;
           }
@@ -4118,6 +4332,7 @@
           }
           if (field === maintenanceRecommendationField || field === mortgagePaymentOnlyField || field === associatedMonthlyCostsField || field === monthlyMortgagePaymentField) {
             syncMonthlyMortgagePaymentField();
+            syncTransitionNeedsBlockOutput();
           }
         });
       });
@@ -4231,9 +4446,9 @@
         const syncHousingStatusState = () => {
           syncHousingStatusCircles();
           syncHousingStatusFieldVisibility();
-          syncRelocationReserveField();
           syncMaintenanceRecommendationField();
           syncMonthlyMortgagePaymentField();
+          syncTransitionNeedsBlockOutput();
         };
         housingStatusField.addEventListener("change", syncHousingStatusState);
         housingStatusField.addEventListener("input", syncHousingStatusState);
@@ -4316,6 +4531,7 @@
       syncSurvivorshipAdjustments();
       syncDebtPayoffBlockOutput();
       syncNonHousingOngoingSupportBlockOutput();
+      syncTransitionNeedsBlockOutput();
       if (typeof window.LensApp?.lensAnalysisDev?.mountLensIncomeDebugPanel === "function") {
         window.LensApp.lensAnalysisDev.mountLensIncomeDebugPanel(window.LensApp.lensAnalysisRuntime);
       }
@@ -4323,13 +4539,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-

@@ -124,6 +124,17 @@
         totalFinalExpenseNeed: null
       },
 
+      // One-time survivor transition needs. These are neutral lump-sum
+      // transition targets, not current assets, offsets, recurring support,
+      // final expenses, education, debts, or recommendations.
+      transitionNeeds: {
+        survivorLiquidityBuffer: null,
+        desiredEmergencyFund: null,
+        housingTransitionReserve: null,
+        otherTransitionNeeds: null,
+        totalTransitionNeed: null
+      },
+
       // Offsets and in-force coverage. The destination model separates raw
       // asset offsets from current coverage because they reduce need through
       // different mechanisms and can come from different systems later.
@@ -183,8 +194,9 @@
         }
       },
 
-      // One-time survivor obligations. These amounts should not be blended into
-      // recurring support, debt payoff, or asset offsets.
+      // Legacy one-time survivor obligations retained while downstream aliases
+      // still exist. Active PMI transition reserves now normalize into
+      // transitionNeeds above.
       oneTimeObligations: {
         immediateLiquidityNeed: null,
         housingTransitionReserve: null,

@@ -137,9 +137,17 @@
         { rawField: "funeralBurialEstimate + medicalEndOfLifeCosts + estateSettlementCosts + otherFinalExpenses", canonicalField: "finalExpenses.totalFinalExpenseNeed", availability: "activeLinkedPmiBlockOutput", note: "Neutral lump-sum final expense target; not inflation-adjusted, offset-adjusted, present-valued, or a recommendation." }
       ],
 
+      transitionNeeds: [
+        { rawField: "immediateLiquidityBuffer", canonicalField: "transitionNeeds.survivorLiquidityBuffer", availability: "activeLinkedPmi", note: "Short-term survivor cash need for the immediate aftermath of death." },
+        { rawField: "desiredEmergencyFund", canonicalField: "transitionNeeds.desiredEmergencyFund", availability: "activeLinkedPmi", note: "Longer-term survivor emergency reserve target after the initial transition period." },
+        { rawField: "relocationReserve", canonicalField: "transitionNeeds.housingTransitionReserve", availability: "activeLinkedPmi", note: "One-time housing transition or relocation reserve; available for every housing status." },
+        { rawField: "otherTransitionNeeds", canonicalField: "transitionNeeds.otherTransitionNeeds", availability: "activeLinkedPmi", note: "Other one-time survivor transition needs not captured by liquidity buffer, desired emergency fund, or housing transition reserve." },
+        { rawField: "immediateLiquidityBuffer + desiredEmergencyFund + relocationReserve + otherTransitionNeeds", canonicalField: "transitionNeeds.totalTransitionNeed", availability: "activeLinkedPmiBlockOutput", note: "Neutral lump-sum survivor transition target; not offset-adjusted, inflation-adjusted, present-valued, or a recommendation." }
+      ],
+
       offsetsAndCoverage: [
         { rawField: "cashSavings", canonicalField: "offsetsAndCoverage.offsetAssetValues.cashSavings", availability: "activeLinkedPmi", note: "Current liquid asset field." },
-        { rawField: "emergencyFund", canonicalField: "offsetsAndCoverage.offsetAssetValues.emergencyFund", availability: "activeLinkedPmi", note: "Current liquid asset field." },
+        { rawField: "emergencyFund", canonicalField: "offsetsAndCoverage.offsetAssetValues.emergencyFund", availability: "activeLinkedPmi", note: "Current emergency fund asset field. This is an asset/offset, not a survivor transition need." },
         { rawField: "brokerageAccounts", canonicalField: "offsetsAndCoverage.offsetAssetValues.brokerageAccounts", availability: "activeLinkedPmi", note: "Current brokerage asset field." },
         { rawField: "retirementAssets", canonicalField: "offsetsAndCoverage.offsetAssetValues.retirementAssets", availability: "activeLinkedPmi", note: "Current retirement asset field." },
         { rawField: "realEstateEquity", canonicalField: "offsetsAndCoverage.offsetAssetValues.realEstateEquity", availability: "activeLinkedPmi", note: "Captured today but not honored by the live bucket builder." },
@@ -191,8 +199,8 @@
       ],
 
       oneTimeObligations: [
-        { rawField: "immediateLiquidityBuffer", canonicalField: "oneTimeObligations.immediateLiquidityNeed", availability: "activeLinkedPmi", note: "Current immediate liquidity input belongs to one-time needs, not asset offsets." },
-        { rawField: "relocationReserve", canonicalField: "oneTimeObligations.housingTransitionReserve", availability: "activeLinkedPmi", note: "Current renter transition reserve belongs to one-time needs, not recurring support." },
+        { rawField: "immediateLiquidityBuffer", canonicalField: "oneTimeObligations.immediateLiquidityNeed", availability: "legacyPlanPlaceholder", note: "Legacy one-time-obligations placeholder retained for compatibility notes. Active runtime canonical destination is transitionNeeds.survivorLiquidityBuffer." },
+        { rawField: "relocationReserve", canonicalField: "oneTimeObligations.housingTransitionReserve", availability: "legacyPlanPlaceholder", note: "Legacy one-time-obligations placeholder retained for compatibility notes. Active runtime canonical destination is transitionNeeds.housingTransitionReserve." },
         { rawField: "specialOneTimeGoals", canonicalField: "oneTimeObligations.specialPurposeFundingTotal", availability: "analysisAliasOnly", note: "Expected by live bucket builder but not collected in the active linked PMI." },
         { rawField: "emergencyReserveGoal", canonicalField: "oneTimeObligations.survivorEmergencyReserveGoal", availability: "analysisAliasOnly", note: "Expected by live bucket builder but not collected in the active linked PMI." },
         { rawField: "otherSurvivorLumpSumNeed", canonicalField: "oneTimeObligations.otherOneTimeObligationsTotal", availability: "analysisAliasOnly", note: "Expected by live bucket builder but not collected in the active linked PMI." }
