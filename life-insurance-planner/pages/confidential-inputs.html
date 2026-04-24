@@ -37,11 +37,16 @@
           </button>
         </div>
         <form class="profile-creation-form" id="protection-modeling-form" data-pmi-draft-key="confidential">
-          <section class="profile-form-section">
+          <section class="profile-form-section profile-form-section-group">
             <div class="profile-form-section-heading">
-              <h2>Income Calculation</h2>
+              <h2>Income Replacement</h2>
             </div>
-            <div class="form-grid income-calculation-grid">
+            <div class="profile-form-section-group-stack">
+              <section class="profile-form-section profile-form-subsection">
+                <div class="profile-form-section-heading">
+                  <h2>Income Calculation</h2>
+                </div>
+                <div class="form-grid income-calculation-grid">
               <div class="field-group">
                 <label for="linked-marital-status">Marital Status</label>
                 <input id="linked-marital-status" name="linkedMaritalStatusDisplay" type="text" readonly>
@@ -247,15 +252,15 @@
                   <button class="net-income-action" type="button" data-net-income-action="spouse">Edit</button>
                 </div>
               </div>
-            </div>
-          </section>
+                </div>
+              </section>
 
-          <section class="profile-form-section">
-            <div class="profile-form-section-heading">
-              <h2>Income and Economic Value</h2>
-              <p class="profile-section-note">Fields already captured on the client profile are intentionally excluded here.</p>
-            </div>
-            <div class="form-grid">
+              <section class="profile-form-section profile-form-subsection">
+                <div class="profile-form-section-heading">
+                  <h2>Income and Economic Value</h2>
+                  <p class="profile-section-note">Fields already captured on the client profile are intentionally excluded here.</p>
+                </div>
+                <div class="form-grid">
               <div class="field-group">
                   <label for="income-growth-rate">Annual Income Growth Rate Assumption</label>
                 <div class="profile-currency-field">
@@ -281,14 +286,21 @@
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
+                </div>
+              </section>
             </div>
           </section>
 
-          <section class="profile-form-section">
+          <section class="profile-form-section profile-form-section-group">
             <div class="profile-form-section-heading">
-              <h2>Housing Costs</h2>
+              <h2>Debt Payoff &amp; Ongoing Support</h2>
             </div>
-            <div class="form-grid">
+            <div class="profile-form-section-group-stack">
+              <section class="profile-form-section profile-form-subsection">
+                <div class="profile-form-section-heading">
+                  <h2>Housing Costs</h2>
+                </div>
+                <div class="form-grid">
               <div class="field-group">
                 <label for="housing-status">Housing Status</label>
                 <select id="housing-status" name="housingStatus">
@@ -403,14 +415,14 @@
                   <button class="net-income-action" type="button" data-mortgage-payment-action="primary">Edit</button>
                 </div>
               </div>
-            </div>
-          </section>
+                </div>
+              </section>
 
-          <section class="profile-form-section">
-            <div class="profile-form-section-heading">
-              <h2>Debts and Liabilities</h2>
-            </div>
-            <div class="form-grid">
+              <section class="profile-form-section profile-form-subsection">
+                <div class="profile-form-section-heading">
+                  <h2>Debts and Liabilities</h2>
+                </div>
+                <div class="form-grid">
               <div class="field-group">
                 <label for="other-real-estate-loans">HELOC / Second Mortgage / Other Property Loans</label>
                 <div class="profile-currency-field">
@@ -467,14 +479,21 @@
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
-            </div>
-          </section>
+              <div class="field-group full-width field-group--centered-result debt-payoff-total-group">
+                <label for="total-debt-payoff-need">Total Debt Payoff Need</label>
+                <div class="profile-currency-field">
+                  <input id="total-debt-payoff-need" type="text" inputmode="decimal" readonly>
+                  <button class="net-income-action" type="button" data-debt-total-action="primary">Edit</button>
+                </div>
+              </div>
+                </div>
+              </section>
 
-          <section class="profile-form-section">
-            <div class="profile-form-section-heading">
-              <h2>Expenses and Lifestyle</h2>
-            </div>
-            <div class="form-grid">
+              <section class="profile-form-section profile-form-subsection">
+                <div class="profile-form-section-heading">
+                  <h2>Expenses and Lifestyle</h2>
+                </div>
+                <div class="form-grid">
               <div class="field-group full-width form-subgroup-label">
                 <span>Household Spending</span>
               </div>
@@ -554,6 +573,8 @@
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
+                </div>
+              </section>
             </div>
           </section>
 
@@ -864,41 +885,6 @@
                   </div>
                 </div>
               </div>
-              <div class="field-group">
-                <label for="individual-policy-type">Individual Life Insurance Type</label>
-                <select id="individual-policy-type" name="individualPolicyType">
-                  <option value="">Leave Blank if None</option>
-                  <option value="Term">Term</option>
-                  <option value="Whole">Whole</option>
-                  <option value="UL">UL</option>
-                </select>
-              </div>
-              <div class="field-group">
-                <label for="individual-death-benefit">Individual Death Benefit</label>
-                <div class="profile-currency-field">
-                  <input id="individual-death-benefit" name="individualDeathBenefit" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="individual-years-remaining">Years Remaining</label>
-                <input id="individual-years-remaining" class="profile-small-number-field" name="individualYearsRemaining" type="number" min="0" max="80" step="1">
-              </div>
-              <div class="field-group">
-                <label for="group-life-coverage">Group Life Coverage Amount</label>
-                <div class="profile-currency-field">
-                  <input id="group-life-coverage" name="groupLifeCoverage" type="number" min="0" step="1000">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="group-life-portability">Group Life Portability</label>
-                <select id="group-life-portability" name="groupLifePortability">
-                  <option value="">Leave Blank if None</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </div>
             </div>
           </section>
 
@@ -1091,6 +1077,12 @@
   <script src="../app/features/client-records.js"></script>
   <script src="../app/features/client-intake.js"></script>
   <script src="../app/features/client-directory.js"></script>
+  <script src="../app/features/lens-analysis/schema.js"></script>
+  <script src="../app/features/lens-analysis/block-outputs.js"></script>
+  <script src="../app/features/lens-analysis/blocks/income-net-income.js"></script>
+  <script src="../app/features/lens-analysis/blocks/debt-payoff.js"></script>
+  <script src="../app/features/lens-analysis/normalize-lens-model.js"></script>
+  <script src="../app/features/lens-analysis/dev-income-debug.js"></script>
   <script src="../app.js"></script>
   <script src="../pmi-tax-utils.js"></script>
   <script src="../pmi-calculator.js"></script>
@@ -1639,6 +1631,8 @@
       const monthlyMortgagePaymentAction = form.querySelector('[data-mortgage-payment-action="primary"]');
       const maintenanceRecommendationField = form.elements.namedItem("monthlyMaintenanceRecommendation");
       const maintenanceRecommendationAction = form.querySelector('[data-maintenance-action="primary"]');
+      const totalDebtPayoffNeedField = form.querySelector("#total-debt-payoff-need");
+      const totalDebtPayoffNeedAction = form.querySelector('[data-debt-total-action="primary"]');
       const householdIncomeUseField = form.elements.namedItem("householdIncomeUsePercent");
       const expenseReductionAtDeathField = form.elements.namedItem("expenseReductionAtDeath");
       const utilitiesCostField = form.elements.namedItem("utilitiesCost");
@@ -1650,6 +1644,15 @@
       const mortgageTermRemainingYearsField = form.elements.namedItem("mortgageTermRemainingYears");
       const mortgageTermRemainingMonthsField = form.elements.namedItem("mortgageTermRemainingMonths");
       const mortgageTermRemainingField = form.elements.namedItem("mortgageTermRemaining");
+      const mortgageBalanceField = form.elements.namedItem("mortgageBalance");
+      const otherRealEstateLoansField = form.elements.namedItem("otherRealEstateLoans");
+      const autoLoansField = form.elements.namedItem("autoLoans");
+      const creditCardDebtField = form.elements.namedItem("creditCardDebt");
+      const studentLoansField = form.elements.namedItem("studentLoans");
+      const personalLoansField = form.elements.namedItem("personalLoans");
+      const taxLiabilitiesField = form.elements.namedItem("taxLiabilities");
+      const businessDebtField = form.elements.namedItem("businessDebt");
+      const otherLoanObligationsField = form.elements.namedItem("otherLoanObligations");
       const foodCostField = form.elements.namedItem("foodCost");
       const insuranceCostField = form.elements.namedItem("insuranceCost");
       const transportationCostField = form.elements.namedItem("transportationCost");
@@ -2062,11 +2065,12 @@
         const numericValue = shouldUseCalculatedValue
           ? parseCurrencyLikeNumber(field.dataset.calculatedValue)
           : parseCurrencyLikeNumber(field.dataset.manualValue);
+        const shouldDisplayBlank = field.dataset.shouldBeBlank === "true" && shouldUseCalculatedValue;
 
         field.setAttribute("readonly", "readonly");
         field.closest(".profile-currency-field")?.classList.remove("is-editing");
         delete field.dataset.editing;
-        field.value = field.dataset.shouldBeBlank === "true" ? "" : formatNetIncomeDisplay(numericValue);
+        field.value = shouldDisplayBlank ? "" : formatNetIncomeDisplay(numericValue);
         setNetIncomeActionLabel(field, actionButton);
       }
 
@@ -2110,13 +2114,17 @@
           return;
         }
 
-        field.dataset.calculatedValue = String(calculatedValue);
+        field.dataset.calculatedValue = String(calculatedValue == null ? 0 : calculatedValue);
         field.dataset.shouldBeBlank = options.blank === true ? "true" : "false";
 
         if (options.blank === true) {
-          clearNetIncomeManualOverride(field, actionButton);
-          field.value = "";
-          setNetIncomeActionLabel(field, actionButton);
+          if (field.dataset.manualOverride === "true" && options.preserveManualOverrideWhenBlank === true) {
+            lockNetIncomeField(field, actionButton);
+          } else {
+            clearNetIncomeManualOverride(field, actionButton);
+            field.value = "";
+            setNetIncomeActionLabel(field, actionButton);
+          }
           return;
         }
 
@@ -2978,6 +2986,188 @@
             { blank: incomeCalculationMode !== "separate" }
           );
         }
+
+        syncNetIncomeBlockOutput(primaryGrossIncome, spouseGrossIncome);
+      }
+
+      function syncNetIncomeBlockOutput(primaryGrossIncome, spouseGrossIncome) {
+        const createNetIncomeBlockOutput = window.LensApp?.lensAnalysis?.createNetIncomeBlockOutput;
+        const upsertRuntimeBlockOutput = window.LensApp?.lensAnalysis?.upsertRuntimeBlockOutput;
+        const refreshLensIncomeDebugPanel = window.LensApp?.lensAnalysisDev?.refreshLensIncomeDebugPanel;
+        if (typeof createNetIncomeBlockOutput !== "function" || typeof upsertRuntimeBlockOutput !== "function") {
+          return;
+        }
+
+        const incomeCalculationMode = getIncomeCalculationMode();
+        const isSeparateIncomeMode = incomeCalculationMode === "separate";
+        const hasSeparateSpouseGrossIncome = isSeparateIncomeMode
+          && spouseIncomeField
+          && !(spouseIncomeField instanceof RadioNodeList)
+          && String(spouseIncomeField.value || "").trim() !== "";
+        const hasSeparateSpouseNetManualOverride = isSeparateIncomeMode
+          && spouseNetAnnualIncomeField
+          && !(spouseNetAnnualIncomeField instanceof RadioNodeList)
+          && spouseNetAnnualIncomeField.dataset.manualOverride === "true"
+          && String(spouseNetAnnualIncomeField.dataset.manualValue || spouseNetAnnualIncomeField.value || "").trim() !== "";
+
+        const runtimeNamespace = window.LensApp.lensAnalysisRuntime || (window.LensApp.lensAnalysisRuntime = {});
+        const blockOutput = createNetIncomeBlockOutput({
+          grossAnnualIncome: primaryGrossIncome,
+          netAnnualIncome: getManualOverrideBlockOutputValue(netAnnualIncomeField),
+          netAnnualIncomeManualOverride: isManualOverrideActive(netAnnualIncomeField),
+          spouseOrPartnerIncomeApplicability: isSeparateIncomeMode ? "separate" : "not_applicable",
+          spouseIncome: hasSeparateSpouseGrossIncome ? spouseGrossIncome : null,
+          spouseNetAnnualIncome: (hasSeparateSpouseGrossIncome || hasSeparateSpouseNetManualOverride)
+            ? getManualOverrideBlockOutputValue(spouseNetAnnualIncomeField)
+            : null,
+          spouseNetAnnualIncomeManualOverride: (hasSeparateSpouseGrossIncome || hasSeparateSpouseNetManualOverride)
+            ? isManualOverrideActive(spouseNetAnnualIncomeField)
+            : false
+        });
+        upsertRuntimeBlockOutput(runtimeNamespace, blockOutput);
+        if (typeof refreshLensIncomeDebugPanel === "function") {
+          refreshLensIncomeDebugPanel(runtimeNamespace);
+        }
+      }
+
+      function isManualOverrideActive(field) {
+        return Boolean(
+          field
+          && !(field instanceof RadioNodeList)
+          && field.dataset.manualOverride === "true"
+        );
+      }
+
+      function getManualOverrideBlockOutputValue(field) {
+        if (!field || field instanceof RadioNodeList) {
+          return null;
+        }
+
+        return isManualOverrideActive(field)
+          ? field.dataset.manualValue || null
+          : field.value;
+      }
+
+      function refreshNetIncomeBlockOutputFromCurrentFields() {
+        syncNetIncomeBlockOutput(
+          parseCurrencyLikeNumber(grossAnnualIncomeField?.value),
+          parseCurrencyLikeNumber(spouseIncomeField?.value)
+        );
+      }
+
+      function getLensBlockSourceFieldValue(field) {
+        return field && !(field instanceof RadioNodeList) ? field.value : null;
+      }
+
+      function parseOptionalCurrencyLikeNumber(value) {
+        return String(value == null ? "" : value).trim() === "" ? null : parseCurrencyLikeNumber(value);
+      }
+
+      function getDebtPayoffSourceFields() {
+        return [
+          mortgageBalanceField,
+          otherRealEstateLoansField,
+          autoLoansField,
+          creditCardDebtField,
+          studentLoansField,
+          personalLoansField,
+          taxLiabilitiesField,
+          businessDebtField,
+          otherLoanObligationsField
+        ];
+      }
+
+      function calculateTotalDebtPayoffNeed() {
+        const normalizedValues = getDebtPayoffSourceFields().map((field) =>
+          parseOptionalCurrencyLikeNumber(getLensBlockSourceFieldValue(field))
+        );
+        const hasAnyValue = normalizedValues.some((value) => value != null);
+
+        if (!hasAnyValue) {
+          return null;
+        }
+
+        return normalizedValues.reduce((total, value) => total + (value == null ? 0 : value), 0);
+      }
+
+      function syncTotalDebtPayoffNeedField() {
+        if (!totalDebtPayoffNeedField) {
+          return null;
+        }
+
+        const calculatedTotalDebtPayoffNeed = calculateTotalDebtPayoffNeed();
+        applyNetIncomeValue(
+          totalDebtPayoffNeedField,
+          totalDebtPayoffNeedAction,
+          calculatedTotalDebtPayoffNeed,
+          {
+            blank: calculatedTotalDebtPayoffNeed == null,
+            preserveManualOverrideWhenBlank: true
+          }
+        );
+        return calculatedTotalDebtPayoffNeed;
+      }
+
+      function shouldUseDebtPayoffTotalManualOverride(field) {
+        if (!field || field instanceof RadioNodeList) {
+          return false;
+        }
+
+        const rawValue = String(field.value || "").trim();
+        if (!rawValue) {
+          return false;
+        }
+
+        if (field.dataset.shouldBeBlank === "true") {
+          return true;
+        }
+
+        return parseCurrencyLikeNumber(rawValue) !== parseCurrencyLikeNumber(field.dataset.calculatedValue);
+      }
+
+      function finalizeDebtPayoffTotalEdit(field, actionButton) {
+        if (!field || field instanceof RadioNodeList || field.dataset.editing !== "true") {
+          return;
+        }
+
+        if (shouldUseDebtPayoffTotalManualOverride(field)) {
+          field.dataset.manualOverride = "true";
+          field.dataset.manualValue = String(parseCurrencyLikeNumber(field.value));
+        } else {
+          clearNetIncomeManualOverride(field, actionButton);
+        }
+
+        lockNetIncomeField(field, actionButton);
+      }
+
+      function syncDebtPayoffBlockOutput() {
+        const createDebtPayoffBlockOutput = window.LensApp?.lensAnalysis?.createDebtPayoffBlockOutput;
+        const upsertRuntimeBlockOutput = window.LensApp?.lensAnalysis?.upsertRuntimeBlockOutput;
+        const refreshLensIncomeDebugPanel = window.LensApp?.lensAnalysisDev?.refreshLensIncomeDebugPanel;
+        if (typeof createDebtPayoffBlockOutput !== "function" || typeof upsertRuntimeBlockOutput !== "function") {
+          return;
+        }
+
+        syncTotalDebtPayoffNeedField();
+
+        const runtimeNamespace = window.LensApp.lensAnalysisRuntime || (window.LensApp.lensAnalysisRuntime = {});
+        const blockOutput = createDebtPayoffBlockOutput({
+          mortgageBalance: getLensBlockSourceFieldValue(mortgageBalanceField),
+          otherRealEstateLoans: getLensBlockSourceFieldValue(otherRealEstateLoansField),
+          autoLoans: getLensBlockSourceFieldValue(autoLoansField),
+          creditCardDebt: getLensBlockSourceFieldValue(creditCardDebtField),
+          studentLoans: getLensBlockSourceFieldValue(studentLoansField),
+          personalLoans: getLensBlockSourceFieldValue(personalLoansField),
+          taxLiabilities: getLensBlockSourceFieldValue(taxLiabilitiesField),
+          businessDebt: getLensBlockSourceFieldValue(businessDebtField),
+          otherLoanObligations: getLensBlockSourceFieldValue(otherLoanObligationsField),
+          totalDebtPayoffNeed: getManualOverrideBlockOutputValue(totalDebtPayoffNeedField),
+          totalDebtPayoffNeedManualOverride: isManualOverrideActive(totalDebtPayoffNeedField)
+        });
+        upsertRuntimeBlockOutput(runtimeNamespace, blockOutput);
+        if (typeof refreshLensIncomeDebugPanel === "function") {
+          refreshLensIncomeDebugPanel(runtimeNamespace);
+        }
       }
 
       function getHouseholdNetIncomeBasis() {
@@ -3545,6 +3735,7 @@
           }
           syncMaintenanceRecommendationField();
           syncMonthlyMortgagePaymentField();
+          syncDebtPayoffBlockOutput();
         });
         field.addEventListener("change", () => {
           if (field === relocationReserveField) {
@@ -3557,6 +3748,7 @@
           syncRelocationReserveField();
           syncMaintenanceRecommendationField();
           syncMonthlyMortgagePaymentField();
+          syncDebtPayoffBlockOutput();
         });
         field.addEventListener("blur", () => {
           if (field === homeAgeYearsField) {
@@ -3565,7 +3757,27 @@
           syncRelocationReserveField();
           syncMaintenanceRecommendationField();
           syncMonthlyMortgagePaymentField();
+          syncDebtPayoffBlockOutput();
         });
+      });
+
+      [
+        otherRealEstateLoansField,
+        autoLoansField,
+        creditCardDebtField,
+        studentLoansField,
+        personalLoansField,
+        taxLiabilitiesField,
+        businessDebtField,
+        otherLoanObligationsField
+      ].forEach((field) => {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        field.addEventListener("input", syncDebtPayoffBlockOutput);
+        field.addEventListener("change", syncDebtPayoffBlockOutput);
+        field.addEventListener("blur", syncDebtPayoffBlockOutput);
       });
 
       [
@@ -3602,7 +3814,8 @@
         [netAnnualIncomeField, primaryNetIncomeAction],
         [spouseNetAnnualIncomeField, spouseNetIncomeAction],
         [monthlyMortgagePaymentField, monthlyMortgagePaymentAction],
-        [maintenanceRecommendationField, maintenanceRecommendationAction]
+        [maintenanceRecommendationField, maintenanceRecommendationAction],
+        [totalDebtPayoffNeedField, totalDebtPayoffNeedAction]
       ].forEach(([field, actionButton]) => {
         if (!field || field instanceof RadioNodeList || !actionButton) {
           return;
@@ -3618,6 +3831,12 @@
           if (field.dataset.editing === "true" || field.dataset.manualOverride === "true") {
             clearNetIncomeManualOverride(field, actionButton);
             lockNetIncomeField(field, actionButton, { useCalculatedValue: true });
+            if (field === netAnnualIncomeField || field === spouseNetAnnualIncomeField) {
+              refreshNetIncomeBlockOutputFromCurrentFields();
+            }
+            if (field === totalDebtPayoffNeedField) {
+              syncDebtPayoffBlockOutput();
+            }
             if (field === maintenanceRecommendationField) {
               syncMonthlyMortgagePaymentField();
             }
@@ -3632,13 +3851,28 @@
             return;
           }
 
+          if (field === totalDebtPayoffNeedField) {
+            actionButton.textContent = shouldUseDebtPayoffTotalManualOverride(field) ? "Reset" : "Edit";
+            return;
+          }
+
           const typedValue = parseCurrencyLikeNumber(field.value);
           const calculatedValue = parseCurrencyLikeNumber(field.dataset.calculatedValue);
           actionButton.textContent = field.value.trim() && typedValue !== calculatedValue ? "Reset" : "Edit";
         });
 
         field.addEventListener("blur", () => {
-          finalizeNetIncomeEdit(field, actionButton);
+          if (field === totalDebtPayoffNeedField) {
+            finalizeDebtPayoffTotalEdit(field, actionButton);
+          } else {
+            finalizeNetIncomeEdit(field, actionButton);
+          }
+          if (field === netAnnualIncomeField || field === spouseNetAnnualIncomeField) {
+            refreshNetIncomeBlockOutputFromCurrentFields();
+          }
+          if (field === totalDebtPayoffNeedField) {
+            syncDebtPayoffBlockOutput();
+          }
           if (field === maintenanceRecommendationField) {
             syncMonthlyMortgagePaymentField();
           }
@@ -3816,6 +4050,10 @@
       syncIncomeCalculationCurrencyFormatting();
       syncSurvivorshipAdjustments();
       syncEstimatedHouseholdIncomeUse();
+      syncDebtPayoffBlockOutput();
+      if (typeof window.LensApp?.lensAnalysisDev?.mountLensIncomeDebugPanel === "function") {
+        window.LensApp.lensAnalysisDev.mountLensIncomeDebugPanel(window.LensApp.lensAnalysisRuntime);
+      }
     })();
   </script>
 </body>

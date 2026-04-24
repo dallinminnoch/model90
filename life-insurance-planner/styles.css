@@ -1098,6 +1098,15 @@ body.settings-page .site-header {
   color: #1b2230;
 }
 
+.profile-form-section-group {
+  gap: 1rem;
+}
+
+.profile-form-section-group-stack {
+  display: grid;
+  gap: 1rem;
+}
+
 .profile-section-note {
   margin: 0;
   color: #000000;
@@ -6693,10 +6702,24 @@ body.lens-start-page #start-planning {
   border-top: 1px solid rgba(160, 174, 192, 0.95);
 }
 
+.profile-creation-form .debt-payoff-total-group {
+  justify-self: center;
+  width: min(100%, 24rem);
+  margin-top: 0.35rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(160, 174, 192, 0.95);
+}
+
 .profile-creation-form .income-calculation-grid.income-calculation-grid-single .primary-net-income-group > label,
 .profile-creation-form .income-calculation-grid.income-calculation-grid-joint .primary-net-income-group > label,
 .profile-creation-form .income-calculation-grid.income-calculation-grid-separate .primary-net-income-group > label,
 .profile-creation-form .income-calculation-grid .spouse-net-income-group > label {
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+}
+
+.profile-creation-form .debt-payoff-total-group > label {
   justify-content: center;
   text-align: center;
   width: 100%;
@@ -6710,6 +6733,17 @@ body.lens-start-page #start-planning {
   width: 100%;
 }
 
+.profile-creation-form .debt-payoff-total-group .profile-currency-field {
+  justify-self: center;
+  width: 100%;
+}
+
+.profile-creation-form .income-calculation-grid .primary-net-income-group .profile-currency-field,
+.profile-creation-form .income-calculation-grid .spouse-net-income-group .profile-currency-field,
+.profile-creation-form .debt-payoff-total-group .profile-currency-field {
+  position: relative;
+}
+
 .profile-creation-form .income-calculation-grid .primary-net-income-group input[readonly],
 .profile-creation-form .income-calculation-grid .spouse-net-income-group input[readonly] {
   text-align: center;
@@ -6717,13 +6751,19 @@ body.lens-start-page #start-planning {
   color: #18263b;
 }
 
-.profile-creation-form .income-calculation-grid .primary-net-income-group .profile-currency-field,
-.profile-creation-form .income-calculation-grid .spouse-net-income-group .profile-currency-field {
-  position: relative;
+.profile-creation-form .debt-payoff-total-group input[readonly] {
+  text-align: center;
+  font-weight: 800;
+  color: #18263b;
 }
 
 .profile-creation-form .income-calculation-grid .primary-net-income-group input,
 .profile-creation-form .income-calculation-grid .spouse-net-income-group input {
+  padding-left: 4.4rem;
+  padding-right: 4.4rem;
+}
+
+.profile-creation-form .debt-payoff-total-group input {
   padding-left: 4.4rem;
   padding-right: 4.4rem;
 }
