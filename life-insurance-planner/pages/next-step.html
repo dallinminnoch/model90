@@ -514,7 +514,7 @@
 
               <section class="profile-form-section">
                 <div class="profile-form-section-heading">
-                  <h2>Assets and Existing Coverage</h2>
+                  <h2>Assets and Offset Planning</h2>
                   <p class="helper-text">Asset availability settings are saved for future offset modeling only. No calculations are applied in this form.</p>
                 </div>
                 <div class="form-grid">
@@ -746,10 +746,24 @@
                 </div>
               </section>
 
+              <section class="profile-form-section profile-form-subsection" data-pmi-existing-coverage-card>
+                <div class="profile-form-section-heading">
+                  <h2>Existing Coverage</h2>
+                  <p class="helper-text">Read-only summary from the linked profile&apos;s saved coverage policies.</p>
+                </div>
+                <div data-pmi-existing-coverage-totals></div>
+                <div class="existing-coverage-policy-list" data-pmi-existing-coverage-list></div>
+                <div class="existing-coverage-toolbar">
+                  <a class="btn btn-secondary existing-coverage-add-button" href="existing-coverage-details.html" data-pmi-existing-coverage-manage data-loading-link>
+                    Manage Existing Coverage
+                  </a>
+                </div>
+              </section>
+
               <section class="profile-form-section profile-form-subsection">
                 <div class="profile-form-section-heading">
                   <h2>Survivor Transition Needs</h2>
-                  <p class="helper-text">One-time survivor needs and reserves only. Current assets stay in Assets and Existing Coverage.</p>
+                  <p class="helper-text">One-time survivor needs and reserves only. Current assets stay in Assets and Offset Planning.</p>
                 </div>
                 <div class="form-grid">
               <div class="field-group">
@@ -1097,6 +1111,8 @@
   <script src="../app/features/client-records.js"></script>
   <script src="../app/features/client-intake.js"></script>
   <script src="../app/features/client-directory.js"></script>
+  <script src="../app/features/coverage/coverage-policy-utils.js"></script>
+  <script src="../app/features/coverage/coverage-policy-summary-list.js"></script>
   <script src="../app/features/lens-analysis/schema.js"></script>
   <script src="../app/features/lens-analysis/block-outputs.js"></script>
   <script src="../app/features/lens-analysis/blocks/income-net-income.js"></script>
@@ -1725,6 +1741,10 @@
       const educationFundingPerDependentField = form.elements.namedItem("estimatedCostPerChild");
       const projectedEducationFundingPerDependentField = form.elements.namedItem("projectedEducationFundingPerDependent");
       const incomeCalculationGrid = form.querySelector(".income-calculation-grid");
+      const coverageSummaryList = window.LensApp?.coverageSummaryList || {};
+      const existingCoverageTotalsContainer = form.querySelector("[data-pmi-existing-coverage-totals]");
+      const existingCoverageListContainer = form.querySelector("[data-pmi-existing-coverage-list]");
+      const existingCoverageManageLink = form.querySelector("[data-pmi-existing-coverage-manage]");
       const derivedDraftFieldNames = new Set([
         "linkedMaritalStatusDisplay",
         "standardDeduction",
@@ -1859,6 +1879,56 @@
         return typeof getCurrentLinkedRecord === "function"
           ? getCurrentLinkedRecord(resolvedLinkedCaseRef)
           : null;
+      }
+
+      function getLinkedCoveragePolicies() {
+        const linkedRecord = getLinkedRecord();
+        return Array.isArray(linkedRecord?.coveragePolicies)
+          ? linkedRecord.coveragePolicies
+          : [];
+      }
+
+      function getExistingCoverageManageUrl() {
+        const linkedRecord = getLinkedRecord();
+        const linkedCaseRef = String(
+          linkedRecord?.caseRef
+          || resolvedLinkedCaseRef
+          || window.getLensLinkedCaseRef?.()
+          || ""
+        ).trim();
+
+        return linkedCaseRef
+          ? `existing-coverage-details.html?caseRef=${encodeURIComponent(linkedCaseRef)}`
+          : "existing-coverage-details.html";
+      }
+
+      function renderExistingCoverageCard() {
+        const policies = getLinkedCoveragePolicies();
+
+        if (existingCoverageManageLink) {
+          existingCoverageManageLink.href = getExistingCoverageManageUrl();
+        }
+
+        if (existingCoverageTotalsContainer && typeof coverageSummaryList.renderCoverageTotals === "function") {
+          coverageSummaryList.renderCoverageTotals(existingCoverageTotalsContainer, policies);
+        }
+
+        if (!existingCoverageListContainer) {
+          return;
+        }
+
+        if (typeof coverageSummaryList.renderCoveragePolicyList === "function") {
+          coverageSummaryList.renderCoveragePolicyList(existingCoverageListContainer, policies, {
+            itemClass: "existing-coverage-saved-card",
+            copyClass: "existing-coverage-saved-card-copy",
+            emptyClass: "existing-coverage-empty",
+            emptyTitle: "No existing coverage records found.",
+            emptyCopy: "Use Manage Existing Coverage to add policies to the linked profile."
+          });
+          return;
+        }
+
+        existingCoverageListContainer.textContent = "Existing coverage records could not be loaded.";
       }
 
       function saveLinkedPmiEntry(draft) {
@@ -4553,6 +4623,7 @@
       syncDebtPayoffBlockOutput();
       syncNonHousingOngoingSupportBlockOutput();
       syncTransitionNeedsBlockOutput();
+      renderExistingCoverageCard();
       if (typeof window.LensApp?.lensAnalysisDev?.mountLensIncomeDebugPanel === "function") {
         window.LensApp.lensAnalysisDev.mountLensIncomeDebugPanel(window.LensApp.lensAnalysisRuntime);
       }
