@@ -362,7 +362,7 @@
                     <input id="mortgage-term-remaining" name="mortgageTermRemaining" type="hidden">
                   </div>
                   <div class="profile-currency-field profile-owner-rate-field">
-                    <input id="mortgage-interest-rate" class="profile-small-number-field" name="mortgageInterestRate" type="number" min="0" max="25" step="0.01">
+                    <input id="mortgage-interest-rate" class="profile-small-number-field" name="mortgageInterestRate" type="number" min="0" max="25" step="0.01" data-number-format="decimal">
                     <span class="profile-currency-suffix">%</span>
                   </div>
                 </div>
@@ -402,6 +402,20 @@
                 <div class="profile-currency-field">
                   <input id="monthly-maintenance-recommendation" name="monthlyMaintenanceRecommendation" type="text" inputmode="decimal" readonly>
                   <button class="net-income-action" type="button" data-maintenance-action="primary">Edit</button>
+                </div>
+              </div>
+              <div class="field-group" data-housing-visibility="selected">
+                <label for="monthly-mortgage-payment-only">Mortgage Payment Excluding Property Tax and Insurance</label>
+                <div class="profile-currency-field">
+                  <input id="monthly-mortgage-payment-only" name="monthlyMortgagePaymentOnly" type="text" inputmode="decimal" readonly>
+                  <button class="net-income-action" type="button" data-mortgage-payment-only-action="primary">Edit</button>
+                </div>
+              </div>
+              <div class="field-group" data-housing-visibility="selected">
+                <label for="associated-monthly-costs">Associated Monthly Costs</label>
+                <div class="profile-currency-field">
+                  <input id="associated-monthly-costs" name="associatedMonthlyCosts" type="text" inputmode="decimal" readonly>
+                  <button class="net-income-action" type="button" data-associated-monthly-costs-action="primary">Edit</button>
                 </div>
               </div>
               <div class="field-group full-width field-group--centered-result" data-housing-visibility="selected">
@@ -1077,6 +1091,7 @@
   <script src="../app/features/lens-analysis/block-outputs.js"></script>
   <script src="../app/features/lens-analysis/blocks/income-net-income.js"></script>
   <script src="../app/features/lens-analysis/blocks/debt-payoff.js"></script>
+  <script src="../app/features/lens-analysis/blocks/housing-ongoing-support.js"></script>
   <script src="../app/features/lens-analysis/normalize-lens-model.js"></script>
   <script src="../app/features/lens-analysis/dev-income-debug.js"></script>
   <script src="../app.js"></script>
@@ -1106,7 +1121,11 @@
       const numberInputs = Array.from(form.querySelectorAll('input[type="number"]'));
 
       function isIntegerFormattedInput(input) {
-        return input.dataset.numberFormat === "integer";
+        const numberFormat = String(input?.dataset?.numberFormat || "").trim().toLowerCase();
+        if (numberFormat === "decimal") {
+          return false;
+        }
+        return numberFormat === "integer";
       }
 
       function sanitizeNumericValue(value, { allowDecimals = true } = {}) {
@@ -1176,6 +1195,7 @@
         const wholePart = parts[0] || "0";
         const decimalPart = parts[1] || "";
         const wholeNumber = Number(wholePart);
+        const hasTrailingDecimal = sanitized.endsWith(".");
 
         if (!Number.isFinite(wholeNumber)) {
           input.value = "";
@@ -1183,6 +1203,11 @@
         }
 
         const formattedWhole = liveFormatter.format(wholeNumber).split(".")[0];
+        if (hasTrailingDecimal) {
+          input.value = `${formattedWhole}.`;
+          return;
+        }
+
         input.value = decimalPart ? `${formattedWhole}.${decimalPart.slice(0, 2)}` : formattedWhole;
       }
 
@@ -1272,7 +1297,9 @@
         "federal-tax-bracket": "Select the federal marginal tax bracket to use for future net-income modeling. These options are maintained in restricted Account Administration.",
         "monthly-housing-cost": "All-in monthly rent for renter scenarios, including pet fees or technology fees. Utilities are entered separately.",
         "utilities-cost": "Average monthly utilities across all housing statuses.",
-        "calculated-monthly-mortgage-payment": "Auto-calculated monthly mortgage payment from balance, remaining term, and interest rate. You can edit it to override the calculated amount.",
+        "monthly-mortgage-payment-only": "Auto-calculated principal and interest payment from balance, remaining term, and mortgage interest rate. You can edit it to override the calculated amount.",
+        "associated-monthly-costs": "Auto-calculated monthly housing costs other than the mortgage payment, such as rent, utilities, property tax, insurance, HOA, and maintenance, depending on housing status. You can edit it to override the calculated amount.",
+        "calculated-monthly-mortgage-payment": "Auto-calculated total monthly housing burden combining the mortgage payment and associated monthly costs. You can edit it to override the calculated amount.",
         "food-cost": "Average monthly grocery and household food spending.",
         "insurance-cost": "Monthly non-housing insurance costs such as health, auto, umbrella, and other recurring coverage.",
         "transportation-cost": "Monthly transportation spending, including fuel, maintenance, transit, and vehicle costs.",
@@ -1625,6 +1652,10 @@
       const spouseNetAnnualIncomeField = form.elements.namedItem("spouseNetAnnualIncome");
       const primaryNetIncomeAction = form.querySelector('[data-net-income-action="primary"]');
       const spouseNetIncomeAction = form.querySelector('[data-net-income-action="spouse"]');
+      const mortgagePaymentOnlyField = form.elements.namedItem("monthlyMortgagePaymentOnly");
+      const mortgagePaymentOnlyAction = form.querySelector('[data-mortgage-payment-only-action="primary"]');
+      const associatedMonthlyCostsField = form.elements.namedItem("associatedMonthlyCosts");
+      const associatedMonthlyCostsAction = form.querySelector('[data-associated-monthly-costs-action="primary"]');
       const monthlyMortgagePaymentField = form.elements.namedItem("calculatedMonthlyMortgagePayment");
       const monthlyMortgagePaymentAction = form.querySelector('[data-mortgage-payment-action="primary"]');
       const maintenanceRecommendationField = form.elements.namedItem("monthlyMaintenanceRecommendation");
@@ -1633,9 +1664,13 @@
       const totalDebtPayoffNeedAction = form.querySelector('[data-debt-total-action="primary"]');
       const householdIncomeUseField = form.elements.namedItem("householdIncomeUsePercent");
       const expenseReductionAtDeathField = form.elements.namedItem("expenseReductionAtDeath");
+      const housingStatusField = form.elements.namedItem("housingStatus");
+      const monthlyHousingCostField = form.elements.namedItem("monthlyHousingCost");
       const utilitiesCostField = form.elements.namedItem("utilitiesCost");
       const relocationReserveField = form.elements.namedItem("relocationReserve");
       const housingInsuranceCostField = form.elements.namedItem("housingInsuranceCost");
+      const mortgageInterestRateField = form.elements.namedItem("mortgageInterestRate");
+      const propertyTaxField = form.elements.namedItem("propertyTax");
       const monthlyHoaCostField = form.elements.namedItem("monthlyHoaCost");
       const homeSquareFootageField = form.elements.namedItem("homeSquareFootage");
       const homeAgeYearsField = form.elements.namedItem("homeAgeYears");
@@ -1678,6 +1713,8 @@
         "netAnnualIncome",
         "spouseNetAnnualIncome",
         "mortgageTermRemaining",
+        "monthlyMortgagePaymentOnly",
+        "associatedMonthlyCosts",
         "calculatedMonthlyMortgagePayment",
         "monthlyMaintenanceRecommendation"
       ]);
@@ -3187,6 +3224,41 @@
         }
       }
 
+      function syncHousingOngoingSupportBlockOutput() {
+        const createHousingOngoingSupportBlockOutput = window.LensApp?.lensAnalysis?.createHousingOngoingSupportBlockOutput;
+        const upsertRuntimeBlockOutput = window.LensApp?.lensAnalysis?.upsertRuntimeBlockOutput;
+        const refreshLensIncomeDebugPanel = window.LensApp?.lensAnalysisDev?.refreshLensIncomeDebugPanel;
+        if (typeof createHousingOngoingSupportBlockOutput !== "function" || typeof upsertRuntimeBlockOutput !== "function") {
+          return;
+        }
+
+        const runtimeNamespace = window.LensApp.lensAnalysisRuntime || (window.LensApp.lensAnalysisRuntime = {});
+        const blockOutput = createHousingOngoingSupportBlockOutput({
+          housingStatus: getLensBlockSourceFieldValue(housingStatusField),
+          mortgageBalance: getLensBlockSourceFieldValue(mortgageBalanceField),
+          monthlyMortgagePaymentOnly: getManualOverrideBlockOutputValue(mortgagePaymentOnlyField),
+          monthlyMortgagePaymentOnlyManualOverride: isManualOverrideActive(mortgagePaymentOnlyField),
+          mortgageTermRemainingYears: getLensBlockSourceFieldValue(mortgageTermRemainingYearsField),
+          mortgageTermRemainingMonths: getLensBlockSourceFieldValue(mortgageTermRemainingMonthsField),
+          mortgageInterestRate: getLensBlockSourceFieldValue(mortgageInterestRateField),
+          monthlyHousingCost: getLensBlockSourceFieldValue(monthlyHousingCostField),
+          utilitiesCost: getLensBlockSourceFieldValue(utilitiesCostField),
+          housingInsuranceCost: getLensBlockSourceFieldValue(housingInsuranceCostField),
+          propertyTax: getLensBlockSourceFieldValue(propertyTaxField),
+          monthlyHoaCost: getLensBlockSourceFieldValue(monthlyHoaCostField),
+          monthlyMaintenanceRecommendation: getManualOverrideBlockOutputValue(maintenanceRecommendationField),
+          monthlyMaintenanceRecommendationManualOverride: isManualOverrideActive(maintenanceRecommendationField),
+          associatedMonthlyCosts: getManualOverrideBlockOutputValue(associatedMonthlyCostsField),
+          associatedMonthlyCostsManualOverride: isManualOverrideActive(associatedMonthlyCostsField),
+          calculatedMonthlyMortgagePayment: getManualOverrideBlockOutputValue(monthlyMortgagePaymentField),
+          calculatedMonthlyMortgagePaymentManualOverride: isManualOverrideActive(monthlyMortgagePaymentField)
+        });
+        upsertRuntimeBlockOutput(runtimeNamespace, blockOutput);
+        if (typeof refreshLensIncomeDebugPanel === "function") {
+          refreshLensIncomeDebugPanel(runtimeNamespace);
+        }
+      }
+
       function getHouseholdNetIncomeBasis() {
         const incomeCalculationMode = getIncomeCalculationMode();
         const primaryNetIncome = parseCurrencyLikeNumber(netAnnualIncomeField?.value);
@@ -3388,7 +3460,39 @@
         );
       }
 
-      function calculateMonthlyMortgagePaymentAmount() {
+      function calculateMortgagePaymentOnlyAmount() {
+        const housingStatusField = form.elements.namedItem("housingStatus");
+        const selectedHousingStatus = housingStatusField && !(housingStatusField instanceof RadioNodeList)
+          ? String(housingStatusField.value || "").trim()
+          : "";
+
+        if (selectedHousingStatus !== "Homeowner") {
+          return null;
+        }
+
+        const principal = parseCurrencyLikeNumber(form.elements.namedItem("mortgageBalance")?.value);
+        const years = Math.max(0, Math.round(parseCurrencyLikeNumber(mortgageTermRemainingYearsField?.value)));
+        const months = Math.min(11, Math.max(0, Math.round(parseCurrencyLikeNumber(mortgageTermRemainingMonthsField?.value))));
+        const totalMonths = (years * 12) + months;
+        const annualRate = parseCurrencyLikeNumber(form.elements.namedItem("mortgageInterestRate")?.value);
+
+        if (!principal || !totalMonths) {
+          return null;
+        }
+
+        if (!annualRate) {
+          return principal / totalMonths;
+        }
+
+        const monthlyRate = annualRate / 1200;
+        if (!monthlyRate) {
+          return principal / totalMonths;
+        }
+
+        return principal * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -totalMonths)));
+      }
+
+      function calculateAssociatedMonthlyCostsAmount() {
         const housingStatusField = form.elements.namedItem("housingStatus");
         const selectedHousingStatus = housingStatusField && !(housingStatusField instanceof RadioNodeList)
           ? String(housingStatusField.value || "").trim()
@@ -3405,36 +3509,67 @@
 
         if (selectedHousingStatus === "Renter") {
           const monthlyRent = parseCurrencyLikeNumber(form.elements.namedItem("monthlyHousingCost")?.value);
-          const renterTotal = monthlyRent + monthlyUtilities + monthlyHousingInsurance;
-          return renterTotal > 0 ? renterTotal : null;
+          const renterAssociatedTotal = monthlyRent + monthlyUtilities + monthlyHousingInsurance;
+          return renterAssociatedTotal > 0 ? renterAssociatedTotal : null;
         }
 
-        if (selectedHousingStatus === "Owns Free and Clear") {
-          const freeAndClearTotal = monthlyUtilities + monthlyPropertyTax + monthlyHousingInsurance + monthlyMaintenance + monthlyHoaCost;
-          return freeAndClearTotal > 0 ? freeAndClearTotal : null;
+        const homeownerAssociatedTotal = monthlyUtilities + monthlyPropertyTax + monthlyHousingInsurance + monthlyMaintenance + monthlyHoaCost;
+        return homeownerAssociatedTotal > 0 ? homeownerAssociatedTotal : null;
+      }
+
+      function getEffectiveCalculatedHousingFieldValue(field) {
+        if (!field || field instanceof RadioNodeList) {
+          return 0;
         }
 
-        const principal = parseCurrencyLikeNumber(form.elements.namedItem("mortgageBalance")?.value);
-        const years = Math.max(0, Math.round(parseCurrencyLikeNumber(mortgageTermRemainingYearsField?.value)));
-        const months = Math.min(11, Math.max(0, Math.round(parseCurrencyLikeNumber(mortgageTermRemainingMonthsField?.value))));
-        const totalMonths = (years * 12) + months;
-        const annualRate = parseCurrencyLikeNumber(form.elements.namedItem("mortgageInterestRate")?.value);
+        const sourceValue = isManualOverrideActive(field)
+          ? field.dataset.manualValue
+          : (field.dataset.calculatedValue || field.value);
+        return parseCurrencyLikeNumber(sourceValue);
+      }
 
-        if (!principal || !totalMonths) {
-          const fallbackTotal = monthlyUtilities + monthlyPropertyTax + monthlyHousingInsurance + monthlyMaintenance + monthlyHoaCost;
-          return fallbackTotal > 0 ? fallbackTotal : null;
+      function syncMortgagePaymentOnlyField() {
+        if (!mortgagePaymentOnlyField || mortgagePaymentOnlyField instanceof RadioNodeList) {
+          return;
         }
 
-        if (!annualRate) {
-          return (principal / totalMonths) + monthlyUtilities + monthlyPropertyTax + monthlyHousingInsurance + monthlyMaintenance + monthlyHoaCost;
+        const calculatedPayment = calculateMortgagePaymentOnlyAmount();
+        applyNetIncomeValue(
+          mortgagePaymentOnlyField,
+          mortgagePaymentOnlyAction,
+          calculatedPayment || 0,
+          { blank: !Number.isFinite(calculatedPayment) || calculatedPayment <= 0 }
+        );
+      }
+
+      function syncAssociatedMonthlyCostsField() {
+        if (!associatedMonthlyCostsField || associatedMonthlyCostsField instanceof RadioNodeList) {
+          return;
         }
 
-        const monthlyRate = annualRate / 1200;
-        if (!monthlyRate) {
-          return (principal / totalMonths) + monthlyUtilities + monthlyPropertyTax + monthlyHousingInsurance + monthlyMaintenance + monthlyHoaCost;
+        const calculatedCosts = calculateAssociatedMonthlyCostsAmount();
+        applyNetIncomeValue(
+          associatedMonthlyCostsField,
+          associatedMonthlyCostsAction,
+          calculatedCosts || 0,
+          { blank: !Number.isFinite(calculatedCosts) || calculatedCosts <= 0 }
+        );
+      }
+
+      function calculateMonthlyBurdenAmount() {
+        const housingStatusField = form.elements.namedItem("housingStatus");
+        const selectedHousingStatus = housingStatusField && !(housingStatusField instanceof RadioNodeList)
+          ? String(housingStatusField.value || "").trim()
+          : "";
+
+        if (!selectedHousingStatus) {
+          return null;
         }
 
-        return (principal * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -totalMonths)))) + monthlyUtilities + monthlyPropertyTax + monthlyHousingInsurance + monthlyMaintenance + monthlyHoaCost;
+        const mortgagePayment = getEffectiveCalculatedHousingFieldValue(mortgagePaymentOnlyField);
+        const associatedCosts = getEffectiveCalculatedHousingFieldValue(associatedMonthlyCostsField);
+        const totalBurden = mortgagePayment + associatedCosts;
+        return totalBurden > 0 ? totalBurden : null;
       }
 
       function syncMonthlyMortgagePaymentField() {
@@ -3442,13 +3577,16 @@
           return;
         }
 
-        const calculatedPayment = calculateMonthlyMortgagePaymentAmount();
+        syncMortgagePaymentOnlyField();
+        syncAssociatedMonthlyCostsField();
+        const calculatedPayment = calculateMonthlyBurdenAmount();
         applyNetIncomeValue(
           monthlyMortgagePaymentField,
           monthlyMortgagePaymentAction,
           calculatedPayment || 0,
           { blank: !Number.isFinite(calculatedPayment) || calculatedPayment <= 0 }
         );
+        syncHousingOngoingSupportBlockOutput();
       }
 
       function syncAllTaxDerivedFields() {
@@ -3586,6 +3724,24 @@
             }
             setNetIncomeActionLabel(monthlyMortgagePaymentField, monthlyMortgagePaymentAction);
           }
+          if (mortgagePaymentOnlyField && !(mortgagePaymentOnlyField instanceof RadioNodeList)) {
+            if (saved.monthlyMortgagePaymentOnlyManualOverride) {
+              mortgagePaymentOnlyField.dataset.manualOverride = "true";
+              mortgagePaymentOnlyField.dataset.manualValue = String(parseCurrencyLikeNumber(saved.monthlyMortgagePaymentOnly));
+            } else {
+              clearNetIncomeManualOverride(mortgagePaymentOnlyField, mortgagePaymentOnlyAction);
+            }
+            setNetIncomeActionLabel(mortgagePaymentOnlyField, mortgagePaymentOnlyAction);
+          }
+          if (associatedMonthlyCostsField && !(associatedMonthlyCostsField instanceof RadioNodeList)) {
+            if (saved.associatedMonthlyCostsManualOverride) {
+              associatedMonthlyCostsField.dataset.manualOverride = "true";
+              associatedMonthlyCostsField.dataset.manualValue = String(parseCurrencyLikeNumber(saved.associatedMonthlyCosts));
+            } else {
+              clearNetIncomeManualOverride(associatedMonthlyCostsField, associatedMonthlyCostsAction);
+            }
+            setNetIncomeActionLabel(associatedMonthlyCostsField, associatedMonthlyCostsAction);
+          }
           if (maintenanceRecommendationField && !(maintenanceRecommendationField instanceof RadioNodeList)) {
             if (saved.monthlyMaintenanceRecommendationManualOverride) {
               maintenanceRecommendationField.dataset.manualOverride = "true";
@@ -3671,6 +3827,16 @@
         if (monthlyMortgagePaymentField && !(monthlyMortgagePaymentField instanceof RadioNodeList) && monthlyMortgagePaymentField.dataset.manualOverride === "true") {
           draft.calculatedMonthlyMortgagePayment = parseCurrencyLikeNumber(monthlyMortgagePaymentField.dataset.manualValue);
           draft.calculatedMonthlyMortgagePaymentManualOverride = true;
+        }
+
+        if (mortgagePaymentOnlyField && !(mortgagePaymentOnlyField instanceof RadioNodeList) && mortgagePaymentOnlyField.dataset.manualOverride === "true") {
+          draft.monthlyMortgagePaymentOnly = parseCurrencyLikeNumber(mortgagePaymentOnlyField.dataset.manualValue);
+          draft.monthlyMortgagePaymentOnlyManualOverride = true;
+        }
+
+        if (associatedMonthlyCostsField && !(associatedMonthlyCostsField instanceof RadioNodeList) && associatedMonthlyCostsField.dataset.manualOverride === "true") {
+          draft.associatedMonthlyCosts = parseCurrencyLikeNumber(associatedMonthlyCostsField.dataset.manualValue);
+          draft.associatedMonthlyCostsManualOverride = true;
         }
 
         if (maintenanceRecommendationField && !(maintenanceRecommendationField instanceof RadioNodeList) && maintenanceRecommendationField.dataset.manualOverride === "true") {
@@ -3830,6 +3996,8 @@
       [
         [netAnnualIncomeField, primaryNetIncomeAction],
         [spouseNetAnnualIncomeField, spouseNetIncomeAction],
+        [mortgagePaymentOnlyField, mortgagePaymentOnlyAction],
+        [associatedMonthlyCostsField, associatedMonthlyCostsAction],
         [monthlyMortgagePaymentField, monthlyMortgagePaymentAction],
         [maintenanceRecommendationField, maintenanceRecommendationAction],
         [totalDebtPayoffNeedField, totalDebtPayoffNeedAction]
@@ -3854,7 +4022,7 @@
             if (field === totalDebtPayoffNeedField) {
               syncDebtPayoffBlockOutput();
             }
-            if (field === maintenanceRecommendationField) {
+            if (field === maintenanceRecommendationField || field === mortgagePaymentOnlyField || field === associatedMonthlyCostsField || field === monthlyMortgagePaymentField) {
               syncMonthlyMortgagePaymentField();
             }
             return;
@@ -3890,7 +4058,7 @@
           if (field === totalDebtPayoffNeedField) {
             syncDebtPayoffBlockOutput();
           }
-          if (field === maintenanceRecommendationField) {
+          if (field === maintenanceRecommendationField || field === mortgagePaymentOnlyField || field === associatedMonthlyCostsField || field === monthlyMortgagePaymentField) {
             syncMonthlyMortgagePaymentField();
           }
         });
@@ -4001,7 +4169,6 @@
         stateOfResidenceField.addEventListener("input", syncStateTaxState);
       }
 
-      const housingStatusField = form.elements.namedItem("housingStatus");
       if (housingStatusField && !(housingStatusField instanceof RadioNodeList)) {
         const syncHousingStatusState = () => {
           syncHousingStatusCircles();

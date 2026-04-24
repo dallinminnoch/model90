@@ -13,6 +13,40 @@
   const SUMMARY_ID = "lens-income-debug-summary";
   const NET_INCOME_BLOCK_ID = lensAnalysis.NET_INCOME_BLOCK_ID || "income-net-income";
   const DEBT_PAYOFF_BLOCK_ID = lensAnalysis.DEBT_PAYOFF_BLOCK_ID || "debt-payoff";
+  const HOUSING_ONGOING_SUPPORT_BLOCK_ID = lensAnalysis.HOUSING_ONGOING_SUPPORT_BLOCK_ID || "housing-ongoing-support";
+
+  const HOUSING_RUNTIME_ONLY_DEBUG_FIELDS = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "housingStatus",
+      destinationField: null
+    }),
+    Object.freeze({
+      sourceOutputKey: "mortgageBalance",
+      destinationField: null
+    })
+  ]);
+
+  // TEMP DEBUG/AUDIT ONLY.
+  // These rows help compare the current authoritative housing-card total
+  // against an independently recomputed monthly support total.
+  const HOUSING_AUDIT_DEBUG_FIELDS = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "monthlyHousingSupportCost",
+      destinationField: null
+    }),
+    Object.freeze({
+      sourceOutputKey: "recomputedMonthlyHousingSupportCost",
+      destinationField: null
+    }),
+    Object.freeze({
+      sourceOutputKey: "housingSupportCostVariance",
+      destinationField: null
+    }),
+    Object.freeze({
+      sourceOutputKey: "housingSupportCostMatches",
+      destinationField: null
+    })
+  ]);
 
   const INCOME_DEBUG_FIELDS = Object.freeze([
     Object.freeze({
@@ -99,6 +133,57 @@
     })
   ]);
 
+  const ONGOING_SUPPORT_DEBUG_FIELDS = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "monthlyMortgagePayment",
+      destinationField: "monthlyMortgagePayment"
+    }),
+    Object.freeze({
+      sourceOutputKey: "mortgageRemainingTermMonths",
+      destinationField: "mortgageRemainingTermMonths"
+    }),
+    Object.freeze({
+      sourceOutputKey: "mortgageInterestRatePercent",
+      destinationField: "mortgageInterestRatePercent"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyRentOrHousingPayment",
+      destinationField: "monthlyRentOrHousingPayment"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyUtilities",
+      destinationField: "monthlyUtilities"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyHousingInsurance",
+      destinationField: "monthlyHousingInsurance"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyPropertyTax",
+      destinationField: "monthlyPropertyTax"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyHoaCost",
+      destinationField: "monthlyHoaCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyMaintenanceAndRepairs",
+      destinationField: "monthlyMaintenanceAndRepairs"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyAssociatedHousingCosts",
+      destinationField: "monthlyAssociatedHousingCosts"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyHousingSupportCost",
+      destinationField: "monthlyHousingSupportCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "annualHousingSupportCost",
+      destinationField: "annualHousingSupportCost"
+    })
+  ]);
+
   function isLensIncomeDebugEnabled(locationLike) {
     const search = locationLike && typeof locationLike.search === "string" ? locationLike.search : "";
     const value = new URLSearchParams(search).get(DEBUG_QUERY_PARAM);
@@ -151,18 +236,26 @@
       ? normalizationMetadata.fields
       : {};
     const sourceBlockId = normalizationMetadata.sourceBlockId || blockOutput.blockId || null;
+    const runtimeSection = normalizedOptions.runtimeSection || "Runtime Block Output";
 
     normalizedOptions.fields.forEach(function (field) {
       const runtimeMetadata = runtimeOutputMetadata[field.sourceOutputKey] || {};
-      const normalizedFieldMetadata = normalizationFieldMetadata[field.destinationField] || {};
+      const hasNormalizedField = Boolean(field.destinationField);
+      const normalizedFieldMetadata = hasNormalizedField
+        ? (normalizationFieldMetadata[field.destinationField] || {})
+        : {};
 
       rows.push({
-        section: "Runtime Block Output",
+        section: runtimeSection,
         field: field.sourceOutputKey,
         value: runtimeOutputs[field.sourceOutputKey],
         sourceBlock: blockOutput.blockId || null,
         confidence: runtimeMetadata.confidence || null
       });
+
+      if (!hasNormalizedField) {
+        return;
+      }
 
       rows.push({
         section: normalizedOptions.normalizedSection,
@@ -210,12 +303,38 @@
       fields: DEBT_DEBUG_FIELDS
     });
 
+    appendBucketInspectionRows(rows, {
+      blockOutput: safeBlockOutputs[HOUSING_ONGOING_SUPPORT_BLOCK_ID],
+      normalizedBucket: null,
+      normalizationMetadata: null,
+      runtimeSection: "Runtime housing context",
+      normalizedSection: "Runtime housing context",
+      fields: HOUSING_RUNTIME_ONLY_DEBUG_FIELDS
+    });
+
+    appendBucketInspectionRows(rows, {
+      blockOutput: safeBlockOutputs[HOUSING_ONGOING_SUPPORT_BLOCK_ID],
+      normalizedBucket: null,
+      normalizationMetadata: null,
+      runtimeSection: "Runtime housing audit",
+      normalizedSection: "Runtime housing audit",
+      fields: HOUSING_AUDIT_DEBUG_FIELDS
+    });
+
+    appendBucketInspectionRows(rows, {
+      blockOutput: safeBlockOutputs[HOUSING_ONGOING_SUPPORT_BLOCK_ID],
+      normalizedBucket: lensModel && lensModel.ongoingSupport,
+      normalizationMetadata: lensModel && lensModel.normalizationMetadata && lensModel.normalizationMetadata.ongoingSupport,
+      normalizedSection: "Normalized ongoingSupport",
+      fields: ONGOING_SUPPORT_DEBUG_FIELDS
+    });
+
     return rows;
   }
 
   function createSummaryText(blockOutputs, lensModel) {
     const safeBlockOutputs = blockOutputs && typeof blockOutputs === "object" ? blockOutputs : {};
-    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID].filter(function (blockId) {
+    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID].filter(function (blockId) {
       return safeBlockOutputs[blockId];
     });
     return "Runtime blocks: " + (availableBlocks.length ? availableBlocks.join(", ") : "none");
@@ -365,6 +484,7 @@
       blockOutputs: blockOutputs,
       lensModel: lensModel,
       incomeBasis: lensModel.incomeBasis,
+      ongoingSupport: lensModel.ongoingSupport,
       debtPayoff: lensModel.debtPayoff,
       normalizationMetadata: lensModel.normalizationMetadata || null
     };

@@ -8,9 +8,10 @@
 
   const INCOME_NET_INCOME_BLOCK_ID = lensAnalysis.NET_INCOME_BLOCK_ID || "income-net-income";
   const DEBT_PAYOFF_BLOCK_ID = lensAnalysis.DEBT_PAYOFF_BLOCK_ID || "debt-payoff";
+  const HOUSING_ONGOING_SUPPORT_BLOCK_ID = lensAnalysis.HOUSING_ONGOING_SUPPORT_BLOCK_ID || "housing-ongoing-support";
 
   // This pass normalizes the currently proven runtime block outputs into the
-  // canonical incomeBasis, debtPayoff, and economic-assumptions destinations.
+  // canonical incomeBasis, debtPayoff, ongoingSupport, and assumptions destinations.
   const INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
     Object.freeze({
       sourceOutputKey: "grossAnnualIncome",
@@ -112,6 +113,69 @@
       sourceOutputKey: "totalDebtPayoffNeed",
       destinationField: "totalDebtPayoffNeed",
       sourceMetadataKey: "totalDebtPayoffNeed"
+    })
+  ]);
+
+  const ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "monthlyMortgagePayment",
+      destinationField: "monthlyMortgagePayment",
+      sourceMetadataKey: "monthlyMortgagePayment"
+    }),
+    Object.freeze({
+      sourceOutputKey: "mortgageRemainingTermMonths",
+      destinationField: "mortgageRemainingTermMonths",
+      sourceMetadataKey: "mortgageRemainingTermMonths"
+    }),
+    Object.freeze({
+      sourceOutputKey: "mortgageInterestRatePercent",
+      destinationField: "mortgageInterestRatePercent",
+      sourceMetadataKey: "mortgageInterestRatePercent"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyRentOrHousingPayment",
+      destinationField: "monthlyRentOrHousingPayment",
+      sourceMetadataKey: "monthlyRentOrHousingPayment"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyUtilities",
+      destinationField: "monthlyUtilities",
+      sourceMetadataKey: "monthlyUtilities"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyHousingInsurance",
+      destinationField: "monthlyHousingInsurance",
+      sourceMetadataKey: "monthlyHousingInsurance"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyPropertyTax",
+      destinationField: "monthlyPropertyTax",
+      sourceMetadataKey: "monthlyPropertyTax"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyHoaCost",
+      destinationField: "monthlyHoaCost",
+      sourceMetadataKey: "monthlyHoaCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyMaintenanceAndRepairs",
+      destinationField: "monthlyMaintenanceAndRepairs",
+      sourceMetadataKey: "monthlyMaintenanceAndRepairs"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyAssociatedHousingCosts",
+      destinationField: "monthlyAssociatedHousingCosts",
+      sourceMetadataKey: "monthlyAssociatedHousingCosts"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyHousingSupportCost",
+      destinationField: "monthlyHousingSupportCost",
+      sourceMetadataKey: "monthlyHousingSupportCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "annualHousingSupportCost",
+      destinationField: "annualHousingSupportCost",
+      sourceMetadataKey: "annualHousingSupportCost"
     })
   ]);
 
@@ -220,6 +284,10 @@
       blockId: DEBT_PAYOFF_BLOCK_ID,
       mapping: DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP
     });
+    const ongoingSupportNormalizationMetadata = normalizeBucketFromBlockOutput(lensModel.ongoingSupport, blockOutputs, {
+      blockId: HOUSING_ONGOING_SUPPORT_BLOCK_ID,
+      mapping: ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP
+    });
     const economicAssumptionsNormalizationMetadata = normalizeBucketFromBlockOutput(
       lensModel.assumptions.economicAssumptions,
       blockOutputs,
@@ -234,6 +302,7 @@
     lensModel.normalizationMetadata = {
       incomeBasis: incomeBasisNormalizationMetadata,
       debtPayoff: debtPayoffNormalizationMetadata,
+      ongoingSupport: ongoingSupportNormalizationMetadata,
       assumptions: {
         economicAssumptions: economicAssumptionsNormalizationMetadata
       }
@@ -244,8 +313,10 @@
 
   lensAnalysis.INCOME_NET_INCOME_BLOCK_ID = INCOME_NET_INCOME_BLOCK_ID;
   lensAnalysis.DEBT_PAYOFF_BLOCK_ID = DEBT_PAYOFF_BLOCK_ID;
+  lensAnalysis.HOUSING_ONGOING_SUPPORT_BLOCK_ID = HOUSING_ONGOING_SUPPORT_BLOCK_ID;
   lensAnalysis.INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP = ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP = DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP;
+  lensAnalysis.ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP = ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.createLensModelFromBlockOutputs = createLensModelFromBlockOutputs;
 })();

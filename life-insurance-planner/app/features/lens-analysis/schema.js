@@ -55,16 +55,25 @@
         totalDebtPayoffNeed: null
       },
 
-      // Recurring monthly survivor-support needs. All amount fields in this
-      // bucket are monthly recurring expenses, not one-time obligations.
+      // Recurring survivor-support needs. Housing fields capture the current
+      // monthly and annual support burden before any future mortgage payoff or
+      // timeline adjustments. These are neutral facts, not recommendations.
       ongoingSupport: {
         currentMonthlyHouseholdExpenses: null,
-        monthlyHousingCost: null,
-        monthlyUtilitiesCost: null,
-        monthlyHousingInsuranceCost: null,
+        monthlyHousingSupportCost: null,
+        annualHousingSupportCost: null,
+        monthlyMortgagePayment: null,
+        // Mortgage timing fact for future analysis. This pass does not decide
+        // when mortgage support should phase out.
+        mortgageRemainingTermMonths: null,
+        mortgageInterestRatePercent: null,
+        monthlyRentOrHousingPayment: null,
+        monthlyUtilities: null,
+        monthlyHousingInsurance: null,
         monthlyPropertyTax: null,
-        monthlyHoaFees: null,
-        monthlyHomeMaintenanceCost: null,
+        monthlyHoaCost: null,
+        monthlyMaintenanceAndRepairs: null,
+        monthlyAssociatedHousingCosts: null,
         monthlyFoodCost: null,
         monthlyTransportationCost: null,
         monthlyChildcareAndDependentCareCost: null,
