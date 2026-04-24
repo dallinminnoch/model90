@@ -97,15 +97,20 @@
         annualDiscretionaryPersonalSpending: null
       },
 
-      // Dependent-support and education-funding needs. Current and projected
-      // dependents stay separate so normalization can preserve source meaning.
+      // Dependent-support and education-funding needs. Linked/current and
+      // additional planned dependents stay separate so normalization can
+      // preserve source meaning. The total is a neutral lump-sum funding
+      // target, not inflation-projected, present-valued, offset-adjusted, or a
+      // recommendation.
       educationSupport: {
-        currentDependentCount: null,
-        projectedDependentCount: null,
-        estimatedEducationCostPerCurrentDependent: null,
-        estimatedEducationCostPerProjectedDependent: null,
-        educationFundingTargetPercent: null,
-        yearsUntilFirstEducationFundingNeed: null
+        linkedDependentCount: null,
+        desiredAdditionalDependentCount: null,
+        perLinkedDependentEducationFunding: null,
+        perDesiredAdditionalDependentEducationFunding: null,
+        sameEducationFundingForDesiredAdditionalDependents: null,
+        linkedDependentEducationFundingNeed: null,
+        desiredAdditionalDependentEducationFundingNeed: null,
+        totalEducationFundingNeed: null
       },
 
       // Final life-event expenses. A total can be derived later, but the

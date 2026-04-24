@@ -599,12 +599,12 @@
             <div class="form-grid pmi-education-grid">
               <div class="pmi-education-row pmi-education-row--counts">
                 <div class="field-group">
-                  <label for="children-needing-funding">Dependents / Children on Linked Profile</label>
+                  <label for="children-needing-funding">Linked Dependents / Children</label>
                   <input id="children-needing-funding" class="profile-yes-no-field" name="childrenNeedingFunding" type="number" min="0" step="1" data-number-format="integer" readonly aria-readonly="true">
                   <p class="underwriting-helper-text underwriting-helper-inline">Pulled from the linked profile.</p>
                 </div>
                 <div class="field-group">
-                  <label for="estimated-cost-per-child">Desired Education Funding (Per Dependent)</label>
+                  <label for="estimated-cost-per-child">Education Funding per Linked Dependent</label>
                   <div class="profile-currency-field">
                     <input id="estimated-cost-per-child" class="profile-education-funding-field" name="estimatedCostPerChild" type="number" min="0" step="5000" list="education-funding-options">
                     <span class="profile-currency-suffix">USD</span>
@@ -630,7 +630,7 @@
               </div>
               <label class="settings-toggle-row pmi-education-toggle-row">
                 <span class="settings-toggle-copy">
-                  <span class="settings-toggle-label">Same Education Funding for Desired Children / Dependents?</span>
+                  <span class="settings-toggle-label">Use Same Funding Amount for Additional Dependents?</span>
                 </span>
                 <input type="hidden" name="sameEducationFunding" value="Yes">
                 <span class="settings-switch">
@@ -639,19 +639,19 @@
                     type="checkbox"
                     checked
                     role="switch"
-                    aria-label="Same education funding for desired children and dependents"
+                    aria-label="Use same funding amount for additional dependents"
                     data-same-education-funding-toggle>
                   <span class="settings-switch-track" aria-hidden="true"></span>
                 </span>
               </label>
               <div class="pmi-education-row pmi-education-row--funding">
                 <div class="field-group">
-                  <label for="projected-dependents-count">Desired Amount of Children</label>
+                  <label for="projected-dependents-count">Additional Planned Dependents / Children</label>
                   <input id="projected-dependents-count" class="profile-yes-no-field" name="projectedDependentsCount" type="number" min="0" step="1" data-number-format="integer" readonly aria-readonly="true">
                   <p class="underwriting-helper-text underwriting-helper-inline">Pulled from the linked profile.</p>
                 </div>
                 <div class="field-group">
-                  <label for="projected-education-funding-per-dependent">Desired Education Funding (Per Desired Child)</label>
+                  <label for="projected-education-funding-per-dependent">Education Funding per Additional Dependent</label>
                   <div class="profile-currency-field">
                     <input id="projected-education-funding-per-dependent" class="profile-education-funding-field" name="projectedEducationFundingPerDependent" type="number" min="0" step="5000" list="education-funding-options">
                     <span class="profile-currency-suffix">USD</span>
@@ -1097,6 +1097,7 @@
   <script src="../app/features/lens-analysis/blocks/debt-payoff.js"></script>
   <script src="../app/features/lens-analysis/blocks/housing-ongoing-support.js"></script>
   <script src="../app/features/lens-analysis/blocks/non-housing-ongoing-support.js"></script>
+  <script src="../app/features/lens-analysis/blocks/education-support.js"></script>
   <script src="../app/features/lens-analysis/normalize-lens-model.js"></script>
   <script src="../app/features/lens-analysis/dev-income-debug.js"></script>
   <script src="../app.js"></script>
@@ -3298,6 +3299,28 @@
         }
       }
 
+      function syncEducationSupportBlockOutput() {
+        const createEducationSupportBlockOutput = window.LensApp?.lensAnalysis?.createEducationSupportBlockOutput;
+        const upsertRuntimeBlockOutput = window.LensApp?.lensAnalysis?.upsertRuntimeBlockOutput;
+        const refreshLensIncomeDebugPanel = window.LensApp?.lensAnalysisDev?.refreshLensIncomeDebugPanel;
+        if (typeof createEducationSupportBlockOutput !== "function" || typeof upsertRuntimeBlockOutput !== "function") {
+          return;
+        }
+
+        const runtimeNamespace = window.LensApp.lensAnalysisRuntime || (window.LensApp.lensAnalysisRuntime = {});
+        const blockOutput = createEducationSupportBlockOutput({
+          childrenNeedingFunding: getLensBlockSourceFieldValue(childrenNeedingFundingField),
+          estimatedCostPerChild: getLensBlockSourceFieldValue(educationFundingPerDependentField),
+          sameEducationFunding: getLensBlockSourceFieldValue(sameEducationFundingField),
+          projectedDependentsCount: getLensBlockSourceFieldValue(projectedDependentsCountField),
+          projectedEducationFundingPerDependent: getLensBlockSourceFieldValue(projectedEducationFundingPerDependentField)
+        });
+        upsertRuntimeBlockOutput(runtimeNamespace, blockOutput);
+        if (typeof refreshLensIncomeDebugPanel === "function") {
+          refreshLensIncomeDebugPanel(runtimeNamespace);
+        }
+      }
+
       function getHouseholdNetIncomeBasis() {
         const incomeCalculationMode = getIncomeCalculationMode();
         const primaryNetIncome = parseCurrencyLikeNumber(netAnnualIncomeField?.value);
@@ -4263,15 +4286,36 @@
         field.addEventListener("input", syncAllTaxDerivedFields);
       });
 
-      if (educationFundingPerDependentField && !(educationFundingPerDependentField instanceof RadioNodeList)) {
-        educationFundingPerDependentField.addEventListener("input", syncProjectedEducationFundingState);
-        educationFundingPerDependentField.addEventListener("change", syncProjectedEducationFundingState);
+      function syncEducationFundingStateAndBlockOutput() {
+        syncProjectedEducationFundingState();
+        syncEducationSupportBlockOutput();
       }
+
+      if (educationFundingPerDependentField && !(educationFundingPerDependentField instanceof RadioNodeList)) {
+        educationFundingPerDependentField.addEventListener("input", syncEducationFundingStateAndBlockOutput);
+        educationFundingPerDependentField.addEventListener("change", syncEducationFundingStateAndBlockOutput);
+        educationFundingPerDependentField.addEventListener("blur", syncEducationFundingStateAndBlockOutput);
+      }
+
+      [
+        childrenNeedingFundingField,
+        projectedDependentsCountField,
+        sameEducationFundingField,
+        projectedEducationFundingPerDependentField
+      ].forEach((field) => {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        field.addEventListener("input", syncEducationSupportBlockOutput);
+        field.addEventListener("change", syncEducationSupportBlockOutput);
+        field.addEventListener("blur", syncEducationSupportBlockOutput);
+      });
 
       if (sameEducationFundingToggle) {
         sameEducationFundingToggle.addEventListener("change", () => {
           syncSameEducationFundingFieldFromToggle();
-          syncProjectedEducationFundingState();
+          syncEducationFundingStateAndBlockOutput();
         });
       }
 
@@ -4303,6 +4347,7 @@
       syncMonthlyMortgagePaymentField();
       syncSameEducationFundingToggleFromField();
       syncProjectedEducationFundingState();
+      syncEducationSupportBlockOutput();
       syncAllTaxDerivedFields();
       syncIncomeCalculationCurrencyFormatting();
       syncSurvivorshipAdjustments();

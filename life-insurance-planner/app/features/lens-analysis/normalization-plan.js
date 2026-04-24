@@ -119,12 +119,14 @@
       ],
 
       educationSupport: [
-        { rawField: "childrenNeedingFunding", canonicalField: "educationSupport.currentDependentCount", availability: "activeLinkedPmi", note: "Hydrated from root profile and re-saved into PMI today." },
-        { rawField: "projectedDependentsCount", canonicalField: "educationSupport.projectedDependentCount", availability: "activeLinkedPmi", note: "Hydrated from root profile and re-saved into PMI today." },
-        { rawField: "estimatedCostPerChild", canonicalField: "educationSupport.estimatedEducationCostPerCurrentDependent", availability: "activeLinkedPmi", note: "Current education-cost field for current dependents." },
-        { rawField: "projectedEducationFundingPerDependent", canonicalField: "educationSupport.estimatedEducationCostPerProjectedDependent", availability: "activeLinkedPmi", note: "Current education-cost field for projected dependents." },
-        { rawField: "costToFundPercent", canonicalField: "educationSupport.educationFundingTargetPercent", availability: "legacyPmi", note: "Legacy-only field still referenced by the live bucket builder." },
-        { rawField: "yearsUntilCollege", canonicalField: "educationSupport.yearsUntilFirstEducationFundingNeed", availability: "legacyPmi", note: "Legacy timing field not present in the active linked PMI." }
+        { rawField: "childrenNeedingFunding", canonicalField: "educationSupport.linkedDependentCount", availability: "activeLinkedPmi-linkedProfile", note: "Linked/current profile dependent count used for neutral education funding." },
+        { rawField: "projectedDependentsCount", canonicalField: "educationSupport.desiredAdditionalDependentCount", availability: "activeLinkedPmi-linkedProfile", note: "Additional planned dependent count used for neutral education funding." },
+        { rawField: "estimatedCostPerChild", canonicalField: "educationSupport.perLinkedDependentEducationFunding", availability: "activeLinkedPmi", note: "Education funding amount per linked/current dependent." },
+        { rawField: "projectedEducationFundingPerDependent", canonicalField: "educationSupport.perDesiredAdditionalDependentEducationFunding", availability: "activeLinkedPmi", note: "Education funding amount per additional planned dependent. When sameEducationFunding is Yes, page logic copies the linked-dependent amount into this field before block creation." },
+        { rawField: "sameEducationFunding", canonicalField: "educationSupport.sameEducationFundingForDesiredAdditionalDependents", availability: "activeLinkedPmi", note: "Whether additional planned dependents use the same per-dependent education funding amount." },
+        { rawField: "childrenNeedingFunding * estimatedCostPerChild", canonicalField: "educationSupport.linkedDependentEducationFundingNeed", availability: "activeLinkedPmiBlockOutput", note: "Neutral linked/current dependent lump-sum education funding target; not inflation-projected, present-valued, offset-adjusted, or a recommendation." },
+        { rawField: "projectedDependentsCount * projectedEducationFundingPerDependent", canonicalField: "educationSupport.desiredAdditionalDependentEducationFundingNeed", availability: "activeLinkedPmiBlockOutput", note: "Neutral additional planned dependent lump-sum education funding target; not inflation-projected, present-valued, offset-adjusted, or a recommendation." },
+        { rawField: "linkedDependentEducationFundingNeed + desiredAdditionalDependentEducationFundingNeed", canonicalField: "educationSupport.totalEducationFundingNeed", availability: "activeLinkedPmiBlockOutput", note: "Neutral total lump-sum education funding target; not inflation-projected, present-valued, offset-adjusted, or a recommendation." }
       ],
 
       finalExpenses: [
@@ -201,8 +203,8 @@
       { rawField: "dateOfBirth", canonicalField: null, note: "Useful fallback for age derivation before formulas." },
       { rawField: "spouseAge", canonicalField: null, note: "Supporting context only. Spouse-or-partner age should not be conflated with retirement horizon." },
       { rawField: "spouseDateOfBirth", canonicalField: null, note: "Useful fallback for spouse-or-partner age derivation before formulas." },
-      { rawField: "dependentsCount", canonicalField: "educationSupport.currentDependentCount", note: "Current linked PMI hydrates from this profile field." },
-      { rawField: "projectedDependentsCount", canonicalField: "educationSupport.projectedDependentCount", note: "Current linked PMI hydrates from this profile field." },
+      { rawField: "dependentsCount", canonicalField: "educationSupport.linkedDependentCount", note: "Current linked PMI hydrates childrenNeedingFunding from this profile field." },
+      { rawField: "projectedDependentsCount", canonicalField: "educationSupport.desiredAdditionalDependentCount", note: "Current linked PMI hydrates projectedDependentsCount from this profile field." },
       { rawField: "dependentAges", canonicalField: null, note: "Profile fact worth preserving later for education timing, but not part of the first canonical destination shape." },
       { rawField: "hasDependents", canonicalField: null, note: "Profile fact worth preserving later for form logic, but not required in the first canonical model." },
       { rawField: "projectedDependents", canonicalField: null, note: "Profile fact worth preserving later for form logic, but not required in the first canonical model." }
@@ -222,15 +224,14 @@
       { rawField: "spousePayrollTaxes", reason: "Derived display/support value; not a first-pass canonical Lens field." },
       { rawField: "associatedMonthlyCosts", reason: "Housing-card subtotal and UI convenience only; future analysis should use monthlyHousingSupportCost or the granular housing fields instead of this overlapping subtotal." },
       { rawField: "mortgageTermRemaining", reason: "Useful derived helper, but not part of the first canonical bucket design." },
-      { rawField: "sameEducationFunding", reason: "Form-state helper, not durable analysis data." },
+      { rawField: "costToFundPercent", reason: "Legacy funding target percent; excluded from the current neutral education-support block because method logic later decides offsets, funding percentages, and recommendations." },
+      { rawField: "yearsUntilCollege", reason: "Legacy education timing field; excluded from the current neutral education-support block because timing and child-age projection belong in later analysis." },
       { rawField: "viewport", reason: "Pure UI state; should never normalize into a backend-ready Lens model." }
     ],
 
     knownMissingCanonicalFields: [
       { canonicalField: "incomeBasis.householdIncomeContributionPercent", reason: "Active linked PMI calculates a contribution ratio but does not reliably persist it, and there is still no separate explicit replacement-target field." },
       { canonicalField: "ongoingSupport.currentMonthlyHouseholdExpenses", reason: "Active linked PMI captures line-item expenses but has no canonical current total field." },
-      { canonicalField: "educationSupport.educationFundingTargetPercent", reason: "Legacy-only `costToFundPercent` exists, but the active linked PMI no longer captures an explicit education funding target." },
-      { canonicalField: "educationSupport.yearsUntilFirstEducationFundingNeed", reason: "Legacy-only `yearsUntilCollege` exists, but the active linked PMI has no education timing field." },
       { canonicalField: "offsetsAndCoverage.currentCoverage.individualInForceCoverageAmount", reason: "Active linked PMI no longer captures individual policy totals directly." },
       { canonicalField: "offsetsAndCoverage.currentCoverage.groupInForceCoverageAmount", reason: "Active linked PMI no longer captures group policy totals directly." },
       { canonicalField: "oneTimeObligations.specialPurposeFundingTotal", reason: "Expected by live analysis code but absent from the active linked PMI." },

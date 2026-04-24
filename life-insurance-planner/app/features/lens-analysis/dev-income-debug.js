@@ -15,6 +15,7 @@
   const DEBT_PAYOFF_BLOCK_ID = lensAnalysis.DEBT_PAYOFF_BLOCK_ID || "debt-payoff";
   const HOUSING_ONGOING_SUPPORT_BLOCK_ID = lensAnalysis.HOUSING_ONGOING_SUPPORT_BLOCK_ID || "housing-ongoing-support";
   const NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID = lensAnalysis.NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID || "non-housing-ongoing-support";
+  const EDUCATION_SUPPORT_BLOCK_ID = lensAnalysis.EDUCATION_SUPPORT_BLOCK_ID || "education-support";
 
   const HOUSING_RUNTIME_ONLY_DEBUG_FIELDS = Object.freeze([
     Object.freeze({
@@ -253,6 +254,41 @@
     })
   ]);
 
+  const EDUCATION_SUPPORT_DEBUG_FIELDS = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "linkedDependentCount",
+      destinationField: "linkedDependentCount"
+    }),
+    Object.freeze({
+      sourceOutputKey: "desiredAdditionalDependentCount",
+      destinationField: "desiredAdditionalDependentCount"
+    }),
+    Object.freeze({
+      sourceOutputKey: "perLinkedDependentEducationFunding",
+      destinationField: "perLinkedDependentEducationFunding"
+    }),
+    Object.freeze({
+      sourceOutputKey: "perDesiredAdditionalDependentEducationFunding",
+      destinationField: "perDesiredAdditionalDependentEducationFunding"
+    }),
+    Object.freeze({
+      sourceOutputKey: "sameEducationFundingForDesiredAdditionalDependents",
+      destinationField: "sameEducationFundingForDesiredAdditionalDependents"
+    }),
+    Object.freeze({
+      sourceOutputKey: "linkedDependentEducationFundingNeed",
+      destinationField: "linkedDependentEducationFundingNeed"
+    }),
+    Object.freeze({
+      sourceOutputKey: "desiredAdditionalDependentEducationFundingNeed",
+      destinationField: "desiredAdditionalDependentEducationFundingNeed"
+    }),
+    Object.freeze({
+      sourceOutputKey: "totalEducationFundingNeed",
+      destinationField: "totalEducationFundingNeed"
+    })
+  ]);
+
   function isLensIncomeDebugEnabled(locationLike) {
     const search = locationLike && typeof locationLike.search === "string" ? locationLike.search : "";
     const value = new URLSearchParams(search).get(DEBUG_QUERY_PARAM);
@@ -448,12 +484,21 @@
       fields: ONGOING_SUPPORT_COMPOSITION_DEBUG_FIELDS
     });
 
+    appendBucketInspectionRows(rows, {
+      blockOutput: safeBlockOutputs[EDUCATION_SUPPORT_BLOCK_ID],
+      normalizedBucket: lensModel && lensModel.educationSupport,
+      normalizationMetadata: lensModel && lensModel.normalizationMetadata && lensModel.normalizationMetadata.educationSupport,
+      runtimeSection: "Runtime education-support",
+      normalizedSection: "Normalized educationSupport",
+      fields: EDUCATION_SUPPORT_DEBUG_FIELDS
+    });
+
     return rows;
   }
 
   function createSummaryText(blockOutputs, lensModel) {
     const safeBlockOutputs = blockOutputs && typeof blockOutputs === "object" ? blockOutputs : {};
-    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID, NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID].filter(function (blockId) {
+    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID, NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID, EDUCATION_SUPPORT_BLOCK_ID].filter(function (blockId) {
       return safeBlockOutputs[blockId];
     });
     return "Runtime blocks: " + (availableBlocks.length ? availableBlocks.join(", ") : "none");
@@ -604,6 +649,7 @@
       lensModel: lensModel,
       incomeBasis: lensModel.incomeBasis,
       ongoingSupport: lensModel.ongoingSupport,
+      educationSupport: lensModel.educationSupport,
       debtPayoff: lensModel.debtPayoff,
       normalizationMetadata: lensModel.normalizationMetadata || null
     };

@@ -10,11 +10,13 @@
   const DEBT_PAYOFF_BLOCK_ID = lensAnalysis.DEBT_PAYOFF_BLOCK_ID || "debt-payoff";
   const HOUSING_ONGOING_SUPPORT_BLOCK_ID = lensAnalysis.HOUSING_ONGOING_SUPPORT_BLOCK_ID || "housing-ongoing-support";
   const NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID = lensAnalysis.NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID || "non-housing-ongoing-support";
+  const EDUCATION_SUPPORT_BLOCK_ID = lensAnalysis.EDUCATION_SUPPORT_BLOCK_ID || "education-support";
   const ONGOING_SUPPORT_COMPOSITION_BLOCK_ID = "ongoingSupport-composition";
   const ONGOING_SUPPORT_COMPOSITION_BLOCK_TYPE = "bucket-composition";
 
   // This pass normalizes the currently proven runtime block outputs into the
-  // canonical incomeBasis, debtPayoff, ongoingSupport, and assumptions destinations.
+  // canonical incomeBasis, debtPayoff, ongoingSupport, educationSupport, and
+  // assumptions destinations.
   const INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
     Object.freeze({
       sourceOutputKey: "grossAnnualIncome",
@@ -250,6 +252,50 @@
     })
   ]);
 
+  const EDUCATION_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "linkedDependentCount",
+      destinationField: "linkedDependentCount",
+      sourceMetadataKey: "linkedDependentCount"
+    }),
+    Object.freeze({
+      sourceOutputKey: "desiredAdditionalDependentCount",
+      destinationField: "desiredAdditionalDependentCount",
+      sourceMetadataKey: "desiredAdditionalDependentCount"
+    }),
+    Object.freeze({
+      sourceOutputKey: "perLinkedDependentEducationFunding",
+      destinationField: "perLinkedDependentEducationFunding",
+      sourceMetadataKey: "perLinkedDependentEducationFunding"
+    }),
+    Object.freeze({
+      sourceOutputKey: "perDesiredAdditionalDependentEducationFunding",
+      destinationField: "perDesiredAdditionalDependentEducationFunding",
+      sourceMetadataKey: "perDesiredAdditionalDependentEducationFunding"
+    }),
+    Object.freeze({
+      sourceOutputKey: "sameEducationFundingForDesiredAdditionalDependents",
+      destinationField: "sameEducationFundingForDesiredAdditionalDependents",
+      sourceMetadataKey: "sameEducationFundingForDesiredAdditionalDependents",
+      valueType: "boolean"
+    }),
+    Object.freeze({
+      sourceOutputKey: "linkedDependentEducationFundingNeed",
+      destinationField: "linkedDependentEducationFundingNeed",
+      sourceMetadataKey: "linkedDependentEducationFundingNeed"
+    }),
+    Object.freeze({
+      sourceOutputKey: "desiredAdditionalDependentEducationFundingNeed",
+      destinationField: "desiredAdditionalDependentEducationFundingNeed",
+      sourceMetadataKey: "desiredAdditionalDependentEducationFundingNeed"
+    }),
+    Object.freeze({
+      sourceOutputKey: "totalEducationFundingNeed",
+      destinationField: "totalEducationFundingNeed",
+      sourceMetadataKey: "totalEducationFundingNeed"
+    })
+  ]);
+
   function clonePlainValue(value) {
     if (Array.isArray(value)) {
       return value.map(clonePlainValue);
@@ -297,6 +343,37 @@
 
     const parsed = Number(normalized);
     return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  function toOptionalBoolean(value) {
+    if (value == null || value === "") {
+      return null;
+    }
+
+    if (typeof value === "boolean") {
+      return value;
+    }
+
+    const normalized = String(value).trim().toLowerCase();
+    if (normalized === "yes" || normalized === "true" || normalized === "1") {
+      return true;
+    }
+
+    if (normalized === "no" || normalized === "false" || normalized === "0") {
+      return false;
+    }
+
+    return null;
+  }
+
+  function normalizeBlockOutputValue(value, mapping) {
+    const normalizedMapping = mapping && typeof mapping === "object" ? mapping : {};
+
+    if (normalizedMapping.valueType === "boolean") {
+      return toOptionalBoolean(value);
+    }
+
+    return toOptionalNumber(value);
   }
 
   function cloneOutputMetadata(outputMetadata, metadataKey, blockOutput) {
@@ -349,8 +426,9 @@
         : {};
 
       source.mapping.forEach(function (mapping) {
-        targetBucket[mapping.destinationField] = toOptionalNumber(
-          outputValues[mapping.sourceOutputKey]
+        targetBucket[mapping.destinationField] = normalizeBlockOutputValue(
+          outputValues[mapping.sourceOutputKey],
+          mapping
         );
         bucketNormalizationMetadata.fields[mapping.destinationField] = cloneOutputMetadata(
           outputMetadata,
@@ -451,6 +529,10 @@
         }
       ]
     });
+    const educationSupportNormalizationMetadata = normalizeBucketFromBlockOutput(lensModel.educationSupport, blockOutputs, {
+      blockId: EDUCATION_SUPPORT_BLOCK_ID,
+      mapping: EDUCATION_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP
+    });
     const economicAssumptionsNormalizationMetadata = normalizeBucketFromBlockOutput(
       lensModel.assumptions.economicAssumptions,
       blockOutputs,
@@ -467,6 +549,7 @@
       incomeBasis: incomeBasisNormalizationMetadata,
       debtPayoff: debtPayoffNormalizationMetadata,
       ongoingSupport: ongoingSupportNormalizationMetadata,
+      educationSupport: educationSupportNormalizationMetadata,
       assumptions: {
         economicAssumptions: economicAssumptionsNormalizationMetadata
       }
@@ -479,10 +562,12 @@
   lensAnalysis.DEBT_PAYOFF_BLOCK_ID = DEBT_PAYOFF_BLOCK_ID;
   lensAnalysis.HOUSING_ONGOING_SUPPORT_BLOCK_ID = HOUSING_ONGOING_SUPPORT_BLOCK_ID;
   lensAnalysis.NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID = NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID;
+  lensAnalysis.EDUCATION_SUPPORT_BLOCK_ID = EDUCATION_SUPPORT_BLOCK_ID;
   lensAnalysis.INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP = ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP = DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP = ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.NON_HOUSING_ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP = NON_HOUSING_ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP;
+  lensAnalysis.EDUCATION_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP = EDUCATION_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.createLensModelFromBlockOutputs = createLensModelFromBlockOutputs;
 })();
