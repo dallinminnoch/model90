@@ -1608,6 +1608,10 @@
       const filingStatusField = form.elements.namedItem("filingStatus");
       const grossAnnualIncomeField = form.elements.namedItem("grossAnnualIncome");
       const spouseIncomeField = form.elements.namedItem("spouseIncome");
+      const incomeGrowthRateField = form.elements.namedItem("incomeGrowthRate");
+      const bonusVariableIncomeField = form.elements.namedItem("bonusVariableIncome");
+      const yearsUntilRetirementField = form.elements.namedItem("yearsUntilRetirement");
+      const employerBenefitsValueField = form.elements.namedItem("employerBenefitsValue");
       const deductionMethodField = form.elements.namedItem("deductionMethod");
       const spouseDeductionMethodField = form.elements.namedItem("spouseDeductionMethod");
       const standardDeductionField = form.elements.namedItem("standardDeduction");
@@ -3015,6 +3019,10 @@
           grossAnnualIncome: primaryGrossIncome,
           netAnnualIncome: getManualOverrideBlockOutputValue(netAnnualIncomeField),
           netAnnualIncomeManualOverride: isManualOverrideActive(netAnnualIncomeField),
+          bonusVariableIncome: getLensBlockSourceFieldValue(bonusVariableIncomeField),
+          employerBenefitsValue: getLensBlockSourceFieldValue(employerBenefitsValueField),
+          yearsUntilRetirement: getLensBlockSourceFieldValue(yearsUntilRetirementField),
+          incomeGrowthRate: getLensBlockSourceFieldValue(incomeGrowthRateField),
           spouseOrPartnerIncomeApplicability: isSeparateIncomeMode ? "separate" : "not_applicable",
           spouseIncome: hasSeparateSpouseGrossIncome ? spouseGrossIncome : null,
           spouseNetAnnualIncome: (hasSeparateSpouseGrossIncome || hasSeparateSpouseNetManualOverride)
@@ -3054,6 +3062,21 @@
           parseCurrencyLikeNumber(spouseIncomeField?.value)
         );
       }
+
+      [
+        bonusVariableIncomeField,
+        employerBenefitsValueField,
+        yearsUntilRetirementField,
+        incomeGrowthRateField
+      ].forEach((field) => {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        field.addEventListener("input", refreshNetIncomeBlockOutputFromCurrentFields);
+        field.addEventListener("change", refreshNetIncomeBlockOutputFromCurrentFields);
+        field.addEventListener("blur", refreshNetIncomeBlockOutputFromCurrentFields);
+      });
 
       function getLensBlockSourceFieldValue(field) {
         return field && !(field instanceof RadioNodeList) ? field.value : null;

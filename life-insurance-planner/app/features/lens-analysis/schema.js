@@ -19,11 +19,14 @@
       incomeBasis: {
         insuredGrossAnnualIncome: null,
         insuredNetAnnualIncome: null,
-        insuredVariableAnnualIncome: null,
+        bonusVariableAnnualIncome: null,
+        annualEmployerBenefitsValue: null,
+        // Neutral annual base for future analysis. This is not a total
+        // replacement need, death benefit recommendation, or method result.
+        annualIncomeReplacementBase: null,
         spouseOrPartnerGrossAnnualIncome: null,
         spouseOrPartnerNetAnnualIncome: null,
         survivorEarnedAnnualIncome: null,
-        employerBenefitsAnnualValue: null,
         householdIncomeContributionPercent: null,
         incomeReplacementDurationYears: null,
         insuredRetirementHorizonYears: null,

@@ -9,8 +9,8 @@
   const INCOME_NET_INCOME_BLOCK_ID = lensAnalysis.NET_INCOME_BLOCK_ID || "income-net-income";
   const DEBT_PAYOFF_BLOCK_ID = lensAnalysis.DEBT_PAYOFF_BLOCK_ID || "debt-payoff";
 
-  // This pass only normalizes the first proven block output into the
-  // canonical incomeBasis bucket. Other buckets stay at their empty defaults.
+  // This pass normalizes the currently proven runtime block outputs into the
+  // canonical incomeBasis, debtPayoff, and economic-assumptions destinations.
   const INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
     Object.freeze({
       sourceOutputKey: "grossAnnualIncome",
@@ -23,6 +23,21 @@
       sourceMetadataKey: "netAnnualIncome"
     }),
     Object.freeze({
+      sourceOutputKey: "bonusVariableAnnualIncome",
+      destinationField: "bonusVariableAnnualIncome",
+      sourceMetadataKey: "bonusVariableAnnualIncome"
+    }),
+    Object.freeze({
+      sourceOutputKey: "annualEmployerBenefitsValue",
+      destinationField: "annualEmployerBenefitsValue",
+      sourceMetadataKey: "annualEmployerBenefitsValue"
+    }),
+    Object.freeze({
+      sourceOutputKey: "annualIncomeReplacementBase",
+      destinationField: "annualIncomeReplacementBase",
+      sourceMetadataKey: "annualIncomeReplacementBase"
+    }),
+    Object.freeze({
       sourceOutputKey: "spouseOrPartnerGrossAnnualIncome",
       destinationField: "spouseOrPartnerGrossAnnualIncome",
       sourceMetadataKey: "spouseOrPartnerGrossAnnualIncome"
@@ -31,6 +46,19 @@
       sourceOutputKey: "spouseOrPartnerNetAnnualIncome",
       destinationField: "spouseOrPartnerNetAnnualIncome",
       sourceMetadataKey: "spouseOrPartnerNetAnnualIncome"
+    }),
+    Object.freeze({
+      sourceOutputKey: "insuredRetirementHorizonYears",
+      destinationField: "insuredRetirementHorizonYears",
+      sourceMetadataKey: "insuredRetirementHorizonYears"
+    })
+  ]);
+
+  const ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "incomeGrowthRatePercent",
+      destinationField: "incomeGrowthRatePercent",
+      sourceMetadataKey: "incomeGrowthRatePercent"
     })
   ]);
 
@@ -149,7 +177,7 @@
     return clonePlainValue(sourceMetadata);
   }
 
-  function normalizeBucketFromBlockOutput(lensModel, blockOutputs, options) {
+  function normalizeBucketFromBlockOutput(targetBucket, blockOutputs, options) {
     const normalizedOptions = options && typeof options === "object" ? options : {};
     const safeBlockOutputs = blockOutputs && typeof blockOutputs === "object" ? blockOutputs : {};
     const blockOutput = safeBlockOutputs[normalizedOptions.blockId];
@@ -170,7 +198,7 @@
     };
 
     normalizedOptions.mapping.forEach(function (mapping) {
-      lensModel[normalizedOptions.bucketName][mapping.destinationField] = toOptionalNumber(
+      targetBucket[mapping.destinationField] = toOptionalNumber(
         outputValues[mapping.sourceOutputKey]
       );
       bucketNormalizationMetadata.fields[mapping.destinationField] = cloneOutputMetadata(
@@ -184,22 +212,31 @@
 
   function createLensModelFromBlockOutputs(blockOutputs) {
     const lensModel = createEmptyLensModelInstance();
-    const incomeBasisNormalizationMetadata = normalizeBucketFromBlockOutput(lensModel, blockOutputs, {
+    const incomeBasisNormalizationMetadata = normalizeBucketFromBlockOutput(lensModel.incomeBasis, blockOutputs, {
       blockId: INCOME_NET_INCOME_BLOCK_ID,
-      bucketName: "incomeBasis",
       mapping: INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP
     });
-    const debtPayoffNormalizationMetadata = normalizeBucketFromBlockOutput(lensModel, blockOutputs, {
+    const debtPayoffNormalizationMetadata = normalizeBucketFromBlockOutput(lensModel.debtPayoff, blockOutputs, {
       blockId: DEBT_PAYOFF_BLOCK_ID,
-      bucketName: "debtPayoff",
       mapping: DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP
     });
+    const economicAssumptionsNormalizationMetadata = normalizeBucketFromBlockOutput(
+      lensModel.assumptions.economicAssumptions,
+      blockOutputs,
+      {
+        blockId: INCOME_NET_INCOME_BLOCK_ID,
+        mapping: ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP
+      }
+    );
 
     // Provenance stays outside the canonical bucket facts so future formulas
     // can read canonical buckets directly without mixing data and metadata.
     lensModel.normalizationMetadata = {
       incomeBasis: incomeBasisNormalizationMetadata,
-      debtPayoff: debtPayoffNormalizationMetadata
+      debtPayoff: debtPayoffNormalizationMetadata,
+      assumptions: {
+        economicAssumptions: economicAssumptionsNormalizationMetadata
+      }
     };
 
     return lensModel;
@@ -208,6 +245,7 @@
   lensAnalysis.INCOME_NET_INCOME_BLOCK_ID = INCOME_NET_INCOME_BLOCK_ID;
   lensAnalysis.DEBT_PAYOFF_BLOCK_ID = DEBT_PAYOFF_BLOCK_ID;
   lensAnalysis.INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP;
+  lensAnalysis.ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP = ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP = DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.createLensModelFromBlockOutputs = createLensModelFromBlockOutputs;
 })();

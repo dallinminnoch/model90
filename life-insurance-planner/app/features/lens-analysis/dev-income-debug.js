@@ -24,12 +24,35 @@
       destinationField: "insuredNetAnnualIncome"
     }),
     Object.freeze({
+      sourceOutputKey: "bonusVariableAnnualIncome",
+      destinationField: "bonusVariableAnnualIncome"
+    }),
+    Object.freeze({
+      sourceOutputKey: "annualEmployerBenefitsValue",
+      destinationField: "annualEmployerBenefitsValue"
+    }),
+    Object.freeze({
+      sourceOutputKey: "annualIncomeReplacementBase",
+      destinationField: "annualIncomeReplacementBase"
+    }),
+    Object.freeze({
       sourceOutputKey: "spouseOrPartnerGrossAnnualIncome",
       destinationField: "spouseOrPartnerGrossAnnualIncome"
     }),
     Object.freeze({
       sourceOutputKey: "spouseOrPartnerNetAnnualIncome",
       destinationField: "spouseOrPartnerNetAnnualIncome"
+    }),
+    Object.freeze({
+      sourceOutputKey: "insuredRetirementHorizonYears",
+      destinationField: "insuredRetirementHorizonYears"
+    })
+  ]);
+
+  const ECONOMIC_ASSUMPTIONS_DEBUG_FIELDS = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "incomeGrowthRatePercent",
+      destinationField: "incomeGrowthRatePercent"
     })
   ]);
 
@@ -169,6 +192,14 @@
       normalizationMetadata: lensModel && lensModel.normalizationMetadata && lensModel.normalizationMetadata.incomeBasis,
       normalizedSection: "Normalized incomeBasis",
       fields: INCOME_DEBUG_FIELDS
+    });
+
+    appendBucketInspectionRows(rows, {
+      blockOutput: safeBlockOutputs[NET_INCOME_BLOCK_ID],
+      normalizedBucket: lensModel && lensModel.assumptions && lensModel.assumptions.economicAssumptions,
+      normalizationMetadata: lensModel && lensModel.normalizationMetadata && lensModel.normalizationMetadata.assumptions && lensModel.normalizationMetadata.assumptions.economicAssumptions,
+      normalizedSection: "Normalized assumptions.economicAssumptions",
+      fields: ECONOMIC_ASSUMPTIONS_DEBUG_FIELDS
     });
 
     appendBucketInspectionRows(rows, {
