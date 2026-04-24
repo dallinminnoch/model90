@@ -23,6 +23,10 @@
     Object.freeze({
       sourceOutputKey: "mortgageBalance",
       destinationField: null
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyAssociatedHousingCosts",
+      destinationField: null
     })
   ]);
 
@@ -169,10 +173,6 @@
     Object.freeze({
       sourceOutputKey: "monthlyMaintenanceAndRepairs",
       destinationField: "monthlyMaintenanceAndRepairs"
-    }),
-    Object.freeze({
-      sourceOutputKey: "monthlyAssociatedHousingCosts",
-      destinationField: "monthlyAssociatedHousingCosts"
     }),
     Object.freeze({
       sourceOutputKey: "monthlyHousingSupportCost",

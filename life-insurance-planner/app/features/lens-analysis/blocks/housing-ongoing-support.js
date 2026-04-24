@@ -23,7 +23,7 @@
     monthlyRentOrHousingPayment: "monthlyHousingCost",
     monthlyUtilities: "utilitiesCost",
     monthlyHousingInsurance: "housingInsuranceCost",
-    annualPropertyTax: "propertyTax",
+    monthlyPropertyTax: "propertyTax",
     monthlyHoaCost: "monthlyHoaCost",
     monthlyMaintenanceAndRepairs: "monthlyMaintenanceRecommendation",
     monthlyMaintenanceAndRepairsManualOverride: "monthlyMaintenanceRecommendationManualOverride",
@@ -81,7 +81,7 @@
       monthlyPropertyTax: {
         type: "number|null",
         canonicalDestination: "ongoingSupport.monthlyPropertyTax",
-        meaning: "Current monthly property-tax cost derived from the reported annual property-tax input."
+        meaning: "Current monthly property-tax cost."
       },
       monthlyHoaCost: {
         type: "number|null",
@@ -95,8 +95,8 @@
       },
       monthlyAssociatedHousingCosts: {
         type: "number|null",
-        canonicalDestination: "ongoingSupport.monthlyAssociatedHousingCosts",
-        meaning: "Current grouped associated monthly housing costs from the Housing Costs card."
+        canonicalDestination: null,
+        meaning: "Current grouped associated monthly housing costs from the Housing Costs card. UI subtotal and runtime/debug helper only; not a canonical analysis input."
       },
       monthlyHousingSupportCost: {
         type: "number|null",
@@ -190,10 +190,6 @@
     }
 
     return (years == null ? 0 : years * 12) + (months == null ? 0 : months);
-  }
-
-  function createMonthlyPropertyTax(annualPropertyTax) {
-    return annualPropertyTax == null ? null : annualPropertyTax / 12;
   }
 
   function createAnnualHousingSupportCost(monthlyHousingSupportCost) {
@@ -363,8 +359,8 @@
     const createOutputMetadata = lensAnalysis.createOutputMetadata;
     const housingStatusContext = getHousingStatusContext(data);
 
-    const annualPropertyTax = housingStatusContext.isOwner
-      ? toOptionalNumber(data[HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.annualPropertyTax])
+    const monthlyPropertyTax = housingStatusContext.isOwner
+      ? toOptionalNumber(data[HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyPropertyTax])
       : null;
     const monthlyHousingSupportCost = housingStatusContext.hasSelectedHousingStatus
       ? toOptionalNumber(data[HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyHousingSupportCost])
@@ -396,9 +392,7 @@
       monthlyHousingInsurance: housingStatusContext.hasSelectedHousingStatus
         ? toOptionalNumber(data[HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyHousingInsurance])
         : null,
-      monthlyPropertyTax: housingStatusContext.isOwner
-        ? createMonthlyPropertyTax(annualPropertyTax)
-        : null,
+      monthlyPropertyTax: monthlyPropertyTax,
       monthlyHoaCost: housingStatusContext.isOwner
         ? toOptionalNumber(data[HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyHoaCost])
         : null,
@@ -483,7 +477,7 @@
         monthlyPropertyTax: createApplicableCalculatedMetadata({
           applicable: housingStatusContext.isOwner,
           outputValue: outputs.monthlyPropertyTax,
-          rawField: HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.annualPropertyTax,
+          rawField: HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyPropertyTax,
           canonicalDestination: HOUSING_ONGOING_SUPPORT_BLOCK_OUTPUT_CONTRACT.outputs.monthlyPropertyTax.canonicalDestination
         }),
         monthlyHoaCost: createApplicableReportedMetadata({
@@ -527,7 +521,7 @@
           outputValue: outputs.recomputedMonthlyHousingSupportCost,
           rawField: [
             HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyMortgagePayment,
-            HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.annualPropertyTax,
+            HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyPropertyTax,
             HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyHousingInsurance,
             HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyHoaCost,
             HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyUtilities,

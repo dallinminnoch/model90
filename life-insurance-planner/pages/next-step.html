@@ -368,7 +368,7 @@
                 </div>
               </div>
               <div class="field-group" data-housing-visibility="property-tax">
-                <label for="property-tax">Annual Property Tax</label>
+                <label for="property-tax">Monthly Property Tax</label>
                 <div class="profile-currency-field">
                   <input id="property-tax" name="propertyTax" type="number" min="0" step="50">
                   <span class="profile-currency-suffix">USD</span>
@@ -1315,7 +1315,7 @@
         "mortgage-term-remaining-years": "Remaining years on the mortgage term.",
         "mortgage-term-remaining-months": "Additional remaining months on the mortgage term.",
         "mortgage-interest-rate": "Mortgage interest rate, if used in the analysis.",
-        "property-tax": "Average property tax obligation for homeowner scenarios.",
+        "property-tax": "Average monthly property tax obligation for homeowner scenarios.",
         "other-real-estate-loans": "Include HELOC balances, second mortgages, and debt tied to other owned properties that should still be considered in the household need analysis.",
         "auto-loans": "Outstanding auto loan balances.",
         "credit-card-debt": "Revolving credit card balances.",
@@ -3500,7 +3500,7 @@
         const monthlyUtilities = parseCurrencyLikeNumber(utilitiesCostField?.value);
         const monthlyHousingInsurance = parseCurrencyLikeNumber(housingInsuranceCostField?.value);
         const monthlyHoaCost = parseCurrencyLikeNumber(monthlyHoaCostField?.value);
-        const monthlyPropertyTax = parseCurrencyLikeNumber(form.elements.namedItem("propertyTax")?.value) / 12;
+        const monthlyPropertyTax = parseCurrencyLikeNumber(form.elements.namedItem("propertyTax")?.value);
         const monthlyMaintenance = parseCurrencyLikeNumber(maintenanceRecommendationField?.value);
 
         if (!selectedHousingStatus) {

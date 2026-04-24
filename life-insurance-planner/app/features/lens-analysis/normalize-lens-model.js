@@ -163,11 +163,6 @@
       sourceMetadataKey: "monthlyMaintenanceAndRepairs"
     }),
     Object.freeze({
-      sourceOutputKey: "monthlyAssociatedHousingCosts",
-      destinationField: "monthlyAssociatedHousingCosts",
-      sourceMetadataKey: "monthlyAssociatedHousingCosts"
-    }),
-    Object.freeze({
       sourceOutputKey: "monthlyHousingSupportCost",
       destinationField: "monthlyHousingSupportCost",
       sourceMetadataKey: "monthlyHousingSupportCost"

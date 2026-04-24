@@ -73,7 +73,6 @@
         monthlyPropertyTax: null,
         monthlyHoaCost: null,
         monthlyMaintenanceAndRepairs: null,
-        monthlyAssociatedHousingCosts: null,
         monthlyFoodCost: null,
         monthlyTransportationCost: null,
         monthlyChildcareAndDependentCareCost: null,
