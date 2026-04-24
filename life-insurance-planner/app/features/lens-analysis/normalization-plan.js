@@ -130,10 +130,11 @@
       ],
 
       finalExpenses: [
-        { rawField: "funeralBurialEstimate", canonicalField: "finalExpenses.funeralAndBurialCost", availability: "activeLinkedPmi", note: "Current final-expense field." },
-        { rawField: "medicalEndOfLifeCosts", canonicalField: "finalExpenses.medicalFinalExpenses", availability: "activeLinkedPmi", note: "Current final-expense field." },
-        { rawField: "estateSettlementCosts", canonicalField: "finalExpenses.estateSettlementCost", availability: "activeLinkedPmi", note: "Current final-expense field." },
-        { rawField: "finalExpensesTotal", canonicalField: "finalExpenses.totalEstimatedFinalExpenses", availability: "analysisAliasOnly", note: "Supported by the live bucket builder as an explicit override, but not collected by the active linked PMI." }
+        { rawField: "funeralBurialEstimate", canonicalField: "finalExpenses.funeralAndBurialCost", availability: "activeLinkedPmi", note: "One-time funeral and burial cost estimate." },
+        { rawField: "medicalEndOfLifeCosts", canonicalField: "finalExpenses.medicalEndOfLifeCost", availability: "activeLinkedPmi", note: "One-time medical end-of-life cost estimate." },
+        { rawField: "estateSettlementCosts", canonicalField: "finalExpenses.estateSettlementCost", availability: "activeLinkedPmi", note: "One-time estate settlement cost estimate." },
+        { rawField: "otherFinalExpenses", canonicalField: "finalExpenses.otherFinalExpenses", availability: "activeLinkedPmi", note: "Other narrow one-time final expenses not captured by the named final-expense fields." },
+        { rawField: "funeralBurialEstimate + medicalEndOfLifeCosts + estateSettlementCosts + otherFinalExpenses", canonicalField: "finalExpenses.totalFinalExpenseNeed", availability: "activeLinkedPmiBlockOutput", note: "Neutral lump-sum final expense target; not inflation-adjusted, offset-adjusted, present-valued, or a recommendation." }
       ],
 
       offsetsAndCoverage: [

@@ -113,13 +113,15 @@
         totalEducationFundingNeed: null
       },
 
-      // Final life-event expenses. A total can be derived later, but the
-      // canonical model keeps the underlying components explicit.
+      // Final life-event expenses. The total is a neutral lump-sum final
+      // expense target, not inflation-adjusted, offset-adjusted, present-valued,
+      // or a recommendation.
       finalExpenses: {
         funeralAndBurialCost: null,
-        medicalFinalExpenses: null,
+        medicalEndOfLifeCost: null,
         estateSettlementCost: null,
-        totalEstimatedFinalExpenses: null
+        otherFinalExpenses: null,
+        totalFinalExpenseNeed: null
       },
 
       // Offsets and in-force coverage. The destination model separates raw

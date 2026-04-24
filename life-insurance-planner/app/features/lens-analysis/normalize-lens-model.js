@@ -11,6 +11,7 @@
   const HOUSING_ONGOING_SUPPORT_BLOCK_ID = lensAnalysis.HOUSING_ONGOING_SUPPORT_BLOCK_ID || "housing-ongoing-support";
   const NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID = lensAnalysis.NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID || "non-housing-ongoing-support";
   const EDUCATION_SUPPORT_BLOCK_ID = lensAnalysis.EDUCATION_SUPPORT_BLOCK_ID || "education-support";
+  const FINAL_EXPENSES_BLOCK_ID = lensAnalysis.FINAL_EXPENSES_BLOCK_ID || "final-expenses";
   const ONGOING_SUPPORT_COMPOSITION_BLOCK_ID = "ongoingSupport-composition";
   const ONGOING_SUPPORT_COMPOSITION_BLOCK_TYPE = "bucket-composition";
 
@@ -296,6 +297,34 @@
     })
   ]);
 
+  const FINAL_EXPENSES_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "funeralAndBurialCost",
+      destinationField: "funeralAndBurialCost",
+      sourceMetadataKey: "funeralAndBurialCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "medicalEndOfLifeCost",
+      destinationField: "medicalEndOfLifeCost",
+      sourceMetadataKey: "medicalEndOfLifeCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "estateSettlementCost",
+      destinationField: "estateSettlementCost",
+      sourceMetadataKey: "estateSettlementCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "otherFinalExpenses",
+      destinationField: "otherFinalExpenses",
+      sourceMetadataKey: "otherFinalExpenses"
+    }),
+    Object.freeze({
+      sourceOutputKey: "totalFinalExpenseNeed",
+      destinationField: "totalFinalExpenseNeed",
+      sourceMetadataKey: "totalFinalExpenseNeed"
+    })
+  ]);
+
   function clonePlainValue(value) {
     if (Array.isArray(value)) {
       return value.map(clonePlainValue);
@@ -533,6 +562,10 @@
       blockId: EDUCATION_SUPPORT_BLOCK_ID,
       mapping: EDUCATION_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP
     });
+    const finalExpensesNormalizationMetadata = normalizeBucketFromBlockOutput(lensModel.finalExpenses, blockOutputs, {
+      blockId: FINAL_EXPENSES_BLOCK_ID,
+      mapping: FINAL_EXPENSES_BLOCK_OUTPUT_NORMALIZATION_MAP
+    });
     const economicAssumptionsNormalizationMetadata = normalizeBucketFromBlockOutput(
       lensModel.assumptions.economicAssumptions,
       blockOutputs,
@@ -550,6 +583,7 @@
       debtPayoff: debtPayoffNormalizationMetadata,
       ongoingSupport: ongoingSupportNormalizationMetadata,
       educationSupport: educationSupportNormalizationMetadata,
+      finalExpenses: finalExpensesNormalizationMetadata,
       assumptions: {
         economicAssumptions: economicAssumptionsNormalizationMetadata
       }
@@ -563,11 +597,13 @@
   lensAnalysis.HOUSING_ONGOING_SUPPORT_BLOCK_ID = HOUSING_ONGOING_SUPPORT_BLOCK_ID;
   lensAnalysis.NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID = NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID;
   lensAnalysis.EDUCATION_SUPPORT_BLOCK_ID = EDUCATION_SUPPORT_BLOCK_ID;
+  lensAnalysis.FINAL_EXPENSES_BLOCK_ID = FINAL_EXPENSES_BLOCK_ID;
   lensAnalysis.INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP = ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP = DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP = ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.NON_HOUSING_ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP = NON_HOUSING_ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.EDUCATION_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP = EDUCATION_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP;
+  lensAnalysis.FINAL_EXPENSES_BLOCK_OUTPUT_NORMALIZATION_MAP = FINAL_EXPENSES_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.createLensModelFromBlockOutputs = createLensModelFromBlockOutputs;
 })();
