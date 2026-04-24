@@ -73,11 +73,7 @@
               <div class="existing-coverage-toolbar">
                 <button class="btn btn-secondary existing-coverage-add-button" type="button" data-existing-coverage-add-policy>
                   <span class="existing-coverage-add-icon" aria-hidden="true">+</span>
-                  <span>Add Policy</span>
-                </button>
-                <button class="btn btn-secondary existing-coverage-add-button" type="button" data-existing-coverage-add-simple>
-                  <span class="existing-coverage-add-icon" aria-hidden="true">+</span>
-                  <span>Simple Coverage</span>
+                  <span>Add Existing Coverage</span>
                 </button>
               </div>
             </div>
@@ -108,7 +104,7 @@
             <section class="client-detail-card existing-coverage-saved-shell existing-coverage-draft-shell" data-existing-coverage-draft-shell hidden>
               <div class="client-detail-card-header existing-coverage-saved-heading">
                 <h3>Entries to Add</h3>
-                <p>New policy and simple coverage drafts appear here until you save them to the linked profile.</p>
+                <p>New coverage drafts appear here until you save them to the linked profile.</p>
               </div>
               <div class="existing-coverage-policy-list existing-coverage-draft-list" data-existing-coverage-draft-list></div>
             </section>
@@ -149,10 +145,12 @@
   <script src="../app/features/client-records.js"></script>
   <script src="../app/features/client-intake.js"></script>
   <script src="../app/features/client-directory.js"></script>
+  <script src="../app/features/coverage/coverage-policy-utils.js"></script>
   <script src="../app.js"></script>
   <script>
     (function () {
       const clientRecordsApi = window.LensApp?.clientRecords || {};
+      const coveragePolicyUtils = window.LensApp?.coverage || {};
       const urlParams = new URLSearchParams(window.location.search);
       const normalizeCaseRef = clientRecordsApi.normalizeCaseRef;
       const resolvedCaseRef = typeof normalizeCaseRef === "function"
@@ -167,7 +165,6 @@
       const feedback = document.querySelector("[data-existing-coverage-feedback]");
       const form = document.querySelector("[data-existing-coverage-form]");
       const addPolicyButton = document.querySelector("[data-existing-coverage-add-policy]");
-      const addSimpleButton = document.querySelector("[data-existing-coverage-add-simple]");
       const draftShell = document.querySelector("[data-existing-coverage-draft-shell]");
       const draftList = document.querySelector("[data-existing-coverage-draft-list]");
       const policyList = document.querySelector("[data-existing-coverage-policy-list]");
@@ -247,6 +244,92 @@
       function parseCurrencyNumber(value) {
         const normalized = normalizeCoverageCurrencyValue(value);
         return normalized ? Number(normalized) : 0;
+      }
+
+      function getPolicyDeathBenefitAmount(policy) {
+        return typeof coveragePolicyUtils.getCoverageDeathBenefitAmount === "function"
+          ? coveragePolicyUtils.getCoverageDeathBenefitAmount(policy)
+          : parseCurrencyNumber(policy?.faceAmount);
+      }
+
+      function summarizeCoveragePoliciesForPage(policies) {
+        if (typeof coveragePolicyUtils.summarizeCoveragePolicies === "function") {
+          return coveragePolicyUtils.summarizeCoveragePolicies(policies);
+        }
+
+        const totalCoverage = Array.isArray(policies)
+          ? policies.reduce(function (sum, policy) {
+              return sum + getPolicyDeathBenefitAmount(policy);
+            }, 0)
+          : 0;
+        return { totalCoverage };
+      }
+
+      function getCoverageProfileSummaryFields(policies) {
+        const safePolicies = Array.isArray(policies) ? policies : [];
+        const summary = summarizeCoveragePoliciesForPage(safePolicies);
+        const totalCoverage = Math.max(0, Number(summary?.totalCoverage || 0));
+        return {
+          currentCoverage: totalCoverage,
+          coverageAmount: totalCoverage,
+          policyCount: safePolicies.length
+        };
+      }
+
+      function normalizePolicyForExistingCoverageStorage(policy, options) {
+        const normalizedOptions = options && typeof options === "object" ? options : {};
+        const isSimpleEntry = normalizedOptions.entryMode === "simple";
+        const existingPolicy = normalizedOptions.existingPolicy && typeof normalizedOptions.existingPolicy === "object"
+          ? normalizedOptions.existingPolicy
+          : {};
+        const normalizedPolicy = typeof coveragePolicyUtils.normalizeCoveragePolicyRecord === "function"
+          ? coveragePolicyUtils.normalizeCoveragePolicyRecord(policy)
+          : (policy || {});
+        const documents = isSimpleEntry ? [] : getPolicyDocumentEntries(normalizedPolicy);
+        const latestDocument = documents[0] || null;
+
+        return {
+          ...existingPolicy,
+          id: String(normalizedPolicy.id || "").trim(),
+          entryMode: isSimpleEntry ? "simple" : "full",
+          savedAt: String(normalizedPolicy.savedAt || "").trim(),
+          policyCarrier: isSimpleEntry ? "" : String(normalizedPolicy.policyCarrier || "").trim(),
+          policyType: isSimpleEntry ? "" : String(normalizedPolicy.policyType || "").trim(),
+          insuredName: isSimpleEntry ? "" : String(normalizedPolicy.insuredName || "").trim(),
+          ownerName: isSimpleEntry ? "" : String(normalizedPolicy.ownerName || "").trim(),
+          faceAmount: normalizeCoverageCurrencyValue(normalizedPolicy.faceAmount),
+          startingPremium: isSimpleEntry ? "" : normalizeCoverageCurrencyValue(normalizedPolicy.startingPremium),
+          premiumAmount: normalizeCoverageCurrencyValue(normalizedPolicy.premiumAmount),
+          premiumMode: String(normalizedPolicy.premiumMode || "").trim(),
+          premiumScheduleYears: isSimpleEntry ? "" : String(normalizedPolicy.premiumScheduleYears || "").trim(),
+          premiumScheduleMonths: isSimpleEntry ? "" : String(normalizedPolicy.premiumScheduleMonths || "").trim(),
+          premiumScheduleDuration: isSimpleEntry ? "" : String(normalizedPolicy.premiumScheduleDuration || "").trim(),
+          termLength: isSimpleEntry ? "" : String(normalizedPolicy.termLength || "").trim(),
+          policyNumber: isSimpleEntry ? "" : String(normalizedPolicy.policyNumber || "").trim(),
+          effectiveDate: isSimpleEntry ? "" : String(normalizedPolicy.effectiveDate || "").trim(),
+          underwritingClass: isSimpleEntry ? "" : String(normalizedPolicy.underwritingClass || "").trim(),
+          beneficiaryName: isSimpleEntry ? "" : String(normalizedPolicy.beneficiaryName || "").trim(),
+          policyNotes: isSimpleEntry ? "" : String(normalizedPolicy.policyNotes || "").trim(),
+          documents,
+          documentName: String(latestDocument?.name || "").trim(),
+          documentType: String(latestDocument?.type || "").trim(),
+          documentSize: Number(latestDocument?.size || 0),
+          documentSavedAt: String(latestDocument?.savedAt || "").trim()
+        };
+      }
+
+      function buildSimpleCoverageStoragePolicy(input, existingPolicy) {
+        const sourcePolicy = typeof coveragePolicyUtils.buildSimpleCoveragePolicy === "function"
+          ? coveragePolicyUtils.buildSimpleCoveragePolicy(input, existingPolicy)
+          : input;
+        return normalizePolicyForExistingCoverageStorage(sourcePolicy, { entryMode: "simple", existingPolicy });
+      }
+
+      function buildFullCoverageStoragePolicy(input, existingPolicy) {
+        const sourcePolicy = typeof coveragePolicyUtils.buildFullCoveragePolicy === "function"
+          ? coveragePolicyUtils.buildFullCoveragePolicy(input, existingPolicy)
+          : input;
+        return normalizePolicyForExistingCoverageStorage(sourcePolicy, { entryMode: "full", existingPolicy });
       }
 
       function formatCurrencyDisplay(value) {
@@ -653,7 +736,7 @@
 
       function refreshCoverageAddButtons() {
         const atLimit = getTotalCoverageEntryCount() >= getCoveragePolicyLimit();
-        [addPolicyButton, addSimpleButton].forEach(function (button) {
+        [addPolicyButton].forEach(function (button) {
           if (button instanceof HTMLButtonElement) {
             button.disabled = atLimit;
           }
@@ -681,7 +764,7 @@
             : (String(draft.policyCarrier || "").trim()
               || String(draft.policyType || "").trim()
               || `Policy Draft ${index + 1}`);
-          const type = isSimpleEntry ? "Simple Coverage Draft" : "Full Policy Draft";
+          const type = isSimpleEntry ? "Simple Coverage Draft" : "Coverage Draft";
           const coverage = normalizeCoverageCurrencyValue(draft.faceAmount)
             ? formatCurrencyDisplay(draft.faceAmount)
             : "Face amount not entered";
@@ -894,9 +977,7 @@
 
       function syncSummary() {
         const policies = getCoveragePolicies();
-        const totalCoverage = policies.reduce(function (sum, policy) {
-          return sum + parseCurrencyNumber(policy.faceAmount);
-        }, 0);
+        const totalCoverage = summarizeCoveragePoliciesForPage(policies).totalCoverage;
 
         if (policyCountValue) {
           policyCountValue.textContent = String(policies.length);
@@ -1281,7 +1362,7 @@
         if (widgetSave) {
           const finalStepIndex = steps.length - 1;
           widgetSave.textContent = activeCoverageStep >= finalStepIndex
-            ? (activeCoverageEntryMode === "simple" ? "Save Simple Coverage" : "Save Policy")
+            ? (activeCoverageEntryMode === "simple" ? "Save Simple Coverage" : "Save Coverage")
             : "Next";
         }
       }
@@ -1510,7 +1591,7 @@
           policyList.innerHTML = `
             <div class="existing-coverage-empty">
               <strong>No policies are saved to this profile yet.</strong>
-              <p>Use Add Policy for the full wizard or Simple Coverage for a quick coverage snapshot. Up to ${getCoveragePolicyLimit()} total policies can be saved on one profile.</p>
+              <p>Use Add Existing Coverage to save a face amount now and add policy details when available. Up to ${getCoveragePolicyLimit()} total policies can be saved on one profile.</p>
             </div>
           `;
           return;
@@ -1533,8 +1614,9 @@
           const premiumAmount = normalizeCoverageCurrencyValue(policy.premiumAmount)
             ? formatCoverageCurrencyInput(policy.premiumAmount)
             : "Premium amount not entered";
-          const faceAmount = normalizeCoverageCurrencyValue(policy.faceAmount)
-            ? formatCurrencyDisplay(policy.faceAmount)
+          const faceAmountValue = getPolicyDeathBenefitAmount(policy);
+          const faceAmount = faceAmountValue > 0
+            ? formatCurrencyDisplay(faceAmountValue)
             : "Face amount not entered";
 
           return `
@@ -1558,7 +1640,7 @@
         if (widgetTitle) {
           widgetTitle.textContent = activeCoverageEntryMode === "simple"
             ? (currentPolicy ? "Edit Simple Coverage" : "Add Simple Coverage")
-            : (currentPolicy ? "Edit Coverage" : "Add Coverage");
+            : (currentPolicy ? "Edit Coverage" : "Add Existing Coverage");
         }
         if (widgetCopy) {
           widgetCopy.textContent = activeCoverageEntryMode === "simple"
@@ -1567,7 +1649,7 @@
               : "Save a face amount, premium mode, and premium amount to this profile.")
             : (currentPolicy
               ? "Update the policy details and save them back to this profile."
-              : "Save a new policy directly to this profile.");
+              : "Save a face amount now and add policy details when available.");
         }
       }
 
@@ -1653,34 +1735,11 @@
             return { error: `A maximum of ${getCoveragePolicyLimit()} policies can be saved to one profile.` };
           }
 
-          const nextSimplePolicy = {
-            ...(existingPolicy || {}),
-            id: String(existingPolicy?.id || `policy-${Date.now()}`).trim(),
-            entryMode: "simple",
-            savedAt: String(existingPolicy?.savedAt || today).trim(),
-            policyCarrier: "",
-            policyType: "",
-            insuredName: "",
-            ownerName: "",
-            faceAmount: normalizeCoverageCurrencyValue(activeCoverageDraft.faceAmount),
-            startingPremium: "",
-            premiumAmount: normalizeCoverageCurrencyValue(activeCoverageDraft.premiumAmount),
-            premiumMode: String(activeCoverageDraft.premiumMode || "").trim(),
-            premiumScheduleYears: "",
-            premiumScheduleMonths: "",
-            premiumScheduleDuration: "",
-            termLength: "",
-            policyNumber: "",
-            effectiveDate: "",
-            underwritingClass: "",
-            beneficiaryName: "",
-            policyNotes: "",
-            documents: [],
-            documentName: "",
-            documentType: "",
-            documentSize: 0,
-            documentSavedAt: ""
-          };
+          const nextSimplePolicy = buildSimpleCoverageStoragePolicy({
+            ...activeCoverageDraft,
+            id: String(existingPolicy?.id || activeCoverageDraft.id || `policy-${Date.now()}`).trim(),
+            savedAt: String(existingPolicy?.savedAt || activeCoverageDraft.savedAt || today).trim()
+          }, existingPolicy);
 
           const updatedSimpleRecord = updateClientRecordByCaseRef(resolvedCaseRef, function (currentRecord) {
             const currentPoliciesOnRecord = Array.isArray(currentRecord?.coveragePolicies) ? currentRecord.coveragePolicies.slice() : [];
@@ -1691,16 +1750,12 @@
               currentPoliciesOnRecord.push(nextSimplePolicy);
             }
 
-            const nextCoverageTotal = currentPoliciesOnRecord.reduce(function (sum, policy) {
-              return sum + parseCurrencyNumber(policy.faceAmount);
-            }, 0);
+            const coverageSummaryFields = getCoverageProfileSummaryFields(currentPoliciesOnRecord);
 
             return {
               ...currentRecord,
               coveragePolicies: currentPoliciesOnRecord,
-              currentCoverage: nextCoverageTotal,
-              coverageAmount: nextCoverageTotal,
-              policyCount: currentPoliciesOnRecord.length,
+              ...coverageSummaryFields,
               lastUpdatedDate: today,
               lastReview: today
             };
@@ -1753,36 +1808,32 @@
             }))
           : existingDocuments;
 
-        const nextPolicy = {
-          ...(existingPolicy || {}),
+        const nextPolicy = buildFullCoverageStoragePolicy({
+          ...activeCoverageDraft,
           id: policyId,
-          entryMode: isSimpleEntry ? "simple" : "full",
+          entryMode: "full",
           savedAt: String(existingPolicy?.savedAt || activeCoverageDraft.savedAt || today).trim(),
-          policyCarrier: isSimpleEntry ? "" : String(activeCoverageDraft.policyCarrier || "").trim(),
-          policyType: isSimpleEntry ? "" : String(activeCoverageDraft.policyType || "").trim(),
-          insuredName: isSimpleEntry ? "" : String(activeCoverageDraft.insuredName || "").trim(),
-          ownerName: isSimpleEntry ? "" : String(activeCoverageDraft.ownerName || "").trim(),
+          policyCarrier: String(activeCoverageDraft.policyCarrier || "").trim(),
+          policyType: String(activeCoverageDraft.policyType || "").trim(),
+          insuredName: String(activeCoverageDraft.insuredName || "").trim(),
+          ownerName: String(activeCoverageDraft.ownerName || "").trim(),
           faceAmount: normalizeCoverageCurrencyValue(activeCoverageDraft.faceAmount),
-          startingPremium: !isSimpleEntry && steppedPremiumMode ? normalizeCoverageCurrencyValue(activeCoverageDraft.startingPremium) : "",
+          startingPremium: steppedPremiumMode ? normalizeCoverageCurrencyValue(activeCoverageDraft.startingPremium) : "",
           premiumAmount: normalizeCoverageCurrencyValue(activeCoverageDraft.premiumAmount),
           premiumMode: selectedPremiumMode,
-          premiumScheduleYears: !isSimpleEntry && steppedPremiumMode ? String(activeCoverageDraft.premiumScheduleYears || "").replace(/\D/g, "") : "",
-          premiumScheduleMonths: !isSimpleEntry && steppedPremiumMode ? String(activeCoverageDraft.premiumScheduleMonths || "").replace(/\D/g, "") : "",
-          premiumScheduleDuration: !isSimpleEntry && steppedPremiumMode ? String(activeCoverageDraft.premiumScheduleDuration || "").trim() : "",
-          termLength: !isSimpleEntry && isCoveragePermanentPolicyType(activeCoverageDraft.policyType)
+          premiumScheduleYears: steppedPremiumMode ? String(activeCoverageDraft.premiumScheduleYears || "").replace(/\D/g, "") : "",
+          premiumScheduleMonths: steppedPremiumMode ? String(activeCoverageDraft.premiumScheduleMonths || "").replace(/\D/g, "") : "",
+          premiumScheduleDuration: steppedPremiumMode ? String(activeCoverageDraft.premiumScheduleDuration || "").trim() : "",
+          termLength: isCoveragePermanentPolicyType(activeCoverageDraft.policyType)
             ? "Permanent Coverage"
-            : (isSimpleEntry ? "" : String(activeCoverageDraft.termLength || "").trim()),
-          policyNumber: isSimpleEntry ? "" : String(activeCoverageDraft.policyNumber || "").trim(),
-          effectiveDate: isSimpleEntry ? "" : String(activeCoverageDraft.effectiveDate || "").trim(),
-          underwritingClass: isSimpleEntry ? "" : String(activeCoverageDraft.underwritingClass || "").trim(),
-          beneficiaryName: isSimpleEntry ? "" : String(activeCoverageDraft.beneficiaryName || "").trim(),
-          policyNotes: isSimpleEntry ? "" : String(activeCoverageDraft.policyNotes || "").trim(),
-          documents: isSimpleEntry ? [] : mergedDocuments,
-          documentName: isSimpleEntry ? "" : String(mergedDocuments[0]?.name || "").trim(),
-          documentType: isSimpleEntry ? "" : String(mergedDocuments[0]?.type || "").trim(),
-          documentSize: isSimpleEntry ? 0 : Number(mergedDocuments[0]?.size || 0),
-          documentSavedAt: isSimpleEntry ? "" : String(mergedDocuments[0]?.savedAt || "").trim()
-        };
+            : String(activeCoverageDraft.termLength || "").trim(),
+          policyNumber: String(activeCoverageDraft.policyNumber || "").trim(),
+          effectiveDate: String(activeCoverageDraft.effectiveDate || "").trim(),
+          underwritingClass: String(activeCoverageDraft.underwritingClass || "").trim(),
+          beneficiaryName: String(activeCoverageDraft.beneficiaryName || "").trim(),
+          policyNotes: String(activeCoverageDraft.policyNotes || "").trim(),
+          documents: mergedDocuments
+        }, existingPolicy);
 
         const updatedRecord = updateClientRecordByCaseRef(resolvedCaseRef, function (currentRecord) {
           const currentPoliciesOnRecord = Array.isArray(currentRecord?.coveragePolicies) ? currentRecord.coveragePolicies.slice() : [];
@@ -1792,16 +1843,12 @@
             currentPoliciesOnRecord.push(nextPolicy);
           }
 
-          const nextCoverageTotal = currentPoliciesOnRecord.reduce(function (sum, policy) {
-            return sum + parseCurrencyNumber(policy.faceAmount);
-          }, 0);
+          const coverageSummaryFields = getCoverageProfileSummaryFields(currentPoliciesOnRecord);
 
           return {
             ...currentRecord,
             coveragePolicies: currentPoliciesOnRecord,
-            currentCoverage: nextCoverageTotal,
-            coverageAmount: nextCoverageTotal,
-            policyCount: currentPoliciesOnRecord.length,
+            ...coverageSummaryFields,
             lastUpdatedDate: today,
             lastReview: today
           };
@@ -1835,16 +1882,12 @@
         const updatedRecord = updateClientRecordByCaseRef(resolvedCaseRef, function (currentRecord) {
           const currentPoliciesOnRecord = Array.isArray(currentRecord?.coveragePolicies) ? currentRecord.coveragePolicies.slice() : [];
           currentPoliciesOnRecord.splice(policyIndex, 1);
-          const nextCoverageTotal = currentPoliciesOnRecord.reduce(function (sum, currentPolicy) {
-            return sum + parseCurrencyNumber(currentPolicy.faceAmount);
-          }, 0);
+          const coverageSummaryFields = getCoverageProfileSummaryFields(currentPoliciesOnRecord);
 
           return {
             ...currentRecord,
             coveragePolicies: currentPoliciesOnRecord,
-            currentCoverage: nextCoverageTotal,
-            coverageAmount: nextCoverageTotal,
-            policyCount: currentPoliciesOnRecord.length,
+            ...coverageSummaryFields,
             lastUpdatedDate: today,
             lastReview: today
           };
@@ -1892,22 +1935,6 @@
         }
 
         const pendingEntry = addPendingCoverageEntry("full");
-        if (!pendingEntry) {
-          showFeedback(`You can save up to ${getCoveragePolicyLimit()} policies on one profile.`, "error");
-          return;
-        }
-
-        clearFeedback();
-        openPendingCoverageWizard(pendingEntry.id);
-      });
-
-      addSimpleButton?.addEventListener("click", function () {
-        if (getTotalCoverageEntryCount() >= getCoveragePolicyLimit()) {
-          showFeedback(`You can save up to ${getCoveragePolicyLimit()} policies on one profile.`, "error");
-          return;
-        }
-
-        const pendingEntry = addPendingCoverageEntry("simple");
         if (!pendingEntry) {
           showFeedback(`You can save up to ${getCoveragePolicyLimit()} policies on one profile.`, "error");
           return;
@@ -2149,9 +2176,7 @@
         closeCoverageWizard();
 
         const policies = getCoveragePolicies();
-        const totalCoverage = policies.reduce(function (sum, policy) {
-          return sum + parseCurrencyNumber(policy.faceAmount);
-        }, 0);
+        const totalCoverage = summarizeCoveragePoliciesForPage(policies).totalCoverage;
         showFeedback(`Saved ${policies.length === 1 ? "1 policy" : `${policies.length} policies`} totaling ${formatCurrencyDisplay(totalCoverage)}.`, "success");
       });
     })();

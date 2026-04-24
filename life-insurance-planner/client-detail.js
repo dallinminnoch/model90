@@ -103,6 +103,7 @@
 
       const clientDirectoryHelpers = window.LensApp?.clientDirectoryHelpers || {};
       const clientRecordsApi = window.LensApp?.clientRecords || {};
+      const coveragePolicyUtils = window.LensApp?.coverage || {};
       const getClientRecordByReference = typeof clientRecordsApi.getClientRecordByReference === "function"
         ? clientRecordsApi.getClientRecordByReference
         : null;
@@ -183,6 +184,53 @@
         return Number.isFinite(number) ? number : 0;
       }
 
+      function getPolicyDeathBenefitAmount(policy) {
+        if (typeof coveragePolicyUtils.getCoverageDeathBenefitAmount === "function") {
+          return coveragePolicyUtils.getCoverageDeathBenefitAmount(policy);
+        }
+
+        return parseCurrencyNumber(policy?.faceAmount);
+      }
+
+      function normalizeCoverageSummaryNumber(value) {
+        const number = Number(value);
+        return Number.isFinite(number) ? Math.max(0, number) : 0;
+      }
+
+      function summarizeCoveragePoliciesForProfile(policies) {
+        const safePolicies = Array.isArray(policies) ? policies : [];
+        if (typeof coveragePolicyUtils.summarizeCoveragePolicies === "function") {
+          const summary = coveragePolicyUtils.summarizeCoveragePolicies(safePolicies) || {};
+          return {
+            individualCoverageTotal: normalizeCoverageSummaryNumber(summary.individualCoverageTotal),
+            groupCoverageTotal: normalizeCoverageSummaryNumber(summary.groupCoverageTotal),
+            unclassifiedCoverageTotal: normalizeCoverageSummaryNumber(summary.unclassifiedCoverageTotal),
+            totalCoverage: normalizeCoverageSummaryNumber(summary.totalCoverage),
+            policyCount: safePolicies.length
+          };
+        }
+
+        return {
+          individualCoverageTotal: 0,
+          groupCoverageTotal: 0,
+          unclassifiedCoverageTotal: 0,
+          totalCoverage: safePolicies.reduce(function (sum, policy) {
+            return sum + getPolicyDeathBenefitAmount(policy);
+          }, 0),
+          policyCount: safePolicies.length
+        };
+      }
+
+      function getCoverageProfileSummaryFields(policies) {
+        const summary = summarizeCoveragePoliciesForProfile(policies);
+        const totalCoverage = Math.max(0, Math.min(normalizeCoverageSummaryNumber(summary.totalCoverage), 99999999));
+        return {
+          currentCoverage: totalCoverage,
+          coverageAmount: totalCoverage,
+          policyCount: summary.policyCount
+        };
+      }
+
       function getLatestProtectionModelingPayload(record) {
         if (!record || typeof record !== "object") {
           return null;
@@ -200,6 +248,11 @@
       }
 
       function getRecordCurrentCoverageValue(record) {
+        const profilePolicies = Array.isArray(record?.coveragePolicies) ? record.coveragePolicies : [];
+        if (profilePolicies.length) {
+          return getCoverageProfileSummaryFields(profilePolicies).currentCoverage;
+        }
+
         const modelingPayload = getLatestProtectionModelingPayload(record);
         const modelingData = modelingPayload && modelingPayload.data && typeof modelingPayload.data === "object"
           ? modelingPayload.data
@@ -273,7 +326,13 @@
           ...record,
           ...(overrides && typeof overrides === "object" ? overrides : {})
         };
-        const currentCoverage = getRecordCurrentCoverageValue(nextRecord);
+        const profilePolicies = Array.isArray(nextRecord.coveragePolicies) ? nextRecord.coveragePolicies : null;
+        const profileCoverageSummaryFields = profilePolicies && profilePolicies.length
+          ? getCoverageProfileSummaryFields(profilePolicies)
+          : null;
+        const currentCoverage = profileCoverageSummaryFields
+          ? profileCoverageSummaryFields.currentCoverage
+          : getRecordCurrentCoverageValue(nextRecord);
         const modeledNeed = getRecordModeledNeedValue(nextRecord);
         const hasExplicitCoverageFields = Object.prototype.hasOwnProperty.call(nextRecord, "currentCoverage")
           || Object.prototype.hasOwnProperty.call(nextRecord, "modeledNeed");
@@ -291,6 +350,7 @@
           modeledNeed,
           uncoveredGap,
           coverageAmount: currentCoverage,
+          ...(profilePolicies ? { policyCount: profilePolicies.length } : {}),
           coverageGap: modeledNeed
         };
       }
@@ -923,7 +983,7 @@
           return isCoverageTimelineWindowActiveAtAge(policyWindow, age);
         });
         const totalFaceAmount = activeWindows.reduce(function (sum, policyWindow) {
-          return sum + parseCurrencyNumber(policyWindow.policy.faceAmount);
+          return sum + getPolicyDeathBenefitAmount(policyWindow.policy);
         }, 0);
         const totalMonthlyOutlay = activeWindows.reduce(function (sum, policyWindow) {
           return sum + getCoverageTimelineMonthlyValue(policyWindow, age);
@@ -2316,9 +2376,7 @@
 
       function renderCoverageBreakdownCard(record) {
         const policies = Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
-        const totalFaceAmount = policies.reduce(function (sum, policy) {
-          return sum + parseCurrencyNumber(policy.faceAmount);
-        }, 0);
+        const totalFaceAmount = summarizeCoveragePoliciesForProfile(policies).totalCoverage;
         const totalPremium = policies.reduce(function (sum, policy) {
           return sum + parseCurrencyNumber(policy.premiumAmount);
         }, 0);
@@ -2432,7 +2490,7 @@
                       </div>
                       <span>${escapeHtml(featuredMeta)}</span>
                     </div>
-                    <span class="client-coverage-breakdown-feature-value">${escapeHtml(formatCurrency(featuredPolicy.faceAmount))}</span>
+                    <span class="client-coverage-breakdown-feature-value">${escapeHtml(formatCurrency(getPolicyDeathBenefitAmount(featuredPolicy)))}</span>
                   </button>
                 ` : `
                   <div class="client-coverage-breakdown-empty">
@@ -3391,9 +3449,7 @@
 
       function renderPlacementSummaryCard(record) {
         const policies = Array.isArray(record.coveragePolicies) ? record.coveragePolicies : [];
-        const totalFaceAmount = policies.reduce(function (sum, policy) {
-          return sum + parseCurrencyNumber(policy.faceAmount);
-        }, 0);
+        const totalFaceAmount = summarizeCoveragePoliciesForProfile(policies).totalCoverage;
         const policiesWithDocuments = policies.reduce(function (count, policy) {
           return count + (getPolicyDocumentEntries(policy).length ? 1 : 0);
         }, 0);
@@ -4240,9 +4296,7 @@
           })
           .slice(-2)
           .reverse();
-        const totalFaceAmount = policies.reduce(function (sum, policy) {
-          return sum + parseCurrencyNumber(policy.faceAmount);
-        }, 0);
+        const totalFaceAmount = summarizeCoveragePoliciesForProfile(policies).totalCoverage;
         const annualPremiumSummary = getCoverageAnnualPremiumSummary(policies);
         const illustrations = getIllustrationEntries(record);
         const previewIllustrations = illustrations.slice(0, 2);
@@ -4322,7 +4376,7 @@
                       >
                         <div class="client-coverage-policy-topline">
                           <strong>${escapeHtml(formatValue(policy.policyCarrier))}</strong>
-                          <span>${escapeHtml(formatCurrency(policy.faceAmount))}</span>
+                          <span>${escapeHtml(formatCurrency(getPolicyDeathBenefitAmount(policy)))}</span>
                         </div>
                         <div class="client-coverage-policy-meta">
                           <span>${escapeHtml(formatValue(policy.policyType))}</span>
@@ -6030,11 +6084,11 @@
 
       const COVERAGE_WIDGET_STEP_FIELDS = [
         [
-          { name: "premiumMode", message: "Select a premium mode before continuing.", focusSelector: "[data-coverage-mode]" },
-          { name: "policyCarrier", message: "Enter the policy carrier before continuing." },
-          { name: "policyType", message: "Select a policy type before continuing." },
-          { name: "insuredName", message: "Enter the insured name before continuing." },
-          { name: "ownerName", message: "Enter the policy owner before continuing." },
+          { name: "premiumMode", focusSelector: "[data-coverage-mode]" },
+          { name: "policyCarrier" },
+          { name: "policyType" },
+          { name: "insuredName" },
+          { name: "ownerName" },
           { name: "faceAmount", message: "Enter the face amount before continuing." }
         ],
         [
@@ -6050,6 +6104,73 @@
           { name: "policyDocument" }
         ]
       ];
+
+      function normalizePolicyForClientDetailStorage(policy, existingPolicy, shapeSourcePolicy) {
+        const source = policy && typeof policy === "object" ? policy : {};
+        const base = existingPolicy && typeof existingPolicy === "object" ? existingPolicy : {};
+        const shapeSource = shapeSourcePolicy && typeof shapeSourcePolicy === "object" ? shapeSourcePolicy : source;
+        const normalized = typeof coveragePolicyUtils.normalizeCoveragePolicyRecord === "function"
+          ? coveragePolicyUtils.normalizeCoveragePolicyRecord({
+              ...base,
+              ...source
+            })
+          : {
+              ...base,
+              ...source
+            };
+        const documents = getPolicyDocumentEntries(normalized);
+        const firstDocument = documents[0] || null;
+        const nextPolicy = {
+          ...base,
+          id: String(normalized.id || base.id || source.id || `policy-${Date.now()}`).trim(),
+          savedAt: String(normalized.savedAt || base.savedAt || source.savedAt || new Date().toISOString().slice(0, 10)).trim(),
+          policyCarrier: String(normalized.policyCarrier || "").trim(),
+          policyType: String(normalized.policyType || "").trim(),
+          insuredName: String(normalized.insuredName || "").trim(),
+          ownerName: String(normalized.ownerName || "").trim(),
+          faceAmount: normalizeCoverageCurrencyValue(normalized.faceAmount),
+          startingPremium: normalizeCoverageCurrencyValue(normalized.startingPremium),
+          premiumAmount: normalizeCoverageCurrencyValue(normalized.premiumAmount),
+          premiumMode: String(normalized.premiumMode || "").trim(),
+          premiumScheduleYears: String(normalized.premiumScheduleYears || "").trim(),
+          premiumScheduleMonths: String(normalized.premiumScheduleMonths || "").trim(),
+          premiumScheduleDuration: String(normalized.premiumScheduleDuration || "").trim(),
+          termLength: String(normalized.termLength || "").trim(),
+          policyNumber: String(normalized.policyNumber || "").trim(),
+          effectiveDate: String(normalized.effectiveDate || "").trim(),
+          underwritingClass: String(normalized.underwritingClass || "").trim(),
+          beneficiaryName: String(normalized.beneficiaryName || "").trim(),
+          policyNotes: String(normalized.policyNotes || "").trim(),
+          documents,
+          documentName: String(firstDocument?.name || "").trim(),
+          documentType: String(firstDocument?.type || "").trim(),
+          documentSize: Number(firstDocument?.size || 0),
+          documentSavedAt: String(firstDocument?.savedAt || "").trim()
+        };
+
+        if (Object.prototype.hasOwnProperty.call(base, "entryMode") || Object.prototype.hasOwnProperty.call(shapeSource, "entryMode")) {
+          nextPolicy.entryMode = String(normalized.entryMode || base.entryMode || shapeSource.entryMode || "").trim();
+        }
+
+        if (Object.prototype.hasOwnProperty.call(base, "coverageSource") || Object.prototype.hasOwnProperty.call(shapeSource, "coverageSource")) {
+          nextPolicy.coverageSource = String(normalized.coverageSource || base.coverageSource || shapeSource.coverageSource || "").trim();
+        }
+
+        return nextPolicy;
+      }
+
+      function buildFullCoverageStoragePolicy(input, existingPolicy) {
+        const source = input && typeof input === "object" ? input : {};
+        if (typeof coveragePolicyUtils.buildFullCoveragePolicy === "function") {
+          return normalizePolicyForClientDetailStorage(
+            coveragePolicyUtils.buildFullCoveragePolicy(source, existingPolicy),
+            existingPolicy,
+            source
+          );
+        }
+
+        return normalizePolicyForClientDetailStorage(source, existingPolicy, source);
+      }
 
       function buildCoverageWidgetDraft(policy) {
         const currentPolicy = policy || {};
@@ -6693,11 +6814,7 @@
           return "";
         }
 
-        if (validationError.stepIndex === 0) {
-          return "All fields must be filled out before continuing.";
-        }
-
-        return validationError.message || "Complete all required fields before continuing.";
+        return validationError.message || "Complete the required field before continuing.";
       }
 
       function clearCoverageWidgetFeedback(options) {
@@ -6853,25 +6970,6 @@
         const existingPolicy = policyIndex >= 0 ? nextPolicies[policyIndex] : null;
         const existingDocuments = getPolicyDocumentEntries(existingPolicy);
         const selectedDocuments = Array.from(policyDocumentFiles || []).filter(Boolean);
-        const currentCoverageAmount = Number(String(currentRecord.currentCoverage || currentRecord.coverageAmount || "").replace(/,/g, ""));
-        const existingPolicyFaceAmount = Number(String(existingPolicy?.faceAmount || "").replace(/,/g, ""));
-        const nextPolicyFaceAmount = Number(String(policy.faceAmount || "").replace(/,/g, ""));
-        const nextPolicy = {
-          id: existingPolicy?.id || `policy-${Date.now()}`,
-          savedAt: existingPolicy?.savedAt || today,
-          ...policy
-        };
-
-        if (policyIndex >= 0 && policyIndex < nextPolicies.length) {
-          nextPolicies[policyIndex] = nextPolicy;
-        } else {
-          nextPolicies.push(nextPolicy);
-        }
-
-        const safeCurrentCoverageAmount = Number.isFinite(currentCoverageAmount) ? currentCoverageAmount : 0;
-        const safeExistingPolicyFaceAmount = Number.isFinite(existingPolicyFaceAmount) ? existingPolicyFaceAmount : 0;
-        const safeNextPolicyFaceAmount = Number.isFinite(nextPolicyFaceAmount) ? nextPolicyFaceAmount : 0;
-        const nextCoverageAmount = safeCurrentCoverageAmount + (safeNextPolicyFaceAmount - safeExistingPolicyFaceAmount);
         const normalizedRecordId = String(recordId || "").trim();
         const mergedDocuments = selectedDocuments.length
           ? existingDocuments.concat(selectedDocuments.map(function (file) {
@@ -6884,20 +6982,32 @@
             }))
           : existingDocuments;
 
-        nextPolicy.documents = mergedDocuments;
-        nextPolicy.documentName = String(mergedDocuments[0]?.name || "").trim();
-        nextPolicy.documentType = String(mergedDocuments[0]?.type || "").trim();
-        nextPolicy.documentSize = Number(mergedDocuments[0]?.size || 0);
-        nextPolicy.documentSavedAt = String(mergedDocuments[0]?.savedAt || "").trim();
+        const nextPolicy = buildFullCoverageStoragePolicy({
+          ...policy,
+          id: existingPolicy?.id || `policy-${Date.now()}`,
+          savedAt: existingPolicy?.savedAt || today,
+          documents: mergedDocuments,
+          documentName: String(mergedDocuments[0]?.name || "").trim(),
+          documentType: String(mergedDocuments[0]?.type || "").trim(),
+          documentSize: Number(mergedDocuments[0]?.size || 0),
+          documentSavedAt: String(mergedDocuments[0]?.savedAt || "").trim()
+        }, existingPolicy);
+
+        if (policyIndex >= 0 && policyIndex < nextPolicies.length) {
+          nextPolicies[policyIndex] = nextPolicy;
+        } else {
+          nextPolicies.push(nextPolicy);
+        }
 
         if (selectedDocuments.length) {
           await savePolicyDocumentFiles(normalizedRecordId, nextPolicy.id, selectedDocuments);
         }
 
+        const coverageSummaryFields = getCoverageProfileSummaryFields(nextPolicies);
         const nextRecord = {
           ...currentRecord,
           coveragePolicies: nextPolicies,
-          currentCoverage: Math.max(0, Math.min(nextCoverageAmount, 99999999)),
+          ...coverageSummaryFields,
           lastUpdatedDate: today,
           lastReview: today
         };
@@ -8026,7 +8136,7 @@
         const metricCards = [
           {
             label: "Face Amount",
-            value: formatCurrency(policy.faceAmount),
+            value: formatCurrency(getPolicyDeathBenefitAmount(policy)),
             meta: "Death benefit"
           },
           {
@@ -8173,7 +8283,7 @@
                 >
                   <div class="client-coverage-policy-topline">
                     <strong>${escapeHtml(formatValue(policy.policyCarrier))}</strong>
-                    <span>${escapeHtml(formatCurrency(policy.faceAmount))}</span>
+                    <span>${escapeHtml(formatCurrency(getPolicyDeathBenefitAmount(policy)))}</span>
                   </div>
                   <div class="client-coverage-policy-meta">
                     <span>${escapeHtml(formatValue(policy.policyType))}</span>
@@ -8757,16 +8867,12 @@
 
         const removedPolicy = policies.splice(index, 1)[0];
 
-        const nextCoverageAmount = policies.reduce(function (total, policy) {
-          const amount = Number(String(policy?.faceAmount || "").replace(/,/g, ""));
-          return total + (Number.isFinite(amount) ? amount : 0);
-        }, 0);
-
         const today = new Date().toISOString().slice(0, 10);
+        const coverageSummaryFields = getCoverageProfileSummaryFields(policies);
         const nextRecord = {
           ...currentRecord,
           coveragePolicies: policies,
-          currentCoverage: Math.max(0, Math.min(nextCoverageAmount, 99999999)),
+          ...coverageSummaryFields,
           lastUpdatedDate: today,
           lastReview: today
         };
