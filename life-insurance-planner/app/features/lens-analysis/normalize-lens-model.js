@@ -145,6 +145,11 @@
       sourceMetadataKey: "monthlyRentOrHousingPayment"
     }),
     Object.freeze({
+      sourceOutputKey: "monthlyOtherRenterHousingCost",
+      destinationField: "monthlyOtherRenterHousingCost",
+      sourceMetadataKey: "monthlyOtherRenterHousingCost"
+    }),
+    Object.freeze({
       sourceOutputKey: "monthlyUtilities",
       destinationField: "monthlyUtilities",
       sourceMetadataKey: "monthlyUtilities"

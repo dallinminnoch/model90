@@ -159,6 +159,10 @@
       destinationField: "monthlyRentOrHousingPayment"
     }),
     Object.freeze({
+      sourceOutputKey: "monthlyOtherRenterHousingCost",
+      destinationField: "monthlyOtherRenterHousingCost"
+    }),
+    Object.freeze({
       sourceOutputKey: "monthlyUtilities",
       destinationField: "monthlyUtilities"
     }),

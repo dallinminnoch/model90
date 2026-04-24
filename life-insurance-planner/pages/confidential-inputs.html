@@ -343,6 +343,13 @@
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
+              <div class="field-group" data-housing-visibility="renter">
+                <label for="other-monthly-renter-housing-costs">Other Monthly Renter Housing Costs</label>
+                <div class="profile-currency-field">
+                  <input id="other-monthly-renter-housing-costs" name="otherMonthlyRenterHousingCosts" type="number" min="0" step="25">
+                  <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
               <div class="field-group field-group--compact-owner-row" data-housing-visibility="homeowner">
                 <label for="mortgage-term-remaining-years">Mortgage Remaining Term and Interest Rate</label>
                 <div class="profile-owner-term-row">
@@ -928,7 +935,7 @@
 
           <section class="profile-form-section">
             <div class="profile-form-section-heading">
-              <h2>Final Expenses and Assumptions</h2>
+              <h2>Final Expenses</h2>
             </div>
             <div class="form-grid">
               <div class="field-group">
@@ -1306,6 +1313,7 @@
         "employer-benefits-value": "Estimated annual value of employer-provided benefits tied to the insured, such as health insurance subsidy, retirement match, pension accrual, disability coverage, or other workplace benefits the household would lose at death.",
         "federal-tax-bracket": "Select the federal marginal tax bracket to use for future net-income modeling. These options are maintained in restricted Account Administration.",
         "monthly-housing-cost": "All-in monthly rent for renter scenarios, including pet fees or technology fees. Utilities are entered separately.",
+        "other-monthly-renter-housing-costs": "Recurring monthly renter-specific housing costs not already included in rent, utilities, or renter/housing insurance. Examples: parking, storage, pet rent, required renter fees, trash/service fees. Do not include relocation reserve, debts, final expenses, or transition needs.",
         "utilities-cost": "Average monthly utilities across all housing statuses.",
         "monthly-mortgage-payment-only": "Auto-calculated principal and interest payment from balance, remaining term, and mortgage interest rate. You can edit it to override the calculated amount.",
         "associated-monthly-costs": "Auto-calculated monthly housing costs other than the mortgage payment, such as rent, utilities, property tax, insurance, HOA, and maintenance, depending on housing status. You can edit it to override the calculated amount.",
@@ -1682,6 +1690,7 @@
       const expenseReductionAtDeathField = form.elements.namedItem("expenseReductionAtDeath");
       const housingStatusField = form.elements.namedItem("housingStatus");
       const monthlyHousingCostField = form.elements.namedItem("monthlyHousingCost");
+      const otherMonthlyRenterHousingCostsField = form.elements.namedItem("otherMonthlyRenterHousingCosts");
       const utilitiesCostField = form.elements.namedItem("utilitiesCost");
       const relocationReserveField = form.elements.namedItem("relocationReserve");
       const immediateLiquidityBufferField = form.elements.namedItem("immediateLiquidityBuffer");
@@ -3266,6 +3275,7 @@
           mortgageTermRemainingMonths: getLensBlockSourceFieldValue(mortgageTermRemainingMonthsField),
           mortgageInterestRate: getLensBlockSourceFieldValue(mortgageInterestRateField),
           monthlyHousingCost: getLensBlockSourceFieldValue(monthlyHousingCostField),
+          otherMonthlyRenterHousingCosts: getLensBlockSourceFieldValue(otherMonthlyRenterHousingCostsField),
           utilitiesCost: getLensBlockSourceFieldValue(utilitiesCostField),
           housingInsuranceCost: getLensBlockSourceFieldValue(housingInsuranceCostField),
           propertyTax: getLensBlockSourceFieldValue(propertyTaxField),
@@ -3698,6 +3708,7 @@
           : "";
         const monthlyUtilities = parseCurrencyLikeNumber(utilitiesCostField?.value);
         const monthlyHousingInsurance = parseCurrencyLikeNumber(housingInsuranceCostField?.value);
+        const monthlyOtherRenterHousingCosts = parseCurrencyLikeNumber(otherMonthlyRenterHousingCostsField?.value);
         const monthlyHoaCost = parseCurrencyLikeNumber(monthlyHoaCostField?.value);
         const monthlyPropertyTax = parseCurrencyLikeNumber(form.elements.namedItem("propertyTax")?.value);
         const monthlyMaintenance = parseCurrencyLikeNumber(maintenanceRecommendationField?.value);
@@ -3708,7 +3719,7 @@
 
         if (selectedHousingStatus === "Renter") {
           const monthlyRent = parseCurrencyLikeNumber(form.elements.namedItem("monthlyHousingCost")?.value);
-          const renterAssociatedTotal = monthlyRent + monthlyUtilities + monthlyHousingInsurance;
+          const renterAssociatedTotal = monthlyRent + monthlyUtilities + monthlyHousingInsurance + monthlyOtherRenterHousingCosts;
           return renterAssociatedTotal > 0 ? renterAssociatedTotal : null;
         }
 
@@ -4163,6 +4174,16 @@
           syncDebtPayoffBlockOutput();
         });
       });
+
+      if (otherMonthlyRenterHousingCostsField && !(otherMonthlyRenterHousingCostsField instanceof RadioNodeList)) {
+        const syncOtherRenterHousingCost = () => {
+          syncMonthlyMortgagePaymentField();
+          syncTransitionNeedsBlockOutput();
+        };
+        otherMonthlyRenterHousingCostsField.addEventListener("input", syncOtherRenterHousingCost);
+        otherMonthlyRenterHousingCostsField.addEventListener("change", syncOtherRenterHousingCost);
+        otherMonthlyRenterHousingCostsField.addEventListener("blur", syncOtherRenterHousingCost);
+      }
 
       [
         otherRealEstateLoansField,

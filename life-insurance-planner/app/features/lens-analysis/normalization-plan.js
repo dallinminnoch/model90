@@ -97,6 +97,7 @@
         { rawField: "mortgageTermRemainingYears + mortgageTermRemainingMonths", canonicalField: "ongoingSupport.mortgageRemainingTermMonths", availability: "activeLinkedPmi-derived", note: "Current mortgage timing fact normalized into total remaining months." },
         { rawField: "mortgageInterestRate", canonicalField: "ongoingSupport.mortgageInterestRatePercent", availability: "activeLinkedPmi", note: "Current mortgage interest rate percent kept as timing/context data only." },
         { rawField: "monthlyHousingCost", canonicalField: "ongoingSupport.monthlyRentOrHousingPayment", availability: "activeLinkedPmi", note: "Current renter housing payment field." },
+        { rawField: "otherMonthlyRenterHousingCosts", canonicalField: "ongoingSupport.monthlyOtherRenterHousingCost", availability: "activeLinkedPmi", note: "Renter-only recurring housing support component included in renter monthly and annual housing support, not a transition need." },
         { rawField: "utilitiesCost", canonicalField: "ongoingSupport.monthlyUtilities", availability: "activeLinkedPmi", note: "Current monthly utilities field." },
         { rawField: "housingInsuranceCost", canonicalField: "ongoingSupport.monthlyHousingInsurance", availability: "activeLinkedPmi", note: "Current monthly housing-insurance field, including renter insurance when captured there." },
         { rawField: "propertyTax", canonicalField: "ongoingSupport.monthlyPropertyTax", availability: "activeLinkedPmi", note: "Current monthly property-tax input." },

@@ -21,6 +21,7 @@
     mortgageTermRemainingMonths: "mortgageTermRemainingMonths",
     mortgageInterestRatePercent: "mortgageInterestRate",
     monthlyRentOrHousingPayment: "monthlyHousingCost",
+    monthlyOtherRenterHousingCost: "otherMonthlyRenterHousingCosts",
     monthlyUtilities: "utilitiesCost",
     monthlyHousingInsurance: "housingInsuranceCost",
     monthlyPropertyTax: "propertyTax",
@@ -67,6 +68,11 @@
         type: "number|null",
         canonicalDestination: "ongoingSupport.monthlyRentOrHousingPayment",
         meaning: "Current monthly rent or equivalent renter housing payment."
+      },
+      monthlyOtherRenterHousingCost: {
+        type: "number|null",
+        canonicalDestination: "ongoingSupport.monthlyOtherRenterHousingCost",
+        meaning: "Renter-only recurring monthly housing support component for costs not already included in rent, utilities, or renter/housing insurance."
       },
       monthlyUtilities: {
         type: "number|null",
@@ -259,7 +265,8 @@
       const renterTotal = sumOptionalValues([
         outputs.monthlyRentOrHousingPayment,
         outputs.monthlyUtilities,
-        outputs.monthlyHousingInsurance
+        outputs.monthlyHousingInsurance,
+        outputs.monthlyOtherRenterHousingCost
       ]);
 
       return renterTotal == null
@@ -386,6 +393,9 @@
       monthlyRentOrHousingPayment: housingStatusContext.isRenter
         ? toOptionalNumber(data[HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyRentOrHousingPayment])
         : null,
+      monthlyOtherRenterHousingCost: housingStatusContext.isRenter
+        ? toOptionalNumber(data[HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyOtherRenterHousingCost])
+        : null,
       monthlyUtilities: housingStatusContext.hasSelectedHousingStatus
         ? toOptionalNumber(data[HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyUtilities])
         : null,
@@ -462,6 +472,12 @@
           rawField: HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyRentOrHousingPayment,
           canonicalDestination: HOUSING_ONGOING_SUPPORT_BLOCK_OUTPUT_CONTRACT.outputs.monthlyRentOrHousingPayment.canonicalDestination
         }),
+        monthlyOtherRenterHousingCost: createApplicableReportedMetadata({
+          applicable: housingStatusContext.isRenter,
+          outputValue: outputs.monthlyOtherRenterHousingCost,
+          rawField: HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyOtherRenterHousingCost,
+          canonicalDestination: HOUSING_ONGOING_SUPPORT_BLOCK_OUTPUT_CONTRACT.outputs.monthlyOtherRenterHousingCost.canonicalDestination
+        }),
         monthlyUtilities: createApplicableReportedMetadata({
           applicable: housingStatusContext.hasSelectedHousingStatus,
           outputValue: outputs.monthlyUtilities,
@@ -527,7 +543,8 @@
             HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyUtilities,
             HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyMaintenanceAndRepairs,
             HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyAssociatedHousingCosts,
-            HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyRentOrHousingPayment
+            HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyRentOrHousingPayment,
+            HOUSING_ONGOING_SUPPORT_BLOCK_SOURCE_FIELDS.monthlyOtherRenterHousingCost
           ].join("+"),
           canonicalDestination: HOUSING_ONGOING_SUPPORT_BLOCK_OUTPUT_CONTRACT.outputs.recomputedMonthlyHousingSupportCost.canonicalDestination
         }),

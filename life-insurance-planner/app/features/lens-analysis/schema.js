@@ -72,6 +72,9 @@
         mortgageRemainingTermMonths: null,
         mortgageInterestRatePercent: null,
         monthlyRentOrHousingPayment: null,
+        // Renter-only recurring housing support component. This is not a
+        // one-time transition need and does not apply to homeowner statuses.
+        monthlyOtherRenterHousingCost: null,
         monthlyUtilities: null,
         monthlyHousingInsurance: null,
         monthlyPropertyTax: null,

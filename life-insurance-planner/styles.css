@@ -1007,10 +1007,11 @@ body.settings-page .site-header {
   grid-column: auto;
 }
 
-[data-page="confidential-inputs"] .field-group > label {
+[data-page="confidential-inputs"] .field-group > label,
+[data-page="next-step"] .field-group > label.has-entry-mode-help {
   display: inline-flex;
   align-items: center;
-  gap: 0.38rem;
+  gap: 0.32rem;
   width: fit-content;
   max-width: 100%;
 }
