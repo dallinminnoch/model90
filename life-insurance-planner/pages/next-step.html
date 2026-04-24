@@ -1092,6 +1092,7 @@
   <script src="../app/features/lens-analysis/blocks/income-net-income.js"></script>
   <script src="../app/features/lens-analysis/blocks/debt-payoff.js"></script>
   <script src="../app/features/lens-analysis/blocks/housing-ongoing-support.js"></script>
+  <script src="../app/features/lens-analysis/blocks/non-housing-ongoing-support.js"></script>
   <script src="../app/features/lens-analysis/normalize-lens-model.js"></script>
   <script src="../app/features/lens-analysis/dev-income-debug.js"></script>
   <script src="../app.js"></script>
@@ -1688,7 +1689,12 @@
       const otherLoanObligationsField = form.elements.namedItem("otherLoanObligations");
       const foodCostField = form.elements.namedItem("foodCost");
       const insuranceCostField = form.elements.namedItem("insuranceCost");
+      const healthcareOutOfPocketCostField = form.elements.namedItem("healthcareOutOfPocketCost");
       const transportationCostField = form.elements.namedItem("transportationCost");
+      const childcareDependentCareCostField = form.elements.namedItem("childcareDependentCareCost");
+      const phoneInternetCostField = form.elements.namedItem("phoneInternetCost");
+      const householdSuppliesCostField = form.elements.namedItem("householdSuppliesCost");
+      const otherHouseholdExpensesField = form.elements.namedItem("otherHouseholdExpenses");
       const travelDiscretionaryCostField = form.elements.namedItem("travelDiscretionaryCost");
       const subscriptionsCostField = form.elements.namedItem("subscriptionsCost");
       const childrenNeedingFundingField = form.elements.namedItem("childrenNeedingFunding");
@@ -3259,6 +3265,33 @@
         }
       }
 
+      function syncNonHousingOngoingSupportBlockOutput() {
+        const createNonHousingOngoingSupportBlockOutput = window.LensApp?.lensAnalysis?.createNonHousingOngoingSupportBlockOutput;
+        const upsertRuntimeBlockOutput = window.LensApp?.lensAnalysis?.upsertRuntimeBlockOutput;
+        const refreshLensIncomeDebugPanel = window.LensApp?.lensAnalysisDev?.refreshLensIncomeDebugPanel;
+        if (typeof createNonHousingOngoingSupportBlockOutput !== "function" || typeof upsertRuntimeBlockOutput !== "function") {
+          return;
+        }
+
+        const runtimeNamespace = window.LensApp.lensAnalysisRuntime || (window.LensApp.lensAnalysisRuntime = {});
+        const blockOutput = createNonHousingOngoingSupportBlockOutput({
+          insuranceCost: getLensBlockSourceFieldValue(insuranceCostField),
+          healthcareOutOfPocketCost: getLensBlockSourceFieldValue(healthcareOutOfPocketCostField),
+          foodCost: getLensBlockSourceFieldValue(foodCostField),
+          transportationCost: getLensBlockSourceFieldValue(transportationCostField),
+          childcareDependentCareCost: getLensBlockSourceFieldValue(childcareDependentCareCostField),
+          phoneInternetCost: getLensBlockSourceFieldValue(phoneInternetCostField),
+          householdSuppliesCost: getLensBlockSourceFieldValue(householdSuppliesCostField),
+          otherHouseholdExpenses: getLensBlockSourceFieldValue(otherHouseholdExpensesField),
+          travelDiscretionaryCost: getLensBlockSourceFieldValue(travelDiscretionaryCostField),
+          subscriptionsCost: getLensBlockSourceFieldValue(subscriptionsCostField)
+        });
+        upsertRuntimeBlockOutput(runtimeNamespace, blockOutput);
+        if (typeof refreshLensIncomeDebugPanel === "function") {
+          refreshLensIncomeDebugPanel(runtimeNamespace);
+        }
+      }
+
       function getHouseholdNetIncomeBasis() {
         const incomeCalculationMode = getIncomeCalculationMode();
         const primaryNetIncome = parseCurrencyLikeNumber(netAnnualIncomeField?.value);
@@ -3978,19 +4011,38 @@
 
         field.addEventListener("input", () => {
           syncEstimatedHouseholdIncomeUse();
+          syncNonHousingOngoingSupportBlockOutput();
           if (field !== expenseReductionAtDeathField && field !== utilitiesCostField) {
           }
         });
         field.addEventListener("change", () => {
           syncEstimatedHouseholdIncomeUse();
+          syncNonHousingOngoingSupportBlockOutput();
           if (field !== expenseReductionAtDeathField && field !== utilitiesCostField) {
           }
         });
         field.addEventListener("blur", () => {
           syncEstimatedHouseholdIncomeUse();
+          syncNonHousingOngoingSupportBlockOutput();
           if (field !== expenseReductionAtDeathField && field !== utilitiesCostField) {
           }
         });
+      });
+
+      [
+        healthcareOutOfPocketCostField,
+        childcareDependentCareCostField,
+        phoneInternetCostField,
+        householdSuppliesCostField,
+        otherHouseholdExpensesField
+      ].forEach((field) => {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        field.addEventListener("input", syncNonHousingOngoingSupportBlockOutput);
+        field.addEventListener("change", syncNonHousingOngoingSupportBlockOutput);
+        field.addEventListener("blur", syncNonHousingOngoingSupportBlockOutput);
       });
 
       [
@@ -4235,6 +4287,7 @@
       syncSurvivorshipAdjustments();
       syncEstimatedHouseholdIncomeUse();
       syncDebtPayoffBlockOutput();
+      syncNonHousingOngoingSupportBlockOutput();
       if (typeof window.LensApp?.lensAnalysisDev?.mountLensIncomeDebugPanel === "function") {
         window.LensApp.lensAnalysisDev.mountLensIncomeDebugPanel(window.LensApp.lensAnalysisRuntime);
       }

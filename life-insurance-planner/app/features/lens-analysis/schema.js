@@ -62,6 +62,10 @@
         currentMonthlyHouseholdExpenses: null,
         monthlyHousingSupportCost: null,
         annualHousingSupportCost: null,
+        // Combined essential support summary. This is a neutral reusable
+        // bucket-level composition, not a recommendation or death benefit.
+        monthlyTotalEssentialSupportCost: null,
+        annualTotalEssentialSupportCost: null,
         monthlyMortgagePayment: null,
         // Mortgage timing fact for future analysis. This pass does not decide
         // when mortgage support should phase out.
@@ -80,9 +84,17 @@
         monthlyHouseholdSuppliesCost: null,
         monthlyHealthcareOutOfPocketCost: null,
         monthlyOtherInsuranceCost: null,
+        monthlyOtherHouseholdExpenses: null,
+        // Baseline non-housing survivor support excludes discretionary
+        // personal spending by default. Scenario logic can include those later.
+        monthlyNonHousingEssentialSupportCost: null,
+        annualNonHousingEssentialSupportCost: null,
         monthlySubscriptionsCost: null,
         monthlyTravelAndDiscretionaryCost: null,
-        monthlyOtherHouseholdExpenses: null
+        // Discretionary/context spending is preserved separately and does not
+        // feed baseline survivor support unless later logic explicitly opts in.
+        monthlyDiscretionaryPersonalSpending: null,
+        annualDiscretionaryPersonalSpending: null
       },
 
       // Dependent-support and education-funding needs. Current and projected

@@ -14,6 +14,7 @@
   const NET_INCOME_BLOCK_ID = lensAnalysis.NET_INCOME_BLOCK_ID || "income-net-income";
   const DEBT_PAYOFF_BLOCK_ID = lensAnalysis.DEBT_PAYOFF_BLOCK_ID || "debt-payoff";
   const HOUSING_ONGOING_SUPPORT_BLOCK_ID = lensAnalysis.HOUSING_ONGOING_SUPPORT_BLOCK_ID || "housing-ongoing-support";
+  const NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID = lensAnalysis.NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID || "non-housing-ongoing-support";
 
   const HOUSING_RUNTIME_ONLY_DEBUG_FIELDS = Object.freeze([
     Object.freeze({
@@ -184,6 +185,74 @@
     })
   ]);
 
+  const NON_HOUSING_ONGOING_SUPPORT_DEBUG_FIELDS = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "monthlyOtherInsuranceCost",
+      destinationField: "monthlyOtherInsuranceCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyHealthcareOutOfPocketCost",
+      destinationField: "monthlyHealthcareOutOfPocketCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyFoodCost",
+      destinationField: "monthlyFoodCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyTransportationCost",
+      destinationField: "monthlyTransportationCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyChildcareAndDependentCareCost",
+      destinationField: "monthlyChildcareAndDependentCareCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyPhoneAndInternetCost",
+      destinationField: "monthlyPhoneAndInternetCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyHouseholdSuppliesCost",
+      destinationField: "monthlyHouseholdSuppliesCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyOtherHouseholdExpenses",
+      destinationField: "monthlyOtherHouseholdExpenses"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyNonHousingEssentialSupportCost",
+      destinationField: "monthlyNonHousingEssentialSupportCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "annualNonHousingEssentialSupportCost",
+      destinationField: "annualNonHousingEssentialSupportCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyTravelAndDiscretionaryCost",
+      destinationField: "monthlyTravelAndDiscretionaryCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlySubscriptionsCost",
+      destinationField: "monthlySubscriptionsCost"
+    }),
+    Object.freeze({
+      sourceOutputKey: "monthlyDiscretionaryPersonalSpending",
+      destinationField: "monthlyDiscretionaryPersonalSpending"
+    }),
+    Object.freeze({
+      sourceOutputKey: "annualDiscretionaryPersonalSpending",
+      destinationField: "annualDiscretionaryPersonalSpending"
+    })
+  ]);
+
+  const ONGOING_SUPPORT_COMPOSITION_DEBUG_FIELDS = Object.freeze([
+    Object.freeze({
+      destinationField: "monthlyTotalEssentialSupportCost"
+    }),
+    Object.freeze({
+      destinationField: "annualTotalEssentialSupportCost"
+    })
+  ]);
+
   function isLensIncomeDebugEnabled(locationLike) {
     const search = locationLike && typeof locationLike.search === "string" ? locationLike.search : "";
     const value = new URLSearchParams(search).get(DEBUG_QUERY_PARAM);
@@ -261,7 +330,7 @@
         section: normalizedOptions.normalizedSection,
         field: field.destinationField,
         value: normalizedBucket[field.destinationField],
-        sourceBlock: sourceBlockId,
+        sourceBlock: normalizedFieldMetadata.sourceBlockId || sourceBlockId,
         confidence: normalizedFieldMetadata.confidence || null
       });
 
@@ -269,7 +338,41 @@
         section: "Normalization Metadata",
         field: field.destinationField,
         value: normalizedFieldMetadata.sourceType || null,
-        sourceBlock: sourceBlockId,
+        sourceBlock: normalizedFieldMetadata.sourceBlockId || sourceBlockId,
+        confidence: normalizedFieldMetadata.confidence || null
+      });
+    });
+  }
+
+  function appendNormalizedBucketRows(rows, options) {
+    const normalizedOptions = options && typeof options === "object" ? options : {};
+    const normalizedBucket = normalizedOptions.normalizedBucket && typeof normalizedOptions.normalizedBucket === "object"
+      ? normalizedOptions.normalizedBucket
+      : {};
+    const normalizationMetadata = normalizedOptions.normalizationMetadata && typeof normalizedOptions.normalizationMetadata === "object"
+      ? normalizedOptions.normalizationMetadata
+      : {};
+    const normalizationFieldMetadata = normalizationMetadata.fields && typeof normalizationMetadata.fields === "object"
+      ? normalizationMetadata.fields
+      : {};
+    const sourceBlockId = normalizationMetadata.sourceBlockId || null;
+
+    normalizedOptions.fields.forEach(function (field) {
+      const normalizedFieldMetadata = normalizationFieldMetadata[field.destinationField] || {};
+
+      rows.push({
+        section: normalizedOptions.normalizedSection,
+        field: field.destinationField,
+        value: normalizedBucket[field.destinationField],
+        sourceBlock: normalizedFieldMetadata.sourceBlockId || sourceBlockId,
+        confidence: normalizedFieldMetadata.confidence || null
+      });
+
+      rows.push({
+        section: "Normalization Metadata",
+        field: field.destinationField,
+        value: normalizedFieldMetadata.sourceType || null,
+        sourceBlock: normalizedFieldMetadata.sourceBlockId || sourceBlockId,
         confidence: normalizedFieldMetadata.confidence || null
       });
     });
@@ -329,12 +432,28 @@
       fields: ONGOING_SUPPORT_DEBUG_FIELDS
     });
 
+    appendBucketInspectionRows(rows, {
+      blockOutput: safeBlockOutputs[NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID],
+      normalizedBucket: lensModel && lensModel.ongoingSupport,
+      normalizationMetadata: lensModel && lensModel.normalizationMetadata && lensModel.normalizationMetadata.ongoingSupport,
+      runtimeSection: "Runtime non-housing-ongoing-support",
+      normalizedSection: "Normalized ongoingSupport",
+      fields: NON_HOUSING_ONGOING_SUPPORT_DEBUG_FIELDS
+    });
+
+    appendNormalizedBucketRows(rows, {
+      normalizedBucket: lensModel && lensModel.ongoingSupport,
+      normalizationMetadata: lensModel && lensModel.normalizationMetadata && lensModel.normalizationMetadata.ongoingSupport,
+      normalizedSection: "Normalized ongoingSupport",
+      fields: ONGOING_SUPPORT_COMPOSITION_DEBUG_FIELDS
+    });
+
     return rows;
   }
 
   function createSummaryText(blockOutputs, lensModel) {
     const safeBlockOutputs = blockOutputs && typeof blockOutputs === "object" ? blockOutputs : {};
-    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID].filter(function (blockId) {
+    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID, NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID].filter(function (blockId) {
       return safeBlockOutputs[blockId];
     });
     return "Runtime blocks: " + (availableBlocks.length ? availableBlocks.join(", ") : "none");
