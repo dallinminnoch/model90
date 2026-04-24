@@ -146,11 +146,13 @@
   <script src="../app/features/client-intake.js"></script>
   <script src="../app/features/client-directory.js"></script>
   <script src="../app/features/coverage/coverage-policy-utils.js"></script>
+  <script src="../app/features/coverage/coverage-policy-summary-list.js"></script>
   <script src="../app.js"></script>
   <script>
     (function () {
       const clientRecordsApi = window.LensApp?.clientRecords || {};
       const coveragePolicyUtils = window.LensApp?.coverage || {};
+      const coverageSummaryList = window.LensApp?.coverageSummaryList || {};
       const urlParams = new URLSearchParams(window.location.search);
       const normalizeCaseRef = clientRecordsApi.normalizeCaseRef;
       const resolvedCaseRef = typeof normalizeCaseRef === "function"
@@ -253,6 +255,10 @@
       }
 
       function summarizeCoveragePoliciesForPage(policies) {
+        if (typeof coverageSummaryList.createCoverageTotals === "function") {
+          return coverageSummaryList.createCoverageTotals(policies);
+        }
+
         if (typeof coveragePolicyUtils.summarizeCoveragePolicies === "function") {
           return coveragePolicyUtils.summarizeCoveragePolicies(policies);
         }
@@ -1587,53 +1593,26 @@
         }
 
         const policies = getCoveragePolicies();
-        if (!policies.length) {
-          policyList.innerHTML = `
-            <div class="existing-coverage-empty">
-              <strong>No policies are saved to this profile yet.</strong>
-              <p>Use Add Existing Coverage to save a face amount now and add policy details when available. Up to ${getCoveragePolicyLimit()} total policies can be saved on one profile.</p>
-            </div>
-          `;
+        if (typeof coverageSummaryList.renderCoveragePolicyList === "function") {
+          coverageSummaryList.renderCoveragePolicyList(policyList, policies, {
+            itemClass: "existing-coverage-saved-card",
+            copyClass: "existing-coverage-saved-card-copy",
+            actionsClass: "existing-coverage-saved-card-actions",
+            emptyClass: "existing-coverage-empty",
+            emptyTitle: "No policies are saved to this profile yet.",
+            emptyCopy: `Use Add Existing Coverage to save a face amount now and add policy details when available. Up to ${getCoveragePolicyLimit()} total policies can be saved on one profile.`,
+            indexAttribute: "data-existing-coverage-policy-index",
+            renderActions: function () {
+              return `
+                <button class="btn btn-secondary existing-coverage-saved-action" type="button" data-existing-coverage-edit>Edit</button>
+                <button class="existing-coverage-saved-delete" type="button" data-existing-coverage-remove>Remove</button>
+              `;
+            }
+          });
           return;
         }
 
-        policyList.innerHTML = policies.map(function (policy, index) {
-          const isSimpleEntry = String(policy.entryMode || "").trim() === "simple";
-          const documents = getPolicyDocumentEntries(policy);
-          const title = String(policy.policyCarrier || "").trim()
-            || String(policy.policyType || "").trim()
-            || (isSimpleEntry ? `Simple Coverage ${index + 1}` : "")
-            || `Policy ${index + 1}`;
-          const type = isSimpleEntry
-            ? "Simple Coverage"
-            : (String(policy.policyType || "").trim() || "Type not entered");
-          const insured = isSimpleEntry
-            ? "Coverage snapshot"
-            : (String(policy.insuredName || "").trim() || "Insured not entered");
-          const premiumMode = String(policy.premiumMode || "").trim() || "Premium mode not entered";
-          const premiumAmount = normalizeCoverageCurrencyValue(policy.premiumAmount)
-            ? formatCoverageCurrencyInput(policy.premiumAmount)
-            : "Premium amount not entered";
-          const faceAmountValue = getPolicyDeathBenefitAmount(policy);
-          const faceAmount = faceAmountValue > 0
-            ? formatCurrencyDisplay(faceAmountValue)
-            : "Face amount not entered";
-
-          return `
-            <article class="existing-coverage-saved-card" data-existing-coverage-policy-index="${index}">
-              <div class="existing-coverage-saved-card-copy">
-                <strong>${escapeHtml(title)}</strong>
-                <span>${escapeHtml(type)} • ${escapeHtml(insured)}</span>
-                <span>${escapeHtml(faceAmount)} • ${escapeHtml(premiumMode)} • ${escapeHtml(premiumAmount)}</span>
-                <span>${escapeHtml(documents.length ? `${documents.length} ${documents.length === 1 ? "file" : "files"} attached` : "No files attached")}</span>
-              </div>
-              <div class="existing-coverage-saved-card-actions">
-                <button class="btn btn-secondary existing-coverage-saved-action" type="button" data-existing-coverage-edit>Edit</button>
-                <button class="existing-coverage-saved-delete" type="button" data-existing-coverage-remove>Remove</button>
-              </div>
-            </article>
-          `;
-        }).join("");
+        policyList.innerHTML = "";
       }
 
       function syncCoverageWidgetHeading(currentPolicy) {
