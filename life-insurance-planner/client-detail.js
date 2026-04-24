@@ -104,6 +104,7 @@
       const clientDirectoryHelpers = window.LensApp?.clientDirectoryHelpers || {};
       const clientRecordsApi = window.LensApp?.clientRecords || {};
       const coveragePolicyUtils = window.LensApp?.coverage || {};
+      const coverageSummaryList = window.LensApp?.coverageSummaryList || {};
       const getClientRecordByReference = typeof clientRecordsApi.getClientRecordByReference === "function"
         ? clientRecordsApi.getClientRecordByReference
         : null;
@@ -199,6 +200,17 @@
 
       function summarizeCoveragePoliciesForProfile(policies) {
         const safePolicies = Array.isArray(policies) ? policies : [];
+        if (typeof coverageSummaryList.createCoverageTotals === "function") {
+          const summary = coverageSummaryList.createCoverageTotals(safePolicies) || {};
+          return {
+            individualCoverageTotal: normalizeCoverageSummaryNumber(summary.individualCoverageTotal),
+            groupCoverageTotal: normalizeCoverageSummaryNumber(summary.groupCoverageTotal),
+            unclassifiedCoverageTotal: normalizeCoverageSummaryNumber(summary.unclassifiedCoverageTotal),
+            totalCoverage: normalizeCoverageSummaryNumber(summary.totalCoverage),
+            policyCount: safePolicies.length
+          };
+        }
+
         if (typeof coveragePolicyUtils.summarizeCoveragePolicies === "function") {
           const summary = coveragePolicyUtils.summarizeCoveragePolicies(safePolicies) || {};
           return {
@@ -218,6 +230,35 @@
             return sum + getPolicyDeathBenefitAmount(policy);
           }, 0),
           policyCount: safePolicies.length
+        };
+      }
+
+      function createCoveragePolicyDisplaySummary(policy, options) {
+        if (typeof coverageSummaryList.createCoveragePolicySummary === "function") {
+          return coverageSummaryList.createCoveragePolicySummary(policy, options);
+        }
+
+        const normalizedPolicy = policy && typeof policy === "object" ? policy : {};
+        const deathBenefitAmount = getPolicyDeathBenefitAmount(normalizedPolicy);
+        const policyType = String(normalizedPolicy.policyType || "").trim();
+        return {
+          policy: normalizedPolicy,
+          classificationLabel: policyType || "Existing Coverage",
+          title: String(
+            normalizedPolicy.carrierName
+            || normalizedPolicy.policyCarrier
+            || normalizedPolicy.employerOrPlanSponsor
+            || policyType
+            || options?.fallbackTitle
+            || "Existing Coverage"
+          ).trim(),
+          insuredLabel: String(normalizedPolicy.insuredName || "").trim() || "Insured not entered",
+          deathBenefitAmount,
+          deathBenefitLabel: deathBenefitAmount > 0 ? formatCurrency(deathBenefitAmount) : "Death benefit not entered",
+          premiumModeLabel: String(normalizedPolicy.premiumMode || "").trim() || "Premium mode not entered",
+          premiumAmountLabel: parseCurrencyNumber(normalizedPolicy.premiumAmount) > 0
+            ? formatCurrency(normalizedPolicy.premiumAmount)
+            : "Premium amount not entered"
         };
       }
 
@@ -2417,8 +2458,11 @@
         });
         const featuredPolicyIndex = policies.length ? policies.length - 1 : -1;
         const featuredPolicy = featuredPolicyIndex >= 0 ? policies[featuredPolicyIndex] : null;
-        const featuredCarrier = formatValue(featuredPolicy?.policyCarrier);
-        const featuredType = formatValue(featuredPolicy?.policyType);
+        const featuredSummary = featuredPolicy
+          ? createCoveragePolicyDisplaySummary(featuredPolicy, { fallbackTitle: `Policy ${featuredPolicyIndex + 1}` })
+          : null;
+        const featuredCarrier = featuredSummary ? featuredSummary.title : formatValue(featuredPolicy?.policyCarrier);
+        const featuredType = featuredSummary ? featuredSummary.classificationLabel : formatValue(featuredPolicy?.policyType);
         const featuredPolicyNumber = featuredPolicy ? formatValue(featuredPolicy.policyNumber || `#${featuredPolicyIndex + 1}`) : "Not provided";
         const featuredMetaParts = [];
         const latestEffectiveDateDisplay = latestEffectiveDate
@@ -2490,7 +2534,7 @@
                       </div>
                       <span>${escapeHtml(featuredMeta)}</span>
                     </div>
-                    <span class="client-coverage-breakdown-feature-value">${escapeHtml(formatCurrency(getPolicyDeathBenefitAmount(featuredPolicy)))}</span>
+                    <span class="client-coverage-breakdown-feature-value">${escapeHtml(featuredSummary?.deathBenefitLabel || formatCurrency(getPolicyDeathBenefitAmount(featuredPolicy)))}</span>
                   </button>
                 ` : `
                   <div class="client-coverage-breakdown-empty">
@@ -4365,6 +4409,7 @@
                   <div class="client-coverage-policy-list">
                   ${previewPolicies.map(function (item) {
                     const policy = item.policy;
+                    const policySummary = createCoveragePolicyDisplaySummary(policy, { fallbackTitle: `Policy ${item.index + 1}` });
                     return `
                       <article
                         class="client-coverage-policy-item"
@@ -4372,15 +4417,15 @@
                         data-policy-index="${item.index}"
                         tabindex="0"
                         role="button"
-                        aria-label="Open ${escapeHtml(formatValue(policy.policyCarrier))} policy details"
+                        aria-label="Open ${escapeHtml(policySummary.title)} policy details"
                       >
                         <div class="client-coverage-policy-topline">
-                          <strong>${escapeHtml(formatValue(policy.policyCarrier))}</strong>
-                          <span>${escapeHtml(formatCurrency(getPolicyDeathBenefitAmount(policy)))}</span>
+                          <strong>${escapeHtml(policySummary.title)}</strong>
+                          <span>${escapeHtml(policySummary.deathBenefitLabel)}</span>
                         </div>
                         <div class="client-coverage-policy-meta">
-                          <span>${escapeHtml(formatValue(policy.policyType))}</span>
-                          <span>${escapeHtml(formatValue(policy.insuredName))}</span>
+                          <span>${escapeHtml(policySummary.classificationLabel)}</span>
+                          <span>${escapeHtml(policySummary.insuredLabel)}</span>
                         </div>
                         <div class="client-coverage-policy-meta">
                           <span>Policy ${escapeHtml(formatValue(policy.policyNumber || `#${item.index + 1}`))}</span>
@@ -8272,6 +8317,7 @@
         return `
           <div class="client-policy-list-grid">
             ${policies.map(function (policy, index) {
+              const policySummary = createCoveragePolicyDisplaySummary(policy, { fallbackTitle: `Policy ${index + 1}` });
               return `
                 <article
                   class="client-coverage-policy-item"
@@ -8279,15 +8325,15 @@
                   data-policy-index="${index}"
                   tabindex="0"
                   role="button"
-                  aria-label="Open ${escapeHtml(formatValue(policy.policyCarrier))} policy details"
+                  aria-label="Open ${escapeHtml(policySummary.title)} policy details"
                 >
                   <div class="client-coverage-policy-topline">
-                    <strong>${escapeHtml(formatValue(policy.policyCarrier))}</strong>
-                    <span>${escapeHtml(formatCurrency(getPolicyDeathBenefitAmount(policy)))}</span>
+                    <strong>${escapeHtml(policySummary.title)}</strong>
+                    <span>${escapeHtml(policySummary.deathBenefitLabel)}</span>
                   </div>
                   <div class="client-coverage-policy-meta">
-                    <span>${escapeHtml(formatValue(policy.policyType))}</span>
-                    <span>${escapeHtml(formatValue(policy.insuredName))}</span>
+                    <span>${escapeHtml(policySummary.classificationLabel)}</span>
+                    <span>${escapeHtml(policySummary.insuredLabel)}</span>
                   </div>
                   <div class="client-coverage-policy-meta">
                     <span>Policy ${escapeHtml(formatValue(policy.policyNumber || `#${index + 1}`))}</span>
