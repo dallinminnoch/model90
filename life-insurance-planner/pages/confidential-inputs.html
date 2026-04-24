@@ -408,14 +408,14 @@
                   <button class="net-income-action" type="button" data-maintenance-action="primary">Edit</button>
                 </div>
               </div>
-              <div class="field-group" data-housing-visibility="selected">
+              <div class="field-group" data-housing-visibility="homeowner">
                 <label for="monthly-mortgage-payment-only">Mortgage Payment Excluding Property Tax and Insurance</label>
                 <div class="profile-currency-field">
                   <input id="monthly-mortgage-payment-only" name="monthlyMortgagePaymentOnly" type="text" inputmode="decimal" readonly>
                   <button class="net-income-action" type="button" data-mortgage-payment-only-action="primary">Edit</button>
                 </div>
               </div>
-              <div class="field-group" data-housing-visibility="selected">
+              <div class="field-group" data-housing-visibility="homeowner">
                 <label for="associated-monthly-costs">Associated Monthly Costs</label>
                 <div class="profile-currency-field">
                   <input id="associated-monthly-costs" name="associatedMonthlyCosts" type="text" inputmode="decimal" readonly>
@@ -3595,6 +3595,20 @@
         );
       }
 
+      function clearHiddenHousingSubtotalManualOverrides() {
+        const housingStatusField = form.elements.namedItem("housingStatus");
+        const selectedHousingStatus = housingStatusField && !(housingStatusField instanceof RadioNodeList)
+          ? String(housingStatusField.value || "").trim()
+          : "";
+
+        if (selectedHousingStatus === "Homeowner") {
+          return;
+        }
+
+        clearNetIncomeManualOverride(mortgagePaymentOnlyField, mortgagePaymentOnlyAction);
+        clearNetIncomeManualOverride(associatedMonthlyCostsField, associatedMonthlyCostsAction);
+      }
+
       function calculateMonthlyBurdenAmount() {
         const housingStatusField = form.elements.namedItem("housingStatus");
         const selectedHousingStatus = housingStatusField && !(housingStatusField instanceof RadioNodeList)
@@ -3616,6 +3630,7 @@
           return;
         }
 
+        clearHiddenHousingSubtotalManualOverrides();
         syncMortgagePaymentOnlyField();
         syncAssociatedMonthlyCostsField();
         const calculatedPayment = calculateMonthlyBurdenAmount();
