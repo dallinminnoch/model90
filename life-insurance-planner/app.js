@@ -127,7 +127,6 @@
     safeInitialize("auth-page", initializeAuthPage);
     safeInitialize("admin-portal", initializeAdminPortal);
     safeInitialize("workflow-nav", initializeWorkflowNav);
-    safeInitialize("return-home", initializeReturnHomeButton);
     safeInitialize("language-selector", initializeLanguageSelector);
     safeInitialize("translations", applyTranslations);
     safeInitialize("account-profile", initializeAccountProfile);
@@ -245,25 +244,6 @@
     `;
 
   }
-
-  function initializeReturnHomeButton() {
-    const isHomePage = document.body.classList.contains("app-home");
-    const isWorkspacePage =
-      document.body.classList.contains("clients-page") ||
-      document.body.classList.contains("lens-page") ||
-      document.body.classList.contains("settings-page");
-
-    if (isHomePage || isWorkspacePage) {
-      return;
-    }
-
-    const button = document.createElement("a");
-    button.href = "../index.html";
-    button.className = "return-home-button";
-    button.textContent = "Return to Home";
-    document.body.appendChild(button);
-  }
-
 
   function renderStep(step, index, currentIndex) {
     let stateClass = "";

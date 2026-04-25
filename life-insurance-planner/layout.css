@@ -1234,17 +1234,40 @@ body.lens-intake-page .workflow-shell {
   padding-top: 0.8rem;
 }
 
-.analysis-estimate-shell {
-  width: min(calc(100% - clamp(1rem, 2.2vw, 2rem)), 1500px);
+body.analysis-estimate-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
   height: 100dvh;
   min-height: 0;
-  margin: 0 auto;
-  padding: clamp(0.65rem, 1.1vw, 0.95rem) 0;
+  overflow: hidden !important;
+}
+
+.analysis-estimate-shell {
+  --analysis-estimate-inline-pad: clamp(0.75rem, 1.5vw, 1.35rem);
+  --analysis-estimate-safe-bottom: max(0.35rem, env(safe-area-inset-bottom));
+  --analysis-control-panel-side-gap: clamp(0.45rem, 0.8vw, 0.7rem);
+  --analysis-control-panel-expanded-height: clamp(10.5rem, 24dvh, 13.5rem);
+  --analysis-control-panel-collapsed-height: clamp(3.1rem, 6dvh, 3.65rem);
+  --analysis-control-panel-height: var(--analysis-control-panel-expanded-height);
+  flex: 1 1 auto;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  padding:
+    clamp(0.65rem, 1.1vw, 0.95rem)
+    var(--analysis-estimate-inline-pad)
+    var(--analysis-estimate-safe-bottom);
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: clamp(0.55rem, 0.9vw, 0.8rem);
   overflow: hidden;
   box-sizing: border-box;
+}
+
+.analysis-estimate-shell.is-controls-collapsed {
+  --analysis-control-panel-height: var(--analysis-control-panel-collapsed-height);
 }
 
 .analysis-estimate-header {
@@ -1268,10 +1291,10 @@ body.lens-intake-page .workflow-shell {
 
 .analysis-estimate-workspace {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) var(--analysis-control-panel-height);
   gap: clamp(0.7rem, 1vw, 0.95rem);
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .analysis-results-grid {
@@ -1290,14 +1313,17 @@ body.lens-intake-page .workflow-shell {
 }
 
 @media (max-width: 1080px) {
-  .analysis-estimate-workspace {
+  .analysis-results-grid,
+  .analysis-control-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-results-grid {
     overflow-y: auto;
     overflow-x: hidden;
   }
 
-  .analysis-results-grid,
   .analysis-control-groups {
-    grid-template-columns: 1fr;
     overflow: visible;
   }
 }

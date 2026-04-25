@@ -8116,26 +8116,6 @@ body[data-step] .step-item:focus-visible .step-title {
   font-size: 0.9rem;
 }
 
-.return-home-button {
-  position: fixed;
-  left: clamp(0.875rem, 2vw, 1.25rem);
-  bottom: clamp(0.875rem, 2vw, 1.25rem);
-  z-index: 50;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: clamp(2.1rem, 3vw, 2.375rem);
-  padding: 0 clamp(0.7rem, 1vw, 0.875rem);
-  border-radius: 999px;
-  border: 1px solid rgba(74, 98, 189, 0.16);
-  background: rgba(255, 255, 255, 0.94);
-  color: var(--accent-strong);
-  box-shadow: 0 12px 30px rgba(16, 33, 52, 0.12);
-  font-size: 0.82rem;
-  font-weight: 700;
-  backdrop-filter: blur(8px);
-}
-
 @media (min-width: 721px) {
   .home-shell,
   .site-header-inner {
@@ -8727,10 +8707,6 @@ body.clients-page.is-a11y-reduced-motion .client-rail-button:focus-visible {
     margin-top: 4px;
   }
 
-  .return-home-button {
-    left: clamp(0.75rem, 3vw, 0.875rem);
-    bottom: clamp(0.75rem, 3vw, 0.875rem);
-  }
 }
 
 
