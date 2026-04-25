@@ -683,7 +683,6 @@
       survivorNetAnnualIncome: survivorNetIncome,
       survivorNetAnnualIncomeManualOverride: survivorNetManualOverride,
       survivorIncomeStartDelayMonths: sourceData.survivorIncomeStartDelayMonths,
-      incomeReplacementDuration: sourceData.incomeReplacementDuration,
       spouseIncomeGrowthRate: sourceData.spouseIncomeGrowthRate,
       spouseYearsUntilRetirement: sourceData.spouseYearsUntilRetirement,
       survivorNetIncomeTaxBasis: SURVIVOR_NET_INCOME_TAX_BASIS

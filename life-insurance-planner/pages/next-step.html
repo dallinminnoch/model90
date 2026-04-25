@@ -1015,13 +1015,6 @@
                 </div>
               </div>
               <div class="field-group">
-                <label for="income-replacement-duration">Income Replacement Duration</label>
-                <div class="profile-inline-unit-field">
-                  <input id="income-replacement-duration" class="profile-small-number-field" name="incomeReplacementDuration" type="number" min="0" max="80" step="1" disabled>
-                  <span class="profile-inline-unit">Years</span>
-                </div>
-              </div>
-              <div class="field-group">
                 <label for="spouse-income-growth-rate">Survivor Income Growth Rate</label>
                 <div class="profile-currency-field">
                   <input id="spouse-income-growth-rate" class="profile-small-number-field" name="spouseIncomeGrowthRate" type="number" min="0" max="25" step="0.1" disabled>
@@ -1669,7 +1662,6 @@
       const survivorIncomeField = form.elements.namedItem("survivorIncome");
       const survivorNetAnnualIncomeField = form.elements.namedItem("survivorNetAnnualIncome");
       const survivorIncomeStartDelayMonthsField = form.elements.namedItem("survivorIncomeStartDelayMonths");
-      const incomeReplacementDurationField = form.elements.namedItem("incomeReplacementDuration");
       const spouseIncomeGrowthRateField = form.elements.namedItem("spouseIncomeGrowthRate");
       const spouseYearsUntilRetirementField = form.elements.namedItem("spouseYearsUntilRetirement");
       const spouseExpectedWorkReductionAtDeathField = form.elements.namedItem("spouseExpectedWorkReductionAtDeath");
@@ -3557,7 +3549,6 @@
           survivorNetAnnualIncome: getLensBlockSourceFieldValue(survivorNetAnnualIncomeField),
           survivorNetAnnualIncomeManualOverride: isSurvivorScenarioManualOverride(survivorNetAnnualIncomeField),
           survivorIncomeStartDelayMonths: getLensBlockSourceFieldValue(survivorIncomeStartDelayMonthsField),
-          incomeReplacementDuration: getLensBlockSourceFieldValue(incomeReplacementDurationField),
           spouseIncomeGrowthRate: getLensBlockSourceFieldValue(spouseIncomeGrowthRateField),
           spouseYearsUntilRetirement: getLensBlockSourceFieldValue(spouseYearsUntilRetirementField),
           survivorNetIncomeTaxBasis: survivorNetIncomeDefaultFilingStatus
@@ -4270,7 +4261,6 @@
         const dependentNames = [
           "survivorIncome",
           "survivorNetAnnualIncome",
-          "incomeReplacementDuration",
           "spouseIncomeGrowthRate",
           "spouseYearsUntilRetirement",
           "survivorIncomeStartDelayMonths",
@@ -4853,7 +4843,6 @@
 
       [
         survivorIncomeStartDelayMonthsField,
-        incomeReplacementDurationField,
         spouseIncomeGrowthRateField,
         spouseYearsUntilRetirementField
       ].forEach((field) => {

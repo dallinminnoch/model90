@@ -20,7 +20,6 @@
     survivorNetAnnualIncome: "survivorNetAnnualIncome",
     survivorNetAnnualIncomeManualOverride: "survivorNetAnnualIncomeManualOverride",
     survivorIncomeStartDelayMonths: "survivorIncomeStartDelayMonths",
-    incomeSupportDurationYears: "incomeReplacementDuration",
     survivorEarnedIncomeGrowthRatePercent: "spouseIncomeGrowthRate",
     survivorRetirementHorizonYears: "spouseYearsUntilRetirement",
     survivorNetIncomeTaxBasis: "survivorNetIncomeTaxBasis"
@@ -55,11 +54,6 @@
         type: "number|null",
         canonicalDestination: "survivorScenario.survivorIncomeStartDelayMonths",
         meaning: "Expected delay before survivor income starts after death."
-      },
-      incomeSupportDurationYears: {
-        type: "number|null",
-        canonicalDestination: "survivorScenario.incomeSupportDurationYears",
-        meaning: "Income-support duration planning assumption."
       },
       survivorEarnedIncomeGrowthRatePercent: {
         type: "number|null",
@@ -203,7 +197,6 @@
       survivorGrossAnnualIncome: getDependentNumericValue(data, sourceFields.survivorGrossAnnualIncome, survivorContinuesWorking),
       survivorNetAnnualIncome: getDependentNumericValue(data, sourceFields.survivorNetAnnualIncome, survivorContinuesWorking),
       survivorIncomeStartDelayMonths: getDependentNumericValue(data, sourceFields.survivorIncomeStartDelayMonths, survivorContinuesWorking),
-      incomeSupportDurationYears: getDependentNumericValue(data, sourceFields.incomeSupportDurationYears, survivorContinuesWorking),
       survivorEarnedIncomeGrowthRatePercent: getDependentNumericValue(data, sourceFields.survivorEarnedIncomeGrowthRatePercent, survivorContinuesWorking),
       survivorRetirementHorizonYears: getDependentNumericValue(data, sourceFields.survivorRetirementHorizonYears, survivorContinuesWorking),
       survivorNetIncomeTaxBasis: null
@@ -258,12 +251,6 @@
           outputs.survivorIncomeStartDelayMonths,
           sourceFields.survivorIncomeStartDelayMonths,
           SURVIVOR_SCENARIO_BLOCK_OUTPUT_CONTRACT.outputs.survivorIncomeStartDelayMonths.canonicalDestination,
-          !survivorScenarioNotApplicable
-        ),
-        incomeSupportDurationYears: createReportedMetadata(
-          outputs.incomeSupportDurationYears,
-          sourceFields.incomeSupportDurationYears,
-          SURVIVOR_SCENARIO_BLOCK_OUTPUT_CONTRACT.outputs.incomeSupportDurationYears.canonicalDestination,
           !survivorScenarioNotApplicable
         ),
         survivorEarnedIncomeGrowthRatePercent: createReportedMetadata(

@@ -52,6 +52,10 @@
       }
     },
 
+    removedOrDeferredFields: [
+      { rawField: "incomeReplacementDuration", formerCanonicalField: "survivorScenario.incomeSupportDurationYears", availability: "removedFromActiveLinkedPmi", note: "Ambiguous method-duration input removed from Survivorship. DIME and Needs defaults are owned by analysis-methods.js; future method-specific durations belong in analysis controls/settings." }
+    ],
+
     bucketMappings: {
       incomeBasis: [
         { rawField: "grossAnnualIncome", canonicalField: "incomeBasis.insuredGrossAnnualIncome", availability: "activeLinkedPmi", note: "Current gross annual income for the insured person." },
@@ -71,7 +75,6 @@
         { rawField: "survivorIncome", canonicalField: "survivorScenario.survivorGrossAnnualIncome", availability: "activeLinkedPmi-conditional", note: "Post-death survivor gross annual income assumption, suggested from current spouse/partner gross income and work-reduction input unless manually edited." },
         { rawField: "survivorNetAnnualIncome", canonicalField: "survivorScenario.survivorNetAnnualIncome", availability: "activeLinkedPmi-conditional", note: "Post-death survivor net annual income assumption, auto-estimated by the active PMI tax helper path unless manually edited." },
         { rawField: "survivorIncomeStartDelayMonths", canonicalField: "survivorScenario.survivorIncomeStartDelayMonths", availability: "activeLinkedPmi-conditional", note: "Expected delay before survivor income starts after death." },
-        { rawField: "incomeReplacementDuration", canonicalField: "survivorScenario.incomeSupportDurationYears", availability: "activeLinkedPmi-conditional", note: "Survivor income-support duration planning assumption. It is not applied to recommendation math in this pass." },
         { rawField: "spouseIncomeGrowthRate", canonicalField: "survivorScenario.survivorEarnedIncomeGrowthRatePercent", availability: "activeLinkedPmi-conditional", note: "Survivor earned-income growth assumption, using the existing saved field name for compatibility." },
         { rawField: "spouseYearsUntilRetirement", canonicalField: "survivorScenario.survivorRetirementHorizonYears", availability: "activeLinkedPmi-conditional", note: "Survivor years until retirement or income exhaustion, using the existing saved field name for compatibility." },
         { rawField: "internal survivor net-income tax basis", canonicalField: "survivorScenario.survivorNetIncomeTaxBasis", availability: "activeLinkedPmi-derived", note: "Current survivor net-income autofill uses the internal Qualifying Surviving Spouse tax basis. No visible survivor filing-status field is exposed." }

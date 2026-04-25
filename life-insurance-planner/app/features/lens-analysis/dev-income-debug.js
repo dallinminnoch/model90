@@ -472,10 +472,6 @@
       destinationField: "survivorIncomeStartDelayMonths"
     }),
     Object.freeze({
-      sourceOutputKey: "incomeSupportDurationYears",
-      destinationField: "incomeSupportDurationYears"
-    }),
-    Object.freeze({
       sourceOutputKey: "survivorEarnedIncomeGrowthRatePercent",
       destinationField: "survivorEarnedIncomeGrowthRatePercent"
     }),

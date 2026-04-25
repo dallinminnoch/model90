@@ -542,11 +542,6 @@
       sourceMetadataKey: "survivorIncomeStartDelayMonths"
     }),
     Object.freeze({
-      sourceOutputKey: "incomeSupportDurationYears",
-      destinationField: "incomeSupportDurationYears",
-      sourceMetadataKey: "incomeSupportDurationYears"
-    }),
-    Object.freeze({
       sourceOutputKey: "survivorEarnedIncomeGrowthRatePercent",
       destinationField: "survivorEarnedIncomeGrowthRatePercent",
       sourceMetadataKey: "survivorEarnedIncomeGrowthRatePercent"

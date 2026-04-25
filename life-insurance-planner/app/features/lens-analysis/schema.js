@@ -48,7 +48,6 @@
         survivorGrossAnnualIncome: null,
         survivorNetAnnualIncome: null,
         survivorIncomeStartDelayMonths: null,
-        incomeSupportDurationYears: null,
         survivorEarnedIncomeGrowthRatePercent: null,
         survivorRetirementHorizonYears: null,
         survivorNetIncomeTaxBasis: null

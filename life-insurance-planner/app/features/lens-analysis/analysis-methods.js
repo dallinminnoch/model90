@@ -388,13 +388,13 @@
     return number != null && number > 0 ? number : null;
   }
 
-  function resolveNeedsSupportDuration(model, settings, warnings) {
+  function resolveNeedsSupportDuration(settings, warnings) {
     if (hasOwn(settings, "needsSupportDurationYears")) {
       const settingYears = getPositiveNumber(settings.needsSupportDurationYears);
       if (settingYears != null) {
         return {
           value: settingYears,
-          source: "settings.needsSupportDurationYears",
+          source: "settings",
           sourcePaths: ["settings.needsSupportDurationYears"]
         };
       }
@@ -408,76 +408,10 @@
       );
     }
 
-    const survivorSupportYears = getPositiveNumber(getPath(model, "survivorScenario.incomeSupportDurationYears"));
-    if (survivorSupportYears != null) {
-      return {
-        value: survivorSupportYears,
-        source: "survivorScenario.incomeSupportDurationYears",
-        sourcePaths: ["survivorScenario.incomeSupportDurationYears"]
-      };
-    }
-
-    const retirementHorizonYears = getPositiveNumber(getPath(model, "incomeBasis.insuredRetirementHorizonYears"));
-    if (retirementHorizonYears != null) {
-      return {
-        value: retirementHorizonYears,
-        source: "incomeBasis.insuredRetirementHorizonYears",
-        sourcePaths: ["incomeBasis.insuredRetirementHorizonYears"]
-      };
-    }
-
-    addWarning(
-      warnings,
-      "support-duration-defaulted",
-      "Needs Analysis support duration defaulted to 10 years because no valid duration source was available.",
-      "info",
-      [
-        "settings.needsSupportDurationYears",
-        "survivorScenario.incomeSupportDurationYears",
-        "incomeBasis.insuredRetirementHorizonYears"
-      ]
-    );
-
     return {
       value: DEFAULT_NEEDS_SUPPORT_DURATION_YEARS,
       source: "default-10-years",
       sourcePaths: ["settings.needsSupportDurationYears"]
-    };
-  }
-
-  function resolveSurvivorIncomeOffsetYears(model, settings, needsSupportDurationYears, warnings) {
-    if (hasOwn(settings, "survivorIncomeOffsetYears")) {
-      const settingYears = getPositiveNumber(settings.survivorIncomeOffsetYears);
-      if (settingYears != null) {
-        return {
-          value: settingYears,
-          source: "settings.survivorIncomeOffsetYears",
-          sourcePaths: ["settings.survivorIncomeOffsetYears"]
-        };
-      }
-
-      addWarning(
-        warnings,
-        "invalid-survivor-income-offset-years",
-        "Invalid survivor income offset years setting was ignored.",
-        "warning",
-        ["settings.survivorIncomeOffsetYears"]
-      );
-    }
-
-    const survivorSupportYears = getPositiveNumber(getPath(model, "survivorScenario.incomeSupportDurationYears"));
-    if (survivorSupportYears != null) {
-      return {
-        value: survivorSupportYears,
-        source: "survivorScenario.incomeSupportDurationYears",
-        sourcePaths: ["survivorScenario.incomeSupportDurationYears"]
-      };
-    }
-
-    return {
-      value: needsSupportDurationYears,
-      source: "needsSupportDurationYears",
-      sourcePaths: ["settings.needsSupportDurationYears", "survivorScenario.incomeSupportDurationYears"]
     };
   }
 
@@ -558,7 +492,7 @@
     };
   }
 
-  function createEssentialSupportComponent(model, settings, needsSupportDurationYears, warnings) {
+  function createEssentialSupportComponent(model, settings, needsSupportDurationYears, includeSurvivorIncomeOffset, warnings) {
     const annualSupport = normalizeNonNegativeNumber(
       getPath(model, "ongoingSupport.annualTotalEssentialSupportCost"),
       "ongoingSupport.annualTotalEssentialSupportCost",
@@ -570,15 +504,157 @@
     );
 
     if (annualSupport.hasValue) {
+      const totalSupportMonths = needsSupportDurationYears * 12;
+      const monthlySupportNeed = annualSupport.value / 12;
+      const grossSupportNeed = annualSupport.value * needsSupportDurationYears;
+
+      if (!includeSurvivorIncomeOffset) {
+        return {
+          value: grossSupportNeed,
+          source: "ongoingSupport.annualTotalEssentialSupportCost",
+          formula: "annualTotalEssentialSupportCost x needsSupportDurationYears",
+          inputs: {
+            annualTotalEssentialSupportCost: annualSupport.value,
+            needsSupportDurationYears,
+            includeSurvivorIncomeOffset
+          },
+          sourcePaths: ["ongoingSupport.annualTotalEssentialSupportCost"],
+          survivorIncomeOffset: 0,
+          supportDetails: {
+            monthlySupportNeed,
+            totalSupportMonths,
+            survivorNetAnnualIncome: null,
+            monthlySurvivorIncome: 0,
+            survivorIncomeStartDelayMonths: 0,
+            incomeOffsetMonths: 0,
+            supportNeedDuringDelay: grossSupportNeed,
+            monthlySupportGapAfterIncomeStarts: monthlySupportNeed,
+            supportNeedAfterIncomeStarts: 0,
+            grossSupportNeed
+          }
+        };
+      }
+
+      const survivorContinuesWorking = getPath(model, "survivorScenario.survivorContinuesWorking");
+      const survivorIncomePath = "survivorScenario.survivorNetAnnualIncome";
+      const survivorIncomeMissingIsExpected = survivorContinuesWorking === false;
+      const survivorIncome = survivorIncomeMissingIsExpected
+        ? { value: null, hasValue: false }
+        : normalizeNonNegativeNumber(
+            getPath(model, survivorIncomePath),
+            survivorIncomePath,
+            warnings,
+            {
+              negativeCode: "negative-value-treated-as-zero",
+              negativeMessage: "survivorNetAnnualIncome was negative and was treated as 0 for Needs Analysis."
+            }
+          );
+      let survivorNetAnnualIncome = 0;
+
+      if (survivorIncome.hasValue) {
+        survivorNetAnnualIncome = survivorIncome.value;
+      } else if (!survivorIncomeMissingIsExpected) {
+        addWarning(
+          warnings,
+          "missing-survivor-income-for-offset",
+          "survivorNetAnnualIncome was missing; Needs Analysis support used no survivor income reduction.",
+          "warning",
+          [survivorIncomePath]
+        );
+      }
+
+      const delayPath = "survivorScenario.survivorIncomeStartDelayMonths";
+      const rawDelayMonths = toOptionalNumber(getPath(model, delayPath));
+      let delayMonths = 0;
+
+      if (rawDelayMonths == null) {
+        if (survivorIncome.hasValue && survivorNetAnnualIncome > 0) {
+          addWarning(
+            warnings,
+            "survivor-income-start-delay-defaulted-zero",
+            "survivorIncomeStartDelayMonths was missing; survivor income was treated as starting immediately for Needs Analysis.",
+            "info",
+            [delayPath]
+          );
+        }
+      } else if (rawDelayMonths < 0) {
+        addWarning(
+          warnings,
+          "negative-value-treated-as-zero",
+          "survivorIncomeStartDelayMonths was negative and was treated as 0 for Needs Analysis.",
+          "warning",
+          [delayPath]
+        );
+      } else if (rawDelayMonths > totalSupportMonths) {
+        delayMonths = totalSupportMonths;
+        addWarning(
+          warnings,
+          "survivor-income-delay-exceeds-support-duration",
+          "survivorIncomeStartDelayMonths exceeded the Needs Analysis support duration and was clamped to the support duration.",
+          "info",
+          [delayPath]
+        );
+      } else {
+        delayMonths = rawDelayMonths;
+      }
+
+      const incomeOffsetMonths = totalSupportMonths - delayMonths;
+      const monthlySurvivorIncome = survivorNetAnnualIncome / 12;
+      const supportNeedDuringDelay = monthlySupportNeed * delayMonths;
+      const monthlySupportGapAfterIncomeStarts = Math.max(monthlySupportNeed - monthlySurvivorIncome, 0);
+      const supportNeedAfterIncomeStarts = monthlySupportGapAfterIncomeStarts * incomeOffsetMonths;
+      const calculatedEssentialSupport = supportNeedDuringDelay + supportNeedAfterIncomeStarts;
+      const hasPositiveSurvivorIncome = survivorNetAnnualIncome > 0;
+      const essentialSupport = hasPositiveSurvivorIncome ? calculatedEssentialSupport : grossSupportNeed;
+      const survivorIncomeOffset = hasPositiveSurvivorIncome ? Math.max(grossSupportNeed - essentialSupport, 0) : 0;
+
+      const survivorIncomeGrowthRate = toOptionalNumber(
+        getPath(model, "survivorScenario.survivorEarnedIncomeGrowthRatePercent")
+      );
+      if (survivorIncome.hasValue && survivorNetAnnualIncome > 0 && survivorIncomeGrowthRate != null) {
+        addWarning(
+          warnings,
+          "survivor-income-growth-not-applied-v1",
+          "Survivor income growth is captured but not applied to the v1 Needs Analysis support calculation.",
+          "info",
+          ["survivorScenario.survivorEarnedIncomeGrowthRatePercent"]
+        );
+      }
+
       return {
-        value: annualSupport.value * needsSupportDurationYears,
+        value: essentialSupport,
         source: "ongoingSupport.annualTotalEssentialSupportCost",
-        formula: "annualTotalEssentialSupportCost x needsSupportDurationYears",
+        formula: "support during survivor-income delay + post-delay monthly support gap",
         inputs: {
           annualTotalEssentialSupportCost: annualSupport.value,
-          needsSupportDurationYears
+          needsSupportDurationYears,
+          totalSupportMonths,
+          survivorNetAnnualIncome: survivorIncome.hasValue ? survivorNetAnnualIncome : null,
+          survivorIncomeStartDelayMonths: delayMonths,
+          monthlySupportNeed,
+          monthlySurvivorIncome,
+          supportNeedDuringDelay,
+          monthlySupportGapAfterIncomeStarts,
+          supportNeedAfterIncomeStarts
         },
-        sourcePaths: ["ongoingSupport.annualTotalEssentialSupportCost"]
+        sourcePaths: [
+          "ongoingSupport.annualTotalEssentialSupportCost",
+          "survivorScenario.survivorNetAnnualIncome",
+          "survivorScenario.survivorIncomeStartDelayMonths"
+        ],
+        survivorIncomeOffset,
+        supportDetails: {
+          monthlySupportNeed,
+          totalSupportMonths,
+          survivorNetAnnualIncome: survivorIncome.hasValue ? survivorNetAnnualIncome : null,
+          monthlySurvivorIncome,
+          survivorIncomeStartDelayMonths: delayMonths,
+          incomeOffsetMonths,
+          supportNeedDuringDelay,
+          monthlySupportGapAfterIncomeStarts,
+          supportNeedAfterIncomeStarts,
+          grossSupportNeed
+        }
       };
     }
 
@@ -867,7 +943,7 @@
     const normalizedSettings = isPlainObject(settings) ? settings : {};
     const warnings = [];
     const trace = [];
-    const durationResult = resolveNeedsSupportDuration(model, normalizedSettings, warnings);
+    const durationResult = resolveNeedsSupportDuration(normalizedSettings, warnings);
     const needsSupportDurationYears = durationResult.value;
     const includeExistingCoverageOffset = getBooleanSetting(
       normalizedSettings,
@@ -877,7 +953,7 @@
     const includeOffsetAssets = getBooleanSetting(normalizedSettings, "includeOffsetAssets", true);
     const includeTransitionNeeds = getBooleanSetting(normalizedSettings, "includeTransitionNeeds", true);
     const includeDiscretionarySupport = normalizedSettings.includeDiscretionarySupport === true;
-    const includeSurvivorIncomeOffset = normalizedSettings.includeSurvivorIncomeOffset === true;
+    const includeSurvivorIncomeOffset = getBooleanSetting(normalizedSettings, "includeSurvivorIncomeOffset", true);
 
     if (!includeDiscretionarySupport) {
       addWarning(
@@ -893,7 +969,7 @@
       addWarning(
         warnings,
         "survivor-income-offset-disabled",
-        "Survivor income was not applied as an offset because includeSurvivorIncomeOffset is not true.",
+        "Survivor income was not applied inside essential support because includeSurvivorIncomeOffset is false.",
         "info",
         ["settings.includeSurvivorIncomeOffset", "survivorScenario.survivorNetAnnualIncome"]
       );
@@ -904,6 +980,7 @@
       model,
       normalizedSettings,
       needsSupportDurationYears,
+      includeSurvivorIncomeOffset,
       warnings
     );
     const education = normalizeComponentNumber({
@@ -977,37 +1054,8 @@
           negativeMessage: "totalAvailableOffsetAssetValue was negative and was treated as 0 for Needs Analysis."
         })
       : 0;
-    const survivorIncomeOffsetDuration = resolveSurvivorIncomeOffsetYears(
-      model,
-      normalizedSettings,
-      needsSupportDurationYears,
-      warnings
-    );
-    const survivorIncomeOffset = includeSurvivorIncomeOffset
-      ? createAnnualDurationComponent({
-          value: getPath(model, "survivorScenario.survivorNetAnnualIncome"),
-          sourcePath: "survivorScenario.survivorNetAnnualIncome",
-          warnings,
-          warnWhenMissing: true,
-          missingCode: "missing-survivor-net-income",
-          missingMessage: "survivorNetAnnualIncome was missing; survivor income offset defaulted to 0.",
-          negativeMessage: "survivorNetAnnualIncome was negative and was treated as 0 for Needs Analysis.",
-          durationYears: survivorIncomeOffsetDuration.value
-        })
-      : 0;
-    const survivorIncomeStartDelayMonths = toOptionalNumber(
-      getPath(model, "survivorScenario.survivorIncomeStartDelayMonths")
-    );
-
-    if (includeSurvivorIncomeOffset && survivorIncomeStartDelayMonths != null && survivorIncomeStartDelayMonths > 0) {
-      addWarning(
-        warnings,
-        "survivor-income-start-delay-not-applied-v1",
-        "Survivor income start delay is captured in survivorScenario but is not applied to the v1 Needs Analysis survivor income offset.",
-        "info",
-        ["survivorScenario.survivorIncomeStartDelayMonths"]
-      );
-    }
+    const survivorIncomeOffset = essentialSupportComponent.survivorIncomeOffset || 0;
+    const supportDetails = essentialSupportComponent.supportDetails || {};
 
     const grossNeed = debtPayoffComponent.value
       + essentialSupportComponent.value
@@ -1015,7 +1063,7 @@
       + finalExpenses
       + transitionNeeds
       + discretionarySupport;
-    const totalOffset = existingCoverageOffset + assetOffset + survivorIncomeOffset;
+    const totalOffset = existingCoverageOffset + assetOffset;
     const rawUncappedGap = grossNeed - totalOffset;
     const netCoverageGap = Math.max(rawUncappedGap, 0);
 
@@ -1036,6 +1084,91 @@
       inputs: essentialSupportComponent.inputs,
       value: essentialSupportComponent.value,
       sourcePaths: essentialSupportComponent.sourcePaths
+    }));
+    trace.push(createTraceRow({
+      key: "grossAnnualHouseholdSupportNeed",
+      label: "Gross Annual Household Support Need",
+      formula: "ongoingSupport.annualTotalEssentialSupportCost",
+      inputs: {
+        annualTotalEssentialSupportCost: supportDetails.grossSupportNeed == null
+          ? null
+          : supportDetails.grossSupportNeed / needsSupportDurationYears
+      },
+      value: supportDetails.grossSupportNeed == null
+        ? null
+        : supportDetails.grossSupportNeed / needsSupportDurationYears,
+      sourcePaths: ["ongoingSupport.annualTotalEssentialSupportCost"]
+    }));
+    trace.push(createTraceRow({
+      key: "supportDuration",
+      label: "Support Duration",
+      formula: "needsSupportDurationYears x 12",
+      inputs: {
+        needsSupportDurationYears
+      },
+      value: supportDetails.totalSupportMonths == null ? null : supportDetails.totalSupportMonths,
+      sourcePaths: ["settings.needsSupportDurationYears"]
+    }));
+    trace.push(createTraceRow({
+      key: "survivorNetAnnualIncomeForSupport",
+      label: "Survivor Net Annual Income",
+      formula: includeSurvivorIncomeOffset
+        ? "survivorScenario.survivorNetAnnualIncome"
+        : "disabled by settings",
+      inputs: {
+        includeSurvivorIncomeOffset
+      },
+      value: supportDetails.survivorNetAnnualIncome == null ? null : supportDetails.survivorNetAnnualIncome,
+      sourcePaths: ["survivorScenario.survivorNetAnnualIncome", "settings.includeSurvivorIncomeOffset"]
+    }));
+    trace.push(createTraceRow({
+      key: "survivorIncomeStartDelayMonths",
+      label: "Survivor Income Start Delay",
+      formula: "clamp(survivorIncomeStartDelayMonths, 0, totalSupportMonths)",
+      inputs: {
+        totalSupportMonths: supportDetails.totalSupportMonths
+      },
+      value: supportDetails.survivorIncomeStartDelayMonths == null
+        ? null
+        : supportDetails.survivorIncomeStartDelayMonths,
+      sourcePaths: ["survivorScenario.survivorIncomeStartDelayMonths"]
+    }));
+    trace.push(createTraceRow({
+      key: "supportNeedDuringSurvivorIncomeDelay",
+      label: "Support Need During Survivor Income Delay",
+      formula: "monthlySupportNeed x survivorIncomeStartDelayMonths",
+      inputs: {
+        monthlySupportNeed: supportDetails.monthlySupportNeed,
+        survivorIncomeStartDelayMonths: supportDetails.survivorIncomeStartDelayMonths
+      },
+      value: supportDetails.supportNeedDuringDelay == null ? null : supportDetails.supportNeedDuringDelay,
+      sourcePaths: ["ongoingSupport.annualTotalEssentialSupportCost", "survivorScenario.survivorIncomeStartDelayMonths"]
+    }));
+    trace.push(createTraceRow({
+      key: "supportGapAfterSurvivorIncomeStarts",
+      label: "Support Gap After Survivor Income Starts",
+      formula: "max(monthlySupportNeed - monthlySurvivorIncome, 0)",
+      inputs: {
+        monthlySupportNeed: supportDetails.monthlySupportNeed,
+        monthlySurvivorIncome: supportDetails.monthlySurvivorIncome
+      },
+      value: supportDetails.monthlySupportGapAfterIncomeStarts == null
+        ? null
+        : supportDetails.monthlySupportGapAfterIncomeStarts,
+      sourcePaths: ["ongoingSupport.annualTotalEssentialSupportCost", "survivorScenario.survivorNetAnnualIncome"]
+    }));
+    trace.push(createTraceRow({
+      key: "supportNeedAfterSurvivorIncomeStarts",
+      label: "Support Need After Survivor Income Starts",
+      formula: "monthlySupportGapAfterIncomeStarts x incomeOffsetMonths",
+      inputs: {
+        monthlySupportGapAfterIncomeStarts: supportDetails.monthlySupportGapAfterIncomeStarts,
+        incomeOffsetMonths: supportDetails.incomeOffsetMonths
+      },
+      value: supportDetails.supportNeedAfterIncomeStarts == null
+        ? null
+        : supportDetails.supportNeedAfterIncomeStarts,
+      sourcePaths: ["ongoingSupport.annualTotalEssentialSupportCost", "survivorScenario.survivorNetAnnualIncome"]
     }));
     trace.push(createTraceRow({
       key: "education",
@@ -1111,14 +1244,14 @@
       key: "survivorIncomeOffset",
       label: "Survivor Income Offset",
       formula: includeSurvivorIncomeOffset
-        ? "survivorNetAnnualIncome x survivorIncomeOffsetYears"
+        ? "applied inside essential support; not added to totalOffset"
         : "disabled by settings",
       inputs: {
-        survivorNetAnnualIncome: includeSurvivorIncomeOffset
-          ? toOptionalNumber(getPath(model, "survivorScenario.survivorNetAnnualIncome"))
-          : null,
-        survivorIncomeOffsetYears: survivorIncomeOffsetDuration.value,
-        includeSurvivorIncomeOffset
+        survivorNetAnnualIncome: supportDetails.survivorNetAnnualIncome,
+        survivorIncomeStartDelayMonths: supportDetails.survivorIncomeStartDelayMonths,
+        incomeOffsetMonths: supportDetails.incomeOffsetMonths,
+        includeSurvivorIncomeOffset,
+        includedInTotalOffset: false
       },
       value: survivorIncomeOffset,
       sourcePaths: ["survivorScenario.survivorNetAnnualIncome", "settings.includeSurvivorIncomeOffset"]
@@ -1178,8 +1311,12 @@
         includeTransitionNeeds,
         includeDiscretionarySupport,
         includeSurvivorIncomeOffset,
-        survivorIncomeOffsetYears: survivorIncomeOffsetDuration.value,
-        survivorIncomeOffsetDurationSource: survivorIncomeOffsetDuration.source
+        survivorIncomeStartDelayMonths: supportDetails.survivorIncomeStartDelayMonths == null
+          ? null
+          : supportDetails.survivorIncomeStartDelayMonths,
+        survivorIncomeAppliedInsideSupport: includeSurvivorIncomeOffset,
+        survivorIncomeGrowthApplied: false,
+        survivorIncomeOffsetIncludedInTotalOffset: false
       },
       warnings,
       trace
