@@ -265,30 +265,6 @@
     });
   }
 
-  function initializeEstimatePage() {
-    const resultValue = document.getElementById("balanced-estimate-value");
-    const detailedButton = document.getElementById("view-detailed-analysis");
-    const skipButton = document.getElementById("skip-detailed-analysis");
-
-    if (resultValue) {
-      resultValue.textContent = getBalancedEstimate();
-    }
-
-    if (document.getElementById("estimate-chart-placeholder") && window.PlannerCharts?.renderEstimateNeedPlaceholder) {
-      window.PlannerCharts.renderEstimateNeedPlaceholder("estimate-chart-placeholder");
-    }
-
-    detailedButton?.addEventListener("click", function () {
-      sessionStorage.setItem(STORAGE_KEYS.includeDetailed, "true");
-      window.location.href = "analysis-detail.html";
-    });
-
-    skipButton?.addEventListener("click", function () {
-      sessionStorage.setItem(STORAGE_KEYS.includeDetailed, "false");
-      window.location.href = "recommendations.html";
-    });
-  }
-
   function initializeRecommendationsPage() {
     const cards = Array.from(document.querySelectorAll("[data-recommendation]"));
     if (!cards.length) {
@@ -384,7 +360,6 @@
 
     renderWorkflowNav();
     initializeProfileForms();
-    initializeEstimatePage();
     initializeRecommendationsPage();
     initializePlannerPage();
     initializeSummaryPage();

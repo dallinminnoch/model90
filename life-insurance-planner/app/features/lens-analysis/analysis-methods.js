@@ -415,6 +415,59 @@
     };
   }
 
+  function resolveHlvProjectionYears(model, settings, warnings) {
+    if (hasOwn(settings, "hlvProjectionYears")) {
+      const settingYears = toOptionalNumber(settings.hlvProjectionYears);
+      if (settingYears != null && settingYears >= 0) {
+        return {
+          value: settingYears,
+          source: "settings",
+          sourcePaths: ["settings.hlvProjectionYears"]
+        };
+      }
+
+      addWarning(
+        warnings,
+        "invalid-hlv-projection-years",
+        "Invalid Human Life Value projection years setting was ignored.",
+        "warning",
+        ["settings.hlvProjectionYears"]
+      );
+    }
+
+    const retirementHorizonYears = normalizeNonNegativeNumber(
+      getPath(model, "incomeBasis.insuredRetirementHorizonYears"),
+      "incomeBasis.insuredRetirementHorizonYears",
+      warnings,
+      {
+        negativeCode: "negative-value-treated-as-zero",
+        negativeMessage: "insuredRetirementHorizonYears was negative and was treated as 0 for Simple HLV."
+      }
+    );
+
+    if (retirementHorizonYears.hasValue) {
+      return {
+        value: retirementHorizonYears.value,
+        source: "incomeBasis.insuredRetirementHorizonYears",
+        sourcePaths: ["incomeBasis.insuredRetirementHorizonYears"]
+      };
+    }
+
+    addWarning(
+      warnings,
+      "missing-insured-retirement-horizon-years",
+      "insuredRetirementHorizonYears was missing; Simple HLV projection years defaulted to 0.",
+      "warning",
+      ["incomeBasis.insuredRetirementHorizonYears", "settings.hlvProjectionYears"]
+    );
+
+    return {
+      value: 0,
+      source: "missing-default-zero",
+      sourcePaths: ["incomeBasis.insuredRetirementHorizonYears", "settings.hlvProjectionYears"]
+    };
+  }
+
   function createNeedsDebtPayoffComponent(model, warnings) {
     const debtPayoff = isPlainObject(model?.debtPayoff) ? model.debtPayoff : {};
     const totalDebtPayoffNeed = toOptionalNumber(debtPayoff.totalDebtPayoffNeed);
@@ -1325,16 +1378,224 @@
     return applyOptionalRounding(baseResult, normalizedSettings, warnings);
   }
 
+  function runHumanLifeValueAnalysis(lensModel, settings) {
+    const model = isPlainObject(lensModel) ? lensModel : {};
+    const normalizedSettings = isPlainObject(settings) ? settings : {};
+    const warnings = [];
+    const trace = [];
+    const includeExistingCoverageOffset = getBooleanSetting(
+      normalizedSettings,
+      "includeExistingCoverageOffset",
+      true
+    );
+    const includeOffsetAssets = normalizedSettings.includeOffsetAssets === true;
+
+    if (!includeOffsetAssets) {
+      addWarning(
+        warnings,
+        "offset-assets-disabled-by-default",
+        "Offset assets were not applied because Simple HLV only includes asset offsets when includeOffsetAssets is true.",
+        "info",
+        ["settings.includeOffsetAssets", "offsetAssets.totalAvailableOffsetAssetValue"]
+      );
+    }
+
+    const annualIncomeValue = normalizeComponentNumber({
+      value: getPath(model, "incomeBasis.annualIncomeReplacementBase"),
+      sourcePath: "incomeBasis.annualIncomeReplacementBase",
+      warnings,
+      warnWhenMissing: true,
+      missingCode: "missing-annual-income-replacement-base",
+      missingMessage: "annualIncomeReplacementBase was missing; Simple HLV annual income value defaulted to 0.",
+      negativeCode: "negative-value-treated-as-zero",
+      negativeMessage: "annualIncomeReplacementBase was negative and was treated as 0 for Simple HLV."
+    });
+    const projectionYearsResult = resolveHlvProjectionYears(model, normalizedSettings, warnings);
+    const projectionYears = projectionYearsResult.value;
+    const grossHumanLifeValue = annualIncomeValue * projectionYears;
+    const grossNeed = grossHumanLifeValue;
+    const incomeGrowthRate = toOptionalNumber(
+      getPath(model, "assumptions.economicAssumptions.incomeGrowthRatePercent")
+    );
+    const discountRate = toOptionalNumber(
+      getPath(model, "assumptions.economicAssumptions.discountRatePercent")
+    );
+
+    if (incomeGrowthRate != null) {
+      addWarning(
+        warnings,
+        "income-growth-not-applied-v1",
+        "Income growth is captured but not applied to Simple HLV.",
+        "info",
+        ["assumptions.economicAssumptions.incomeGrowthRatePercent"]
+      );
+    }
+
+    if (discountRate == null) {
+      addWarning(
+        warnings,
+        "discount-rate-unavailable-simple-hlv",
+        "Simple HLV does not apply discounting because no active discount-rate control is available.",
+        "info",
+        ["assumptions.economicAssumptions.discountRatePercent"]
+      );
+    } else {
+      addWarning(
+        warnings,
+        "discount-rate-unavailable-simple-hlv",
+        "A discount rate is present but Simple HLV does not apply present-value discounting in v1.",
+        "info",
+        ["assumptions.economicAssumptions.discountRatePercent"]
+      );
+    }
+
+    const existingCoverageOffset = includeExistingCoverageOffset
+      ? normalizeComponentNumber({
+          value: getPath(model, "existingCoverage.totalExistingCoverage"),
+          sourcePath: "existingCoverage.totalExistingCoverage",
+          warnings,
+          warnWhenMissing: true,
+          missingCode: "existing-coverage-missing",
+          missingMessage: "totalExistingCoverage was missing; existing coverage offset defaulted to 0.",
+          missingSeverity: "info",
+          negativeCode: "negative-value-treated-as-zero",
+          negativeMessage: "totalExistingCoverage was negative and was treated as 0 for Simple HLV."
+        })
+      : 0;
+    const assetOffset = includeOffsetAssets
+      ? normalizeComponentNumber({
+          value: getPath(model, "offsetAssets.totalAvailableOffsetAssetValue"),
+          sourcePath: "offsetAssets.totalAvailableOffsetAssetValue",
+          warnings,
+          warnWhenMissing: true,
+          missingCode: "offset-assets-missing",
+          missingMessage: "totalAvailableOffsetAssetValue was missing; asset offset defaulted to 0.",
+          missingSeverity: "info",
+          negativeCode: "negative-value-treated-as-zero",
+          negativeMessage: "totalAvailableOffsetAssetValue was negative and was treated as 0 for Simple HLV."
+        })
+      : 0;
+    const totalOffset = existingCoverageOffset + assetOffset;
+    const rawUncappedGap = grossHumanLifeValue - totalOffset;
+    const netCoverageGap = Math.max(rawUncappedGap, 0);
+
+    trace.push(createTraceRow({
+      key: "annualIncomeValue",
+      label: "Annual Income Value",
+      formula: "incomeBasis.annualIncomeReplacementBase",
+      inputs: {
+        annualIncomeReplacementBase: annualIncomeValue
+      },
+      value: annualIncomeValue,
+      sourcePaths: ["incomeBasis.annualIncomeReplacementBase"]
+    }));
+    trace.push(createTraceRow({
+      key: "projectionYears",
+      label: "Projection Years",
+      formula: projectionYearsResult.source === "settings"
+        ? "settings.hlvProjectionYears"
+        : "incomeBasis.insuredRetirementHorizonYears",
+      inputs: {
+        hlvProjectionYears: hasOwn(normalizedSettings, "hlvProjectionYears")
+          ? normalizedSettings.hlvProjectionYears
+          : null,
+        insuredRetirementHorizonYears: getPath(model, "incomeBasis.insuredRetirementHorizonYears")
+      },
+      value: projectionYears,
+      sourcePaths: projectionYearsResult.sourcePaths
+    }));
+    trace.push(createTraceRow({
+      key: "grossHumanLifeValue",
+      label: "Gross Simple HLV",
+      formula: "annualIncomeValue x projectionYears",
+      inputs: {
+        annualIncomeValue,
+        projectionYears
+      },
+      value: grossHumanLifeValue,
+      sourcePaths: ["incomeBasis.annualIncomeReplacementBase", ...projectionYearsResult.sourcePaths]
+    }));
+    trace.push(createTraceRow({
+      key: "existingCoverageOffset",
+      label: "Existing Coverage Offset",
+      formula: includeExistingCoverageOffset
+        ? "existingCoverage.totalExistingCoverage"
+        : "disabled by settings",
+      inputs: {
+        includeExistingCoverageOffset
+      },
+      value: existingCoverageOffset,
+      sourcePaths: ["existingCoverage.totalExistingCoverage", "settings.includeExistingCoverageOffset"]
+    }));
+    trace.push(createTraceRow({
+      key: "assetOffset",
+      label: "Asset Offset",
+      formula: includeOffsetAssets
+        ? "offsetAssets.totalAvailableOffsetAssetValue"
+        : "disabled by settings",
+      inputs: {
+        includeOffsetAssets
+      },
+      value: assetOffset,
+      sourcePaths: ["offsetAssets.totalAvailableOffsetAssetValue", "settings.includeOffsetAssets"]
+    }));
+    trace.push(createTraceRow({
+      key: "netCoverageGap",
+      label: "Net Coverage Gap",
+      formula: "max(grossHumanLifeValue - totalOffset, 0)",
+      inputs: {
+        grossHumanLifeValue,
+        totalOffset
+      },
+      value: netCoverageGap,
+      sourcePaths: []
+    }));
+
+    return {
+      method: "humanLifeValue",
+      label: "Simple Human Life Value",
+      grossHumanLifeValue,
+      // Alias for shared method display contracts that expect a grossNeed key.
+      grossNeed,
+      netCoverageGap,
+      rawUncappedGap,
+      components: {
+        annualIncomeValue,
+        projectionYears,
+        simpleHumanLifeValue: grossHumanLifeValue
+      },
+      commonOffsets: {
+        existingCoverageOffset,
+        assetOffset,
+        totalOffset
+      },
+      assumptions: {
+        incomeValueSource: "incomeBasis.annualIncomeReplacementBase",
+        projectionYears,
+        projectionYearsSource: projectionYearsResult.source,
+        includeExistingCoverageOffset,
+        includeOffsetAssets,
+        incomeGrowthApplied: false,
+        discountRateApplied: false,
+        survivorIncomeApplied: false
+      },
+      warnings,
+      trace
+    };
+  }
+
   function runAnalysisMethods(lensModel, settings) {
     return {
       dime: runDimeAnalysis(lensModel, settings),
-      needsAnalysis: runNeedsAnalysis(lensModel, settings)
+      needsAnalysis: runNeedsAnalysis(lensModel, settings),
+      humanLifeValue: runHumanLifeValueAnalysis(lensModel, settings)
     };
   }
 
   const analysisMethods = {
     runDimeAnalysis,
     runNeedsAnalysis,
+    runHumanLifeValueAnalysis,
     runAnalysisMethods
   };
 

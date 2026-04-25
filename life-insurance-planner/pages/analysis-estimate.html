@@ -9,61 +9,66 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css">
 </head>
-<body data-step="estimate">
-  <main class="workflow-shell">
+<body class="analysis-estimate-page" data-step="estimate">
+  <main class="analysis-estimate-shell">
     <div id="workflow-nav"></div>
-    <section class="page-intro">
+    <section class="analysis-estimate-header">
       <div>
-        <div class="section-label">Step 3</div>
-        <h1>Estimate Need</h1>
-        <p class="intro-copy">Present a balanced planning estimate first, then choose whether to move into methodology detail or continue directly to recommendation design.</p>
+        <div class="analysis-estimate-eyebrow">Step 3</div>
+        <h1>Analysis Workspace</h1>
+        <p class="intro-copy">Compare the saved protection modeling data across the active analysis methods before moving into recommendation design.</p>
       </div>
     </section>
 
-    <div class="panel-grid">
-      <aside class="sidebar-panel">
-        <div class="panel-stack">
-          <div class="info-card">
-            <div class="section-label">Planning View</div>
-            <h3 class="card-title">Balanced Estimated Need</h3>
-            <p class="card-copy">This page is meant to keep the discussion concise while still grounding the recommendation in multiple planning considerations.</p>
-          </div>
-          <div class="info-card">
-            <span class="badge">Future Inputs</span>
-            <div id="step-three-dime-analysis" data-step-three-dime-analysis aria-live="polite">
-              <p class="card-copy">DIME analysis will appear here when linked protection modeling data is available.</p>
-            </div>
-            <div id="step-three-needs-analysis" data-step-three-needs-analysis aria-live="polite">
-              <p class="card-copy">Needs methodology will appear here when linked protection modeling data is available.</p>
-            </div>
-            <ul class="compact-list">
-              <li><span>Income value lens</span><strong>Reserved</strong></li>
-            </ul>
-          </div>
-        </div>
-      </aside>
+    <section class="analysis-estimate-workspace" aria-label="Analysis methods and controls">
+      <div class="analysis-results-grid" aria-label="Analysis result cards">
+        <article class="analysis-result-card" id="step-three-dime-analysis" data-step-three-dime-analysis aria-live="polite">
+          <p class="analysis-result-copy">DIME analysis will appear here when linked protection modeling data is available.</p>
+        </article>
+        <article class="analysis-result-card" id="step-three-needs-analysis" data-step-three-needs-analysis aria-live="polite">
+          <p class="analysis-result-copy">Needs methodology will appear here when linked protection modeling data is available.</p>
+        </article>
+        <article class="analysis-result-card" id="step-three-human-life-value-analysis" data-step-three-human-life-value-analysis aria-live="polite">
+          <p class="analysis-result-copy">Income value lens will appear here when linked protection modeling data is available.</p>
+        </article>
+      </div>
 
-      <section class="content-panel">
-        <div class="results-banner">
-          <div class="result-kicker">Balanced Estimated Need</div>
-          <div class="result-value" id="balanced-estimate-value">Your balanced estimated death benefit need will appear here</div>
-          <p class="result-caption">This estimate is intended to synthesize several planning methods into a practical meeting-ready view of life insurance need.</p>
+      <section class="analysis-control-panel" aria-labelledby="analysis-control-panel-title">
+        <div class="analysis-control-panel-header">
+          <div>
+            <div class="analysis-control-eyebrow">Template Only</div>
+            <h2 id="analysis-control-panel-title">Analysis Controls</h2>
+          </div>
+          <p>Controls will be wired later. Current cards use the default method settings returned by the analysis layer.</p>
         </div>
-        <div class="actions-row">
-          <button class="btn btn-primary" type="button" id="view-detailed-analysis">View Detailed Analysis</button>
-          <button class="btn btn-secondary" type="button" id="skip-detailed-analysis">Skip to Coverage Options</button>
+
+        <div class="analysis-control-groups">
+          <div class="analysis-control-group">
+            <h3>Method Defaults</h3>
+            <div class="analysis-control-pill"><span>DIME Income Years</span><strong>10</strong></div>
+            <div class="analysis-control-pill"><span>Needs Support Duration</span><strong>10</strong></div>
+            <div class="analysis-control-pill"><span>HLV Projection Years</span><strong>Retirement horizon</strong></div>
+          </div>
+
+          <div class="analysis-control-group">
+            <h3>Offset Settings</h3>
+            <div class="analysis-control-pill"><span>Existing Coverage</span><strong>Included</strong></div>
+            <div class="analysis-control-pill"><span>Available Assets</span><strong>Needs included / DIME &amp; HLV excluded</strong></div>
+            <div class="analysis-control-pill"><span>Survivor Income</span><strong>Applied to Needs</strong></div>
+          </div>
+
+          <div class="analysis-control-group">
+            <h3>Advanced Assumptions</h3>
+            <div class="analysis-control-pill"><span>Growth</span><strong>Not applied</strong></div>
+            <div class="analysis-control-pill"><span>Discounting</span><strong>Not applied</strong></div>
+            <div class="analysis-control-pill"><span>Discretionary Support</span><strong>Excluded</strong></div>
+          </div>
         </div>
       </section>
-
-      <aside class="support-panel">
-        <div class="chart-placeholder" id="estimate-chart-placeholder"></div>
-      </aside>
-    </div>
+    </section>
   </main>
 
   <script src="../data.js"></script>
-  <script src="../calculations.js"></script>
-  <script src="../charts.js"></script>
   <script src="../site-header.js"></script>
   <script src="../pmi-tax-utils.js"></script>
   <script src="../app/core/config.js"></script>

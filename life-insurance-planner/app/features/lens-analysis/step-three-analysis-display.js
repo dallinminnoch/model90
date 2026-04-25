@@ -12,6 +12,11 @@
     includeDiscretionarySupport: false
   });
 
+  const HUMAN_LIFE_VALUE_SETTINGS = Object.freeze({
+    includeExistingCoverageOffset: true,
+    includeOffsetAssets: false
+  });
+
   function escapeHtml(value) {
     return String(value == null ? "" : value)
       .replace(/&/g, "&amp;")
@@ -60,8 +65,8 @@
     }
 
     host.innerHTML = `
-      <div class="section-label">${escapeHtml(title)}</div>
-      <p class="card-copy">${escapeHtml(message)}</p>
+      <div class="analysis-result-eyebrow">${escapeHtml(title)}</div>
+      <p class="analysis-result-copy">${escapeHtml(message)}</p>
     `;
   }
 
@@ -136,7 +141,7 @@
 
   function renderMoneyList(items) {
     return `
-      <ul class="compact-list">
+      <ul class="analysis-result-list">
         ${items.map(function (item) {
           return `<li><span>${escapeHtml(item.label)}</span><strong>${formatCurrency(item.value)}</strong></li>`;
         }).join("")}
@@ -146,7 +151,7 @@
 
   function renderAssumptionList(items) {
     return `
-      <ul class="compact-list">
+      <ul class="analysis-result-list">
         ${items.map(function (item) {
           return `<li><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(formatDisplayValue(item.value))}</strong></li>`;
         }).join("")}
@@ -175,8 +180,8 @@
     const split = splitWarnings(warnings);
     const warningMarkup = split.warnings.length
       ? `
-        <div class="section-label">${escapeHtml(title)} Warnings</div>
-        <ul class="compact-list">
+        <div class="analysis-result-eyebrow">${escapeHtml(title)} Warnings</div>
+        <ul class="analysis-result-list">
           ${split.warnings.map(function (message) {
             return `<li><span>${escapeHtml(message)}</span></li>`;
           }).join("")}
@@ -187,7 +192,7 @@
       ? `
         <details>
           <summary>${escapeHtml(title)} Notes</summary>
-          <ul class="compact-list">
+          <ul class="analysis-result-list">
             ${split.notes.map(function (message) {
               return `<li><span>${escapeHtml(message)}</span></li>`;
             }).join("")}
@@ -209,23 +214,23 @@
     ];
 
     host.innerHTML = `
-      <div class="section-label">DIME Analysis</div>
-      <div class="card-value">${formatCurrency(dimeResult.netCoverageGap)}</div>
-      <p class="card-copy">Net coverage gap from saved linked PMI data.</p>
+      <div class="analysis-result-eyebrow">DIME Analysis</div>
+      <div class="analysis-result-value">${formatCurrency(dimeResult.netCoverageGap)}</div>
+      <p class="analysis-result-copy">Net coverage gap from saved linked PMI data.</p>
       ${renderMoneyList([
         { label: "Gross DIME Need", value: dimeResult.grossNeed },
         { label: "Existing Coverage Offset", value: offsets.existingCoverageOffset },
         { label: "Asset Offset", value: offsets.assetOffset },
         { label: "Net Coverage Gap", value: dimeResult.netCoverageGap }
       ])}
-      <div class="section-label">DIME Components</div>
+      <div class="analysis-result-eyebrow">DIME Components</div>
       ${renderMoneyList([
         { label: "Debt", value: components.debt },
         { label: "Income", value: components.income },
         { label: "Mortgage", value: components.mortgage },
         { label: "Education", value: components.education }
       ])}
-      <div class="section-label">Assumptions</div>
+      <div class="analysis-result-eyebrow">Assumptions</div>
       ${renderAssumptionList([
         { label: "DIME income years", value: assumptions.dimeIncomeYears },
         { label: "Existing coverage offset", value: assumptions.includeExistingCoverageOffset },
@@ -245,17 +250,20 @@
     ];
 
     host.innerHTML = `
-      <div class="section-label">Needs Analysis</div>
-      <div class="card-value">${formatCurrency(needsResult.netCoverageGap)}</div>
-      <p class="card-copy">Net coverage gap from the detailed needs methodology.</p>
+      <div class="analysis-result-eyebrow">Needs Analysis</div>
+      <div class="analysis-result-value">${formatCurrency(needsResult.netCoverageGap)}</div>
+      <p class="analysis-result-copy">Net coverage gap from the detailed needs methodology.</p>
       ${renderMoneyList([
         { label: "Gross Needs Analysis Need", value: needsResult.grossNeed },
         { label: "Existing Coverage Offset", value: offsets.existingCoverageOffset },
         { label: "Asset Offset", value: offsets.assetOffset },
-        { label: "Survivor Income Offset", value: offsets.survivorIncomeOffset },
         { label: "Net Coverage Gap", value: needsResult.netCoverageGap }
       ])}
-      <div class="section-label">Needs Components</div>
+      <div class="analysis-result-eyebrow">Support Reduction</div>
+      ${renderMoneyList([
+        { label: "Survivor Income Applied to Support", value: offsets.survivorIncomeOffset }
+      ])}
+      <div class="analysis-result-eyebrow">Needs Components</div>
       ${renderMoneyList([
         { label: "Debt Payoff", value: components.debtPayoff },
         { label: "Essential Support", value: components.essentialSupport },
@@ -264,7 +272,7 @@
         { label: "Transition Needs", value: components.transitionNeeds },
         { label: "Discretionary Support", value: components.discretionarySupport }
       ])}
-      <div class="section-label">Assumptions</div>
+      <div class="analysis-result-eyebrow">Assumptions</div>
       ${renderAssumptionList([
         { label: "Support duration years", value: assumptions.needsSupportDurationYears },
         { label: "Support duration source", value: assumptions.supportDurationSource },
@@ -278,10 +286,51 @@
     `;
   }
 
+  function renderHumanLifeValueResult(host, humanLifeValueResult, sharedWarnings) {
+    const components = humanLifeValueResult.components || {};
+    const offsets = humanLifeValueResult.commonOffsets || {};
+    const assumptions = humanLifeValueResult.assumptions || {};
+    const warnings = [
+      ...(Array.isArray(sharedWarnings) ? sharedWarnings : []),
+      ...(Array.isArray(humanLifeValueResult.warnings) ? humanLifeValueResult.warnings : [])
+    ];
+
+    host.innerHTML = `
+      <div class="analysis-result-eyebrow">Simple Human Life Value</div>
+      <div class="analysis-result-value">${formatCurrency(humanLifeValueResult.netCoverageGap)}</div>
+      <p class="analysis-result-copy">Estimated value of the insured's future economic income through the projection period. Growth and discounting are not applied in this v1 calculation.</p>
+      ${renderMoneyList([
+        { label: "Gross Human Life Value", value: humanLifeValueResult.grossHumanLifeValue },
+        { label: "Existing Coverage Offset", value: offsets.existingCoverageOffset },
+        { label: "Asset Offset", value: offsets.assetOffset },
+        { label: "Net Coverage Gap", value: humanLifeValueResult.netCoverageGap }
+      ])}
+      <div class="analysis-result-eyebrow">HLV Components</div>
+      ${renderAssumptionList([
+        { label: "Annual Income Value", value: formatCurrency(components.annualIncomeValue) },
+        { label: "Projection Years", value: components.projectionYears },
+        { label: "Simple Human Life Value", value: formatCurrency(components.simpleHumanLifeValue) }
+      ])}
+      <div class="analysis-result-eyebrow">Assumptions</div>
+      ${renderAssumptionList([
+        { label: "Income value source", value: assumptions.incomeValueSource },
+        { label: "Projection years", value: assumptions.projectionYears },
+        { label: "Projection years source", value: assumptions.projectionYearsSource },
+        { label: "Existing coverage offset", value: assumptions.includeExistingCoverageOffset },
+        { label: "Asset offset", value: assumptions.includeOffsetAssets },
+        { label: "Income growth applied", value: assumptions.incomeGrowthApplied },
+        { label: "Discount rate applied", value: assumptions.discountRateApplied },
+        { label: "Survivor income applied", value: assumptions.survivorIncomeApplied }
+      ])}
+      ${renderWarningsAndNotes("HLV", warnings)}
+    `;
+  }
+
   function initializeStepThreeAnalysisDisplay() {
     const dimeHost = document.querySelector("[data-step-three-dime-analysis]");
     const needsHost = document.querySelector("[data-step-three-needs-analysis]");
-    const hosts = [dimeHost, needsHost].filter(Boolean);
+    const humanLifeValueHost = document.querySelector("[data-step-three-human-life-value-analysis]");
+    const hosts = [dimeHost, needsHost, humanLifeValueHost].filter(Boolean);
     if (!hosts.length) {
       return;
     }
@@ -290,13 +339,18 @@
     const buildLensModelFromSavedProtectionModeling = lensAnalysis.buildLensModelFromSavedProtectionModeling;
     const runDimeAnalysis = lensAnalysis.analysisMethods?.runDimeAnalysis;
     const runNeedsAnalysis = lensAnalysis.analysisMethods?.runNeedsAnalysis;
+    const runHumanLifeValueAnalysis = lensAnalysis.analysisMethods?.runHumanLifeValueAnalysis;
 
     if (typeof buildLensModelFromSavedProtectionModeling !== "function") {
       renderMessageToHosts(hosts, "Analysis Methods", "Lens saved-data builder is unavailable.");
       return;
     }
 
-    if (typeof runDimeAnalysis !== "function" || typeof runNeedsAnalysis !== "function") {
+    if (
+      typeof runDimeAnalysis !== "function"
+      || typeof runNeedsAnalysis !== "function"
+      || typeof runHumanLifeValueAnalysis !== "function"
+    ) {
       renderMessageToHosts(hosts, "Analysis Methods", "One or more analysis methods are unavailable.");
       return;
     }
@@ -337,6 +391,14 @@
         renderNeedsResult(
           needsHost,
           runNeedsAnalysis(builderResult.lensModel, NEEDS_SETTINGS),
+          builderResult.warnings
+        );
+      }
+
+      if (humanLifeValueHost) {
+        renderHumanLifeValueResult(
+          humanLifeValueHost,
+          runHumanLifeValueAnalysis(builderResult.lensModel, HUMAN_LIFE_VALUE_SETTINGS),
           builderResult.warnings
         );
       }

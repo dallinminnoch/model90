@@ -132,7 +132,6 @@
     safeInitialize("translations", applyTranslations);
     safeInitialize("account-profile", initializeAccountProfile);
     safeInitialize("profile-form", initializeProfileForm);
-    safeInitialize("estimate-page", initializeEstimatePage);
     safeInitialize("recommendation-selection", initializeRecommendationSelection);
     safeInitialize("strategy-selection", initializeStrategySelection);
     safeInitialize("summary-page", initializeSummaryPage);
@@ -306,34 +305,6 @@
       const nextPage = form.dataset.nextPage || "analysis-estimate.html";
       window.location.href = nextPage;
     });
-  }
-
-  function initializeEstimatePage() {
-    const resultValue = document.getElementById("balanced-estimate-value");
-    const viewDetailedButton = document.getElementById("view-detailed-analysis");
-    const skipDetailedButton = document.getElementById("skip-detailed-analysis");
-
-    if (resultValue) {
-      resultValue.textContent = window.PlannerCalculations.getBalancedEstimate();
-    }
-
-    if (document.getElementById("estimate-chart-placeholder")) {
-      window.PlannerCharts.renderEstimateNeedPlaceholder("estimate-chart-placeholder");
-    }
-
-    if (viewDetailedButton) {
-      viewDetailedButton.addEventListener("click", () => {
-        sessionStorage.setItem(STORAGE_KEYS.includeDetailed, "true");
-        window.location.href = "analysis-detail.html";
-      });
-    }
-
-    if (skipDetailedButton) {
-      skipDetailedButton.addEventListener("click", () => {
-        sessionStorage.setItem(STORAGE_KEYS.includeDetailed, "false");
-        window.location.href = "recommendations.html";
-      });
-    }
   }
 
   function initializeRecommendationSelection() {
