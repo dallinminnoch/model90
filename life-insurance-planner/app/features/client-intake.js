@@ -863,7 +863,6 @@
       profileGroupType,
       dateOfBirth: String(formData.get("dateOfBirth") || ""),
       age: Number(formData.get("age") || 0),
-      targetRetirementAge: String(formData.get("targetRetirementAge") || "").trim(),
       insuranceRatingSex: String(formData.get("insuranceRatingSex") || ""),
       maritalStatus: String(formData.get("maritalStatus") || ""),
       spouseDateOfBirth: String(formData.get("spouseDateOfBirth") || ""),

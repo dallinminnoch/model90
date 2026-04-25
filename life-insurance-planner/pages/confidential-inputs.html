@@ -276,7 +276,7 @@
                 </div>
               </div>
               <div class="field-group">
-                  <label for="years-until-retirement">Estimated Years Until Retirement</label>
+                  <label for="years-until-retirement">Estimated Years Until Retirement or Income Exhaustion</label>
                 <input id="years-until-retirement" class="profile-small-number-field" name="yearsUntilRetirement" type="number" min="0" max="80" step="1">
               </div>
               <div class="field-group">
@@ -983,7 +983,7 @@
             </div>
             <div class="form-grid">
               <div class="field-group">
-                <label for="survivor-continues-working">Spouse Continues Working?</label>
+                <label for="survivor-continues-working">Survivor Continues Working?</label>
                 <select id="survivor-continues-working" name="survivorContinuesWorking">
                   <option value="">Please select</option>
                   <option value="Yes">Yes</option>
@@ -991,17 +991,31 @@
                 </select>
               </div>
               <div class="field-group">
-                <label for="survivor-income">Gross Survivor Income</label>
+                <label for="spouse-expected-work-reduction-at-death">Expected Survivor Work Reduction at Death</label>
+                <div class="profile-currency-field">
+                  <input id="spouse-expected-work-reduction-at-death" class="profile-small-number-field" name="spouseExpectedWorkReductionAtDeath" type="number" min="0" max="100" step="1" disabled>
+                  <span class="profile-currency-suffix">%</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="survivor-income">Estimated Survivor Gross Annual Income</label>
                 <div class="profile-currency-field">
                   <input id="survivor-income" name="survivorIncome" type="number" min="0" step="1000" disabled>
                   <span class="profile-currency-suffix">USD</span>
                 </div>
               </div>
               <div class="field-group">
-                <label for="survivor-net-annual-income">Net Annual Income</label>
+                <label for="survivor-net-annual-income">Estimated Survivor Net Annual Income</label>
                 <div class="profile-currency-field">
                   <input id="survivor-net-annual-income" name="survivorNetAnnualIncome" type="number" min="0" step="1000" disabled>
                   <span class="profile-currency-suffix">USD</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="survivor-income-start-delay-months">Survivor Income Start Delay</label>
+                <div class="profile-inline-unit-field">
+                  <input id="survivor-income-start-delay-months" class="profile-small-number-field" name="survivorIncomeStartDelayMonths" type="number" min="0" max="120" step="1" disabled>
+                  <span class="profile-inline-unit">Months</span>
                 </div>
               </div>
               <div class="field-group">
@@ -1010,17 +1024,6 @@
                   <input id="income-replacement-duration" class="profile-small-number-field" name="incomeReplacementDuration" type="number" min="0" max="80" step="1" disabled>
                   <span class="profile-inline-unit">Years</span>
                 </div>
-              </div>
-              <div class="field-group">
-                <label for="expense-reduction-at-death">Expense Reduction at Death</label>
-                <div class="profile-currency-field">
-                  <input id="expense-reduction-at-death" class="profile-small-number-field" name="expenseReductionAtDeath" type="number" min="0" max="100" step="1" disabled>
-                  <span class="profile-currency-suffix">%</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="child-dependency-duration">Child Dependency Duration</label>
-                <input id="child-dependency-duration" class="profile-small-number-field" name="childDependencyDuration" type="number" min="0" max="40" step="1" disabled>
               </div>
               <div class="field-group">
                 <label for="spouse-income-growth-rate">Spouse Income Growth Rate</label>
@@ -1032,20 +1035,6 @@
               <div class="field-group">
                 <label for="spouse-years-until-retirement">Spouse Years Until Retirement</label>
                 <input id="spouse-years-until-retirement" class="profile-small-number-field" name="spouseYearsUntilRetirement" type="number" min="0" max="80" step="1" disabled>
-              </div>
-              <div class="field-group">
-                <label for="survivor-income-start-delay-months">Survivor Income Start Delay</label>
-                <div class="profile-inline-unit-field">
-                  <input id="survivor-income-start-delay-months" class="profile-small-number-field" name="survivorIncomeStartDelayMonths" type="number" min="0" max="120" step="1" disabled>
-                  <span class="profile-inline-unit">Months</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="spouse-expected-work-reduction-at-death">Spouse Expected Work Reduction at Death</label>
-                <div class="profile-currency-field">
-                  <input id="spouse-expected-work-reduction-at-death" class="profile-small-number-field" name="spouseExpectedWorkReductionAtDeath" type="number" min="0" max="100" step="1" disabled>
-                  <span class="profile-currency-suffix">%</span>
-                </div>
               </div>
             </div>
           </section>
@@ -1402,15 +1391,13 @@
         "estate-settlement-costs": "A practical starting range is often $5,000 to $15,000, with higher amounts for larger or more complex estates.",
         "other-final-expenses": "Other narrow one-time final expenses not captured by funeral/burial, medical end-of-life, or estate settlement costs.",
         "income-replacement-duration": "How long income should be replaced.",
-        "survivor-net-annual-income": "Net annual household income available for survivorship planning.",
-        "survivor-income": "Gross survivor income before reductions or taxes.",
-        "survivor-continues-working": "Whether the spouse or partner is expected to keep working after a death.",
+        "survivor-net-annual-income": "Auto-estimated using current tax tables and a basic Qualifying Surviving Spouse filing assumption. Actual survivor tax treatment may vary.",
+        "survivor-income": "Estimated survivor gross annual income after the expected work reduction at death.",
+        "survivor-continues-working": "Whether the survivor is expected to keep working after a death.",
         "spouse-income-growth-rate": "Expected annual growth rate for spouse income after death.",
         "spouse-years-until-retirement": "Years remaining until the spouse expects to retire.",
         "survivor-income-start-delay-months": "Optional delay before survivor income begins.",
-        "spouse-expected-work-reduction-at-death": "Optional expected reduction in spouse work activity after death.",
-        "expense-reduction-at-death": "Percent of expenses expected to disappear after the insured dies.",
-        "child-dependency-duration": "Years children are expected to remain financially dependent.",
+        "spouse-expected-work-reduction-at-death": "Optional expected reduction in survivor work activity after death.",
         "primary-goal": "Primary planning goal for the analysis.",
         "coverage-time-horizon": "Whether the client wants temporary, permanent, or blended coverage.",
         "budget-range": "Monthly premium comfort range.",
@@ -1680,6 +1667,9 @@
       const spousePayrollTaxesField = form.elements.namedItem("spousePayrollTaxes");
       const netAnnualIncomeField = form.elements.namedItem("netAnnualIncome");
       const spouseNetAnnualIncomeField = form.elements.namedItem("spouseNetAnnualIncome");
+      const survivorIncomeField = form.elements.namedItem("survivorIncome");
+      const survivorNetAnnualIncomeField = form.elements.namedItem("survivorNetAnnualIncome");
+      const spouseExpectedWorkReductionAtDeathField = form.elements.namedItem("spouseExpectedWorkReductionAtDeath");
       const primaryNetIncomeAction = form.querySelector('[data-net-income-action="primary"]');
       const spouseNetIncomeAction = form.querySelector('[data-net-income-action="spouse"]');
       const mortgagePaymentOnlyField = form.elements.namedItem("monthlyMortgagePaymentOnly");
@@ -1696,7 +1686,6 @@
       const medicalEndOfLifeCostsField = form.elements.namedItem("medicalEndOfLifeCosts");
       const estateSettlementCostsField = form.elements.namedItem("estateSettlementCosts");
       const otherFinalExpensesField = form.elements.namedItem("otherFinalExpenses");
-      const expenseReductionAtDeathField = form.elements.namedItem("expenseReductionAtDeath");
       const housingStatusField = form.elements.namedItem("housingStatus");
       const monthlyHousingCostField = form.elements.namedItem("monthlyHousingCost");
       const otherMonthlyRenterHousingCostsField = form.elements.namedItem("otherMonthlyRenterHousingCosts");
@@ -1868,6 +1857,10 @@
           }
         }
       ];
+      // PMI currently uses Qualifying Surviving Spouse as the default survivor
+      // net-income tax basis for autofill. Future advanced planning may expose
+      // a filing-status override.
+      const survivorNetIncomeDefaultFilingStatus = "Qualifying Surviving Spouse";
 
       if (urlLinkedCaseRef) {
         window.setLensLinkedCaseRef?.(urlLinkedCaseRef);
@@ -2226,9 +2219,9 @@
         return defaultConfig[normalizedStatus] || defaultFederalRowsByStatus.Single;
       }
 
-      function getStateTaxConfigForState(stateCode) {
+      function getStateTaxConfigForState(stateCode, filingStatusOverride = "") {
         const normalizedCode = String(stateCode || "").trim().toUpperCase();
-        const normalizedFilingStatus = String(filingStatusField?.value || "").trim();
+        const normalizedFilingStatus = String(filingStatusOverride || filingStatusField?.value || "").trim();
         const defaultConfig = {
           hasIncomeTax: !noIncomeTaxStates.has(normalizedCode),
           mode: "brackets",
@@ -3268,6 +3261,188 @@
         syncNetIncomeBlockOutput(primaryGrossIncome, spouseGrossIncome);
       }
 
+      function clearSurvivorScenarioSuggestionState(field) {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        delete field.dataset.userEdited;
+        delete field.dataset.suggestedValue;
+        field.closest(".profile-currency-field")?.classList.remove("is-recommended");
+      }
+
+      function markSurvivorScenarioFieldUserEdited(field) {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        if (String(field.value || "").trim() === "") {
+          clearSurvivorScenarioSuggestionState(field);
+          return;
+        }
+
+        const currentValue = parseOptionalCurrencyLikeNumber(field.value);
+        const existingSuggestedValue = parseOptionalCurrencyLikeNumber(field.dataset.suggestedValue);
+        if (currentValue != null && existingSuggestedValue != null && Math.abs(currentValue - existingSuggestedValue) <= 0.5) {
+          return;
+        }
+
+        field.dataset.userEdited = "true";
+        field.closest(".profile-currency-field")?.classList.remove("is-recommended");
+      }
+
+      function applySurvivorScenarioSuggestion(field, suggestedAmount) {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        const shell = field.closest(".profile-currency-field");
+        const currentRawValue = String(field.value || "").trim();
+        const currentValue = parseOptionalCurrencyLikeNumber(currentRawValue);
+        const previousSuggestedValue = parseOptionalCurrencyLikeNumber(field.dataset.suggestedValue);
+        const hasCurrentValue = currentRawValue !== "";
+
+        if (!hasCurrentValue) {
+          delete field.dataset.userEdited;
+        }
+
+        if (!Number.isFinite(suggestedAmount) || suggestedAmount < 0) {
+          shell?.classList.remove("is-recommended");
+          if (field.dataset.userEdited !== "true" && previousSuggestedValue != null) {
+            field.value = "";
+          }
+          if (!hasCurrentValue || field.dataset.userEdited !== "true") {
+            delete field.dataset.suggestedValue;
+          }
+          return;
+        }
+
+        const roundedSuggestion = Math.round(suggestedAmount);
+
+        if (field.dataset.userEdited === "true") {
+          shell?.classList.remove("is-recommended");
+          return;
+        }
+
+        if (hasCurrentValue && previousSuggestedValue != null && currentValue != null && Math.abs(currentValue - previousSuggestedValue) > 0.5) {
+          markSurvivorScenarioFieldUserEdited(field);
+          return;
+        }
+
+        if (hasCurrentValue && previousSuggestedValue == null) {
+          if (currentValue != null && Math.abs(currentValue - roundedSuggestion) <= 0.5) {
+            field.dataset.suggestedValue = String(roundedSuggestion);
+            shell?.classList.add("is-recommended");
+            return;
+          }
+          markSurvivorScenarioFieldUserEdited(field);
+          return;
+        }
+
+        field.value = String(roundedSuggestion);
+        field.dataset.suggestedValue = String(roundedSuggestion);
+        shell?.classList.add("is-recommended");
+      }
+
+      function isSurvivorContinuesWorkingYes() {
+        const survivorWorkingSelect = form.elements.namedItem("survivorContinuesWorking");
+        return survivorWorkingSelect
+          && !(survivorWorkingSelect instanceof RadioNodeList)
+          && String(survivorWorkingSelect.value || "").trim().toLowerCase() === "yes";
+      }
+
+      function getSuggestedSurvivorGrossAnnualIncome() {
+        if (!isSurvivorContinuesWorkingYes()) {
+          return null;
+        }
+
+        const spouseGrossIncome = parseOptionalCurrencyLikeNumber(spouseIncomeField?.value);
+        if (spouseGrossIncome == null) {
+          return null;
+        }
+
+        const rawReduction = parseOptionalCurrencyLikeNumber(spouseExpectedWorkReductionAtDeathField?.value);
+        const reductionPercent = Math.min(100, Math.max(0, rawReduction == null ? 0 : rawReduction));
+        return Math.max(0, spouseGrossIncome * (1 - (reductionPercent / 100)));
+      }
+
+      function getSurvivorStandardDeductionAmount(filingStatus) {
+        const config = readStoredStandardDeductionConfig();
+        return parseCurrencyLikeNumber(config[filingStatus] || defaultStandardDeductions[filingStatus] || "0");
+      }
+
+      function getSurvivorFederalTaxAmount(taxableIncome, filingStatus) {
+        return window.LensPmiTaxUtils.getProgressiveTaxAmount(
+          taxableIncome,
+          getFederalTaxBracketRowsForStatus(filingStatus),
+          parseCurrencyLikeNumber,
+          parsePercentLikeNumber
+        );
+      }
+
+      function getSurvivorStateTaxAmount(taxableIncome, filingStatus) {
+        const selectedState = String(stateOfResidenceField?.value || "").trim().toUpperCase();
+        const stateConfig = getStateTaxConfigForState(selectedState, filingStatus);
+        if (!stateConfig.hasIncomeTax) {
+          return 0;
+        }
+
+        if (stateConfig.mode === "flat") {
+          return taxableIncome * parsePercentLikeNumber(stateConfig.flatRate);
+        }
+
+        return window.LensPmiTaxUtils.getProgressiveTaxAmount(
+          taxableIncome,
+          Array.isArray(stateConfig.rows) ? stateConfig.rows : [],
+          parseCurrencyLikeNumber,
+          parsePercentLikeNumber
+        );
+      }
+
+      function getSurvivorPayrollTaxAmount(grossIncome, filingStatus) {
+        return window.LensPmiTaxUtils.getPayrollTaxAmounts({
+          filingStatus,
+          primaryEarnedIncome: grossIncome,
+          spouseEarnedIncome: 0,
+          primaryTaxableIncome: grossIncome,
+          spouseTaxableIncome: 0,
+          payrollRows: readStoredPayrollConfig(),
+          parseCurrencyLikeNumber,
+          parsePercentLikeNumber,
+          getDefaultAdditionalMedicareThresholds
+        }).primary;
+      }
+
+      function calculateSurvivorNetAnnualIncome(grossIncome) {
+        if (grossIncome == null) {
+          return null;
+        }
+
+        const filingStatus = survivorNetIncomeDefaultFilingStatus;
+        const standardDeduction = getSurvivorStandardDeductionAmount(filingStatus);
+        const taxableIncome = Math.max(0, grossIncome - standardDeduction);
+        const federalTax = getSurvivorFederalTaxAmount(taxableIncome, filingStatus);
+        const stateTax = getSurvivorStateTaxAmount(taxableIncome, filingStatus);
+        const payrollTax = getSurvivorPayrollTaxAmount(grossIncome, filingStatus);
+        return window.LensPmiTaxUtils.getNetIncome(grossIncome, federalTax, stateTax, payrollTax);
+      }
+
+      function syncSurvivorIncomeScenarioFields() {
+        if (!isSurvivorContinuesWorkingYes()) {
+          clearSurvivorScenarioSuggestionState(survivorIncomeField);
+          clearSurvivorScenarioSuggestionState(survivorNetAnnualIncomeField);
+          return;
+        }
+
+        applySurvivorScenarioSuggestion(survivorIncomeField, getSuggestedSurvivorGrossAnnualIncome());
+
+        const survivorGrossIncome = parseOptionalCurrencyLikeNumber(survivorIncomeField?.value);
+        applySurvivorScenarioSuggestion(
+          survivorNetAnnualIncomeField,
+          calculateSurvivorNetAnnualIncome(survivorGrossIncome)
+        );
+      }
+
       function syncNetIncomeBlockOutput(primaryGrossIncome, spouseGrossIncome) {
         const createNetIncomeBlockOutput = window.LensApp?.lensAnalysis?.createNetIncomeBlockOutput;
         const upsertRuntimeBlockOutput = window.LensApp?.lensAnalysis?.upsertRuntimeBlockOutput;
@@ -4032,6 +4207,7 @@
         syncSpouseStateTaxBracketSelection();
         syncPayrollTaxFields();
         syncNetAnnualIncomeFields();
+        syncSurvivorIncomeScenarioFields();
       }
 
       function syncStateOfResidenceDisplay() {
@@ -4079,8 +4255,6 @@
           "survivorIncome",
           "survivorNetAnnualIncome",
           "incomeReplacementDuration",
-          "expenseReductionAtDeath",
-          "childDependencyDuration",
           "spouseIncomeGrowthRate",
           "spouseYearsUntilRetirement",
           "survivorIncomeStartDelayMonths",
@@ -4098,6 +4272,9 @@
 
           if (!shouldEnable) {
             field.value = "";
+            if (field === survivorIncomeField || field === survivorNetAnnualIncomeField) {
+              clearSurvivorScenarioSuggestionState(field);
+            }
           }
 
           fieldGroup?.classList.toggle("is-disabled", !shouldEnable);
@@ -4466,8 +4643,7 @@
         insuranceCostField,
         transportationCostField,
         travelDiscretionaryCostField,
-        subscriptionsCostField,
-        expenseReductionAtDeathField
+        subscriptionsCostField
       ].forEach((field) => {
         if (!field || field instanceof RadioNodeList) {
           return;
@@ -4587,8 +4763,38 @@
 
       const survivorWorkingSelect = form.elements.namedItem("survivorContinuesWorking");
       if (survivorWorkingSelect && !(survivorWorkingSelect instanceof RadioNodeList)) {
-        survivorWorkingSelect.addEventListener("change", syncSurvivorshipAdjustments);
-        survivorWorkingSelect.addEventListener("input", syncSurvivorshipAdjustments);
+        const syncSurvivorWorkingState = () => {
+          syncSurvivorshipAdjustments();
+          syncSurvivorIncomeScenarioFields();
+        };
+        survivorWorkingSelect.addEventListener("change", syncSurvivorWorkingState);
+        survivorWorkingSelect.addEventListener("input", syncSurvivorWorkingState);
+      }
+
+      if (spouseExpectedWorkReductionAtDeathField && !(spouseExpectedWorkReductionAtDeathField instanceof RadioNodeList)) {
+        spouseExpectedWorkReductionAtDeathField.addEventListener("input", syncSurvivorIncomeScenarioFields);
+        spouseExpectedWorkReductionAtDeathField.addEventListener("change", syncSurvivorIncomeScenarioFields);
+        spouseExpectedWorkReductionAtDeathField.addEventListener("blur", syncSurvivorIncomeScenarioFields);
+      }
+
+      if (survivorIncomeField && !(survivorIncomeField instanceof RadioNodeList)) {
+        const syncSurvivorGrossManualState = () => {
+          markSurvivorScenarioFieldUserEdited(survivorIncomeField);
+          syncSurvivorIncomeScenarioFields();
+        };
+        survivorIncomeField.addEventListener("input", syncSurvivorGrossManualState);
+        survivorIncomeField.addEventListener("change", syncSurvivorGrossManualState);
+        survivorIncomeField.addEventListener("blur", syncSurvivorGrossManualState);
+      }
+
+      if (survivorNetAnnualIncomeField && !(survivorNetAnnualIncomeField instanceof RadioNodeList)) {
+        const syncSurvivorNetManualState = () => {
+          markSurvivorScenarioFieldUserEdited(survivorNetAnnualIncomeField);
+          syncSurvivorIncomeScenarioFields();
+        };
+        survivorNetAnnualIncomeField.addEventListener("input", syncSurvivorNetManualState);
+        survivorNetAnnualIncomeField.addEventListener("change", syncSurvivorNetManualState);
+        survivorNetAnnualIncomeField.addEventListener("blur", syncSurvivorNetManualState);
       }
 
       if (filingStatusField && !(filingStatusField instanceof RadioNodeList)) {

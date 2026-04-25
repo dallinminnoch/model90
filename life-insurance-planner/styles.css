@@ -1294,13 +1294,6 @@ select option:disabled {
   position: relative;
 }
 
-.profile-age-retirement-row {
-  display: inline-flex;
-  align-items: flex-start;
-  gap: 8.8rem;
-  flex-wrap: nowrap;
-}
-
 .profile-compact-field-group {
   display: grid;
   align-content: start;
@@ -1338,10 +1331,6 @@ select option:disabled {
 
 .profile-creation-form .field-group.is-hidden {
   display: none !important;
-}
-
-.profile-age-retirement-row .profile-small-number-field {
-  margin-left: 0;
 }
 
 .profile-small-number-field {
