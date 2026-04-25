@@ -333,21 +333,26 @@
     const incomeCalculationMode = getIncomeCalculationMode(sourceData, profileRecord);
     const primaryNetManualOverride = isTrue(sourceData.netAnnualIncomeManualOverride);
     const spouseNetManualOverride = isTrue(sourceData.spouseNetAnnualIncomeManualOverride);
-    const needsPrimaryNetRecomputation = !primaryNetManualOverride
-      && isBlankValue(sourceData.netAnnualIncome)
-      && toOptionalNumber(sourceData.grossAnnualIncome) != null;
-    const needsSpouseNetRecomputation = incomeCalculationMode === "separate"
+    const primaryGrossIncome = toOptionalNumber(sourceData.grossAnnualIncome);
+    const spouseGrossIncome = toOptionalNumber(sourceData.spouseIncome);
+    const shouldRecomputePrimaryNet = !primaryNetManualOverride && primaryGrossIncome != null;
+    const shouldRecomputeSpouseNet = incomeCalculationMode === "separate"
       && !spouseNetManualOverride
-      && isBlankValue(sourceData.spouseNetAnnualIncome)
-      && toOptionalNumber(sourceData.spouseIncome) != null;
-    const netValues = needsPrimaryNetRecomputation || needsSpouseNetRecomputation
+      && spouseGrossIncome != null;
+    const netValues = shouldRecomputePrimaryNet || shouldRecomputeSpouseNet
       ? calculateCurrentNetIncomeValues(input, sourceData, profileRecord, warnings)
+      : null;
+    const selectedPrimaryNetIncome = primaryNetManualOverride
+      ? sourceData.netAnnualIncome
+      : (shouldRecomputePrimaryNet ? netValues?.primary : null);
+    const selectedSpouseNetIncome = incomeCalculationMode === "separate"
+      ? (spouseNetManualOverride
+        ? sourceData.spouseNetAnnualIncome
+        : (shouldRecomputeSpouseNet ? netValues?.spouse : null))
       : null;
     const source = {
       grossAnnualIncome: sourceData.grossAnnualIncome,
-      netAnnualIncome: primaryNetManualOverride
-        ? sourceData.netAnnualIncome
-        : (netValues ? netValues.primary : sourceData.netAnnualIncome),
+      netAnnualIncome: selectedPrimaryNetIncome,
       netAnnualIncomeManualOverride: primaryNetManualOverride,
       bonusVariableIncome: sourceData.bonusVariableIncome,
       employerBenefitsValue: sourceData.employerBenefitsValue,
@@ -355,15 +360,32 @@
       incomeGrowthRate: sourceData.incomeGrowthRate,
       spouseOrPartnerIncomeApplicability: incomeCalculationMode === "separate" ? "separate" : "not_applicable",
       spouseIncome: incomeCalculationMode === "separate" ? sourceData.spouseIncome : null,
-      spouseNetAnnualIncome: incomeCalculationMode === "separate"
-        ? (spouseNetManualOverride
-          ? sourceData.spouseNetAnnualIncome
-          : (netValues ? netValues.spouse : sourceData.spouseNetAnnualIncome))
-        : null,
+      spouseNetAnnualIncome: selectedSpouseNetIncome,
       spouseNetAnnualIncomeManualOverride: incomeCalculationMode === "separate" && spouseNetManualOverride
     };
 
-    if (source.netAnnualIncome == null && toOptionalNumber(sourceData.grossAnnualIncome) != null) {
+    if (!primaryNetManualOverride && !isBlankValue(sourceData.netAnnualIncome) && primaryGrossIncome == null) {
+      addWarning(
+        warnings,
+        "saved-calculated-net-income-ignored",
+        "Saved insured net annual income was ignored because it was not marked as a manual override and gross income was unavailable for recomputation."
+      );
+    }
+
+    if (
+      incomeCalculationMode === "separate"
+      && !spouseNetManualOverride
+      && !isBlankValue(sourceData.spouseNetAnnualIncome)
+      && spouseGrossIncome == null
+    ) {
+      addWarning(
+        warnings,
+        "saved-calculated-spouse-net-income-ignored",
+        "Saved spouse net annual income was ignored because it was not marked as a manual override and spouse gross income was unavailable for recomputation."
+      );
+    }
+
+    if (source.netAnnualIncome == null && primaryGrossIncome != null) {
       addWarning(
         warnings,
         "net-income-missing",
@@ -620,12 +642,12 @@
   function createSurvivorScenarioSource(input, sourceData, profileRecord, warnings) {
     const survivorContinuesWorking = normalizeYesNoBoolean(sourceData.survivorContinuesWorking);
     const survivorGrossIncome = toOptionalNumber(sourceData.survivorIncome);
-    let survivorNetIncome = sourceData.survivorNetAnnualIncome;
-    let survivorNetManualOverride = isTrue(sourceData.survivorNetAnnualIncomeManualOverride);
+    const survivorNetManualOverride = isTrue(sourceData.survivorNetAnnualIncomeManualOverride);
+    let survivorNetIncome = survivorNetManualOverride ? sourceData.survivorNetAnnualIncome : null;
 
     if (
       survivorContinuesWorking === true
-      && isBlankValue(survivorNetIncome)
+      && !survivorNetManualOverride
       && survivorGrossIncome != null
     ) {
       const calculatedSurvivorNetIncome = calculateSurvivorNetIncome(
@@ -638,7 +660,6 @@
 
       if (calculatedSurvivorNetIncome != null) {
         survivorNetIncome = calculatedSurvivorNetIncome;
-        survivorNetManualOverride = false;
       }
     }
 

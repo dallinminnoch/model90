@@ -501,9 +501,32 @@
     };
   }
 
+  function getMissingItemizedDeductionFields(sourceData, profileRecord) {
+    const incomeCalculationMode = getIncomeCalculationMode(sourceData, profileRecord);
+    const primaryMethod = getDeductionMethodValue(sourceData?.deductionMethod);
+    const spouseMethod = getDeductionMethodValue(sourceData?.spouseDeductionMethod);
+    const missing = [];
+
+    if (primaryMethod === "itemized" && toOptionalNumber(sourceData?.yearlyTaxDeductions) == null) {
+      missing.push("yearlyTaxDeductions");
+    }
+
+    if (
+      incomeCalculationMode === "separate"
+      && spouseMethod === "itemized"
+      && toOptionalNumber(sourceData?.spouseYearlyTaxDeductions) == null
+    ) {
+      missing.push("spouseYearlyTaxDeductions");
+    }
+
+    return missing;
+  }
+
   function validateTaxInputs(options) {
     const normalizedOptions = options && typeof options === "object" ? options : {};
     const taxConfig = normalizedOptions.taxConfig || {};
+    const sourceData = isPlainObject(normalizedOptions.sourceData) ? normalizedOptions.sourceData : {};
+    const profileRecord = isPlainObject(normalizedOptions.profileRecord) ? normalizedOptions.profileRecord : {};
     const taxUtils = getTaxUtils(taxConfig);
     const filingStatus = normalizeString(normalizedOptions.filingStatus);
     const stateOfResidence = normalizeString(normalizedOptions.stateOfResidence);
@@ -522,6 +545,9 @@
     if (!taxConfig.standardDeductions) missing.push("standardDeductions");
     if (!Array.isArray(federalRows) || !federalRows.length) missing.push("federalTaxBracketsByStatus[" + filingStatus + "]");
     if (!payrollRows) missing.push("payrollRows");
+    getMissingItemizedDeductionFields(sourceData, profileRecord).forEach(function (fieldName) {
+      missing.push(fieldName);
+    });
 
     return {
       canCalculate: missing.length === 0,
@@ -545,7 +571,9 @@
     const validation = validateTaxInputs({
       taxConfig,
       filingStatus,
-      stateOfResidence
+      stateOfResidence,
+      sourceData,
+      profileRecord
     });
 
     if (!validation.canCalculate) {
