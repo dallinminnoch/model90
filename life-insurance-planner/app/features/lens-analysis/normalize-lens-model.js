@@ -16,13 +16,14 @@
   const EXISTING_COVERAGE_BLOCK_ID = lensAnalysis.EXISTING_COVERAGE_BLOCK_ID || "existing-coverage";
   const OFFSET_ASSETS_BLOCK_ID = lensAnalysis.OFFSET_ASSETS_BLOCK_ID || "offset-assets";
   const SURVIVOR_SCENARIO_BLOCK_ID = lensAnalysis.SURVIVOR_SCENARIO_BLOCK_ID || "survivor-scenario";
+  const TAX_CONTEXT_BLOCK_ID = lensAnalysis.TAX_CONTEXT_BLOCK_ID || "tax-context";
   const ONGOING_SUPPORT_COMPOSITION_BLOCK_ID = "ongoingSupport-composition";
   const ONGOING_SUPPORT_COMPOSITION_BLOCK_TYPE = "bucket-composition";
 
   // This pass normalizes the currently proven runtime block outputs into the
   // canonical incomeBasis, debtPayoff, ongoingSupport, educationSupport,
   // finalExpenses, transitionNeeds, existingCoverage, offsetAssets,
-  // survivorScenario, and assumptions destinations.
+  // survivorScenario, tax-context, and assumptions destinations.
   const INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
     Object.freeze({
       sourceOutputKey: "grossAnnualIncome",
@@ -71,6 +72,49 @@
       sourceOutputKey: "incomeGrowthRatePercent",
       destinationField: "incomeGrowthRatePercent",
       sourceMetadataKey: "incomeGrowthRatePercent"
+    })
+  ]);
+
+  const TAX_CONTEXT_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "maritalStatus",
+      destinationField: "maritalStatus",
+      sourceMetadataKey: "maritalStatus",
+      valueType: "string"
+    }),
+    Object.freeze({
+      sourceOutputKey: "filingStatus",
+      destinationField: "filingStatus",
+      sourceMetadataKey: "filingStatus",
+      valueType: "string"
+    }),
+    Object.freeze({
+      sourceOutputKey: "stateOfResidence",
+      destinationField: "stateOfResidence",
+      sourceMetadataKey: "stateOfResidence",
+      valueType: "string"
+    }),
+    Object.freeze({
+      sourceOutputKey: "primaryDeductionMethod",
+      destinationField: "primaryDeductionMethod",
+      sourceMetadataKey: "primaryDeductionMethod",
+      valueType: "string"
+    }),
+    Object.freeze({
+      sourceOutputKey: "spouseDeductionMethod",
+      destinationField: "spouseDeductionMethod",
+      sourceMetadataKey: "spouseDeductionMethod",
+      valueType: "string"
+    }),
+    Object.freeze({
+      sourceOutputKey: "primaryItemizedDeductionAmount",
+      destinationField: "primaryItemizedDeductionAmount",
+      sourceMetadataKey: "primaryItemizedDeductionAmount"
+    }),
+    Object.freeze({
+      sourceOutputKey: "spouseItemizedDeductionAmount",
+      destinationField: "spouseItemizedDeductionAmount",
+      sourceMetadataKey: "spouseItemizedDeductionAmount"
     })
   ]);
 
@@ -815,6 +859,14 @@
         mapping: ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP
       }
     );
+    const taxContextNormalizationMetadata = normalizeBucketFromBlockOutput(
+      lensModel.assumptions.taxContext,
+      blockOutputs,
+      {
+        blockId: TAX_CONTEXT_BLOCK_ID,
+        mapping: TAX_CONTEXT_BLOCK_OUTPUT_NORMALIZATION_MAP
+      }
+    );
     applyOngoingSupportComposition(lensModel.ongoingSupport, ongoingSupportNormalizationMetadata);
 
     // Provenance stays outside the canonical bucket facts so future formulas
@@ -830,6 +882,7 @@
       offsetAssets: offsetAssetsNormalizationMetadata,
       survivorScenario: survivorScenarioNormalizationMetadata,
       assumptions: {
+        taxContext: taxContextNormalizationMetadata,
         economicAssumptions: economicAssumptionsNormalizationMetadata
       }
     };
@@ -847,8 +900,10 @@
   lensAnalysis.EXISTING_COVERAGE_BLOCK_ID = EXISTING_COVERAGE_BLOCK_ID;
   lensAnalysis.OFFSET_ASSETS_BLOCK_ID = OFFSET_ASSETS_BLOCK_ID;
   lensAnalysis.SURVIVOR_SCENARIO_BLOCK_ID = SURVIVOR_SCENARIO_BLOCK_ID;
+  lensAnalysis.TAX_CONTEXT_BLOCK_ID = TAX_CONTEXT_BLOCK_ID;
   lensAnalysis.INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP = ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP;
+  lensAnalysis.TAX_CONTEXT_BLOCK_OUTPUT_NORMALIZATION_MAP = TAX_CONTEXT_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP = DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP = ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.NON_HOUSING_ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP = NON_HOUSING_ONGOING_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP;

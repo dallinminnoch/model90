@@ -855,7 +855,7 @@
               <div class="field-group full-width field-group--centered-result debt-payoff-total-group">
                 <label for="total-debt-payoff-need">Total Debt Payoff Need</label>
                 <div class="profile-currency-field">
-                  <input id="total-debt-payoff-need" type="text" inputmode="decimal" readonly>
+                  <input id="total-debt-payoff-need" name="totalDebtPayoffNeed" type="text" inputmode="decimal" readonly>
                   <button class="net-income-action" type="button" data-debt-total-action="primary">Edit</button>
                 </div>
               </div>
@@ -1099,6 +1099,7 @@
   <script src="../app/features/lens-analysis/blocks/existing-coverage.js"></script>
   <script src="../app/features/lens-analysis/blocks/offset-assets.js"></script>
   <script src="../app/features/lens-analysis/blocks/survivor-scenario.js"></script>
+  <script src="../app/features/lens-analysis/blocks/tax-context.js"></script>
   <script src="../app/features/lens-analysis/blocks/income-net-income.js"></script>
   <script src="../app/features/lens-analysis/blocks/debt-payoff.js"></script>
   <script src="../app/features/lens-analysis/blocks/housing-ongoing-support.js"></script>
@@ -1753,7 +1754,8 @@
         "monthlyMortgagePaymentOnly",
         "associatedMonthlyCosts",
         "calculatedMonthlyMortgagePayment",
-        "monthlyMaintenanceRecommendation"
+        "monthlyMaintenanceRecommendation",
+        "totalDebtPayoffNeed"
       ]);
       const persistedReadonlyFieldNames = new Set([
         "childrenNeedingFunding",
@@ -2493,7 +2495,7 @@
         const itemizedAmount = parseCurrencyLikeNumber(itemizedField?.value);
 
         if (method === "itemized") {
-          return Math.max(standardAmount, itemizedAmount);
+          return itemizedAmount;
         }
 
         return standardAmount;
@@ -2519,8 +2521,10 @@
           const useItemized = primaryMethod === "itemized";
           yearlyTaxDeductionsField.disabled = !useItemized;
           yearlyTaxDeductionsField.closest(".field-group")?.classList.toggle("is-disabled", !useItemized);
-          if (useItemized && parseCurrencyLikeNumber(yearlyTaxDeductionsField.value) < primaryStandardAmount) {
-            yearlyTaxDeductionsField.value = formatNumberWithCommas(primaryStandardAmount);
+          if (!useItemized) {
+            yearlyTaxDeductionsField.value = primaryStandardAmount
+              ? formatNumberWithCommas(primaryStandardAmount)
+              : "";
           }
         }
 
@@ -2532,8 +2536,10 @@
           const useItemized = incomeCalculationMode === "separate" && spouseMethod === "itemized";
           spouseYearlyTaxDeductionsField.disabled = !useItemized;
           spouseYearlyTaxDeductionsField.closest(".field-group")?.classList.toggle("is-disabled", !useItemized);
-          if (useItemized && parseCurrencyLikeNumber(spouseYearlyTaxDeductionsField.value) < spouseStandardAmount) {
-            spouseYearlyTaxDeductionsField.value = formatNumberWithCommas(spouseStandardAmount);
+          if (!useItemized) {
+            spouseYearlyTaxDeductionsField.value = spouseStandardAmount
+              ? formatNumberWithCommas(spouseStandardAmount)
+              : "";
           }
         }
 
@@ -3479,6 +3485,32 @@
         }
       }
 
+      function syncTaxContextBlockOutput() {
+        const createTaxContextBlockOutput = window.LensApp?.lensAnalysis?.createTaxContextBlockOutput;
+        const upsertRuntimeBlockOutput = window.LensApp?.lensAnalysis?.upsertRuntimeBlockOutput;
+        const refreshLensIncomeDebugPanel = window.LensApp?.lensAnalysisDev?.refreshLensIncomeDebugPanel;
+        if (typeof createTaxContextBlockOutput !== "function" || typeof upsertRuntimeBlockOutput !== "function") {
+          return;
+        }
+
+        const runtimeNamespace = window.LensApp.lensAnalysisRuntime || (window.LensApp.lensAnalysisRuntime = {});
+        const primaryDeductionMethod = getDeductionMethodValue(deductionMethodField, "standard");
+        const spouseDeductionMethod = getDeductionMethodValue(spouseDeductionMethodField, "standard");
+        const blockOutput = createTaxContextBlockOutput({
+          linkedMaritalStatusDisplay: getLensBlockSourceFieldValue(linkedMaritalStatusField),
+          filingStatus: getLensBlockSourceFieldValue(filingStatusField),
+          stateOfResidence: getLensBlockSourceFieldValue(stateOfResidenceField),
+          deductionMethod: primaryDeductionMethod,
+          spouseDeductionMethod,
+          yearlyTaxDeductions: primaryDeductionMethod === "itemized" ? getLensBlockSourceFieldValue(yearlyTaxDeductionsField) : null,
+          spouseYearlyTaxDeductions: spouseDeductionMethod === "itemized" ? getLensBlockSourceFieldValue(spouseYearlyTaxDeductionsField) : null
+        });
+        upsertRuntimeBlockOutput(runtimeNamespace, blockOutput);
+        if (typeof refreshLensIncomeDebugPanel === "function") {
+          refreshLensIncomeDebugPanel(runtimeNamespace);
+        }
+      }
+
       function syncSurvivorIncomeScenarioState() {
         syncSurvivorIncomeScenarioFields();
         syncSurvivorScenarioBlockOutput();
@@ -4249,6 +4281,7 @@
         syncPayrollTaxFields();
         syncNetAnnualIncomeFields();
         syncSurvivorIncomeScenarioState();
+        syncTaxContextBlockOutput();
       }
 
       function syncStateOfResidenceDisplay() {
@@ -4436,6 +4469,15 @@
             }
             setNetIncomeActionLabel(spouseNetAnnualIncomeField, spouseNetIncomeAction);
           }
+          if (totalDebtPayoffNeedField && !(totalDebtPayoffNeedField instanceof RadioNodeList)) {
+            if (saved.totalDebtPayoffNeedManualOverride) {
+              totalDebtPayoffNeedField.dataset.manualOverride = "true";
+              totalDebtPayoffNeedField.dataset.manualValue = String(parseCurrencyLikeNumber(saved.totalDebtPayoffNeed));
+            } else {
+              clearNetIncomeManualOverride(totalDebtPayoffNeedField, totalDebtPayoffNeedAction);
+            }
+            setNetIncomeActionLabel(totalDebtPayoffNeedField, totalDebtPayoffNeedAction);
+          }
           clampCostToFundPercent();
           syncSameEducationFundingToggleFromField();
           syncLinkedMaritalStatus();
@@ -4509,6 +4551,11 @@
         if (maintenanceRecommendationField && !(maintenanceRecommendationField instanceof RadioNodeList) && maintenanceRecommendationField.dataset.manualOverride === "true") {
           draft.monthlyMaintenanceRecommendation = parseCurrencyLikeNumber(maintenanceRecommendationField.dataset.manualValue);
           draft.monthlyMaintenanceRecommendationManualOverride = true;
+        }
+
+        if (totalDebtPayoffNeedField && !(totalDebtPayoffNeedField instanceof RadioNodeList) && totalDebtPayoffNeedField.dataset.manualOverride === "true") {
+          draft.totalDebtPayoffNeed = parseCurrencyLikeNumber(totalDebtPayoffNeedField.dataset.manualValue);
+          draft.totalDebtPayoffNeedManualOverride = true;
         }
 
         return draft;

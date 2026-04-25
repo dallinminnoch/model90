@@ -270,9 +270,11 @@
         taxContext: {
           maritalStatus: null,
           filingStatus: null,
-          residenceStateCode: null,
+          stateOfResidence: null,
           primaryDeductionMethod: null,
-          spouseOrPartnerDeductionMethod: null
+          spouseDeductionMethod: null,
+          primaryItemizedDeductionAmount: null,
+          spouseItemizedDeductionAmount: null
         },
         economicAssumptions: {
           inflationRatePercent: null,

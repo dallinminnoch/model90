@@ -82,12 +82,27 @@
     }
   });
 
+  function createTotalDebtPayoffNeedMetadata(outputValue, rawField, canonicalDestination, options) {
+    const normalizedOptions = options && typeof options === "object" ? options : {};
+    const manualOverride = normalizedOptions.manualOverride === true;
+
+    return lensAnalysis.createOutputMetadata({
+      sourceType: outputValue == null
+        ? "missing"
+        : (manualOverride ? "user-input" : "calculated"),
+      confidence: outputValue == null
+        ? "unknown"
+        : (manualOverride ? "reported" : "calculated_from_reported_inputs"),
+      rawField,
+      canonicalDestination
+    });
+  }
+
   function createDebtPayoffBlockOutput(sourceData) {
     const data = sourceData && typeof sourceData === "object" ? sourceData : {};
     const toOptionalNumber = lensAnalysis.toOptionalNumber;
     const createBlockOutput = lensAnalysis.createBlockOutput;
     const createReportedNumericOutputMetadata = lensAnalysis.createReportedNumericOutputMetadata;
-    const createCalculatedNumericOutputMetadata = lensAnalysis.createCalculatedNumericOutputMetadata;
 
     const outputs = {
       mortgageBalance: toOptionalNumber(data[DEBT_PAYOFF_BLOCK_SOURCE_FIELDS.mortgageBalance]),
@@ -153,7 +168,7 @@
           DEBT_PAYOFF_BLOCK_SOURCE_FIELDS.otherDebtPayoffNeeds,
           DEBT_PAYOFF_BLOCK_OUTPUT_CONTRACT.outputs.otherDebtPayoffNeeds.canonicalDestination
         ),
-        totalDebtPayoffNeed: createCalculatedNumericOutputMetadata(
+        totalDebtPayoffNeed: createTotalDebtPayoffNeedMetadata(
           outputs.totalDebtPayoffNeed,
           DEBT_PAYOFF_BLOCK_SOURCE_FIELDS.totalDebtPayoffNeed,
           DEBT_PAYOFF_BLOCK_OUTPUT_CONTRACT.outputs.totalDebtPayoffNeed.canonicalDestination,

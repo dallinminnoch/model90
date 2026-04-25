@@ -21,6 +21,7 @@
   const EXISTING_COVERAGE_BLOCK_ID = lensAnalysis.EXISTING_COVERAGE_BLOCK_ID || "existing-coverage";
   const OFFSET_ASSETS_BLOCK_ID = lensAnalysis.OFFSET_ASSETS_BLOCK_ID || "offset-assets";
   const SURVIVOR_SCENARIO_BLOCK_ID = lensAnalysis.SURVIVOR_SCENARIO_BLOCK_ID || "survivor-scenario";
+  const TAX_CONTEXT_BLOCK_ID = lensAnalysis.TAX_CONTEXT_BLOCK_ID || "tax-context";
 
   const HOUSING_RUNTIME_ONLY_DEBUG_FIELDS = Object.freeze([
     Object.freeze({
@@ -98,6 +99,37 @@
     Object.freeze({
       sourceOutputKey: "incomeGrowthRatePercent",
       destinationField: "incomeGrowthRatePercent"
+    })
+  ]);
+
+  const TAX_CONTEXT_DEBUG_FIELDS = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "maritalStatus",
+      destinationField: "maritalStatus"
+    }),
+    Object.freeze({
+      sourceOutputKey: "filingStatus",
+      destinationField: "filingStatus"
+    }),
+    Object.freeze({
+      sourceOutputKey: "stateOfResidence",
+      destinationField: "stateOfResidence"
+    }),
+    Object.freeze({
+      sourceOutputKey: "primaryDeductionMethod",
+      destinationField: "primaryDeductionMethod"
+    }),
+    Object.freeze({
+      sourceOutputKey: "spouseDeductionMethod",
+      destinationField: "spouseDeductionMethod"
+    }),
+    Object.freeze({
+      sourceOutputKey: "primaryItemizedDeductionAmount",
+      destinationField: "primaryItemizedDeductionAmount"
+    }),
+    Object.freeze({
+      sourceOutputKey: "spouseItemizedDeductionAmount",
+      destinationField: "spouseItemizedDeductionAmount"
     })
   ]);
 
@@ -618,6 +650,15 @@
     });
 
     appendBucketInspectionRows(rows, {
+      blockOutput: safeBlockOutputs[TAX_CONTEXT_BLOCK_ID],
+      normalizedBucket: lensModel && lensModel.assumptions && lensModel.assumptions.taxContext,
+      normalizationMetadata: lensModel && lensModel.normalizationMetadata && lensModel.normalizationMetadata.assumptions && lensModel.normalizationMetadata.assumptions.taxContext,
+      runtimeSection: "Runtime tax-context",
+      normalizedSection: "Normalized assumptions.taxContext",
+      fields: TAX_CONTEXT_DEBUG_FIELDS
+    });
+
+    appendBucketInspectionRows(rows, {
       blockOutput: safeBlockOutputs[DEBT_PAYOFF_BLOCK_ID],
       normalizedBucket: lensModel && lensModel.debtPayoff,
       normalizationMetadata: lensModel && lensModel.normalizationMetadata && lensModel.normalizationMetadata.debtPayoff,
@@ -726,7 +767,7 @@
 
   function createSummaryText(blockOutputs, lensModel) {
     const safeBlockOutputs = blockOutputs && typeof blockOutputs === "object" ? blockOutputs : {};
-    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID, NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID, EDUCATION_SUPPORT_BLOCK_ID, FINAL_EXPENSES_BLOCK_ID, TRANSITION_NEEDS_BLOCK_ID, EXISTING_COVERAGE_BLOCK_ID, OFFSET_ASSETS_BLOCK_ID, SURVIVOR_SCENARIO_BLOCK_ID].filter(function (blockId) {
+    const availableBlocks = [NET_INCOME_BLOCK_ID, TAX_CONTEXT_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID, NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID, EDUCATION_SUPPORT_BLOCK_ID, FINAL_EXPENSES_BLOCK_ID, TRANSITION_NEEDS_BLOCK_ID, EXISTING_COVERAGE_BLOCK_ID, OFFSET_ASSETS_BLOCK_ID, SURVIVOR_SCENARIO_BLOCK_ID].filter(function (blockId) {
       return safeBlockOutputs[blockId];
     });
     return "Runtime blocks: " + (availableBlocks.length ? availableBlocks.join(", ") : "none");

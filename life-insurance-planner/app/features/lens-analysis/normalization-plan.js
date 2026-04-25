@@ -198,14 +198,16 @@
       ],
 
       assumptions: [
-        { rawField: "maritalStatus", canonicalField: "assumptions.taxContext.maritalStatus", availability: "rootClientProfile", note: "Current source of marital-status truth for the linked flow." },
+        { rawField: "linkedMaritalStatusDisplay", canonicalField: "assumptions.taxContext.maritalStatus", availability: "activeLinkedPmi-linkedProfileDisplay", note: "Current visible marital-status context hydrated from the linked profile." },
         { rawField: "filingStatus", canonicalField: "assumptions.taxContext.filingStatus", availability: "activeLinkedPmi", note: "Current tax filing-status field." },
-        { rawField: "stateOfResidence", canonicalField: "assumptions.taxContext.residenceStateCode", availability: "activeLinkedPmi", note: "Current tax state field, often hydrated from root profile state." },
+        { rawField: "stateOfResidence", canonicalField: "assumptions.taxContext.stateOfResidence", availability: "activeLinkedPmi", note: "Current tax state field, often hydrated from root profile state." },
         { rawField: "deductionMethod", canonicalField: "assumptions.taxContext.primaryDeductionMethod", availability: "activeLinkedPmi", note: "Current primary deduction-method field." },
-        { rawField: "spouseDeductionMethod", canonicalField: "assumptions.taxContext.spouseOrPartnerDeductionMethod", availability: "activeLinkedPmi", note: "Current spouse-or-partner deduction-method field." },
-        { rawField: "inflationRateAssumption", canonicalField: "assumptions.economicAssumptions.inflationRatePercent", availability: "activeLinkedPmi", note: "Current economic assumption field." },
-        { rawField: "discountRate", canonicalField: "assumptions.economicAssumptions.discountRatePercent", availability: "activeLinkedPmi", note: "Current economic assumption field." },
-        { rawField: "investmentReturnAssumption", canonicalField: "assumptions.economicAssumptions.investmentReturnRatePercent", availability: "activeLinkedPmi", note: "Current economic assumption field." },
+        { rawField: "spouseDeductionMethod", canonicalField: "assumptions.taxContext.spouseDeductionMethod", availability: "activeLinkedPmi", note: "Current spouse-or-partner deduction-method field." },
+        { rawField: "yearlyTaxDeductions", canonicalField: "assumptions.taxContext.primaryItemizedDeductionAmount", availability: "activeLinkedPmi", note: "Current primary itemized deduction input. Standard deduction display values remain UI-only." },
+        { rawField: "spouseYearlyTaxDeductions", canonicalField: "assumptions.taxContext.spouseItemizedDeductionAmount", availability: "activeLinkedPmi", note: "Current spouse-or-partner itemized deduction input. Standard deduction display values remain UI-only." },
+        { rawField: "inflationRateAssumption", canonicalField: "assumptions.economicAssumptions.inflationRatePercent", availability: "removedFromActivePmi", note: "Schema placeholder only. Active PMI no longer shows this field." },
+        { rawField: "discountRate", canonicalField: "assumptions.economicAssumptions.discountRatePercent", availability: "removedFromActivePmi", note: "Schema placeholder only. Active PMI no longer shows this field." },
+        { rawField: "investmentReturnAssumption", canonicalField: "assumptions.economicAssumptions.investmentReturnRatePercent", availability: "removedFromActivePmi", note: "Schema placeholder only. Active PMI no longer shows this field." },
         { rawField: "incomeGrowthRate", canonicalField: "assumptions.economicAssumptions.incomeGrowthRatePercent", availability: "activeLinkedPmi", note: "Current economic assumption field." }
       ],
 
