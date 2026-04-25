@@ -1112,6 +1112,7 @@
   <script src="../app/features/lens-analysis/dev-income-debug.js"></script>
   <script src="../app.js"></script>
   <script src="../pmi-tax-utils.js"></script>
+  <script src="../app/features/lens-analysis/helpers/income-tax-calculations.js"></script>
   <script src="../pmi-calculator.js"></script>
   <script>
     (function () {
@@ -1776,7 +1777,11 @@
         { label: "2,500-3,499 sq ft", minSqFt: "2500", maxSqFt: "3499", age0To10: "215", age11To25: "295", age26To40: "395", age41Plus: "520" },
         { label: "3,500+ sq ft", minSqFt: "3500", maxSqFt: "", age0To10: "285", age11To25: "375", age26To40: "490", age41Plus: "635" }
       ];
-      const defaultFederalRowsByStatus = {
+      const sharedIncomeTaxCalculations = window.LensApp?.lensAnalysis?.incomeTaxCalculations || {};
+      const sharedDefaultPmiTaxConfig = typeof sharedIncomeTaxCalculations.createDefaultPmiTaxConfig === "function"
+        ? sharedIncomeTaxCalculations.createDefaultPmiTaxConfig({ taxUtils: window.LensPmiTaxUtils || null })
+        : null;
+      const defaultFederalRowsByStatus = sharedDefaultPmiTaxConfig?.federalTaxBracketsByStatus || {
         "Single": [
           { rate: "10%", minIncome: "0", maxIncome: "12400" },
           { rate: "12%", minIncome: "12401", maxIncome: "50400" },
@@ -1832,20 +1837,20 @@
         { rate: "35%", minIncome: "243726", maxIncome: "609350" },
         { rate: "37%", minIncome: "609351", maxIncome: "" }
       ];
-      const defaultStandardDeductions = {
+      const defaultStandardDeductions = sharedDefaultPmiTaxConfig?.standardDeductions || {
         "Single": "16100",
         "Married Filing Jointly": "32200",
         "Married Filing Separately": "16100",
         "Head of Household": "24150",
         "Qualifying Surviving Spouse": "32200"
       };
-      const defaultStateTaxRows = [
+      const defaultStateTaxRows = sharedDefaultPmiTaxConfig?.defaultStateTaxRows || [
         { rate: "5%", minIncome: "0", maxIncome: "50000" },
         { rate: "6.5%", minIncome: "50001", maxIncome: "100000" },
         { rate: "8%", minIncome: "100001", maxIncome: "" }
       ];
-      const noIncomeTaxStates = new Set(["AK", "FL", "NV", "NH", "SD", "TN", "TX", "WA", "WY"]);
-      const defaultPayrollRows = [
+      const noIncomeTaxStates = new Set(sharedDefaultPmiTaxConfig?.noIncomeTaxStates || ["AK", "FL", "NV", "NH", "SD", "TN", "TX", "WA", "WY"]);
+      const defaultPayrollRows = sharedDefaultPmiTaxConfig?.payrollRows || [
         { name: "Social Security", rate: "6.2%", wageBase: "176100" },
         { name: "Medicare", rate: "1.45%", wageBase: "" },
         {
@@ -2603,6 +2608,68 @@
         });
       }
 
+      function createSharedPmiTaxConfig() {
+        if (typeof sharedIncomeTaxCalculations.createPmiTaxConfigFromStorage === "function") {
+          return sharedIncomeTaxCalculations.createPmiTaxConfigFromStorage({
+            storage: window.localStorage,
+            taxUtils: window.LensPmiTaxUtils || null
+          });
+        }
+
+        return sharedDefaultPmiTaxConfig;
+      }
+
+      function createSharedPmiTaxProfileContext() {
+        return {
+          maritalStatus: String(linkedMaritalStatusField?.value || "").trim(),
+          state: String(stateOfResidenceField?.value || "").trim()
+        };
+      }
+
+      function createSharedPmiTaxSourceData() {
+        const primaryDeductionMethod = getDeductionMethodValue(deductionMethodField, "standard");
+        const spouseDeductionMethod = getDeductionMethodValue(spouseDeductionMethodField, "standard");
+
+        return {
+          grossAnnualIncome: grossAnnualIncomeField?.value,
+          spouseIncome: spouseIncomeField?.value,
+          filingStatus: filingStatusField?.value,
+          stateOfResidence: stateOfResidenceField?.value,
+          deductionMethod: primaryDeductionMethod,
+          spouseDeductionMethod,
+          yearlyTaxDeductions: primaryDeductionMethod === "itemized" ? yearlyTaxDeductionsField?.value : null,
+          spouseYearlyTaxDeductions: spouseDeductionMethod === "itemized" ? spouseYearlyTaxDeductionsField?.value : null
+        };
+      }
+
+      function calculateSharedCurrentNetIncomeValues() {
+        if (typeof sharedIncomeTaxCalculations.calculateCurrentNetIncomeValues !== "function") {
+          return null;
+        }
+
+        return sharedIncomeTaxCalculations.calculateCurrentNetIncomeValues({
+          sourceData: createSharedPmiTaxSourceData(),
+          profileRecord: createSharedPmiTaxProfileContext(),
+          taxConfig: createSharedPmiTaxConfig()
+        });
+      }
+
+      function calculateSharedSurvivorNetAnnualIncome(grossIncome) {
+        if (grossIncome == null || typeof sharedIncomeTaxCalculations.calculateSurvivorNetIncome !== "function") {
+          return null;
+        }
+
+        const result = sharedIncomeTaxCalculations.calculateSurvivorNetIncome({
+          sourceData: createSharedPmiTaxSourceData(),
+          profileRecord: createSharedPmiTaxProfileContext(),
+          grossIncome,
+          filingStatus: survivorNetIncomeDefaultFilingStatus,
+          taxConfig: createSharedPmiTaxConfig()
+        });
+
+        return result?.netAnnualIncome ?? null;
+      }
+
       function normalizeMaintenanceConfigRow(row) {
         if (!row || typeof row !== "object") {
           return null;
@@ -3310,45 +3377,30 @@
       }
 
       function syncNetAnnualIncomeFields() {
-        const federalTaxes = getPrimaryAndSpouseFederalTaxAmounts();
-        const stateTaxes = getPrimaryAndSpouseStateTaxAmounts();
-        const payrollTaxes = getPrimaryAndSpousePayrollTaxAmounts();
+        const netIncomeValues = calculateSharedCurrentNetIncomeValues();
         const incomeCalculationMode = getIncomeCalculationMode();
         const primaryGrossIncome = parseCurrencyLikeNumber(grossAnnualIncomeField?.value);
         const spouseGrossIncome = parseCurrencyLikeNumber(spouseIncomeField?.value);
-        const combinedNetIncome = window.LensPmiTaxUtils.getNetIncome(
-          primaryGrossIncome + spouseGrossIncome,
-          federalTaxes.primary + federalTaxes.spouse,
-          stateTaxes.primary + stateTaxes.spouse,
-          payrollTaxes.primary + payrollTaxes.spouse
-        );
 
         if (netAnnualIncomeField && !(netAnnualIncomeField instanceof RadioNodeList)) {
-          const primaryNetIncome = incomeCalculationMode === "joint"
-            ? combinedNetIncome
-            : window.LensPmiTaxUtils.getNetIncome(
-                primaryGrossIncome,
-                federalTaxes.primary,
-                stateTaxes.primary,
-                payrollTaxes.primary
-              );
-          applyNetIncomeValue(netAnnualIncomeField, primaryNetIncomeAction, primaryNetIncome);
+          const primaryNetIncome = netIncomeValues?.primaryNetAnnualIncome ?? null;
+          applyNetIncomeValue(
+            netAnnualIncomeField,
+            primaryNetIncomeAction,
+            primaryNetIncome,
+            { blank: primaryNetIncome == null }
+          );
         }
 
         if (spouseNetAnnualIncomeField && !(spouseNetAnnualIncomeField instanceof RadioNodeList)) {
           const spouseNetIncome = incomeCalculationMode === "separate"
-            ? window.LensPmiTaxUtils.getNetIncome(
-                spouseGrossIncome,
-                federalTaxes.spouse,
-                stateTaxes.spouse,
-                payrollTaxes.spouse
-              )
+            ? netIncomeValues?.spouseNetAnnualIncome ?? null
             : 0;
           applyNetIncomeValue(
             spouseNetAnnualIncomeField,
             spouseNetIncomeAction,
             spouseNetIncome,
-            { blank: incomeCalculationMode !== "separate" }
+            { blank: incomeCalculationMode !== "separate" || spouseNetIncome == null }
           );
         }
 
@@ -3460,65 +3512,8 @@
         return Math.max(0, spouseGrossIncome * (1 - (reductionPercent / 100)));
       }
 
-      function getSurvivorStandardDeductionAmount(filingStatus) {
-        const config = readStoredStandardDeductionConfig();
-        return parseCurrencyLikeNumber(config[filingStatus] || defaultStandardDeductions[filingStatus] || "0");
-      }
-
-      function getSurvivorFederalTaxAmount(taxableIncome, filingStatus) {
-        return window.LensPmiTaxUtils.getProgressiveTaxAmount(
-          taxableIncome,
-          getFederalTaxBracketRowsForStatus(filingStatus),
-          parseCurrencyLikeNumber,
-          parsePercentLikeNumber
-        );
-      }
-
-      function getSurvivorStateTaxAmount(taxableIncome, filingStatus) {
-        const selectedState = String(stateOfResidenceField?.value || "").trim().toUpperCase();
-        const stateConfig = getStateTaxConfigForState(selectedState, filingStatus);
-        if (!stateConfig.hasIncomeTax) {
-          return 0;
-        }
-
-        if (stateConfig.mode === "flat") {
-          return taxableIncome * parsePercentLikeNumber(stateConfig.flatRate);
-        }
-
-        return window.LensPmiTaxUtils.getProgressiveTaxAmount(
-          taxableIncome,
-          Array.isArray(stateConfig.rows) ? stateConfig.rows : [],
-          parseCurrencyLikeNumber,
-          parsePercentLikeNumber
-        );
-      }
-
-      function getSurvivorPayrollTaxAmount(grossIncome, filingStatus) {
-        return window.LensPmiTaxUtils.getPayrollTaxAmounts({
-          filingStatus,
-          primaryEarnedIncome: grossIncome,
-          spouseEarnedIncome: 0,
-          primaryTaxableIncome: grossIncome,
-          spouseTaxableIncome: 0,
-          payrollRows: readStoredPayrollConfig(),
-          parseCurrencyLikeNumber,
-          parsePercentLikeNumber,
-          getDefaultAdditionalMedicareThresholds
-        }).primary;
-      }
-
       function calculateSurvivorNetAnnualIncome(grossIncome) {
-        if (grossIncome == null) {
-          return null;
-        }
-
-        const filingStatus = survivorNetIncomeDefaultFilingStatus;
-        const standardDeduction = getSurvivorStandardDeductionAmount(filingStatus);
-        const taxableIncome = Math.max(0, grossIncome - standardDeduction);
-        const federalTax = getSurvivorFederalTaxAmount(taxableIncome, filingStatus);
-        const stateTax = getSurvivorStateTaxAmount(taxableIncome, filingStatus);
-        const payrollTax = getSurvivorPayrollTaxAmount(grossIncome, filingStatus);
-        return window.LensPmiTaxUtils.getNetIncome(grossIncome, federalTax, stateTax, payrollTax);
+        return calculateSharedSurvivorNetAnnualIncome(grossIncome);
       }
 
       function syncSurvivorIncomeScenarioFields() {

@@ -9,13 +9,6 @@
   // no coverage-gap math, and no legacy analysis bucket dependency.
 
   const SURVIVOR_NET_INCOME_TAX_BASIS = "Qualifying Surviving Spouse";
-  const DEFAULT_ADDITIONAL_MEDICARE_THRESHOLDS = Object.freeze({
-    "Single": "200000",
-    "Married Filing Jointly": "250000",
-    "Married Filing Separately": "125000",
-    "Head of Household": "200000",
-    "Qualifying Surviving Spouse": "250000"
-  });
 
   function createWarning(code, message, details) {
     return {
@@ -69,15 +62,6 @@
 
     const parsed = Number(normalized);
     return Number.isFinite(parsed) ? parsed : null;
-  }
-
-  function parseCurrencyLikeNumber(value) {
-    const optionalValue = toOptionalNumber(value);
-    return optionalValue == null ? 0 : optionalValue;
-  }
-
-  function parsePercentLikeNumber(value) {
-    return parseCurrencyLikeNumber(value) / 100;
   }
 
   function getFirstPresent(source, fieldNames) {
@@ -236,308 +220,85 @@
     return "single";
   }
 
-  function getTaxUtils(input) {
-    const taxConfig = input && typeof input === "object" ? input.taxConfig : null;
-    return taxConfig?.taxUtils || global.LensPmiTaxUtils || {};
-  }
-
-  function getStandardDeductionConfig(taxConfig) {
-    return taxConfig?.standardDeductions
-      || taxConfig?.standardDeductionConfig
-      || null;
-  }
-
-  function getFederalBracketRows(taxConfig, filingStatus) {
-    const byStatus = taxConfig?.federalTaxBracketsByStatus
-      || taxConfig?.federalTaxBrackets
-      || taxConfig?.federalBracketsByStatus
-      || null;
-    const rows = byStatus && byStatus[filingStatus];
-    return Array.isArray(rows) ? rows : null;
-  }
-
-  function getStateTaxConfig(taxConfig, stateCode, filingStatus) {
-    const byState = taxConfig?.stateTaxConfigsByState
-      || taxConfig?.stateTaxBracketsByState
-      || taxConfig?.stateTaxConfigByState
-      || null;
-    const stateConfig = byState && byState[stateCode];
-
-    if (!stateConfig || typeof stateConfig !== "object") {
-      return null;
-    }
-
-    const hasIncomeTax = stateConfig.hasIncomeTax === false ? false : true;
-    const mode = normalizeString(stateConfig.mode) === "flat" ? "flat" : "brackets";
-    const filings = stateConfig.filings && typeof stateConfig.filings === "object"
-      ? stateConfig.filings
-      : null;
-    const rows = filings && Array.isArray(filings[filingStatus])
-      ? filings[filingStatus]
-      : (Array.isArray(stateConfig.rows) ? stateConfig.rows : []);
-
-    return {
-      hasIncomeTax,
-      mode,
-      flatRate: normalizeString(stateConfig.flatRate),
-      rows: hasIncomeTax ? rows : []
-    };
-  }
-
-  function getDefaultAdditionalMedicareThresholds(taxConfig) {
-    return function () {
-      return {
-        ...DEFAULT_ADDITIONAL_MEDICARE_THRESHOLDS,
-        ...(taxConfig?.defaultAdditionalMedicareThresholds || {})
-      };
-    };
-  }
-
-  function canCalculateNetIncome(input, filingStatus, warnings, context) {
-    const taxConfig = input?.taxConfig || null;
-    const taxUtils = getTaxUtils(input);
-    const standardDeductions = getStandardDeductionConfig(taxConfig);
-    const federalRows = getFederalBracketRows(taxConfig, filingStatus);
-    const payrollRows = Array.isArray(taxConfig?.payrollRows) ? taxConfig.payrollRows : null;
-
-    const missing = [];
-    if (typeof taxUtils.getStandardDeductionSplit !== "function") missing.push("getStandardDeductionSplit");
-    if (typeof taxUtils.getProgressiveTaxAmount !== "function") missing.push("getProgressiveTaxAmount");
-    if (typeof taxUtils.getProgressiveBracketTaxAmounts !== "function") missing.push("getProgressiveBracketTaxAmounts");
-    if (typeof taxUtils.getBracketTaxAmounts !== "function") missing.push("getBracketTaxAmounts");
-    if (typeof taxUtils.getPayrollTaxAmounts !== "function") missing.push("getPayrollTaxAmounts");
-    if (typeof taxUtils.getNetIncome !== "function") missing.push("getNetIncome");
-    if (!standardDeductions) missing.push("standardDeductions");
-    if (!Array.isArray(federalRows)) missing.push("federalTaxBracketsByStatus[" + filingStatus + "]");
-    if (!payrollRows) missing.push("payrollRows");
-
-    if (missing.length) {
-      addWarning(
-        warnings,
-        "tax-recomputation-unavailable",
-        "Net-income recomputation was skipped because reusable tax helpers/config were incomplete.",
-        {
-          context,
-          missing
-        }
-      );
-      return false;
-    }
-
-    return true;
-  }
-
   function getDeductionMethodValue(value) {
     return normalizeString(value).toLowerCase() === "itemized" ? "itemized" : "standard";
   }
 
-  function getStandardDeductionAmount(taxConfig, filingStatus) {
-    const standardDeductions = getStandardDeductionConfig(taxConfig);
-    return parseCurrencyLikeNumber(standardDeductions?.[filingStatus]);
+  function getIncomeTaxCalculations() {
+    return lensAnalysis.incomeTaxCalculations || {};
   }
 
-  function getEffectiveDeductionValues(sourceData, profileRecord, taxConfig, taxUtils) {
-    const filingStatus = normalizeString(sourceData.filingStatus);
-    const incomeCalculationMode = getIncomeCalculationMode(sourceData, profileRecord);
-    const primaryGrossIncome = parseCurrencyLikeNumber(sourceData.grossAnnualIncome);
-    const spouseGrossIncome = parseCurrencyLikeNumber(sourceData.spouseIncome);
-    const primaryMethod = getDeductionMethodValue(sourceData.deductionMethod);
-    const spouseMethod = getDeductionMethodValue(sourceData.spouseDeductionMethod);
-    const standardDeductionAmount = getStandardDeductionAmount(taxConfig, filingStatus);
-
-    if (incomeCalculationMode === "joint") {
-      return {
-        primary: primaryMethod === "itemized"
-          ? parseCurrencyLikeNumber(sourceData.yearlyTaxDeductions)
-          : standardDeductionAmount,
-        spouse: 0
-      };
+  function resolveTaxConfig(input) {
+    const taxConfig = input && typeof input === "object" ? input.taxConfig : null;
+    if (isPlainObject(taxConfig)) {
+      return taxConfig;
     }
 
-    const split = taxUtils.getStandardDeductionSplit({
-      filingStatus,
-      deductionAmount: standardDeductionAmount,
-      primaryIncome: primaryGrossIncome,
-      spouseIncome: spouseGrossIncome
-    });
+    const incomeTaxCalculations = getIncomeTaxCalculations();
+    if (typeof incomeTaxCalculations.createDefaultPmiTaxConfig === "function") {
+      return incomeTaxCalculations.createDefaultPmiTaxConfig({
+        taxUtils: global.LensPmiTaxUtils || null
+      });
+    }
 
-    return {
-      primary: primaryMethod === "itemized"
-        ? parseCurrencyLikeNumber(sourceData.yearlyTaxDeductions)
-        : split.primary,
-      spouse: spouseMethod === "itemized"
-        ? parseCurrencyLikeNumber(sourceData.spouseYearlyTaxDeductions)
-        : split.spouse
-    };
+    return null;
   }
 
-  function getTaxableIncomeValues(sourceData, profileRecord, taxConfig, taxUtils) {
-    const incomeCalculationMode = getIncomeCalculationMode(sourceData, profileRecord);
-    const primaryGrossIncome = parseCurrencyLikeNumber(sourceData.grossAnnualIncome);
-    const spouseGrossIncome = parseCurrencyLikeNumber(sourceData.spouseIncome);
-    const deductions = getEffectiveDeductionValues(sourceData, profileRecord, taxConfig, taxUtils);
-
-    if (incomeCalculationMode === "joint") {
-      const combinedGrossIncome = primaryGrossIncome + spouseGrossIncome;
-      const combinedTaxableIncome = Math.max(0, combinedGrossIncome - deductions.primary);
-
-      if (!combinedGrossIncome) {
-        return {
-          incomeCalculationMode,
-          combined: combinedTaxableIncome,
-          primary: combinedTaxableIncome,
-          spouse: 0
-        };
+  function pushResultWarnings(warnings, result) {
+    const resultWarnings = Array.isArray(result?.warnings) ? result.warnings : [];
+    resultWarnings.forEach(function (warning) {
+      if (warning && typeof warning === "object") {
+        warnings.push(warning);
       }
-
-      return {
-        incomeCalculationMode,
-        combined: combinedTaxableIncome,
-        primary: combinedTaxableIncome * (primaryGrossIncome / combinedGrossIncome),
-        spouse: combinedTaxableIncome * (spouseGrossIncome / combinedGrossIncome)
-      };
-    }
-
-    const primaryTaxableIncome = Math.max(0, primaryGrossIncome - deductions.primary);
-    const spouseTaxableIncome = Math.max(0, spouseGrossIncome - deductions.spouse);
-    return {
-      incomeCalculationMode,
-      combined: primaryTaxableIncome + spouseTaxableIncome,
-      primary: primaryTaxableIncome,
-      spouse: spouseTaxableIncome
-    };
+    });
   }
 
   function calculateCurrentNetIncomeValues(input, sourceData, profileRecord, warnings) {
-    const taxConfig = input?.taxConfig || {};
-    const taxUtils = getTaxUtils(input);
-    const filingStatus = normalizeString(sourceData.filingStatus);
-    const selectedState = getStateOfResidence(profileRecord, sourceData);
-
-    if (!filingStatus || !selectedState || !canCalculateNetIncome(input, filingStatus, warnings, "income-net-income")) {
-      return null;
-    }
-
-    const stateConfig = getStateTaxConfig(taxConfig, selectedState, filingStatus);
-    if (!stateConfig) {
+    const incomeTaxCalculations = getIncomeTaxCalculations();
+    if (typeof incomeTaxCalculations.calculateCurrentNetIncomeValues !== "function") {
       addWarning(
         warnings,
         "tax-recomputation-unavailable",
-        "Net-income recomputation was skipped because reusable state tax config was not supplied.",
-        { context: "income-net-income", stateOfResidence: selectedState }
+        "Net-income recomputation was skipped because the shared income-tax helper is unavailable.",
+        { context: "income-net-income" }
       );
       return null;
     }
 
-    const taxableIncomeValues = getTaxableIncomeValues(sourceData, profileRecord, taxConfig, taxUtils);
-    const primaryGrossIncome = parseCurrencyLikeNumber(sourceData.grossAnnualIncome);
-    const spouseGrossIncome = parseCurrencyLikeNumber(sourceData.spouseIncome);
-    const federalRows = getFederalBracketRows(taxConfig, filingStatus);
-    const federalTaxes = taxUtils.getProgressiveBracketTaxAmounts({
-      filingStatus,
-      primaryTaxableIncome: taxableIncomeValues.primary,
-      spouseTaxableIncome: taxableIncomeValues.spouse,
-      primaryBracketRows: federalRows,
-      spouseBracketRows: federalRows,
-      parseCurrencyLikeNumber,
-      parsePercentLikeNumber
+    const result = incomeTaxCalculations.calculateCurrentNetIncomeValues({
+      sourceData,
+      profileRecord,
+      taxConfig: resolveTaxConfig(input)
     });
-    const stateTaxes = stateConfig.mode === "flat"
-      ? taxUtils.getBracketTaxAmounts({
-          filingStatus,
-          primaryTaxableIncome: taxableIncomeValues.primary,
-          spouseTaxableIncome: taxableIncomeValues.spouse,
-          primaryRate: parsePercentLikeNumber(stateConfig.flatRate),
-          spouseRate: parsePercentLikeNumber(stateConfig.flatRate)
-        })
-      : taxUtils.getProgressiveBracketTaxAmounts({
-          filingStatus,
-          primaryTaxableIncome: taxableIncomeValues.primary,
-          spouseTaxableIncome: taxableIncomeValues.spouse,
-          primaryBracketRows: Array.isArray(stateConfig.rows) ? stateConfig.rows : [],
-          spouseBracketRows: Array.isArray(stateConfig.rows) ? stateConfig.rows : [],
-          parseCurrencyLikeNumber,
-          parsePercentLikeNumber
-        });
-    const payrollTaxes = taxUtils.getPayrollTaxAmounts({
-      filingStatus,
-      primaryEarnedIncome: primaryGrossIncome,
-      spouseEarnedIncome: spouseGrossIncome,
-      primaryTaxableIncome: primaryGrossIncome,
-      spouseTaxableIncome: spouseGrossIncome,
-      payrollRows: taxConfig.payrollRows,
-      parseCurrencyLikeNumber,
-      parsePercentLikeNumber,
-      getDefaultAdditionalMedicareThresholds: getDefaultAdditionalMedicareThresholds(taxConfig)
-    });
-    const incomeCalculationMode = taxableIncomeValues.incomeCalculationMode;
-    const combinedNetIncome = taxUtils.getNetIncome(
-      primaryGrossIncome + spouseGrossIncome,
-      federalTaxes.primary + federalTaxes.spouse,
-      stateTaxes.primary + stateTaxes.spouse,
-      payrollTaxes.primary + payrollTaxes.spouse
-    );
+    pushResultWarnings(warnings, result);
 
     return {
-      primary: incomeCalculationMode === "joint"
-        ? combinedNetIncome
-        : taxUtils.getNetIncome(primaryGrossIncome, federalTaxes.primary, stateTaxes.primary, payrollTaxes.primary),
-      spouse: incomeCalculationMode === "separate"
-        ? taxUtils.getNetIncome(spouseGrossIncome, federalTaxes.spouse, stateTaxes.spouse, payrollTaxes.spouse)
-        : null
+      primary: result?.primaryNetAnnualIncome,
+      spouse: result?.spouseNetAnnualIncome
     };
   }
 
   function calculateSurvivorNetIncome(input, sourceData, profileRecord, grossIncome, warnings) {
-    const taxConfig = input?.taxConfig || {};
-    const taxUtils = getTaxUtils(input);
-    const filingStatus = SURVIVOR_NET_INCOME_TAX_BASIS;
-    const selectedState = getStateOfResidence(profileRecord, sourceData);
-
-    if (!selectedState || !canCalculateNetIncome(input, filingStatus, warnings, "survivor-scenario")) {
-      return null;
-    }
-
-    const stateConfig = getStateTaxConfig(taxConfig, selectedState, filingStatus);
-    if (!stateConfig) {
+    const incomeTaxCalculations = getIncomeTaxCalculations();
+    if (typeof incomeTaxCalculations.calculateSurvivorNetIncome !== "function") {
       addWarning(
         warnings,
         "tax-recomputation-unavailable",
-        "Survivor net-income recomputation was skipped because reusable state tax config was not supplied.",
-        { context: "survivor-scenario", stateOfResidence: selectedState }
+        "Survivor net-income recomputation was skipped because the shared income-tax helper is unavailable.",
+        { context: "survivor-scenario" }
       );
       return null;
     }
 
-    const standardDeduction = getStandardDeductionAmount(taxConfig, filingStatus);
-    const taxableIncome = Math.max(0, grossIncome - standardDeduction);
-    const federalTax = taxUtils.getProgressiveTaxAmount(
-      taxableIncome,
-      getFederalBracketRows(taxConfig, filingStatus),
-      parseCurrencyLikeNumber,
-      parsePercentLikeNumber
-    );
-    const stateTax = stateConfig.mode === "flat"
-      ? taxableIncome * parsePercentLikeNumber(stateConfig.flatRate)
-      : taxUtils.getProgressiveTaxAmount(
-          taxableIncome,
-          Array.isArray(stateConfig.rows) ? stateConfig.rows : [],
-          parseCurrencyLikeNumber,
-          parsePercentLikeNumber
-        );
-    const payrollTax = taxUtils.getPayrollTaxAmounts({
-      filingStatus,
-      primaryEarnedIncome: grossIncome,
-      spouseEarnedIncome: 0,
-      primaryTaxableIncome: grossIncome,
-      spouseTaxableIncome: 0,
-      payrollRows: taxConfig.payrollRows,
-      parseCurrencyLikeNumber,
-      parsePercentLikeNumber,
-      getDefaultAdditionalMedicareThresholds: getDefaultAdditionalMedicareThresholds(taxConfig)
-    }).primary;
-
-    return taxUtils.getNetIncome(grossIncome, federalTax, stateTax, payrollTax);
+    const result = incomeTaxCalculations.calculateSurvivorNetIncome({
+      sourceData,
+      profileRecord,
+      grossIncome,
+      filingStatus: SURVIVOR_NET_INCOME_TAX_BASIS,
+      taxConfig: resolveTaxConfig(input)
+    });
+    pushResultWarnings(warnings, result);
+    return result?.netAnnualIncome ?? null;
   }
 
   function calculateTotalDebtPayoffNeed(sourceData) {

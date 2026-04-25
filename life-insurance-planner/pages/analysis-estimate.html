@@ -30,8 +30,10 @@
           </div>
           <div class="info-card">
             <span class="badge">Future Inputs</span>
+            <div id="step-three-dime-analysis" data-step-three-dime-analysis aria-live="polite">
+              <p class="card-copy">DIME analysis will appear here when linked protection modeling data is available.</p>
+            </div>
             <ul class="compact-list">
-              <li><span>DIME factors</span><strong>Reserved</strong></li>
               <li><span>Needs methodology</span><strong>Reserved</strong></li>
               <li><span>Income value lens</span><strong>Reserved</strong></li>
             </ul>
@@ -61,6 +63,7 @@
   <script src="../calculations.js"></script>
   <script src="../charts.js"></script>
   <script src="../site-header.js"></script>
+  <script src="../pmi-tax-utils.js"></script>
   <script src="../app/core/config.js"></script>
   <script src="../app/core/storage.js"></script>
   <script src="../app/core/i18n.js"></script>
@@ -68,6 +71,26 @@
   <script src="../app/features/client-records.js"></script>
   <script src="../app/features/client-intake.js"></script>
   <script src="../app/features/client-directory.js"></script>
+  <script src="../app/features/coverage/coverage-policy-utils.js"></script>
+  <script src="../app/features/lens-analysis/schema.js"></script>
+  <script src="../app/features/lens-analysis/block-outputs.js"></script>
+  <script src="../app/features/lens-analysis/helpers/income-tax-calculations.js"></script>
+  <script src="../app/features/lens-analysis/helpers/housing-support-calculations.js"></script>
+  <script src="../app/features/lens-analysis/blocks/existing-coverage.js"></script>
+  <script src="../app/features/lens-analysis/blocks/offset-assets.js"></script>
+  <script src="../app/features/lens-analysis/blocks/survivor-scenario.js"></script>
+  <script src="../app/features/lens-analysis/blocks/tax-context.js"></script>
+  <script src="../app/features/lens-analysis/blocks/income-net-income.js"></script>
+  <script src="../app/features/lens-analysis/blocks/debt-payoff.js"></script>
+  <script src="../app/features/lens-analysis/blocks/housing-ongoing-support.js"></script>
+  <script src="../app/features/lens-analysis/blocks/non-housing-ongoing-support.js"></script>
+  <script src="../app/features/lens-analysis/blocks/education-support.js"></script>
+  <script src="../app/features/lens-analysis/blocks/final-expenses.js"></script>
+  <script src="../app/features/lens-analysis/blocks/transition-needs.js"></script>
+  <script src="../app/features/lens-analysis/normalize-lens-model.js"></script>
+  <script src="../app/features/lens-analysis/lens-model-builder.js"></script>
+  <script src="../app/features/lens-analysis/analysis-methods.js"></script>
+  <script src="../app/features/lens-analysis/step-three-dime-display.js"></script>
   <script src="../app.js"></script>
   <script src="../lens-workflow.js"></script>
 </body>
