@@ -14,7 +14,7 @@
       annualIncomeFields: "Annual income fields end with `AnnualIncome` and stay separate for insured, spouseOrPartner, and survivor meanings.",
       monthlyExpenseFields: "Recurring support expense fields start with `monthly` to make periodicity explicit.",
       spouseVsSurvivor: "`spouseOrPartner*` means current partner context before loss; `survivor*` means post-loss survivor income assumptions.",
-      coverageVsOffsets: "Current coverage lives under `currentCoverage`; offset assets live under `offsetAsset*` structures."
+      coverageVsOffsets: "Profile policy coverage normalizes into `existingCoverage`; offset assets live under `offsetAsset*` structures. Legacy currentCoverage aliases remain compatibility notes only."
     },
 
     sources: {
@@ -146,6 +146,17 @@
         { rawField: "immediateLiquidityBuffer + desiredEmergencyFund + relocationReserve + otherTransitionNeeds", canonicalField: "transitionNeeds.totalTransitionNeed", availability: "activeLinkedPmiBlockOutput", note: "Neutral lump-sum survivor transition target; not offset-adjusted, inflation-adjusted, present-valued, or a recommendation." }
       ],
 
+      existingCoverage: [
+        { rawField: "coveragePolicies[]", canonicalField: "existingCoverage.profilePolicySummaries", availability: "rootClientProfile-existingCoverageProfile", note: "Compact safe summaries of linked profile coverage policy records for debug/future analysis, not raw full policy storage." },
+        { rawField: "coveragePolicies.length", canonicalField: "existingCoverage.profilePolicyCount", availability: "rootClientProfile-existingCoverageProfile", note: "Count of linked profile coverage policy records." },
+        { rawField: "coveragePolicies[] classified individual", canonicalField: "existingCoverage.individualProfileCoverageTotal", availability: "rootClientProfile-existingCoverageProfile", note: "Total face amount for profile policies classified as individual by coverage-policy-utils." },
+        { rawField: "coveragePolicies[] classified groupEmployer", canonicalField: "existingCoverage.groupProfileCoverageTotal", availability: "rootClientProfile-existingCoverageProfile", note: "Total face amount for profile policies classified as Group Life or group/employer by coverage-policy-utils." },
+        { rawField: "coveragePolicies[] classified unclassified", canonicalField: "existingCoverage.unclassifiedProfileCoverageTotal", availability: "rootClientProfile-existingCoverageProfile", note: "Total face amount for simple, blank, or unknown profile policy records." },
+        { rawField: "coveragePolicies[] totals", canonicalField: "existingCoverage.totalProfileCoverage", availability: "rootClientProfile-existingCoverageProfile", note: "Sum of individual, group/employer, and unclassified profile policy coverage. Does not use legacy scalar coverage fields." },
+        { rawField: "coveragePolicies[] source presence", canonicalField: "existingCoverage.coverageSource", availability: "rootClientProfile-existingCoverageProfile", note: "`profile-policies` when profile policy records exist, otherwise `none`." },
+        { rawField: "coveragePolicies[] totals", canonicalField: "existingCoverage.totalExistingCoverage", availability: "rootClientProfile-existingCoverageProfile", note: "Same as totalProfileCoverage for now. This is not offset math, a coverage gap, or a recommendation." }
+      ],
+
       offsetsAndCoverage: [
         { rawField: "cashSavings", canonicalField: "offsetsAndCoverage.offsetAssetValues.cashSavings", availability: "activeLinkedPmi", note: "Current liquid asset field." },
         { rawField: "emergencyFund", canonicalField: "offsetsAndCoverage.offsetAssetValues.emergencyFund", availability: "activeLinkedPmi", note: "Current emergency fund asset field. This is an asset/offset, not a survivor transition need." },
@@ -263,7 +274,7 @@
     openQuestions: [
       { topic: "Contribution vs replacement target", note: "The current canonical model preserves `householdIncomeContributionPercent`, but a separate explicit replacement-target percent may still be needed later." },
       { topic: "Tax context ownership", note: "Tax and filing facts are nested under `assumptions.taxContext` for now; if the model later grows a dedicated case-context bucket, these may move there." },
-      { topic: "Coverage aggregation vs policy detail", note: "The canonical model stores aggregate current coverage totals. If policy-level analysis becomes first-class, coverage may need a separate policy collection later." }
+      { topic: "Coverage aggregation vs policy detail", note: "The existingCoverage bucket stores compact policy summaries and aggregate profile-policy totals. If policy-level analysis becomes first-class, it may need a richer policy collection later." }
     ]
   };
 

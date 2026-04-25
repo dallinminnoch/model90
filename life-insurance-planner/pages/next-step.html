@@ -1115,6 +1115,7 @@
   <script src="../app/features/coverage/coverage-policy-summary-list.js"></script>
   <script src="../app/features/lens-analysis/schema.js"></script>
   <script src="../app/features/lens-analysis/block-outputs.js"></script>
+  <script src="../app/features/lens-analysis/blocks/existing-coverage.js"></script>
   <script src="../app/features/lens-analysis/blocks/income-net-income.js"></script>
   <script src="../app/features/lens-analysis/blocks/debt-payoff.js"></script>
   <script src="../app/features/lens-analysis/blocks/housing-ongoing-support.js"></script>
@@ -1929,6 +1930,24 @@
         }
 
         existingCoverageListContainer.textContent = "Existing coverage records could not be loaded.";
+      }
+
+      function syncExistingCoverageBlockOutput() {
+        const createExistingCoverageBlockOutput = window.LensApp?.lensAnalysis?.createExistingCoverageBlockOutput;
+        const upsertRuntimeBlockOutput = window.LensApp?.lensAnalysis?.upsertRuntimeBlockOutput;
+        const refreshLensIncomeDebugPanel = window.LensApp?.lensAnalysisDev?.refreshLensIncomeDebugPanel;
+        if (typeof createExistingCoverageBlockOutput !== "function" || typeof upsertRuntimeBlockOutput !== "function") {
+          return;
+        }
+
+        const runtimeNamespace = window.LensApp.lensAnalysisRuntime || (window.LensApp.lensAnalysisRuntime = {});
+        const blockOutput = createExistingCoverageBlockOutput({
+          coveragePolicies: getLinkedCoveragePolicies()
+        });
+        upsertRuntimeBlockOutput(runtimeNamespace, blockOutput);
+        if (typeof refreshLensIncomeDebugPanel === "function") {
+          refreshLensIncomeDebugPanel(runtimeNamespace);
+        }
       }
 
       function saveLinkedPmiEntry(draft) {
@@ -4624,6 +4643,7 @@
       syncNonHousingOngoingSupportBlockOutput();
       syncTransitionNeedsBlockOutput();
       renderExistingCoverageCard();
+      syncExistingCoverageBlockOutput();
       if (typeof window.LensApp?.lensAnalysisDev?.mountLensIncomeDebugPanel === "function") {
         window.LensApp.lensAnalysisDev.mountLensIncomeDebugPanel(window.LensApp.lensAnalysisRuntime);
       }

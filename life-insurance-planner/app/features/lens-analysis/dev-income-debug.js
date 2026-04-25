@@ -18,6 +18,7 @@
   const EDUCATION_SUPPORT_BLOCK_ID = lensAnalysis.EDUCATION_SUPPORT_BLOCK_ID || "education-support";
   const FINAL_EXPENSES_BLOCK_ID = lensAnalysis.FINAL_EXPENSES_BLOCK_ID || "final-expenses";
   const TRANSITION_NEEDS_BLOCK_ID = lensAnalysis.TRANSITION_NEEDS_BLOCK_ID || "transition-needs";
+  const EXISTING_COVERAGE_BLOCK_ID = lensAnalysis.EXISTING_COVERAGE_BLOCK_ID || "existing-coverage";
 
   const HOUSING_RUNTIME_ONLY_DEBUG_FIELDS = Object.freeze([
     Object.freeze({
@@ -341,6 +342,37 @@
     })
   ]);
 
+  const EXISTING_COVERAGE_DEBUG_FIELDS = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "profilePolicyCount",
+      destinationField: "profilePolicyCount"
+    }),
+    Object.freeze({
+      sourceOutputKey: "individualProfileCoverageTotal",
+      destinationField: "individualProfileCoverageTotal"
+    }),
+    Object.freeze({
+      sourceOutputKey: "groupProfileCoverageTotal",
+      destinationField: "groupProfileCoverageTotal"
+    }),
+    Object.freeze({
+      sourceOutputKey: "unclassifiedProfileCoverageTotal",
+      destinationField: "unclassifiedProfileCoverageTotal"
+    }),
+    Object.freeze({
+      sourceOutputKey: "totalProfileCoverage",
+      destinationField: "totalProfileCoverage"
+    }),
+    Object.freeze({
+      sourceOutputKey: "coverageSource",
+      destinationField: "coverageSource"
+    }),
+    Object.freeze({
+      sourceOutputKey: "totalExistingCoverage",
+      destinationField: "totalExistingCoverage"
+    })
+  ]);
+
   function isLensIncomeDebugEnabled(locationLike) {
     const search = locationLike && typeof locationLike.search === "string" ? locationLike.search : "";
     const value = new URLSearchParams(search).get(DEBUG_QUERY_PARAM);
@@ -563,12 +595,21 @@
       fields: TRANSITION_NEEDS_DEBUG_FIELDS
     });
 
+    appendBucketInspectionRows(rows, {
+      blockOutput: safeBlockOutputs[EXISTING_COVERAGE_BLOCK_ID],
+      normalizedBucket: lensModel && lensModel.existingCoverage,
+      normalizationMetadata: lensModel && lensModel.normalizationMetadata && lensModel.normalizationMetadata.existingCoverage,
+      runtimeSection: "Runtime existing-coverage",
+      normalizedSection: "Normalized existingCoverage",
+      fields: EXISTING_COVERAGE_DEBUG_FIELDS
+    });
+
     return rows;
   }
 
   function createSummaryText(blockOutputs, lensModel) {
     const safeBlockOutputs = blockOutputs && typeof blockOutputs === "object" ? blockOutputs : {};
-    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID, NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID, EDUCATION_SUPPORT_BLOCK_ID, FINAL_EXPENSES_BLOCK_ID, TRANSITION_NEEDS_BLOCK_ID].filter(function (blockId) {
+    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID, NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID, EDUCATION_SUPPORT_BLOCK_ID, FINAL_EXPENSES_BLOCK_ID, TRANSITION_NEEDS_BLOCK_ID, EXISTING_COVERAGE_BLOCK_ID].filter(function (blockId) {
       return safeBlockOutputs[blockId];
     });
     return "Runtime blocks: " + (availableBlocks.length ? availableBlocks.join(", ") : "none");
@@ -722,6 +763,7 @@
       educationSupport: lensModel.educationSupport,
       finalExpenses: lensModel.finalExpenses,
       transitionNeeds: lensModel.transitionNeeds,
+      existingCoverage: lensModel.existingCoverage,
       debtPayoff: lensModel.debtPayoff,
       normalizationMetadata: lensModel.normalizationMetadata || null
     };

@@ -138,6 +138,22 @@
         totalTransitionNeed: null
       },
 
+      // Existing in-force coverage captured from linked profile policy records.
+      // These are neutral reusable coverage facts. Analysis later decides
+      // whether and how coverage offsets a recommendation.
+      existingCoverage: {
+        // Compact safe summaries for debug/future analysis, not raw policy
+        // record storage and not a PMI-owned policy source of truth.
+        profilePolicySummaries: [],
+        profilePolicyCount: null,
+        individualProfileCoverageTotal: null,
+        groupProfileCoverageTotal: null,
+        unclassifiedProfileCoverageTotal: null,
+        totalProfileCoverage: null,
+        coverageSource: null,
+        totalExistingCoverage: null
+      },
+
       // Offsets and in-force coverage. The destination model separates raw
       // asset offsets from current coverage because they reduce need through
       // different mechanisms and can come from different systems later.

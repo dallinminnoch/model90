@@ -222,7 +222,9 @@
     if (normalizedId) {
       const matchedById = records.find((record) => String(record?.id || "").trim() === normalizedId);
       if (matchedById) {
-        return matchedById;
+        if (!normalizedCaseRef || normalizeCaseRef(matchedById.caseRef) === normalizedCaseRef) {
+          return matchedById;
+        }
       }
     }
 

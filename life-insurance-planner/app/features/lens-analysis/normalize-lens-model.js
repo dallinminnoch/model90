@@ -13,12 +13,14 @@
   const EDUCATION_SUPPORT_BLOCK_ID = lensAnalysis.EDUCATION_SUPPORT_BLOCK_ID || "education-support";
   const FINAL_EXPENSES_BLOCK_ID = lensAnalysis.FINAL_EXPENSES_BLOCK_ID || "final-expenses";
   const TRANSITION_NEEDS_BLOCK_ID = lensAnalysis.TRANSITION_NEEDS_BLOCK_ID || "transition-needs";
+  const EXISTING_COVERAGE_BLOCK_ID = lensAnalysis.EXISTING_COVERAGE_BLOCK_ID || "existing-coverage";
   const ONGOING_SUPPORT_COMPOSITION_BLOCK_ID = "ongoingSupport-composition";
   const ONGOING_SUPPORT_COMPOSITION_BLOCK_TYPE = "bucket-composition";
 
   // This pass normalizes the currently proven runtime block outputs into the
   // canonical incomeBasis, debtPayoff, ongoingSupport, educationSupport,
-  // finalExpenses, transitionNeeds, and assumptions destinations.
+  // finalExpenses, transitionNeeds, existingCoverage, and assumptions
+  // destinations.
   const INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
     Object.freeze({
       sourceOutputKey: "grossAnnualIncome",
@@ -359,6 +361,51 @@
     })
   ]);
 
+  const EXISTING_COVERAGE_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "profilePolicySummaries",
+      destinationField: "profilePolicySummaries",
+      sourceMetadataKey: "profilePolicySummaries",
+      valueType: "array"
+    }),
+    Object.freeze({
+      sourceOutputKey: "profilePolicyCount",
+      destinationField: "profilePolicyCount",
+      sourceMetadataKey: "profilePolicyCount"
+    }),
+    Object.freeze({
+      sourceOutputKey: "individualProfileCoverageTotal",
+      destinationField: "individualProfileCoverageTotal",
+      sourceMetadataKey: "individualProfileCoverageTotal"
+    }),
+    Object.freeze({
+      sourceOutputKey: "groupProfileCoverageTotal",
+      destinationField: "groupProfileCoverageTotal",
+      sourceMetadataKey: "groupProfileCoverageTotal"
+    }),
+    Object.freeze({
+      sourceOutputKey: "unclassifiedProfileCoverageTotal",
+      destinationField: "unclassifiedProfileCoverageTotal",
+      sourceMetadataKey: "unclassifiedProfileCoverageTotal"
+    }),
+    Object.freeze({
+      sourceOutputKey: "totalProfileCoverage",
+      destinationField: "totalProfileCoverage",
+      sourceMetadataKey: "totalProfileCoverage"
+    }),
+    Object.freeze({
+      sourceOutputKey: "coverageSource",
+      destinationField: "coverageSource",
+      sourceMetadataKey: "coverageSource",
+      valueType: "string"
+    }),
+    Object.freeze({
+      sourceOutputKey: "totalExistingCoverage",
+      destinationField: "totalExistingCoverage",
+      sourceMetadataKey: "totalExistingCoverage"
+    })
+  ]);
+
   function clonePlainValue(value) {
     if (Array.isArray(value)) {
       return value.map(clonePlainValue);
@@ -434,6 +481,15 @@
 
     if (normalizedMapping.valueType === "boolean") {
       return toOptionalBoolean(value);
+    }
+
+    if (normalizedMapping.valueType === "string") {
+      const normalized = String(value == null ? "" : value).trim();
+      return normalized || null;
+    }
+
+    if (normalizedMapping.valueType === "array") {
+      return Array.isArray(value) ? clonePlainValue(value) : [];
     }
 
     return toOptionalNumber(value);
@@ -604,6 +660,10 @@
       blockId: TRANSITION_NEEDS_BLOCK_ID,
       mapping: TRANSITION_NEEDS_BLOCK_OUTPUT_NORMALIZATION_MAP
     });
+    const existingCoverageNormalizationMetadata = normalizeBucketFromBlockOutput(lensModel.existingCoverage, blockOutputs, {
+      blockId: EXISTING_COVERAGE_BLOCK_ID,
+      mapping: EXISTING_COVERAGE_BLOCK_OUTPUT_NORMALIZATION_MAP
+    });
     const economicAssumptionsNormalizationMetadata = normalizeBucketFromBlockOutput(
       lensModel.assumptions.economicAssumptions,
       blockOutputs,
@@ -623,6 +683,7 @@
       educationSupport: educationSupportNormalizationMetadata,
       finalExpenses: finalExpensesNormalizationMetadata,
       transitionNeeds: transitionNeedsNormalizationMetadata,
+      existingCoverage: existingCoverageNormalizationMetadata,
       assumptions: {
         economicAssumptions: economicAssumptionsNormalizationMetadata
       }
@@ -638,6 +699,7 @@
   lensAnalysis.EDUCATION_SUPPORT_BLOCK_ID = EDUCATION_SUPPORT_BLOCK_ID;
   lensAnalysis.FINAL_EXPENSES_BLOCK_ID = FINAL_EXPENSES_BLOCK_ID;
   lensAnalysis.TRANSITION_NEEDS_BLOCK_ID = TRANSITION_NEEDS_BLOCK_ID;
+  lensAnalysis.EXISTING_COVERAGE_BLOCK_ID = EXISTING_COVERAGE_BLOCK_ID;
   lensAnalysis.INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP = ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP = DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP;
@@ -646,5 +708,6 @@
   lensAnalysis.EDUCATION_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP = EDUCATION_SUPPORT_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.FINAL_EXPENSES_BLOCK_OUTPUT_NORMALIZATION_MAP = FINAL_EXPENSES_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.TRANSITION_NEEDS_BLOCK_OUTPUT_NORMALIZATION_MAP = TRANSITION_NEEDS_BLOCK_OUTPUT_NORMALIZATION_MAP;
+  lensAnalysis.EXISTING_COVERAGE_BLOCK_OUTPUT_NORMALIZATION_MAP = EXISTING_COVERAGE_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.createLensModelFromBlockOutputs = createLensModelFromBlockOutputs;
 })();
