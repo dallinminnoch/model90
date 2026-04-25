@@ -1100,6 +1100,7 @@
   <script src="../app/features/coverage/coverage-policy-manager.js"></script>
   <script src="../app/features/lens-analysis/schema.js"></script>
   <script src="../app/features/lens-analysis/block-outputs.js"></script>
+  <script src="../app/features/lens-analysis/helpers/housing-support-calculations.js"></script>
   <script src="../app/features/lens-analysis/blocks/existing-coverage.js"></script>
   <script src="../app/features/lens-analysis/blocks/offset-assets.js"></script>
   <script src="../app/features/lens-analysis/blocks/survivor-scenario.js"></script>
@@ -1739,6 +1740,7 @@
       const coveragePolicyUtils = window.LensApp?.coverage || {};
       const coverageSummaryList = window.LensApp?.coverageSummaryList || {};
       const coverageManager = window.LensApp?.coverageManager || {};
+      const housingSupportCalculations = window.LensApp?.lensAnalysis?.housingSupportCalculations || {};
       const existingCoverageTotalsContainer = form.querySelector("[data-pmi-existing-coverage-totals]");
       const existingCoverageListContainer = form.querySelector("[data-pmi-existing-coverage-list]");
       const existingCoverageManageLink = form.querySelector("[data-pmi-existing-coverage-manage]");
@@ -2608,6 +2610,65 @@
         } catch (_error) {
           return defaultHousingMaintenanceRows.map((row) => ({ ...row }));
         }
+      }
+
+      function getCalculatedHousingFieldSourceValue(field) {
+        if (!field || field instanceof RadioNodeList) {
+          return null;
+        }
+
+        return isManualOverrideActive(field)
+          ? field.dataset.manualValue
+          : field.value;
+      }
+
+      function createHousingSupportCalculationSourceData() {
+        return {
+          housingStatus: getLensBlockSourceFieldValue(housingStatusField),
+          mortgageBalance: getLensBlockSourceFieldValue(mortgageBalanceField),
+          monthlyMortgagePaymentOnly: getCalculatedHousingFieldSourceValue(mortgagePaymentOnlyField),
+          monthlyMortgagePaymentOnlyManualOverride: isManualOverrideActive(mortgagePaymentOnlyField),
+          mortgageTermRemainingYears: getLensBlockSourceFieldValue(mortgageTermRemainingYearsField),
+          mortgageTermRemainingMonths: getLensBlockSourceFieldValue(mortgageTermRemainingMonthsField),
+          mortgageInterestRate: getLensBlockSourceFieldValue(mortgageInterestRateField),
+          monthlyHousingCost: getLensBlockSourceFieldValue(monthlyHousingCostField),
+          otherMonthlyRenterHousingCosts: getLensBlockSourceFieldValue(otherMonthlyRenterHousingCostsField),
+          utilitiesCost: getLensBlockSourceFieldValue(utilitiesCostField),
+          housingInsuranceCost: getLensBlockSourceFieldValue(housingInsuranceCostField),
+          propertyTax: getLensBlockSourceFieldValue(propertyTaxField),
+          monthlyHoaCost: getLensBlockSourceFieldValue(monthlyHoaCostField),
+          homeSquareFootage: getLensBlockSourceFieldValue(homeSquareFootageField),
+          homeAgeYears: getLensBlockSourceFieldValue(homeAgeYearsField),
+          monthlyMaintenanceRecommendation: getCalculatedHousingFieldSourceValue(maintenanceRecommendationField),
+          monthlyMaintenanceRecommendationManualOverride: isManualOverrideActive(maintenanceRecommendationField),
+          associatedMonthlyCosts: getCalculatedHousingFieldSourceValue(associatedMonthlyCostsField),
+          associatedMonthlyCostsManualOverride: isManualOverrideActive(associatedMonthlyCostsField),
+          calculatedMonthlyMortgagePayment: getCalculatedHousingFieldSourceValue(monthlyMortgagePaymentField),
+          calculatedMonthlyMortgagePaymentManualOverride: isManualOverrideActive(monthlyMortgagePaymentField)
+        };
+      }
+
+      function getHousingSupportCalculationResult() {
+        if (typeof housingSupportCalculations.calculateHousingSupportInputs !== "function") {
+          return {
+            values: {},
+            blockSourceData: {}
+          };
+        }
+
+        return housingSupportCalculations.calculateHousingSupportInputs(
+          createHousingSupportCalculationSourceData(),
+          {
+            maintenanceRows: readStoredMaintenanceConfig()
+          }
+        );
+      }
+
+      function getHousingSupportCalculationValue(fieldName) {
+        const result = getHousingSupportCalculationResult();
+        return result.values && Object.prototype.hasOwnProperty.call(result.values, fieldName)
+          ? result.values[fieldName]
+          : null;
       }
 
       function getSelectedBracketRate(field) {
@@ -3730,27 +3791,8 @@
         }
 
         const runtimeNamespace = window.LensApp.lensAnalysisRuntime || (window.LensApp.lensAnalysisRuntime = {});
-        const blockOutput = createHousingOngoingSupportBlockOutput({
-          housingStatus: getLensBlockSourceFieldValue(housingStatusField),
-          mortgageBalance: getLensBlockSourceFieldValue(mortgageBalanceField),
-          monthlyMortgagePaymentOnly: getManualOverrideBlockOutputValue(mortgagePaymentOnlyField),
-          monthlyMortgagePaymentOnlyManualOverride: isManualOverrideActive(mortgagePaymentOnlyField),
-          mortgageTermRemainingYears: getLensBlockSourceFieldValue(mortgageTermRemainingYearsField),
-          mortgageTermRemainingMonths: getLensBlockSourceFieldValue(mortgageTermRemainingMonthsField),
-          mortgageInterestRate: getLensBlockSourceFieldValue(mortgageInterestRateField),
-          monthlyHousingCost: getLensBlockSourceFieldValue(monthlyHousingCostField),
-          otherMonthlyRenterHousingCosts: getLensBlockSourceFieldValue(otherMonthlyRenterHousingCostsField),
-          utilitiesCost: getLensBlockSourceFieldValue(utilitiesCostField),
-          housingInsuranceCost: getLensBlockSourceFieldValue(housingInsuranceCostField),
-          propertyTax: getLensBlockSourceFieldValue(propertyTaxField),
-          monthlyHoaCost: getLensBlockSourceFieldValue(monthlyHoaCostField),
-          monthlyMaintenanceRecommendation: getManualOverrideBlockOutputValue(maintenanceRecommendationField),
-          monthlyMaintenanceRecommendationManualOverride: isManualOverrideActive(maintenanceRecommendationField),
-          associatedMonthlyCosts: getManualOverrideBlockOutputValue(associatedMonthlyCostsField),
-          associatedMonthlyCostsManualOverride: isManualOverrideActive(associatedMonthlyCostsField),
-          calculatedMonthlyMortgagePayment: getManualOverrideBlockOutputValue(monthlyMortgagePaymentField),
-          calculatedMonthlyMortgagePaymentManualOverride: isManualOverrideActive(monthlyMortgagePaymentField)
-        });
+        const housingCalculationResult = getHousingSupportCalculationResult();
+        const blockOutput = createHousingOngoingSupportBlockOutput(housingCalculationResult.blockSourceData || {});
         upsertRuntimeBlockOutput(runtimeNamespace, blockOutput);
         if (typeof refreshLensIncomeDebugPanel === "function") {
           refreshLensIncomeDebugPanel(runtimeNamespace);
@@ -4045,19 +4087,6 @@
         applyTransitionFieldSuggestion(relocationReserveField, getRecommendedRelocationReserveAmount());
       }
 
-      function getMaintenanceAgeBand(ageYears) {
-        if (ageYears <= 10) {
-          return "age0To10";
-        }
-        if (ageYears <= 25) {
-          return "age11To25";
-        }
-        if (ageYears <= 40) {
-          return "age26To40";
-        }
-        return "age41Plus";
-      }
-
       function normalizeHomeAgeYearsValue() {
         if (!homeAgeYearsField || homeAgeYearsField instanceof RadioNodeList) {
           return 0;
@@ -4079,44 +4108,8 @@
         return numericValue;
       }
 
-      function parseHomeAgeYearsValue() {
-        if (!homeAgeYearsField || homeAgeYearsField instanceof RadioNodeList) {
-          return 0;
-        }
-
-        const rawValue = String(homeAgeYearsField.value || "").trim();
-        if (!rawValue) {
-          return 0;
-        }
-
-        return Math.max(0, Math.round(parseCurrencyLikeNumber(rawValue)));
-      }
-
       function getRecommendedMaintenanceAmount() {
-        const housingStatusField = form.elements.namedItem("housingStatus");
-        const selectedHousingStatus = housingStatusField && !(housingStatusField instanceof RadioNodeList)
-          ? String(housingStatusField.value || "").trim()
-          : "";
-
-        if (selectedHousingStatus !== "Homeowner" && selectedHousingStatus !== "Owns Free and Clear") {
-          return null;
-        }
-
-        const squareFootageLabel = homeSquareFootageField && !(homeSquareFootageField instanceof RadioNodeList)
-          ? String(homeSquareFootageField.value || "").trim()
-          : "";
-        const homeAgeYears = parseHomeAgeYearsValue();
-
-        if (!squareFootageLabel) {
-          return null;
-        }
-
-        const matchingRow = readStoredMaintenanceConfig().find((row) => String(row?.label || "").trim() === squareFootageLabel);
-        if (!matchingRow) {
-          return null;
-        }
-
-        return parseCurrencyLikeNumber(matchingRow[getMaintenanceAgeBand(homeAgeYears)]);
+        return getHousingSupportCalculationValue("calculatedMaintenanceRecommendation");
       }
 
       function syncMaintenanceRecommendationField() {
@@ -4134,72 +4127,11 @@
       }
 
       function calculateMortgagePaymentOnlyAmount() {
-        const housingStatusField = form.elements.namedItem("housingStatus");
-        const selectedHousingStatus = housingStatusField && !(housingStatusField instanceof RadioNodeList)
-          ? String(housingStatusField.value || "").trim()
-          : "";
-
-        if (selectedHousingStatus !== "Homeowner") {
-          return null;
-        }
-
-        const principal = parseCurrencyLikeNumber(form.elements.namedItem("mortgageBalance")?.value);
-        const years = Math.max(0, Math.round(parseCurrencyLikeNumber(mortgageTermRemainingYearsField?.value)));
-        const months = Math.min(11, Math.max(0, Math.round(parseCurrencyLikeNumber(mortgageTermRemainingMonthsField?.value))));
-        const totalMonths = (years * 12) + months;
-        const annualRate = parseCurrencyLikeNumber(form.elements.namedItem("mortgageInterestRate")?.value);
-
-        if (!principal || !totalMonths) {
-          return null;
-        }
-
-        if (!annualRate) {
-          return principal / totalMonths;
-        }
-
-        const monthlyRate = annualRate / 1200;
-        if (!monthlyRate) {
-          return principal / totalMonths;
-        }
-
-        return principal * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -totalMonths)));
+        return getHousingSupportCalculationValue("calculatedMortgagePaymentOnly");
       }
 
       function calculateAssociatedMonthlyCostsAmount() {
-        const housingStatusField = form.elements.namedItem("housingStatus");
-        const selectedHousingStatus = housingStatusField && !(housingStatusField instanceof RadioNodeList)
-          ? String(housingStatusField.value || "").trim()
-          : "";
-        const monthlyUtilities = parseCurrencyLikeNumber(utilitiesCostField?.value);
-        const monthlyHousingInsurance = parseCurrencyLikeNumber(housingInsuranceCostField?.value);
-        const monthlyOtherRenterHousingCosts = parseCurrencyLikeNumber(otherMonthlyRenterHousingCostsField?.value);
-        const monthlyHoaCost = parseCurrencyLikeNumber(monthlyHoaCostField?.value);
-        const monthlyPropertyTax = parseCurrencyLikeNumber(form.elements.namedItem("propertyTax")?.value);
-        const monthlyMaintenance = parseCurrencyLikeNumber(maintenanceRecommendationField?.value);
-
-        if (!selectedHousingStatus) {
-          return null;
-        }
-
-        if (selectedHousingStatus === "Renter") {
-          const monthlyRent = parseCurrencyLikeNumber(form.elements.namedItem("monthlyHousingCost")?.value);
-          const renterAssociatedTotal = monthlyRent + monthlyUtilities + monthlyHousingInsurance + monthlyOtherRenterHousingCosts;
-          return renterAssociatedTotal > 0 ? renterAssociatedTotal : null;
-        }
-
-        const homeownerAssociatedTotal = monthlyUtilities + monthlyPropertyTax + monthlyHousingInsurance + monthlyMaintenance + monthlyHoaCost;
-        return homeownerAssociatedTotal > 0 ? homeownerAssociatedTotal : null;
-      }
-
-      function getEffectiveCalculatedHousingFieldValue(field) {
-        if (!field || field instanceof RadioNodeList) {
-          return 0;
-        }
-
-        const sourceValue = isManualOverrideActive(field)
-          ? field.dataset.manualValue
-          : (field.dataset.calculatedValue || field.value);
-        return parseCurrencyLikeNumber(sourceValue);
+        return getHousingSupportCalculationValue("calculatedAssociatedMonthlyCosts");
       }
 
       function syncMortgagePaymentOnlyField() {
@@ -4245,19 +4177,7 @@
       }
 
       function calculateMonthlyBurdenAmount() {
-        const housingStatusField = form.elements.namedItem("housingStatus");
-        const selectedHousingStatus = housingStatusField && !(housingStatusField instanceof RadioNodeList)
-          ? String(housingStatusField.value || "").trim()
-          : "";
-
-        if (!selectedHousingStatus) {
-          return null;
-        }
-
-        const mortgagePayment = getEffectiveCalculatedHousingFieldValue(mortgagePaymentOnlyField);
-        const associatedCosts = getEffectiveCalculatedHousingFieldValue(associatedMonthlyCostsField);
-        const totalBurden = mortgagePayment + associatedCosts;
-        return totalBurden > 0 ? totalBurden : null;
+        return getHousingSupportCalculationValue("calculatedMonthlyHousingSupportCost");
       }
 
       function syncMonthlyMortgagePaymentField() {
