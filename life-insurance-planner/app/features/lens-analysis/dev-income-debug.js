@@ -20,6 +20,7 @@
   const TRANSITION_NEEDS_BLOCK_ID = lensAnalysis.TRANSITION_NEEDS_BLOCK_ID || "transition-needs";
   const EXISTING_COVERAGE_BLOCK_ID = lensAnalysis.EXISTING_COVERAGE_BLOCK_ID || "existing-coverage";
   const OFFSET_ASSETS_BLOCK_ID = lensAnalysis.OFFSET_ASSETS_BLOCK_ID || "offset-assets";
+  const SURVIVOR_SCENARIO_BLOCK_ID = lensAnalysis.SURVIVOR_SCENARIO_BLOCK_ID || "survivor-scenario";
 
   const HOUSING_RUNTIME_ONLY_DEBUG_FIELDS = Object.freeze([
     Object.freeze({
@@ -417,6 +418,45 @@
 
   const OFFSET_ASSETS_DEBUG_FIELDS = createOffsetAssetDebugFields();
 
+  const SURVIVOR_SCENARIO_DEBUG_FIELDS = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "survivorContinuesWorking",
+      destinationField: "survivorContinuesWorking"
+    }),
+    Object.freeze({
+      sourceOutputKey: "expectedSurvivorWorkReductionPercent",
+      destinationField: "expectedSurvivorWorkReductionPercent"
+    }),
+    Object.freeze({
+      sourceOutputKey: "survivorGrossAnnualIncome",
+      destinationField: "survivorGrossAnnualIncome"
+    }),
+    Object.freeze({
+      sourceOutputKey: "survivorNetAnnualIncome",
+      destinationField: "survivorNetAnnualIncome"
+    }),
+    Object.freeze({
+      sourceOutputKey: "survivorIncomeStartDelayMonths",
+      destinationField: "survivorIncomeStartDelayMonths"
+    }),
+    Object.freeze({
+      sourceOutputKey: "incomeSupportDurationYears",
+      destinationField: "incomeSupportDurationYears"
+    }),
+    Object.freeze({
+      sourceOutputKey: "survivorEarnedIncomeGrowthRatePercent",
+      destinationField: "survivorEarnedIncomeGrowthRatePercent"
+    }),
+    Object.freeze({
+      sourceOutputKey: "survivorRetirementHorizonYears",
+      destinationField: "survivorRetirementHorizonYears"
+    }),
+    Object.freeze({
+      sourceOutputKey: "survivorNetIncomeTaxBasis",
+      destinationField: "survivorNetIncomeTaxBasis"
+    })
+  ]);
+
   function isLensIncomeDebugEnabled(locationLike) {
     const search = locationLike && typeof locationLike.search === "string" ? locationLike.search : "";
     const value = new URLSearchParams(search).get(DEBUG_QUERY_PARAM);
@@ -672,12 +712,21 @@
       fields: OFFSET_ASSETS_DEBUG_FIELDS
     });
 
+    appendBucketInspectionRows(rows, {
+      blockOutput: safeBlockOutputs[SURVIVOR_SCENARIO_BLOCK_ID],
+      normalizedBucket: lensModel && lensModel.survivorScenario,
+      normalizationMetadata: lensModel && lensModel.normalizationMetadata && lensModel.normalizationMetadata.survivorScenario,
+      runtimeSection: "Runtime survivor-scenario",
+      normalizedSection: "Normalized survivorScenario",
+      fields: SURVIVOR_SCENARIO_DEBUG_FIELDS
+    });
+
     return rows;
   }
 
   function createSummaryText(blockOutputs, lensModel) {
     const safeBlockOutputs = blockOutputs && typeof blockOutputs === "object" ? blockOutputs : {};
-    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID, NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID, EDUCATION_SUPPORT_BLOCK_ID, FINAL_EXPENSES_BLOCK_ID, TRANSITION_NEEDS_BLOCK_ID, EXISTING_COVERAGE_BLOCK_ID, OFFSET_ASSETS_BLOCK_ID].filter(function (blockId) {
+    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID, NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID, EDUCATION_SUPPORT_BLOCK_ID, FINAL_EXPENSES_BLOCK_ID, TRANSITION_NEEDS_BLOCK_ID, EXISTING_COVERAGE_BLOCK_ID, OFFSET_ASSETS_BLOCK_ID, SURVIVOR_SCENARIO_BLOCK_ID].filter(function (blockId) {
       return safeBlockOutputs[blockId];
     });
     return "Runtime blocks: " + (availableBlocks.length ? availableBlocks.join(", ") : "none");
@@ -833,6 +882,7 @@
       transitionNeeds: lensModel.transitionNeeds,
       existingCoverage: lensModel.existingCoverage,
       offsetAssets: lensModel.offsetAssets,
+      survivorScenario: lensModel.survivorScenario,
       debtPayoff: lensModel.debtPayoff,
       normalizationMetadata: lensModel.normalizationMetadata || null
     };

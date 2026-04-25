@@ -59,19 +59,22 @@
         { rawField: "bonusVariableIncome", canonicalField: "incomeBasis.bonusVariableAnnualIncome", availability: "activeLinkedPmi", note: "Variable annual income kept separate from the insured net-income field." },
         { rawField: "spouseIncome", canonicalField: "incomeBasis.spouseOrPartnerGrossAnnualIncome", availability: "activeLinkedPmi", note: "Current partner gross annual income before loss." },
         { rawField: "spouseNetAnnualIncome", canonicalField: "incomeBasis.spouseOrPartnerNetAnnualIncome", availability: "activeLinkedPmi-derived", note: "Derived readonly today; not reliably persisted unless manually overridden." },
-        { rawField: "survivorIncome", canonicalField: "incomeBasis.survivorEarnedAnnualIncome", availability: "activeLinkedPmi-conditional", note: "Post-loss survivor earned income assumption when work continues." },
-        { rawField: "survivorNetAnnualIncome", canonicalField: "incomeBasis.survivorEarnedAnnualIncome", availability: "activeLinkedPmi-conditional", note: "Preferred survivor-income source when the post-loss value is net rather than gross." },
         { rawField: "employerBenefitsValue", canonicalField: "incomeBasis.annualEmployerBenefitsValue", availability: "activeLinkedPmi", note: "Annual employer-provided benefits value kept separate from the insured net-income field." },
         { rawField: "annualIncomeReplacementBase", canonicalField: "incomeBasis.annualIncomeReplacementBase", availability: "activeLinkedPmiCardOutput", note: "Neutral annual income-replacement base from the Income and Economic Value card, not a recommendation or total need." },
         { rawField: "householdIncomeUsePercent", canonicalField: "incomeBasis.householdIncomeContributionPercent", availability: "activeLinkedPmi-derived", note: "Current UI-derived contribution ratio. Keep distinct from any future explicit replacement-target percent." },
-        { rawField: "incomeReplacementDuration", canonicalField: "incomeBasis.incomeReplacementDurationYears", availability: "activeLinkedPmi-conditional", note: "Explicit replacement-duration override when survivor assumptions are enabled." },
-        { rawField: "yearsUntilRetirement", canonicalField: "incomeBasis.insuredRetirementHorizonYears", availability: "activeLinkedPmi", note: "Current insured work-horizon field." },
-        { rawField: "spouseYearsUntilRetirement", canonicalField: "incomeBasis.spouseOrPartnerRetirementHorizonYears", availability: "activeLinkedPmi-conditional", note: "Current spouse-or-partner work-horizon field." },
-        { rawField: "childDependencyDuration", canonicalField: "incomeBasis.dependentSupportDurationYears", availability: "activeLinkedPmi-conditional", note: "Current dependent-support duration input." },
-        { rawField: "survivorIncomeStartDelayMonths", canonicalField: "incomeBasis.survivorIncomeStartDelayMonths", availability: "activeLinkedPmi-conditional", note: "Current survivor-income timing field." },
-        { rawField: "spouseIncomeGrowthRate", canonicalField: "incomeBasis.spouseOrPartnerIncomeGrowthRatePercent", availability: "activeLinkedPmi-conditional", note: "Current spouse-or-partner income growth assumption." },
-        { rawField: "expenseReductionAtDeath", canonicalField: "incomeBasis.householdExpenseReductionPercentAtDeath", availability: "activeLinkedPmi-conditional", note: "Current household-expense reduction assumption after death." },
-        { rawField: "spouseExpectedWorkReductionAtDeath", canonicalField: "incomeBasis.spouseOrPartnerWorkReductionPercentAtDeath", availability: "activeLinkedPmi-conditional", note: "Current spouse-or-partner work-reduction assumption after death." }
+        { rawField: "yearsUntilRetirement", canonicalField: "incomeBasis.insuredRetirementHorizonYears", availability: "activeLinkedPmi", note: "Current insured work-horizon field." }
+      ],
+
+      survivorScenario: [
+        { rawField: "survivorContinuesWorking", canonicalField: "survivorScenario.survivorContinuesWorking", availability: "activeLinkedPmi", note: "Post-death survivor work-continuation assumption." },
+        { rawField: "spouseExpectedWorkReductionAtDeath", canonicalField: "survivorScenario.expectedSurvivorWorkReductionPercent", availability: "activeLinkedPmi-conditional", note: "Expected survivor work reduction at death when survivor work continues. Kept separate from current spouse/partner income facts." },
+        { rawField: "survivorIncome", canonicalField: "survivorScenario.survivorGrossAnnualIncome", availability: "activeLinkedPmi-conditional", note: "Post-death survivor gross annual income assumption, suggested from current spouse/partner gross income and work-reduction input unless manually edited." },
+        { rawField: "survivorNetAnnualIncome", canonicalField: "survivorScenario.survivorNetAnnualIncome", availability: "activeLinkedPmi-conditional", note: "Post-death survivor net annual income assumption, auto-estimated by the active PMI tax helper path unless manually edited." },
+        { rawField: "survivorIncomeStartDelayMonths", canonicalField: "survivorScenario.survivorIncomeStartDelayMonths", availability: "activeLinkedPmi-conditional", note: "Expected delay before survivor income starts after death." },
+        { rawField: "incomeReplacementDuration", canonicalField: "survivorScenario.incomeSupportDurationYears", availability: "activeLinkedPmi-conditional", note: "Survivor income-support duration planning assumption. It is not applied to recommendation math in this pass." },
+        { rawField: "spouseIncomeGrowthRate", canonicalField: "survivorScenario.survivorEarnedIncomeGrowthRatePercent", availability: "activeLinkedPmi-conditional", note: "Survivor earned-income growth assumption, using the existing saved field name for compatibility." },
+        { rawField: "spouseYearsUntilRetirement", canonicalField: "survivorScenario.survivorRetirementHorizonYears", availability: "activeLinkedPmi-conditional", note: "Survivor years until retirement or income exhaustion, using the existing saved field name for compatibility." },
+        { rawField: "internal survivor net-income tax basis", canonicalField: "survivorScenario.survivorNetIncomeTaxBasis", availability: "activeLinkedPmi-derived", note: "Current survivor net-income autofill uses the internal Qualifying Surviving Spouse tax basis. No visible survivor filing-status field is exposed." }
       ],
 
       debtPayoff: [

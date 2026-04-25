@@ -983,7 +983,7 @@
             </div>
             <div class="form-grid">
               <div class="field-group">
-                <label for="survivor-continues-working">Survivor Continues Working?</label>
+                <label for="survivor-continues-working">Survivor Continues / Begins Working?</label>
                 <select id="survivor-continues-working" name="survivorContinuesWorking">
                   <option value="">Please select</option>
                   <option value="Yes">Yes</option>
@@ -1026,14 +1026,14 @@
                 </div>
               </div>
               <div class="field-group">
-                <label for="spouse-income-growth-rate">Spouse Income Growth Rate</label>
+                <label for="spouse-income-growth-rate">Survivor Income Growth Rate</label>
                 <div class="profile-currency-field">
                   <input id="spouse-income-growth-rate" class="profile-small-number-field" name="spouseIncomeGrowthRate" type="number" min="0" max="25" step="0.1" disabled>
                   <span class="profile-currency-suffix">%</span>
                 </div>
               </div>
               <div class="field-group">
-                <label for="spouse-years-until-retirement">Spouse Years Until Retirement</label>
+                <label for="spouse-years-until-retirement">Survivor Years Until Retirement</label>
                 <input id="spouse-years-until-retirement" class="profile-small-number-field" name="spouseYearsUntilRetirement" type="number" min="0" max="80" step="1" disabled>
               </div>
             </div>
@@ -1102,6 +1102,7 @@
   <script src="../app/features/lens-analysis/block-outputs.js"></script>
   <script src="../app/features/lens-analysis/blocks/existing-coverage.js"></script>
   <script src="../app/features/lens-analysis/blocks/offset-assets.js"></script>
+  <script src="../app/features/lens-analysis/blocks/survivor-scenario.js"></script>
   <script src="../app/features/lens-analysis/blocks/income-net-income.js"></script>
   <script src="../app/features/lens-analysis/blocks/debt-payoff.js"></script>
   <script src="../app/features/lens-analysis/blocks/housing-ongoing-support.js"></script>
@@ -1667,8 +1668,13 @@
       const spousePayrollTaxesField = form.elements.namedItem("spousePayrollTaxes");
       const netAnnualIncomeField = form.elements.namedItem("netAnnualIncome");
       const spouseNetAnnualIncomeField = form.elements.namedItem("spouseNetAnnualIncome");
+      const survivorContinuesWorkingField = form.elements.namedItem("survivorContinuesWorking");
       const survivorIncomeField = form.elements.namedItem("survivorIncome");
       const survivorNetAnnualIncomeField = form.elements.namedItem("survivorNetAnnualIncome");
+      const survivorIncomeStartDelayMonthsField = form.elements.namedItem("survivorIncomeStartDelayMonths");
+      const incomeReplacementDurationField = form.elements.namedItem("incomeReplacementDuration");
+      const spouseIncomeGrowthRateField = form.elements.namedItem("spouseIncomeGrowthRate");
+      const spouseYearsUntilRetirementField = form.elements.namedItem("spouseYearsUntilRetirement");
       const spouseExpectedWorkReductionAtDeathField = form.elements.namedItem("spouseExpectedWorkReductionAtDeath");
       const primaryNetIncomeAction = form.querySelector('[data-net-income-action="primary"]');
       const spouseNetIncomeAction = form.querySelector('[data-net-income-action="spouse"]');
@@ -3443,6 +3449,47 @@
         );
       }
 
+      function isSurvivorScenarioManualOverride(field) {
+        return Boolean(
+          field
+          && !(field instanceof RadioNodeList)
+          && field.dataset.userEdited === "true"
+        );
+      }
+
+      function syncSurvivorScenarioBlockOutput() {
+        const createSurvivorScenarioBlockOutput = window.LensApp?.lensAnalysis?.createSurvivorScenarioBlockOutput;
+        const upsertRuntimeBlockOutput = window.LensApp?.lensAnalysis?.upsertRuntimeBlockOutput;
+        const refreshLensIncomeDebugPanel = window.LensApp?.lensAnalysisDev?.refreshLensIncomeDebugPanel;
+        if (typeof createSurvivorScenarioBlockOutput !== "function" || typeof upsertRuntimeBlockOutput !== "function") {
+          return;
+        }
+
+        const runtimeNamespace = window.LensApp.lensAnalysisRuntime || (window.LensApp.lensAnalysisRuntime = {});
+        const blockOutput = createSurvivorScenarioBlockOutput({
+          survivorContinuesWorking: getLensBlockSourceFieldValue(survivorContinuesWorkingField),
+          spouseExpectedWorkReductionAtDeath: getLensBlockSourceFieldValue(spouseExpectedWorkReductionAtDeathField),
+          survivorIncome: getLensBlockSourceFieldValue(survivorIncomeField),
+          survivorIncomeManualOverride: isSurvivorScenarioManualOverride(survivorIncomeField),
+          survivorNetAnnualIncome: getLensBlockSourceFieldValue(survivorNetAnnualIncomeField),
+          survivorNetAnnualIncomeManualOverride: isSurvivorScenarioManualOverride(survivorNetAnnualIncomeField),
+          survivorIncomeStartDelayMonths: getLensBlockSourceFieldValue(survivorIncomeStartDelayMonthsField),
+          incomeReplacementDuration: getLensBlockSourceFieldValue(incomeReplacementDurationField),
+          spouseIncomeGrowthRate: getLensBlockSourceFieldValue(spouseIncomeGrowthRateField),
+          spouseYearsUntilRetirement: getLensBlockSourceFieldValue(spouseYearsUntilRetirementField),
+          survivorNetIncomeTaxBasis: survivorNetIncomeDefaultFilingStatus
+        });
+        upsertRuntimeBlockOutput(runtimeNamespace, blockOutput);
+        if (typeof refreshLensIncomeDebugPanel === "function") {
+          refreshLensIncomeDebugPanel(runtimeNamespace);
+        }
+      }
+
+      function syncSurvivorIncomeScenarioState() {
+        syncSurvivorIncomeScenarioFields();
+        syncSurvivorScenarioBlockOutput();
+      }
+
       function syncNetIncomeBlockOutput(primaryGrossIncome, spouseGrossIncome) {
         const createNetIncomeBlockOutput = window.LensApp?.lensAnalysis?.createNetIncomeBlockOutput;
         const upsertRuntimeBlockOutput = window.LensApp?.lensAnalysis?.upsertRuntimeBlockOutput;
@@ -4207,7 +4254,7 @@
         syncSpouseStateTaxBracketSelection();
         syncPayrollTaxFields();
         syncNetAnnualIncomeFields();
-        syncSurvivorIncomeScenarioFields();
+        syncSurvivorIncomeScenarioState();
       }
 
       function syncStateOfResidenceDisplay() {
@@ -4765,22 +4812,22 @@
       if (survivorWorkingSelect && !(survivorWorkingSelect instanceof RadioNodeList)) {
         const syncSurvivorWorkingState = () => {
           syncSurvivorshipAdjustments();
-          syncSurvivorIncomeScenarioFields();
+          syncSurvivorIncomeScenarioState();
         };
         survivorWorkingSelect.addEventListener("change", syncSurvivorWorkingState);
         survivorWorkingSelect.addEventListener("input", syncSurvivorWorkingState);
       }
 
       if (spouseExpectedWorkReductionAtDeathField && !(spouseExpectedWorkReductionAtDeathField instanceof RadioNodeList)) {
-        spouseExpectedWorkReductionAtDeathField.addEventListener("input", syncSurvivorIncomeScenarioFields);
-        spouseExpectedWorkReductionAtDeathField.addEventListener("change", syncSurvivorIncomeScenarioFields);
-        spouseExpectedWorkReductionAtDeathField.addEventListener("blur", syncSurvivorIncomeScenarioFields);
+        spouseExpectedWorkReductionAtDeathField.addEventListener("input", syncSurvivorIncomeScenarioState);
+        spouseExpectedWorkReductionAtDeathField.addEventListener("change", syncSurvivorIncomeScenarioState);
+        spouseExpectedWorkReductionAtDeathField.addEventListener("blur", syncSurvivorIncomeScenarioState);
       }
 
       if (survivorIncomeField && !(survivorIncomeField instanceof RadioNodeList)) {
         const syncSurvivorGrossManualState = () => {
           markSurvivorScenarioFieldUserEdited(survivorIncomeField);
-          syncSurvivorIncomeScenarioFields();
+          syncSurvivorIncomeScenarioState();
         };
         survivorIncomeField.addEventListener("input", syncSurvivorGrossManualState);
         survivorIncomeField.addEventListener("change", syncSurvivorGrossManualState);
@@ -4790,12 +4837,27 @@
       if (survivorNetAnnualIncomeField && !(survivorNetAnnualIncomeField instanceof RadioNodeList)) {
         const syncSurvivorNetManualState = () => {
           markSurvivorScenarioFieldUserEdited(survivorNetAnnualIncomeField);
-          syncSurvivorIncomeScenarioFields();
+          syncSurvivorIncomeScenarioState();
         };
         survivorNetAnnualIncomeField.addEventListener("input", syncSurvivorNetManualState);
         survivorNetAnnualIncomeField.addEventListener("change", syncSurvivorNetManualState);
         survivorNetAnnualIncomeField.addEventListener("blur", syncSurvivorNetManualState);
       }
+
+      [
+        survivorIncomeStartDelayMonthsField,
+        incomeReplacementDurationField,
+        spouseIncomeGrowthRateField,
+        spouseYearsUntilRetirementField
+      ].forEach((field) => {
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        field.addEventListener("input", syncSurvivorScenarioBlockOutput);
+        field.addEventListener("change", syncSurvivorScenarioBlockOutput);
+        field.addEventListener("blur", syncSurvivorScenarioBlockOutput);
+      });
 
       if (filingStatusField && !(filingStatusField instanceof RadioNodeList)) {
         const syncFederalBracketState = () => {
@@ -4983,6 +5045,7 @@
       syncAllTaxDerivedFields();
       syncIncomeCalculationCurrencyFormatting();
       syncSurvivorshipAdjustments();
+      syncSurvivorIncomeScenarioState();
       syncDebtPayoffBlockOutput();
       syncNonHousingOngoingSupportBlockOutput();
       syncTransitionNeedsBlockOutput();

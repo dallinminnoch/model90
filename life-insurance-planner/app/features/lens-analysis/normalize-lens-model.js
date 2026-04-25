@@ -15,13 +15,14 @@
   const TRANSITION_NEEDS_BLOCK_ID = lensAnalysis.TRANSITION_NEEDS_BLOCK_ID || "transition-needs";
   const EXISTING_COVERAGE_BLOCK_ID = lensAnalysis.EXISTING_COVERAGE_BLOCK_ID || "existing-coverage";
   const OFFSET_ASSETS_BLOCK_ID = lensAnalysis.OFFSET_ASSETS_BLOCK_ID || "offset-assets";
+  const SURVIVOR_SCENARIO_BLOCK_ID = lensAnalysis.SURVIVOR_SCENARIO_BLOCK_ID || "survivor-scenario";
   const ONGOING_SUPPORT_COMPOSITION_BLOCK_ID = "ongoingSupport-composition";
   const ONGOING_SUPPORT_COMPOSITION_BLOCK_TYPE = "bucket-composition";
 
   // This pass normalizes the currently proven runtime block outputs into the
   // canonical incomeBasis, debtPayoff, ongoingSupport, educationSupport,
-  // finalExpenses, transitionNeeds, existingCoverage, offsetAssets, and assumptions
-  // destinations.
+  // finalExpenses, transitionNeeds, existingCoverage, offsetAssets,
+  // survivorScenario, and assumptions destinations.
   const INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
     Object.freeze({
       sourceOutputKey: "grossAnnualIncome",
@@ -469,6 +470,56 @@
     })
   ]);
 
+  const SURVIVOR_SCENARIO_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
+    Object.freeze({
+      sourceOutputKey: "survivorContinuesWorking",
+      destinationField: "survivorContinuesWorking",
+      sourceMetadataKey: "survivorContinuesWorking",
+      valueType: "boolean"
+    }),
+    Object.freeze({
+      sourceOutputKey: "expectedSurvivorWorkReductionPercent",
+      destinationField: "expectedSurvivorWorkReductionPercent",
+      sourceMetadataKey: "expectedSurvivorWorkReductionPercent"
+    }),
+    Object.freeze({
+      sourceOutputKey: "survivorGrossAnnualIncome",
+      destinationField: "survivorGrossAnnualIncome",
+      sourceMetadataKey: "survivorGrossAnnualIncome"
+    }),
+    Object.freeze({
+      sourceOutputKey: "survivorNetAnnualIncome",
+      destinationField: "survivorNetAnnualIncome",
+      sourceMetadataKey: "survivorNetAnnualIncome"
+    }),
+    Object.freeze({
+      sourceOutputKey: "survivorIncomeStartDelayMonths",
+      destinationField: "survivorIncomeStartDelayMonths",
+      sourceMetadataKey: "survivorIncomeStartDelayMonths"
+    }),
+    Object.freeze({
+      sourceOutputKey: "incomeSupportDurationYears",
+      destinationField: "incomeSupportDurationYears",
+      sourceMetadataKey: "incomeSupportDurationYears"
+    }),
+    Object.freeze({
+      sourceOutputKey: "survivorEarnedIncomeGrowthRatePercent",
+      destinationField: "survivorEarnedIncomeGrowthRatePercent",
+      sourceMetadataKey: "survivorEarnedIncomeGrowthRatePercent"
+    }),
+    Object.freeze({
+      sourceOutputKey: "survivorRetirementHorizonYears",
+      destinationField: "survivorRetirementHorizonYears",
+      sourceMetadataKey: "survivorRetirementHorizonYears"
+    }),
+    Object.freeze({
+      sourceOutputKey: "survivorNetIncomeTaxBasis",
+      destinationField: "survivorNetIncomeTaxBasis",
+      sourceMetadataKey: "survivorNetIncomeTaxBasis",
+      valueType: "string"
+    })
+  ]);
+
   function clonePlainValue(value) {
     if (Array.isArray(value)) {
       return value.map(clonePlainValue);
@@ -752,6 +803,10 @@
       blockId: OFFSET_ASSETS_BLOCK_ID,
       mapping: OFFSET_ASSETS_BLOCK_OUTPUT_NORMALIZATION_MAP
     });
+    const survivorScenarioNormalizationMetadata = normalizeBucketFromBlockOutput(lensModel.survivorScenario, blockOutputs, {
+      blockId: SURVIVOR_SCENARIO_BLOCK_ID,
+      mapping: SURVIVOR_SCENARIO_BLOCK_OUTPUT_NORMALIZATION_MAP
+    });
     const economicAssumptionsNormalizationMetadata = normalizeBucketFromBlockOutput(
       lensModel.assumptions.economicAssumptions,
       blockOutputs,
@@ -773,6 +828,7 @@
       transitionNeeds: transitionNeedsNormalizationMetadata,
       existingCoverage: existingCoverageNormalizationMetadata,
       offsetAssets: offsetAssetsNormalizationMetadata,
+      survivorScenario: survivorScenarioNormalizationMetadata,
       assumptions: {
         economicAssumptions: economicAssumptionsNormalizationMetadata
       }
@@ -790,6 +846,7 @@
   lensAnalysis.TRANSITION_NEEDS_BLOCK_ID = TRANSITION_NEEDS_BLOCK_ID;
   lensAnalysis.EXISTING_COVERAGE_BLOCK_ID = EXISTING_COVERAGE_BLOCK_ID;
   lensAnalysis.OFFSET_ASSETS_BLOCK_ID = OFFSET_ASSETS_BLOCK_ID;
+  lensAnalysis.SURVIVOR_SCENARIO_BLOCK_ID = SURVIVOR_SCENARIO_BLOCK_ID;
   lensAnalysis.INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP = ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP = DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP;
@@ -800,5 +857,6 @@
   lensAnalysis.TRANSITION_NEEDS_BLOCK_OUTPUT_NORMALIZATION_MAP = TRANSITION_NEEDS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.EXISTING_COVERAGE_BLOCK_OUTPUT_NORMALIZATION_MAP = EXISTING_COVERAGE_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.OFFSET_ASSETS_BLOCK_OUTPUT_NORMALIZATION_MAP = OFFSET_ASSETS_BLOCK_OUTPUT_NORMALIZATION_MAP;
+  lensAnalysis.SURVIVOR_SCENARIO_BLOCK_OUTPUT_NORMALIZATION_MAP = SURVIVOR_SCENARIO_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.createLensModelFromBlockOutputs = createLensModelFromBlockOutputs;
 })();

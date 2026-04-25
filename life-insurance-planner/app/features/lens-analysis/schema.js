@@ -12,10 +12,10 @@
     return {
       schemaVersion: LENS_MODEL_SCHEMA_VERSION,
 
-      // Income facts and income-replacement planning inputs.
+      // Current income facts and income-replacement base inputs.
       // `spouseOrPartner*` means the current partner income context before the
-      // insured's death. `survivor*` means the post-loss survivor income
-      // assumption used in replacement modeling.
+      // insured's death. Active post-loss survivor assumptions normalize into
+      // survivorScenario below.
       incomeBasis: {
         insuredGrossAnnualIncome: null,
         insuredNetAnnualIncome: null,
@@ -36,6 +36,22 @@
         spouseOrPartnerIncomeGrowthRatePercent: null,
         householdExpenseReductionPercentAtDeath: null,
         spouseOrPartnerWorkReductionPercentAtDeath: null
+      },
+
+      // Post-death survivor and household scenario assumptions. These are
+      // neutral planning facts only. They do not reduce ongoing support,
+      // subtract from recommendations, calculate a coverage gap, or write into
+      // current incomeBasis facts.
+      survivorScenario: {
+        survivorContinuesWorking: null,
+        expectedSurvivorWorkReductionPercent: null,
+        survivorGrossAnnualIncome: null,
+        survivorNetAnnualIncome: null,
+        survivorIncomeStartDelayMonths: null,
+        incomeSupportDurationYears: null,
+        survivorEarnedIncomeGrowthRatePercent: null,
+        survivorRetirementHorizonYears: null,
+        survivorNetIncomeTaxBasis: null
       },
 
       // Outstanding balances or payoff amounts to clear at death. Mortgage
