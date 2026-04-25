@@ -754,7 +754,7 @@
                 <div data-pmi-existing-coverage-totals></div>
                 <div class="existing-coverage-policy-list" data-pmi-existing-coverage-list></div>
                 <div class="existing-coverage-toolbar">
-                  <a class="btn btn-secondary existing-coverage-add-button" href="existing-coverage-details.html" data-pmi-existing-coverage-manage data-loading-link>
+                  <a class="btn btn-secondary existing-coverage-add-button" href="existing-coverage-details.html" data-pmi-existing-coverage-manage>
                     Manage Existing Coverage
                   </a>
                 </div>
@@ -1113,6 +1113,7 @@
   <script src="../app/features/client-directory.js"></script>
   <script src="../app/features/coverage/coverage-policy-utils.js"></script>
   <script src="../app/features/coverage/coverage-policy-summary-list.js"></script>
+  <script src="../app/features/coverage/coverage-policy-manager.js"></script>
   <script src="../app/features/lens-analysis/schema.js"></script>
   <script src="../app/features/lens-analysis/block-outputs.js"></script>
   <script src="../app/features/lens-analysis/blocks/existing-coverage.js"></script>
@@ -1742,7 +1743,9 @@
       const educationFundingPerDependentField = form.elements.namedItem("estimatedCostPerChild");
       const projectedEducationFundingPerDependentField = form.elements.namedItem("projectedEducationFundingPerDependent");
       const incomeCalculationGrid = form.querySelector(".income-calculation-grid");
+      const coveragePolicyUtils = window.LensApp?.coverage || {};
       const coverageSummaryList = window.LensApp?.coverageSummaryList || {};
+      const coverageManager = window.LensApp?.coverageManager || {};
       const existingCoverageTotalsContainer = form.querySelector("[data-pmi-existing-coverage-totals]");
       const existingCoverageListContainer = form.querySelector("[data-pmi-existing-coverage-list]");
       const existingCoverageManageLink = form.querySelector("[data-pmi-existing-coverage-manage]");
@@ -1901,6 +1904,76 @@
         return linkedCaseRef
           ? `existing-coverage-details.html?caseRef=${encodeURIComponent(linkedCaseRef)}`
           : "existing-coverage-details.html";
+      }
+
+      function getCoverageProfileSummaryFields(policies) {
+        const safePolicies = Array.isArray(policies) ? policies : [];
+        const summary = typeof coveragePolicyUtils.summarizeCoveragePolicies === "function"
+          ? coveragePolicyUtils.summarizeCoveragePolicies(safePolicies)
+          : (typeof coverageSummaryList.createCoverageTotals === "function"
+            ? coverageSummaryList.createCoverageTotals(safePolicies)
+            : {});
+        const totalCoverage = Math.max(0, Number(summary?.totalCoverage || 0));
+        return {
+          currentCoverage: totalCoverage,
+          coverageAmount: totalCoverage,
+          policyCount: safePolicies.length
+        };
+      }
+
+      function saveLinkedCoveragePolicies(updatedPolicies) {
+        const updateClientRecordByCaseRef = window.LensApp?.clientRecords?.updateClientRecordByCaseRef;
+        const linkedCaseRef = String(resolvedLinkedCaseRef || window.getLensLinkedCaseRef?.() || "").trim();
+        if (typeof updateClientRecordByCaseRef !== "function" || !linkedCaseRef) {
+          return null;
+        }
+
+        const safePolicies = Array.isArray(updatedPolicies)
+          ? updatedPolicies.filter((policy) => policy && typeof policy === "object")
+          : [];
+        const coverageSummaryFields = getCoverageProfileSummaryFields(safePolicies);
+        const today = new Date().toISOString().slice(0, 10);
+        const updatedRecord = updateClientRecordByCaseRef(linkedCaseRef, function (currentRecord) {
+          return {
+            ...currentRecord,
+            coveragePolicies: safePolicies,
+            ...coverageSummaryFields,
+            lastUpdatedDate: today,
+            lastReview: today
+          };
+        });
+
+        if (updatedRecord) {
+          window.setLensLinkedCaseRef?.(updatedRecord.caseRef || linkedCaseRef);
+          window.setLensLinkedRecordId?.(updatedRecord.id);
+        }
+
+        return updatedRecord;
+      }
+
+      function openExistingCoverageManager(event) {
+        event?.preventDefault();
+        const linkedRecord = getLinkedRecord();
+        if (!linkedRecord || typeof coverageManager.openCoveragePolicyManager !== "function") {
+          window.location.href = getExistingCoverageManageUrl();
+          return;
+        }
+
+        coverageManager.openCoveragePolicyManager({
+          profileRecord: linkedRecord,
+          coveragePolicies: getLinkedCoveragePolicies(),
+          allowDelete: false,
+          title: "Manage Existing Coverage",
+          contextLabel: String(linkedRecord.displayName || linkedRecord.caseRef || "Linked profile").trim(),
+          onSavePolicies: function (updatedPolicies) {
+            const updatedRecord = saveLinkedCoveragePolicies(updatedPolicies);
+            if (updatedRecord) {
+              renderExistingCoverageCard();
+              syncExistingCoverageBlockOutput();
+            }
+            return updatedRecord;
+          }
+        });
       }
 
       function renderExistingCoverageCard() {
@@ -4642,6 +4715,7 @@
       syncDebtPayoffBlockOutput();
       syncNonHousingOngoingSupportBlockOutput();
       syncTransitionNeedsBlockOutput();
+      existingCoverageManageLink?.addEventListener("click", openExistingCoverageManager);
       renderExistingCoverageCard();
       syncExistingCoverageBlockOutput();
       if (typeof window.LensApp?.lensAnalysisDev?.mountLensIncomeDebugPanel === "function") {

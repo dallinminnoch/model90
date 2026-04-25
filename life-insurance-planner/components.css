@@ -4058,6 +4058,145 @@ body[data-page="protection-modeling-inputs"] .preliminary-link-grid {
   word-break: break-word;
 }
 
+.coverage-policy-manager-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.coverage-policy-manager-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 23, 33, 0.36);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.coverage-policy-manager-panel {
+  position: relative;
+  z-index: 1;
+  width: min(58rem, calc(100vw - 2rem));
+  max-height: min(90vh, 56rem);
+  overflow: auto;
+  display: grid;
+  gap: 1rem;
+  padding: 1.15rem;
+  border: 1px solid rgba(219, 226, 238, 0.96);
+  border-radius: 1.15rem;
+  background: #ffffff;
+  box-shadow: 0 26px 72px rgba(16, 24, 40, 0.22);
+}
+
+.coverage-policy-manager-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1rem;
+}
+
+.coverage-policy-manager-header h2 {
+  margin: 0;
+  color: #1a2435;
+}
+
+.coverage-policy-manager-header p {
+  margin: 0.2rem 0 0;
+  color: #667084;
+  font-size: 0.94rem;
+  line-height: 1.45;
+}
+
+.coverage-policy-manager-close {
+  width: 2.15rem;
+  height: 2.15rem;
+  border: 1px solid rgba(213, 221, 232, 0.95);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #526074;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.coverage-policy-manager-feedback {
+  padding: 0.72rem 0.85rem;
+  border-radius: 0.85rem;
+  background: #fff0f0;
+  color: #934141;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.coverage-policy-manager-feedback[hidden],
+.coverage-policy-manager-editor[hidden] {
+  display: none !important;
+}
+
+.coverage-policy-manager-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.coverage-policy-manager-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.7rem;
+}
+
+.coverage-policy-manager-editor {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid rgba(222, 228, 238, 0.98);
+  border-radius: 1rem;
+  background: #fbfcff;
+}
+
+.coverage-policy-manager-editor .client-activity-field {
+  display: grid;
+  gap: 0.38rem;
+}
+
+.coverage-policy-manager-editor .client-activity-field > span {
+  color: #667890;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.coverage-policy-manager-editor .client-activity-input,
+.coverage-policy-manager-editor .client-activity-select,
+.coverage-policy-manager-editor .client-activity-textarea {
+  min-height: 2.62rem;
+  width: 100%;
+  padding: 0.54rem 0.78rem;
+  border: 1px solid rgba(205, 214, 227, 0.96);
+  border-radius: 0.82rem;
+  background: #ffffff;
+  color: #1a2435;
+  font: inherit;
+}
+
+.coverage-policy-manager-editor .client-activity-textarea {
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+.coverage-policy-manager-editor .client-coverage-document-shell.is-disabled {
+  opacity: 0.82;
+}
+
+@media (max-width: 760px) {
+  .coverage-policy-manager-panel {
+    width: calc(100vw - 1rem);
+    max-height: 92vh;
+    padding: 0.95rem;
+  }
+}
+
 .client-policy-modal[data-premium-timeline-modal] .client-policy-modal-backdrop {
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
