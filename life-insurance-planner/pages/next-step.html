@@ -2086,6 +2086,33 @@
         }) || null;
       }
 
+      function getLinkedProtectionModelingData() {
+        const linkedRecord = getLinkedRecord();
+        const currentPayloadData = linkedRecord?.protectionModeling?.data;
+        if (currentPayloadData && typeof currentPayloadData === "object") {
+          return currentPayloadData;
+        }
+
+        const entries = Array.isArray(linkedRecord?.protectionModelingEntries)
+          ? linkedRecord.protectionModelingEntries
+          : [];
+        const latestEntryData = entries.length ? entries[entries.length - 1]?.data : null;
+        return latestEntryData && typeof latestEntryData === "object" ? latestEntryData : null;
+      }
+
+      function getRestorableProtectionDraft() {
+        const linkedProtectionModelingData = getLinkedProtectionModelingData();
+        if (linkedProtectionModelingData) {
+          return linkedProtectionModelingData;
+        }
+
+        if (resolvedLinkedCaseRef) {
+          return {};
+        }
+
+        return JSON.parse(localStorage.getItem(storageKey) || "{}");
+      }
+
       function syncLinkedStateOfResidence() {
         if (!stateOfResidenceField || stateOfResidenceField instanceof RadioNodeList) {
           return;
@@ -4288,7 +4315,7 @@
 
       function restoreDraft() {
         try {
-          const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
+          const saved = getRestorableProtectionDraft();
 
           Object.entries(saved).forEach(([name, value]) => {
             const control = form.elements.namedItem(name);
@@ -4398,6 +4425,22 @@
             }
             setNetIncomeActionLabel(totalDebtPayoffNeedField, totalDebtPayoffNeedAction);
           }
+          if (survivorIncomeField && !(survivorIncomeField instanceof RadioNodeList)) {
+            if (saved.survivorIncomeManualOverride) {
+              survivorIncomeField.dataset.userEdited = "true";
+              survivorIncomeField.closest(".profile-currency-field")?.classList.remove("is-recommended");
+            } else {
+              clearSurvivorScenarioSuggestionState(survivorIncomeField);
+            }
+          }
+          if (survivorNetAnnualIncomeField && !(survivorNetAnnualIncomeField instanceof RadioNodeList)) {
+            if (saved.survivorNetAnnualIncomeManualOverride) {
+              survivorNetAnnualIncomeField.dataset.userEdited = "true";
+              survivorNetAnnualIncomeField.closest(".profile-currency-field")?.classList.remove("is-recommended");
+            } else {
+              clearSurvivorScenarioSuggestionState(survivorNetAnnualIncomeField);
+            }
+          }
           clampCostToFundPercent();
           syncSameEducationFundingToggleFromField();
           syncLinkedMaritalStatus();
@@ -4476,6 +4519,14 @@
         if (totalDebtPayoffNeedField && !(totalDebtPayoffNeedField instanceof RadioNodeList) && totalDebtPayoffNeedField.dataset.manualOverride === "true") {
           draft.totalDebtPayoffNeed = parseCurrencyLikeNumber(totalDebtPayoffNeedField.dataset.manualValue);
           draft.totalDebtPayoffNeedManualOverride = true;
+        }
+
+        if (isSurvivorScenarioManualOverride(survivorIncomeField) && String(survivorIncomeField.value || "").trim() !== "") {
+          draft.survivorIncomeManualOverride = true;
+        }
+
+        if (isSurvivorScenarioManualOverride(survivorNetAnnualIncomeField) && String(survivorNetAnnualIncomeField.value || "").trim() !== "") {
+          draft.survivorNetAnnualIncomeManualOverride = true;
         }
 
         return draft;
