@@ -154,9 +154,62 @@
         totalExistingCoverage: null
       },
 
-      // Offsets and in-force coverage. The destination model separates raw
-      // asset offsets from current coverage because they reduce need through
-      // different mechanisms and can come from different systems later.
+      // Current non-coverage assets that may later be considered as offsets.
+      // These are neutral current-resource facts. They do not create needs,
+      // subtract from needs, calculate a coverage gap, or produce a
+      // recommendation.
+      offsetAssets: {
+        cashSavings: {
+          value: null,
+          includeInOffset: null,
+          liquidityType: null,
+          availablePercent: null,
+          availableValue: null
+        },
+        currentEmergencyFund: {
+          value: null,
+          includeInOffset: null,
+          liquidityType: null,
+          availablePercent: null,
+          availableValue: null
+        },
+        brokerageAccounts: {
+          value: null,
+          includeInOffset: null,
+          liquidityType: null,
+          availablePercent: null,
+          availableValue: null
+        },
+        retirementAccounts: {
+          value: null,
+          includeInOffset: null,
+          liquidityType: null,
+          availablePercent: null,
+          availableValue: null
+        },
+        realEstateEquity: {
+          value: null,
+          includeInOffset: null,
+          liquidityType: null,
+          availablePercent: null,
+          availableValue: null
+        },
+        businessValue: {
+          value: null,
+          includeInOffset: null,
+          liquidityType: null,
+          availablePercent: null,
+          availableValue: null
+        },
+        assetDataConfidence: null,
+        totalReportedAssetValue: null,
+        totalIncludedAssetValue: null,
+        totalAvailableOffsetAssetValue: null
+      },
+
+      // Legacy offsets and in-force coverage placeholders retained for
+      // compatibility/documentation while active assets normalize into
+      // offsetAssets and policy coverage normalizes into existingCoverage.
       offsetsAndCoverage: {
         offsetAssetValues: {
           cashSavings: null,

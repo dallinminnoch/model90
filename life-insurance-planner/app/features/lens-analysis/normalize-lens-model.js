@@ -14,12 +14,13 @@
   const FINAL_EXPENSES_BLOCK_ID = lensAnalysis.FINAL_EXPENSES_BLOCK_ID || "final-expenses";
   const TRANSITION_NEEDS_BLOCK_ID = lensAnalysis.TRANSITION_NEEDS_BLOCK_ID || "transition-needs";
   const EXISTING_COVERAGE_BLOCK_ID = lensAnalysis.EXISTING_COVERAGE_BLOCK_ID || "existing-coverage";
+  const OFFSET_ASSETS_BLOCK_ID = lensAnalysis.OFFSET_ASSETS_BLOCK_ID || "offset-assets";
   const ONGOING_SUPPORT_COMPOSITION_BLOCK_ID = "ongoingSupport-composition";
   const ONGOING_SUPPORT_COMPOSITION_BLOCK_TYPE = "bucket-composition";
 
   // This pass normalizes the currently proven runtime block outputs into the
   // canonical incomeBasis, debtPayoff, ongoingSupport, educationSupport,
-  // finalExpenses, transitionNeeds, existingCoverage, and assumptions
+  // finalExpenses, transitionNeeds, existingCoverage, offsetAssets, and assumptions
   // destinations.
   const INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
     Object.freeze({
@@ -406,6 +407,68 @@
     })
   ]);
 
+  function createOffsetAssetNormalizationFields(assetKey) {
+    return [
+      Object.freeze({
+        sourceOutputKey: assetKey + ".value",
+        destinationField: assetKey + ".value",
+        sourceMetadataKey: assetKey + ".value"
+      }),
+      Object.freeze({
+        sourceOutputKey: assetKey + ".includeInOffset",
+        destinationField: assetKey + ".includeInOffset",
+        sourceMetadataKey: assetKey + ".includeInOffset",
+        valueType: "boolean"
+      }),
+      Object.freeze({
+        sourceOutputKey: assetKey + ".liquidityType",
+        destinationField: assetKey + ".liquidityType",
+        sourceMetadataKey: assetKey + ".liquidityType",
+        valueType: "string"
+      }),
+      Object.freeze({
+        sourceOutputKey: assetKey + ".availablePercent",
+        destinationField: assetKey + ".availablePercent",
+        sourceMetadataKey: assetKey + ".availablePercent"
+      }),
+      Object.freeze({
+        sourceOutputKey: assetKey + ".availableValue",
+        destinationField: assetKey + ".availableValue",
+        sourceMetadataKey: assetKey + ".availableValue"
+      })
+    ];
+  }
+
+  const OFFSET_ASSETS_BLOCK_OUTPUT_NORMALIZATION_MAP = Object.freeze([
+    ...createOffsetAssetNormalizationFields("cashSavings"),
+    ...createOffsetAssetNormalizationFields("currentEmergencyFund"),
+    ...createOffsetAssetNormalizationFields("brokerageAccounts"),
+    ...createOffsetAssetNormalizationFields("retirementAccounts"),
+    ...createOffsetAssetNormalizationFields("realEstateEquity"),
+    ...createOffsetAssetNormalizationFields("businessValue"),
+    Object.freeze({
+      sourceOutputKey: "assetDataConfidence",
+      destinationField: "assetDataConfidence",
+      sourceMetadataKey: "assetDataConfidence",
+      valueType: "string"
+    }),
+    Object.freeze({
+      sourceOutputKey: "totalReportedAssetValue",
+      destinationField: "totalReportedAssetValue",
+      sourceMetadataKey: "totalReportedAssetValue"
+    }),
+    Object.freeze({
+      sourceOutputKey: "totalIncludedAssetValue",
+      destinationField: "totalIncludedAssetValue",
+      sourceMetadataKey: "totalIncludedAssetValue"
+    }),
+    Object.freeze({
+      sourceOutputKey: "totalAvailableOffsetAssetValue",
+      destinationField: "totalAvailableOffsetAssetValue",
+      sourceMetadataKey: "totalAvailableOffsetAssetValue"
+    })
+  ]);
+
   function clonePlainValue(value) {
     if (Array.isArray(value)) {
       return value.map(clonePlainValue);
@@ -495,6 +558,23 @@
     return toOptionalNumber(value);
   }
 
+  function setBucketFieldValue(targetBucket, destinationField, value) {
+    const path = String(destinationField || "").split(".").filter(Boolean);
+    if (!targetBucket || typeof targetBucket !== "object" || !path.length) {
+      return;
+    }
+
+    let cursor = targetBucket;
+    path.slice(0, -1).forEach(function (pathPart) {
+      if (!cursor[pathPart] || typeof cursor[pathPart] !== "object" || Array.isArray(cursor[pathPart])) {
+        cursor[pathPart] = {};
+      }
+      cursor = cursor[pathPart];
+    });
+
+    cursor[path[path.length - 1]] = value;
+  }
+
   function cloneOutputMetadata(outputMetadata, metadataKey, blockOutput) {
     if (!outputMetadata || typeof outputMetadata !== "object" || !metadataKey) {
       return null;
@@ -545,9 +625,13 @@
         : {};
 
       source.mapping.forEach(function (mapping) {
-        targetBucket[mapping.destinationField] = normalizeBlockOutputValue(
-          outputValues[mapping.sourceOutputKey],
-          mapping
+        setBucketFieldValue(
+          targetBucket,
+          mapping.destinationField,
+          normalizeBlockOutputValue(
+            outputValues[mapping.sourceOutputKey],
+            mapping
+          )
         );
         bucketNormalizationMetadata.fields[mapping.destinationField] = cloneOutputMetadata(
           outputMetadata,
@@ -664,6 +748,10 @@
       blockId: EXISTING_COVERAGE_BLOCK_ID,
       mapping: EXISTING_COVERAGE_BLOCK_OUTPUT_NORMALIZATION_MAP
     });
+    const offsetAssetsNormalizationMetadata = normalizeBucketFromBlockOutput(lensModel.offsetAssets, blockOutputs, {
+      blockId: OFFSET_ASSETS_BLOCK_ID,
+      mapping: OFFSET_ASSETS_BLOCK_OUTPUT_NORMALIZATION_MAP
+    });
     const economicAssumptionsNormalizationMetadata = normalizeBucketFromBlockOutput(
       lensModel.assumptions.economicAssumptions,
       blockOutputs,
@@ -684,6 +772,7 @@
       finalExpenses: finalExpensesNormalizationMetadata,
       transitionNeeds: transitionNeedsNormalizationMetadata,
       existingCoverage: existingCoverageNormalizationMetadata,
+      offsetAssets: offsetAssetsNormalizationMetadata,
       assumptions: {
         economicAssumptions: economicAssumptionsNormalizationMetadata
       }
@@ -700,6 +789,7 @@
   lensAnalysis.FINAL_EXPENSES_BLOCK_ID = FINAL_EXPENSES_BLOCK_ID;
   lensAnalysis.TRANSITION_NEEDS_BLOCK_ID = TRANSITION_NEEDS_BLOCK_ID;
   lensAnalysis.EXISTING_COVERAGE_BLOCK_ID = EXISTING_COVERAGE_BLOCK_ID;
+  lensAnalysis.OFFSET_ASSETS_BLOCK_ID = OFFSET_ASSETS_BLOCK_ID;
   lensAnalysis.INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP = INCOME_BASIS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP = ECONOMIC_ASSUMPTIONS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP = DEBT_PAYOFF_BLOCK_OUTPUT_NORMALIZATION_MAP;
@@ -709,5 +799,6 @@
   lensAnalysis.FINAL_EXPENSES_BLOCK_OUTPUT_NORMALIZATION_MAP = FINAL_EXPENSES_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.TRANSITION_NEEDS_BLOCK_OUTPUT_NORMALIZATION_MAP = TRANSITION_NEEDS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.EXISTING_COVERAGE_BLOCK_OUTPUT_NORMALIZATION_MAP = EXISTING_COVERAGE_BLOCK_OUTPUT_NORMALIZATION_MAP;
+  lensAnalysis.OFFSET_ASSETS_BLOCK_OUTPUT_NORMALIZATION_MAP = OFFSET_ASSETS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.createLensModelFromBlockOutputs = createLensModelFromBlockOutputs;
 })();

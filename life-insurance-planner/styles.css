@@ -2023,21 +2023,12 @@ body[data-page="existing-coverage-details"] .prospect-empty-panel {
   gap: 1rem;
 }
 
-.existing-coverage-wizard-shell,
 .existing-coverage-saved-shell {
   margin: 0;
   border: 1px solid rgba(222, 228, 238, 0.98);
   border-radius: 1.1rem;
   background: #ffffff;
   box-shadow: none;
-}
-
-.existing-coverage-wizard-shell {
-  padding: 1.3rem 1.3rem 1.15rem;
-}
-
-.existing-coverage-wizard-shell[hidden] {
-  display: none !important;
 }
 
 .existing-coverage-wizard-heading {
@@ -2057,12 +2048,6 @@ body[data-page="existing-coverage-details"] .prospect-empty-panel {
   color: #66758a;
   font-size: 0.95rem;
   line-height: 1.45;
-}
-
-.existing-coverage-widget-feedback {
-  color: #8a4b4b;
-  font-size: 0.9rem;
-  font-weight: 600;
 }
 
 .existing-coverage-widget-actions {
@@ -2126,16 +2111,6 @@ body[data-page="existing-coverage-details"] .prospect-empty-panel {
   background: #ffffff;
 }
 
-.existing-coverage-draft-card {
-  border-style: dashed;
-  background: #fcfbff;
-}
-
-.existing-coverage-draft-card.is-active {
-  border-color: rgba(92, 79, 215, 0.42);
-  background: #f8f6ff;
-}
-
 .existing-coverage-saved-card-copy {
   display: grid;
   gap: 0.25rem;
@@ -2154,20 +2129,6 @@ body[data-page="existing-coverage-details"] .prospect-empty-panel {
   font-size: 0.9rem;
   line-height: 1.45;
   word-break: break-word;
-}
-
-.existing-coverage-draft-flag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: fit-content;
-  min-height: 1.7rem;
-  padding: 0 0.7rem;
-  border-radius: 999px;
-  background: #f0ecff;
-  color: #5c4fd7;
-  font-size: 0.8rem;
-  font-weight: 800;
 }
 
 .existing-coverage-saved-card-actions {

@@ -19,6 +19,7 @@
   const FINAL_EXPENSES_BLOCK_ID = lensAnalysis.FINAL_EXPENSES_BLOCK_ID || "final-expenses";
   const TRANSITION_NEEDS_BLOCK_ID = lensAnalysis.TRANSITION_NEEDS_BLOCK_ID || "transition-needs";
   const EXISTING_COVERAGE_BLOCK_ID = lensAnalysis.EXISTING_COVERAGE_BLOCK_ID || "existing-coverage";
+  const OFFSET_ASSETS_BLOCK_ID = lensAnalysis.OFFSET_ASSETS_BLOCK_ID || "offset-assets";
 
   const HOUSING_RUNTIME_ONLY_DEBUG_FIELDS = Object.freeze([
     Object.freeze({
@@ -373,6 +374,49 @@
     })
   ]);
 
+  function createOffsetAssetDebugFields() {
+    const assetKeys = [
+      "cashSavings",
+      "currentEmergencyFund",
+      "brokerageAccounts",
+      "retirementAccounts",
+      "realEstateEquity",
+      "businessValue"
+    ];
+    const fields = assetKeys.reduce(function (nextFields, assetKey) {
+      ["value", "includeInOffset", "liquidityType", "availablePercent", "availableValue"].forEach(function (fieldKey) {
+        nextFields.push(Object.freeze({
+          sourceOutputKey: assetKey + "." + fieldKey,
+          destinationField: assetKey + "." + fieldKey
+        }));
+      });
+      return nextFields;
+    }, []);
+
+    fields.push(
+      Object.freeze({
+        sourceOutputKey: "assetDataConfidence",
+        destinationField: "assetDataConfidence"
+      }),
+      Object.freeze({
+        sourceOutputKey: "totalReportedAssetValue",
+        destinationField: "totalReportedAssetValue"
+      }),
+      Object.freeze({
+        sourceOutputKey: "totalIncludedAssetValue",
+        destinationField: "totalIncludedAssetValue"
+      }),
+      Object.freeze({
+        sourceOutputKey: "totalAvailableOffsetAssetValue",
+        destinationField: "totalAvailableOffsetAssetValue"
+      })
+    );
+
+    return Object.freeze(fields);
+  }
+
+  const OFFSET_ASSETS_DEBUG_FIELDS = createOffsetAssetDebugFields();
+
   function isLensIncomeDebugEnabled(locationLike) {
     const search = locationLike && typeof locationLike.search === "string" ? locationLike.search : "";
     const value = new URLSearchParams(search).get(DEBUG_QUERY_PARAM);
@@ -402,6 +446,21 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function getNestedDebugValue(source, path) {
+    const pathParts = String(path || "").split(".").filter(Boolean);
+    if (!source || typeof source !== "object" || !pathParts.length) {
+      return null;
+    }
+
+    return pathParts.reduce(function (value, pathPart) {
+      if (!value || typeof value !== "object") {
+        return null;
+      }
+
+      return value[pathPart];
+    }, source);
   }
 
   function appendBucketInspectionRows(rows, options) {
@@ -449,7 +508,7 @@
       rows.push({
         section: normalizedOptions.normalizedSection,
         field: field.destinationField,
-        value: normalizedBucket[field.destinationField],
+        value: getNestedDebugValue(normalizedBucket, field.destinationField),
         sourceBlock: normalizedFieldMetadata.sourceBlockId || sourceBlockId,
         confidence: normalizedFieldMetadata.confidence || null
       });
@@ -483,7 +542,7 @@
       rows.push({
         section: normalizedOptions.normalizedSection,
         field: field.destinationField,
-        value: normalizedBucket[field.destinationField],
+        value: getNestedDebugValue(normalizedBucket, field.destinationField),
         sourceBlock: normalizedFieldMetadata.sourceBlockId || sourceBlockId,
         confidence: normalizedFieldMetadata.confidence || null
       });
@@ -604,12 +663,21 @@
       fields: EXISTING_COVERAGE_DEBUG_FIELDS
     });
 
+    appendBucketInspectionRows(rows, {
+      blockOutput: safeBlockOutputs[OFFSET_ASSETS_BLOCK_ID],
+      normalizedBucket: lensModel && lensModel.offsetAssets,
+      normalizationMetadata: lensModel && lensModel.normalizationMetadata && lensModel.normalizationMetadata.offsetAssets,
+      runtimeSection: "Runtime offset-assets",
+      normalizedSection: "Normalized offsetAssets",
+      fields: OFFSET_ASSETS_DEBUG_FIELDS
+    });
+
     return rows;
   }
 
   function createSummaryText(blockOutputs, lensModel) {
     const safeBlockOutputs = blockOutputs && typeof blockOutputs === "object" ? blockOutputs : {};
-    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID, NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID, EDUCATION_SUPPORT_BLOCK_ID, FINAL_EXPENSES_BLOCK_ID, TRANSITION_NEEDS_BLOCK_ID, EXISTING_COVERAGE_BLOCK_ID].filter(function (blockId) {
+    const availableBlocks = [NET_INCOME_BLOCK_ID, DEBT_PAYOFF_BLOCK_ID, HOUSING_ONGOING_SUPPORT_BLOCK_ID, NON_HOUSING_ONGOING_SUPPORT_BLOCK_ID, EDUCATION_SUPPORT_BLOCK_ID, FINAL_EXPENSES_BLOCK_ID, TRANSITION_NEEDS_BLOCK_ID, EXISTING_COVERAGE_BLOCK_ID, OFFSET_ASSETS_BLOCK_ID].filter(function (blockId) {
       return safeBlockOutputs[blockId];
     });
     return "Runtime blocks: " + (availableBlocks.length ? availableBlocks.join(", ") : "none");
@@ -764,6 +832,7 @@
       finalExpenses: lensModel.finalExpenses,
       transitionNeeds: lensModel.transitionNeeds,
       existingCoverage: lensModel.existingCoverage,
+      offsetAssets: lensModel.offsetAssets,
       debtPayoff: lensModel.debtPayoff,
       normalizationMetadata: lensModel.normalizationMetadata || null
     };

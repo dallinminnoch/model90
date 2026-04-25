@@ -564,15 +564,6 @@
                       <span class="profile-currency-suffix">USD</span>
                     </div>
                   </div>
-                  <div class="field-group">
-                    <label for="assets-confidence-level">Asset Data Confidence</label>
-                    <select id="assets-confidence-level" name="assetsConfidenceLevel">
-                      <option value="">Optional</option>
-                      <option value="Exact">Exact</option>
-                      <option value="Estimated">Estimated</option>
-                      <option value="Unknown">Unknown</option>
-                    </select>
-                  </div>
                   <div class="field-group full-width">
                     <label>Cash / Savings Availability for Survivor Needs</label>
                     <div class="profile-subgrid">
@@ -1121,6 +1112,7 @@
   <script src="../app/features/lens-analysis/schema.js"></script>
   <script src="../app/features/lens-analysis/block-outputs.js"></script>
   <script src="../app/features/lens-analysis/blocks/existing-coverage.js"></script>
+  <script src="../app/features/lens-analysis/blocks/offset-assets.js"></script>
   <script src="../app/features/lens-analysis/blocks/income-net-income.js"></script>
   <script src="../app/features/lens-analysis/blocks/debt-payoff.js"></script>
   <script src="../app/features/lens-analysis/blocks/housing-ongoing-support.js"></script>
@@ -1372,7 +1364,6 @@
         "retirement-assets": "Retirement account balances, which may be discounted in planning.",
         "real-estate-equity": "Home or other property equity available to support the plan.",
         "business-value": "Estimated business value or ownership value.",
-        "assets-confidence-level": "Confidence level for the asset values entered in this section.",
         "cash-savings-include-in-offset": "Whether cash and savings should later reduce the death benefit need.",
         "cash-savings-liquidity-type": "How quickly cash and savings could realistically be used.",
         "cash-savings-percent-available": "Percent of cash and savings realistically available for survivor needs.",
@@ -2023,6 +2014,63 @@
         const blockOutput = createExistingCoverageBlockOutput({
           coveragePolicies: getLinkedCoveragePolicies()
         });
+        upsertRuntimeBlockOutput(runtimeNamespace, blockOutput);
+        if (typeof refreshLensIncomeDebugPanel === "function") {
+          refreshLensIncomeDebugPanel(runtimeNamespace);
+        }
+      }
+
+      function getOffsetAssetsSourceFieldNames() {
+        return [
+          "cashSavings",
+          "cashSavingsIncludeInOffset",
+          "cashSavingsLiquidityType",
+          "cashSavingsPercentAvailable",
+          "emergencyFund",
+          "emergencyFundIncludeInOffset",
+          "emergencyFundLiquidityType",
+          "emergencyFundPercentAvailable",
+          "brokerageAccounts",
+          "brokerageAccountsIncludeInOffset",
+          "brokerageAccountsLiquidityType",
+          "brokerageAccountsPercentAvailable",
+          "retirementAssets",
+          "retirementAssetsIncludeInOffset",
+          "retirementAssetsLiquidityType",
+          "retirementAssetsPercentAvailable",
+          "realEstateEquity",
+          "realEstateEquityIncludeInOffset",
+          "realEstateEquityLiquidityType",
+          "realEstateEquityPercentAvailable",
+          "businessValue",
+          "businessValueIncludeInOffset",
+          "businessValueLiquidityType",
+          "businessValuePercentAvailable",
+          "assetsConfidenceLevel"
+        ];
+      }
+
+      function getLensBlockSourceValueByFieldName(fieldName) {
+        return getLensBlockSourceFieldValue(form.elements.namedItem(fieldName));
+      }
+
+      function createOffsetAssetsSourceData() {
+        return getOffsetAssetsSourceFieldNames().reduce((sourceData, fieldName) => {
+          sourceData[fieldName] = getLensBlockSourceValueByFieldName(fieldName);
+          return sourceData;
+        }, {});
+      }
+
+      function syncOffsetAssetsBlockOutput() {
+        const createOffsetAssetsBlockOutput = window.LensApp?.lensAnalysis?.createOffsetAssetsBlockOutput;
+        const upsertRuntimeBlockOutput = window.LensApp?.lensAnalysis?.upsertRuntimeBlockOutput;
+        const refreshLensIncomeDebugPanel = window.LensApp?.lensAnalysisDev?.refreshLensIncomeDebugPanel;
+        if (typeof createOffsetAssetsBlockOutput !== "function" || typeof upsertRuntimeBlockOutput !== "function") {
+          return;
+        }
+
+        const runtimeNamespace = window.LensApp.lensAnalysisRuntime || (window.LensApp.lensAnalysisRuntime = {});
+        const blockOutput = createOffsetAssetsBlockOutput(createOffsetAssetsSourceData());
         upsertRuntimeBlockOutput(runtimeNamespace, blockOutput);
         if (typeof refreshLensIncomeDebugPanel === "function") {
           refreshLensIncomeDebugPanel(runtimeNamespace);
@@ -4381,6 +4429,17 @@
         field.addEventListener("blur", syncFinalExpensesBlockOutput);
       });
 
+      getOffsetAssetsSourceFieldNames().forEach((fieldName) => {
+        const field = form.elements.namedItem(fieldName);
+        if (!field || field instanceof RadioNodeList) {
+          return;
+        }
+
+        field.addEventListener("input", syncOffsetAssetsBlockOutput);
+        field.addEventListener("change", syncOffsetAssetsBlockOutput);
+        field.addEventListener("blur", syncOffsetAssetsBlockOutput);
+      });
+
       [
         immediateLiquidityBufferField,
         desiredEmergencyFundField,
@@ -4724,6 +4783,7 @@
       existingCoverageManageLink?.addEventListener("click", openExistingCoverageManager);
       renderExistingCoverageCard();
       syncExistingCoverageBlockOutput();
+      syncOffsetAssetsBlockOutput();
       if (typeof window.LensApp?.lensAnalysisDev?.mountLensIncomeDebugPanel === "function") {
         window.LensApp.lensAnalysisDev.mountLensIncomeDebugPanel(window.LensApp.lensAnalysisRuntime);
       }
