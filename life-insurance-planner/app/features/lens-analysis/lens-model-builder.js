@@ -574,8 +574,42 @@
     };
   }
 
+  function parseSameEducationFundingFlag(value) {
+    if (value == null || normalizeString(value) === "") {
+      return null;
+    }
+
+    if (typeof value === "boolean") {
+      return value;
+    }
+
+    if (typeof value === "number") {
+      if (value === 1) {
+        return true;
+      }
+
+      if (value === 0) {
+        return false;
+      }
+
+      return null;
+    }
+
+    const normalized = normalizeString(value).toLowerCase();
+    if (["yes", "y", "true", "1", "same"].includes(normalized)) {
+      return true;
+    }
+
+    if (["no", "n", "false", "0", "different"].includes(normalized)) {
+      return false;
+    }
+
+    return null;
+  }
+
   function useSameEducationFunding(sourceData) {
-    return normalizeString(sourceData.sameEducationFunding || "Yes") !== "No";
+    const parsedFlag = parseSameEducationFundingFlag(sourceData.sameEducationFunding);
+    return parsedFlag == null ? true : parsedFlag;
   }
 
   function createEducationSource(sourceData, profileRecord, warnings) {

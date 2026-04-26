@@ -327,25 +327,6 @@
             </form>`;
   }
 
-  function ensureWorkspaceTopbarSearch() {
-    const topbarInner = document.querySelector(".workspace-page-topbar-inner");
-    if (!topbarInner || topbarInner.querySelector(".workspace-page-topbar-search-host, .site-search")) {
-      return;
-    }
-
-    const host = document.createElement("div");
-    host.className = "workspace-page-topbar-search-host";
-    host.innerHTML = getSearchMarkup();
-
-    const actions = topbarInner.querySelector(".workspace-page-topbar-actions");
-    if (actions) {
-      topbarInner.insertBefore(host, actions);
-      return;
-    }
-
-    topbarInner.appendChild(host);
-  }
-
   function injectSiteHeader() {
     clearTemporaryAnalysisSessionIfOutsideLens();
 
@@ -356,7 +337,6 @@
     const { markup, iconPaths } = getHeaderMarkup();
 
     if (document.querySelector(".workspace-page-topbar")) {
-      ensureWorkspaceTopbarSearch();
       bindFullscreenToggle(iconPaths);
       return;
     }

@@ -407,6 +407,8 @@ body.clients-page[data-local-client-directory="true"] .client-directory-header {
 body.clients-page,
 body.lens-page,
 body.settings-page {
+  --workspace-topbar-height: 2.2rem;
+  --workspace-topbar-control-size: 2.05rem;
   --app-side-nav-top-offset: calc(var(--workspace-topbar-height) + 0.6rem);
   background: #ffffff;
 }
@@ -440,7 +442,7 @@ body.settings-page .workspace-page-topbar {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 0 0.7rem;
+  padding: 0 0.55rem;
 }
 
 .workspace-page-topbar-actions {
@@ -448,15 +450,7 @@ body.settings-page .workspace-page-topbar {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.35rem;
-}
-
-.workspace-page-topbar-search-host {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  justify-content: center;
-  padding: 0 clamp(0.75rem, 1.8vw, 1.35rem);
+  gap: 0.2rem;
 }
 
 .workspace-side-nav-host {
@@ -1352,6 +1346,12 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
 .analysis-setup-control-group--assets {
   grid-column: 2 / span 2;
   grid-row: 1;
+}
+
+.analysis-setup-control-group--survivor-support,
+.analysis-setup-control-group--education,
+.analysis-setup-control-group--recommendation {
+  grid-column: 1 / -1;
 }
 
 .analysis-setup-treatment-row {

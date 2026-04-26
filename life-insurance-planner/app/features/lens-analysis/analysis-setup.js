@@ -476,13 +476,220 @@
       nonMortgageDebtTreatment: DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.nonMortgageDebtTreatment
     }),
     aggressive: Object.freeze({
-      mortgageTreatment: Object.freeze({
-        mode: "support",
-        include: false,
-        payoffPercent: 0,
-        paymentSupportYears: 10
-      }),
+      mortgageTreatment: DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.mortgageTreatment,
       nonMortgageDebtTreatment: DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.nonMortgageDebtTreatment
+    })
+  });
+
+  const SURVIVOR_SUPPORT_PROFILE_LABELS = Object.freeze({
+    conservative: "Conservative",
+    balanced: "Balanced",
+    aggressive: "Aggressive",
+    custom: "Custom"
+  });
+  const SURVIVOR_SUPPORT_PROFILE_KEYS = Object.freeze(Object.keys(SURVIVOR_SUPPORT_PROFILE_LABELS));
+  const DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS = Object.freeze({
+    enabled: false,
+    globalTreatmentProfile: "balanced",
+    survivorIncomeTreatment: Object.freeze({
+      includeSurvivorIncome: true,
+      applyStartDelay: true,
+      applyIncomeGrowth: false,
+      maxReliancePercent: 100,
+      incomeOffsetYears: null
+    }),
+    supportTreatment: Object.freeze({
+      includeEssentialSupport: true,
+      includeDiscretionarySupport: false,
+      includeTransitionNeeds: true,
+      supportDurationYears: null
+    }),
+    riskFlags: Object.freeze({
+      flagHighSurvivorIncomeReliance: true,
+      highRelianceThresholdPercent: 50
+    }),
+    source: "analysis-setup"
+  });
+  const SURVIVOR_SUPPORT_PROFILE_DEFAULTS = Object.freeze({
+    conservative: Object.freeze({
+      survivorIncomeTreatment: Object.freeze({
+        includeSurvivorIncome: true,
+        applyStartDelay: true,
+        applyIncomeGrowth: false,
+        maxReliancePercent: 50,
+        incomeOffsetYears: null
+      }),
+      supportTreatment: Object.freeze({
+        includeEssentialSupport: true,
+        includeDiscretionarySupport: true,
+        includeTransitionNeeds: true,
+        supportDurationYears: null
+      }),
+      riskFlags: Object.freeze({
+        flagHighSurvivorIncomeReliance: true,
+        highRelianceThresholdPercent: 40
+      })
+    }),
+    balanced: Object.freeze({
+      survivorIncomeTreatment: DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorIncomeTreatment,
+      supportTreatment: DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.supportTreatment,
+      riskFlags: DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.riskFlags
+    }),
+    aggressive: Object.freeze({
+      survivorIncomeTreatment: DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorIncomeTreatment,
+      supportTreatment: DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.supportTreatment,
+      riskFlags: Object.freeze({
+        flagHighSurvivorIncomeReliance: true,
+        highRelianceThresholdPercent: 75
+      })
+    })
+  });
+
+  const EDUCATION_PROFILE_LABELS = Object.freeze({
+    conservative: "Conservative",
+    balanced: "Balanced",
+    aggressive: "Aggressive",
+    custom: "Custom"
+  });
+  const EDUCATION_PROFILE_KEYS = Object.freeze(Object.keys(EDUCATION_PROFILE_LABELS));
+  const DEFAULT_EDUCATION_ASSUMPTIONS = Object.freeze({
+    enabled: false,
+    globalTreatmentProfile: "balanced",
+    fundingTreatment: Object.freeze({
+      includeEducationFunding: true,
+      fundingTargetPercent: 100,
+      yearsFundedPerStudent: null,
+      includeProjectedDependents: true,
+      applyEducationInflation: false,
+      useExistingEducationSavingsOffset: false
+    }),
+    educationSavingsTreatment: Object.freeze({
+      existingEducationSavingsValue: null,
+      includeAsOffset: false,
+      taxDragPercent: 0,
+      liquidityHaircutPercent: 0
+    }),
+    riskFlags: Object.freeze({
+      flagMissingDependentDetails: true,
+      flagProjectedDependentsIncluded: true
+    }),
+    source: "analysis-setup"
+  });
+  const EDUCATION_PROFILE_DEFAULTS = Object.freeze({
+    conservative: Object.freeze({
+      fundingTreatment: DEFAULT_EDUCATION_ASSUMPTIONS.fundingTreatment,
+      educationSavingsTreatment: DEFAULT_EDUCATION_ASSUMPTIONS.educationSavingsTreatment,
+      riskFlags: DEFAULT_EDUCATION_ASSUMPTIONS.riskFlags
+    }),
+    balanced: Object.freeze({
+      fundingTreatment: DEFAULT_EDUCATION_ASSUMPTIONS.fundingTreatment,
+      educationSavingsTreatment: DEFAULT_EDUCATION_ASSUMPTIONS.educationSavingsTreatment,
+      riskFlags: DEFAULT_EDUCATION_ASSUMPTIONS.riskFlags
+    }),
+    aggressive: Object.freeze({
+      fundingTreatment: Object.freeze({
+        includeEducationFunding: true,
+        fundingTargetPercent: 75,
+        yearsFundedPerStudent: null,
+        includeProjectedDependents: true,
+        applyEducationInflation: false,
+        useExistingEducationSavingsOffset: false
+      }),
+      educationSavingsTreatment: DEFAULT_EDUCATION_ASSUMPTIONS.educationSavingsTreatment,
+      riskFlags: DEFAULT_EDUCATION_ASSUMPTIONS.riskFlags
+    })
+  });
+
+  const RECOMMENDATION_PROFILE_LABELS = Object.freeze({
+    conservative: "Conservative",
+    balanced: "Balanced",
+    aggressive: "Aggressive",
+    custom: "Custom"
+  });
+  const RECOMMENDATION_PROFILE_KEYS = Object.freeze(Object.keys(RECOMMENDATION_PROFILE_LABELS));
+  const RECOMMENDATION_TARGET_MODE_LABELS = Object.freeze({
+    "close-practical-gap": "Close practical gap",
+    "conservative-family-protection": "Conservative family protection",
+    "reduce-income-risk": "Reduce income risk",
+    "estate-liquidity-protection": "Estate / liquidity protection"
+  });
+  const RECOMMENDATION_TARGET_MODE_KEYS = Object.freeze(Object.keys(RECOMMENDATION_TARGET_MODE_LABELS));
+  const DEFAULT_RECOMMENDATION_GUARDRAILS = Object.freeze({
+    enabled: false,
+    recommendationProfile: "balanced",
+    recommendationTarget: Object.freeze({
+      mode: "close-practical-gap",
+      minimumCoverageFloor: null,
+      maximumCoverageCap: null,
+      roundingIncrement: 10000
+    }),
+    riskTolerance: Object.freeze({
+      posture: "balanced",
+      maxRelianceOnAssetsPercent: 50,
+      maxRelianceOnIlliquidAssetsPercent: 25,
+      maxRelianceOnSurvivorIncomePercent: 50
+    }),
+    presentationRules: Object.freeze({
+      showMinimumRecommendedConservativeRange: true,
+      showMethodComparison: true,
+      showWarnings: true,
+      requireAdvisorReviewBeforeRecommendation: true
+    }),
+    confidenceRules: Object.freeze({
+      minimumConfidencePercent: 80,
+      flagMissingCriticalInputs: true,
+      flagHeavyAssetReliance: true,
+      flagHeavySurvivorIncomeReliance: true,
+      flagGroupCoverageReliance: true
+    }),
+    source: "analysis-setup"
+  });
+  const RECOMMENDATION_PROFILE_DEFAULTS = Object.freeze({
+    conservative: Object.freeze({
+      recommendationTarget: Object.freeze({
+        mode: "conservative-family-protection",
+        roundingIncrement: 10000
+      }),
+      riskTolerance: Object.freeze({
+        posture: "conservative",
+        maxRelianceOnAssetsPercent: 35,
+        maxRelianceOnIlliquidAssetsPercent: 10,
+        maxRelianceOnSurvivorIncomePercent: 35
+      }),
+      confidenceRules: Object.freeze({
+        minimumConfidencePercent: 85,
+        flagMissingCriticalInputs: true,
+        flagHeavyAssetReliance: true,
+        flagHeavySurvivorIncomeReliance: true,
+        flagGroupCoverageReliance: true
+      }),
+      presentationRules: DEFAULT_RECOMMENDATION_GUARDRAILS.presentationRules
+    }),
+    balanced: Object.freeze({
+      recommendationTarget: DEFAULT_RECOMMENDATION_GUARDRAILS.recommendationTarget,
+      riskTolerance: DEFAULT_RECOMMENDATION_GUARDRAILS.riskTolerance,
+      confidenceRules: DEFAULT_RECOMMENDATION_GUARDRAILS.confidenceRules,
+      presentationRules: DEFAULT_RECOMMENDATION_GUARDRAILS.presentationRules
+    }),
+    aggressive: Object.freeze({
+      recommendationTarget: Object.freeze({
+        mode: "close-practical-gap",
+        roundingIncrement: 10000
+      }),
+      riskTolerance: Object.freeze({
+        posture: "aggressive",
+        maxRelianceOnAssetsPercent: 70,
+        maxRelianceOnIlliquidAssetsPercent: 40,
+        maxRelianceOnSurvivorIncomePercent: 70
+      }),
+      confidenceRules: Object.freeze({
+        minimumConfidencePercent: 70,
+        flagMissingCriticalInputs: true,
+        flagHeavyAssetReliance: true,
+        flagHeavySurvivorIncomeReliance: true,
+        flagGroupCoverageReliance: true
+      }),
+      presentationRules: DEFAULT_RECOMMENDATION_GUARDRAILS.presentationRules
     })
   });
 
@@ -504,6 +711,16 @@
   const MAX_DEBT_PAYOFF_PERCENT = 100;
   const MIN_DEBT_SUPPORT_YEARS = 0;
   const MAX_DEBT_SUPPORT_YEARS = 80;
+  const MIN_SURVIVOR_SUPPORT_PERCENT = 0;
+  const MAX_SURVIVOR_SUPPORT_PERCENT = 100;
+  const MIN_SURVIVOR_SUPPORT_YEARS = 0;
+  const MIN_EDUCATION_PERCENT = 0;
+  const MAX_EDUCATION_PERCENT = 100;
+  const MIN_EDUCATION_YEARS = 0;
+  const MIN_RECOMMENDATION_PERCENT = 0;
+  const MAX_RECOMMENDATION_PERCENT = 100;
+  const MIN_RECOMMENDATION_MONEY = 0;
+  const MIN_RECOMMENDATION_ROUNDING_INCREMENT = 1;
 
   function isPlainObject(value) {
     return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -657,6 +874,34 @@
       : fallback;
   }
 
+  function normalizeSurvivorSupportProfile(value, fallback) {
+    const normalizedValue = String(value || "").trim().toLowerCase();
+    return SURVIVOR_SUPPORT_PROFILE_KEYS.includes(normalizedValue)
+      ? normalizedValue
+      : fallback;
+  }
+
+  function normalizeEducationProfile(value, fallback) {
+    const normalizedValue = String(value || "").trim().toLowerCase();
+    return EDUCATION_PROFILE_KEYS.includes(normalizedValue)
+      ? normalizedValue
+      : fallback;
+  }
+
+  function normalizeRecommendationProfile(value, fallback) {
+    const normalizedValue = String(value || "").trim().toLowerCase();
+    return RECOMMENDATION_PROFILE_KEYS.includes(normalizedValue)
+      ? normalizedValue
+      : fallback;
+  }
+
+  function normalizeRecommendationTargetMode(value, fallback) {
+    const normalizedValue = String(value || "").trim().toLowerCase();
+    return RECOMMENDATION_TARGET_MODE_KEYS.includes(normalizedValue)
+      ? normalizedValue
+      : fallback;
+  }
+
   function normalizeMortgageTreatmentMode(value, fallback) {
     const normalizedValue = String(value || "").trim().toLowerCase();
     return MORTGAGE_TREATMENT_MODES.includes(normalizedValue)
@@ -707,6 +952,51 @@
     );
   }
 
+  function normalizeSurvivorSupportPercent(value, fallback) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return fallback;
+    }
+
+    return Math.min(
+      MAX_SURVIVOR_SUPPORT_PERCENT,
+      Math.max(MIN_SURVIVOR_SUPPORT_PERCENT, number)
+    );
+  }
+
+  function normalizeEducationPercent(value, fallback) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return fallback;
+    }
+
+    return Math.min(
+      MAX_EDUCATION_PERCENT,
+      Math.max(MIN_EDUCATION_PERCENT, number)
+    );
+  }
+
+  function normalizeRecommendationPercent(value, fallback) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return fallback;
+    }
+
+    return Math.min(
+      MAX_RECOMMENDATION_PERCENT,
+      Math.max(MIN_RECOMMENDATION_PERCENT, number)
+    );
+  }
+
+  function normalizeRecommendationRoundingIncrement(value, fallback) {
+    const number = Number(String(value ?? "").replace(/[$,\s]/g, ""));
+    if (!Number.isFinite(number) || number < MIN_RECOMMENDATION_ROUNDING_INCREMENT) {
+      return fallback;
+    }
+
+    return number;
+  }
+
   function normalizeCoverageTermGuardrailYears(value, fallback) {
     if (value === null || value === undefined || String(value).trim() === "") {
       return fallback == null ? null : fallback;
@@ -737,6 +1027,58 @@
       MAX_DEBT_SUPPORT_YEARS,
       Math.max(MIN_DEBT_SUPPORT_YEARS, number)
     );
+  }
+
+  function normalizeSurvivorSupportYears(value, fallback) {
+    if (value === null || value === undefined || String(value).trim() === "") {
+      return fallback == null ? null : fallback;
+    }
+
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return fallback == null ? null : fallback;
+    }
+
+    return Math.max(MIN_SURVIVOR_SUPPORT_YEARS, number);
+  }
+
+  function normalizeEducationYears(value, fallback) {
+    if (value === null || value === undefined || String(value).trim() === "") {
+      return fallback == null ? null : fallback;
+    }
+
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return fallback == null ? null : fallback;
+    }
+
+    return Math.max(MIN_EDUCATION_YEARS, number);
+  }
+
+  function normalizeEducationMoneyValue(value, fallback) {
+    if (value === null || value === undefined || String(value).trim() === "") {
+      return fallback == null ? null : fallback;
+    }
+
+    const number = Number(String(value).replace(/[$,\s]/g, ""));
+    if (!Number.isFinite(number)) {
+      return fallback == null ? null : fallback;
+    }
+
+    return Math.max(0, number);
+  }
+
+  function normalizeRecommendationMoneyValue(value, fallback) {
+    if (value === null || value === undefined || String(value).trim() === "") {
+      return fallback == null ? null : fallback;
+    }
+
+    const number = Number(String(value).replace(/[$,\s]/g, ""));
+    if (!Number.isFinite(number)) {
+      return fallback == null ? null : fallback;
+    }
+
+    return Math.max(MIN_RECOMMENDATION_MONEY, number);
   }
 
   function getPresetDefaults(presetKey) {
@@ -1154,6 +1496,297 @@
     return nextAssumptions;
   }
 
+  function getSurvivorSupportAssumptions(record) {
+    const saved = isPlainObject(record?.analysisSettings?.survivorSupportAssumptions)
+      ? record.analysisSettings.survivorSupportAssumptions
+      : {};
+    const globalTreatmentProfile = normalizeSurvivorSupportProfile(
+      saved.globalTreatmentProfile,
+      DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.globalTreatmentProfile
+    );
+    const profileDefaults = SURVIVOR_SUPPORT_PROFILE_DEFAULTS[globalTreatmentProfile]
+      || SURVIVOR_SUPPORT_PROFILE_DEFAULTS[DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.globalTreatmentProfile];
+    const defaultSurvivorIncomeTreatment = profileDefaults.survivorIncomeTreatment
+      || DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorIncomeTreatment;
+    const defaultSupportTreatment = profileDefaults.supportTreatment
+      || DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.supportTreatment;
+    const defaultRiskFlags = profileDefaults.riskFlags
+      || DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.riskFlags;
+    const savedSurvivorIncomeTreatment = isPlainObject(saved.survivorIncomeTreatment)
+      ? saved.survivorIncomeTreatment
+      : {};
+    const savedSupportTreatment = isPlainObject(saved.supportTreatment)
+      ? saved.supportTreatment
+      : {};
+    const savedRiskFlags = isPlainObject(saved.riskFlags)
+      ? saved.riskFlags
+      : {};
+    const nextAssumptions = {
+      enabled: typeof saved.enabled === "boolean"
+        ? saved.enabled
+        : DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.enabled,
+      globalTreatmentProfile,
+      survivorIncomeTreatment: {
+        includeSurvivorIncome: typeof savedSurvivorIncomeTreatment.includeSurvivorIncome === "boolean"
+          ? savedSurvivorIncomeTreatment.includeSurvivorIncome
+          : Boolean(defaultSurvivorIncomeTreatment.includeSurvivorIncome),
+        applyStartDelay: typeof savedSurvivorIncomeTreatment.applyStartDelay === "boolean"
+          ? savedSurvivorIncomeTreatment.applyStartDelay
+          : Boolean(defaultSurvivorIncomeTreatment.applyStartDelay),
+        applyIncomeGrowth: typeof savedSurvivorIncomeTreatment.applyIncomeGrowth === "boolean"
+          ? savedSurvivorIncomeTreatment.applyIncomeGrowth
+          : Boolean(defaultSurvivorIncomeTreatment.applyIncomeGrowth),
+        maxReliancePercent: normalizeSurvivorSupportPercent(
+          savedSurvivorIncomeTreatment.maxReliancePercent,
+          defaultSurvivorIncomeTreatment.maxReliancePercent
+        ),
+        incomeOffsetYears: normalizeSurvivorSupportYears(
+          savedSurvivorIncomeTreatment.incomeOffsetYears,
+          defaultSurvivorIncomeTreatment.incomeOffsetYears
+        )
+      },
+      supportTreatment: {
+        includeEssentialSupport: typeof savedSupportTreatment.includeEssentialSupport === "boolean"
+          ? savedSupportTreatment.includeEssentialSupport
+          : Boolean(defaultSupportTreatment.includeEssentialSupport),
+        includeDiscretionarySupport: typeof savedSupportTreatment.includeDiscretionarySupport === "boolean"
+          ? savedSupportTreatment.includeDiscretionarySupport
+          : Boolean(defaultSupportTreatment.includeDiscretionarySupport),
+        includeTransitionNeeds: typeof savedSupportTreatment.includeTransitionNeeds === "boolean"
+          ? savedSupportTreatment.includeTransitionNeeds
+          : Boolean(defaultSupportTreatment.includeTransitionNeeds),
+        supportDurationYears: normalizeSurvivorSupportYears(
+          savedSupportTreatment.supportDurationYears,
+          defaultSupportTreatment.supportDurationYears
+        )
+      },
+      riskFlags: {
+        flagHighSurvivorIncomeReliance: typeof savedRiskFlags.flagHighSurvivorIncomeReliance === "boolean"
+          ? savedRiskFlags.flagHighSurvivorIncomeReliance
+          : Boolean(defaultRiskFlags.flagHighSurvivorIncomeReliance),
+        highRelianceThresholdPercent: normalizeSurvivorSupportPercent(
+          savedRiskFlags.highRelianceThresholdPercent,
+          defaultRiskFlags.highRelianceThresholdPercent
+        )
+      },
+      source: String(saved.source || DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.source)
+    };
+
+    if (saved.lastUpdatedAt) {
+      nextAssumptions.lastUpdatedAt = String(saved.lastUpdatedAt);
+    }
+
+    return nextAssumptions;
+  }
+
+  function getEducationAssumptions(record) {
+    const saved = isPlainObject(record?.analysisSettings?.educationAssumptions)
+      ? record.analysisSettings.educationAssumptions
+      : {};
+    const globalTreatmentProfile = normalizeEducationProfile(
+      saved.globalTreatmentProfile,
+      DEFAULT_EDUCATION_ASSUMPTIONS.globalTreatmentProfile
+    );
+    const profileDefaults = EDUCATION_PROFILE_DEFAULTS[globalTreatmentProfile]
+      || EDUCATION_PROFILE_DEFAULTS[DEFAULT_EDUCATION_ASSUMPTIONS.globalTreatmentProfile];
+    const defaultFundingTreatment = profileDefaults.fundingTreatment
+      || DEFAULT_EDUCATION_ASSUMPTIONS.fundingTreatment;
+    const defaultSavingsTreatment = profileDefaults.educationSavingsTreatment
+      || DEFAULT_EDUCATION_ASSUMPTIONS.educationSavingsTreatment;
+    const defaultRiskFlags = profileDefaults.riskFlags
+      || DEFAULT_EDUCATION_ASSUMPTIONS.riskFlags;
+    const savedFundingTreatment = isPlainObject(saved.fundingTreatment)
+      ? saved.fundingTreatment
+      : {};
+    const savedSavingsTreatment = isPlainObject(saved.educationSavingsTreatment)
+      ? saved.educationSavingsTreatment
+      : {};
+    const savedRiskFlags = isPlainObject(saved.riskFlags)
+      ? saved.riskFlags
+      : {};
+    const nextAssumptions = {
+      enabled: typeof saved.enabled === "boolean"
+        ? saved.enabled
+        : DEFAULT_EDUCATION_ASSUMPTIONS.enabled,
+      globalTreatmentProfile,
+      fundingTreatment: {
+        includeEducationFunding: typeof savedFundingTreatment.includeEducationFunding === "boolean"
+          ? savedFundingTreatment.includeEducationFunding
+          : Boolean(defaultFundingTreatment.includeEducationFunding),
+        fundingTargetPercent: normalizeEducationPercent(
+          savedFundingTreatment.fundingTargetPercent,
+          defaultFundingTreatment.fundingTargetPercent
+        ),
+        yearsFundedPerStudent: normalizeEducationYears(
+          savedFundingTreatment.yearsFundedPerStudent,
+          defaultFundingTreatment.yearsFundedPerStudent
+        ),
+        includeProjectedDependents: typeof savedFundingTreatment.includeProjectedDependents === "boolean"
+          ? savedFundingTreatment.includeProjectedDependents
+          : Boolean(defaultFundingTreatment.includeProjectedDependents),
+        applyEducationInflation: typeof savedFundingTreatment.applyEducationInflation === "boolean"
+          ? savedFundingTreatment.applyEducationInflation
+          : Boolean(defaultFundingTreatment.applyEducationInflation),
+        useExistingEducationSavingsOffset: typeof savedFundingTreatment.useExistingEducationSavingsOffset === "boolean"
+          ? savedFundingTreatment.useExistingEducationSavingsOffset
+          : Boolean(defaultFundingTreatment.useExistingEducationSavingsOffset)
+      },
+      educationSavingsTreatment: {
+        existingEducationSavingsValue: normalizeEducationMoneyValue(
+          savedSavingsTreatment.existingEducationSavingsValue,
+          defaultSavingsTreatment.existingEducationSavingsValue
+        ),
+        includeAsOffset: typeof savedSavingsTreatment.includeAsOffset === "boolean"
+          ? savedSavingsTreatment.includeAsOffset
+          : Boolean(defaultSavingsTreatment.includeAsOffset),
+        taxDragPercent: normalizeEducationPercent(
+          savedSavingsTreatment.taxDragPercent,
+          defaultSavingsTreatment.taxDragPercent
+        ),
+        liquidityHaircutPercent: normalizeEducationPercent(
+          savedSavingsTreatment.liquidityHaircutPercent,
+          defaultSavingsTreatment.liquidityHaircutPercent
+        )
+      },
+      riskFlags: {
+        flagMissingDependentDetails: typeof savedRiskFlags.flagMissingDependentDetails === "boolean"
+          ? savedRiskFlags.flagMissingDependentDetails
+          : Boolean(defaultRiskFlags.flagMissingDependentDetails),
+        flagProjectedDependentsIncluded: typeof savedRiskFlags.flagProjectedDependentsIncluded === "boolean"
+          ? savedRiskFlags.flagProjectedDependentsIncluded
+          : Boolean(defaultRiskFlags.flagProjectedDependentsIncluded)
+      },
+      source: String(saved.source || DEFAULT_EDUCATION_ASSUMPTIONS.source)
+    };
+
+    if (saved.lastUpdatedAt) {
+      nextAssumptions.lastUpdatedAt = String(saved.lastUpdatedAt);
+    }
+
+    return nextAssumptions;
+  }
+
+  function getRecommendationGuardrails(record) {
+    const saved = isPlainObject(record?.analysisSettings?.recommendationGuardrails)
+      ? record.analysisSettings.recommendationGuardrails
+      : {};
+    const recommendationProfile = normalizeRecommendationProfile(
+      saved.recommendationProfile,
+      DEFAULT_RECOMMENDATION_GUARDRAILS.recommendationProfile
+    );
+    const profileDefaults = RECOMMENDATION_PROFILE_DEFAULTS[recommendationProfile]
+      || RECOMMENDATION_PROFILE_DEFAULTS[DEFAULT_RECOMMENDATION_GUARDRAILS.recommendationProfile];
+    const defaultRecommendationTarget = {
+      ...DEFAULT_RECOMMENDATION_GUARDRAILS.recommendationTarget,
+      ...(profileDefaults.recommendationTarget || {})
+    };
+    const defaultRiskTolerance = {
+      ...DEFAULT_RECOMMENDATION_GUARDRAILS.riskTolerance,
+      ...(profileDefaults.riskTolerance || {})
+    };
+    const defaultPresentationRules = {
+      ...DEFAULT_RECOMMENDATION_GUARDRAILS.presentationRules,
+      ...(profileDefaults.presentationRules || {})
+    };
+    const defaultConfidenceRules = {
+      ...DEFAULT_RECOMMENDATION_GUARDRAILS.confidenceRules,
+      ...(profileDefaults.confidenceRules || {})
+    };
+    const savedRecommendationTarget = isPlainObject(saved.recommendationTarget)
+      ? saved.recommendationTarget
+      : {};
+    const savedRiskTolerance = isPlainObject(saved.riskTolerance)
+      ? saved.riskTolerance
+      : {};
+    const savedPresentationRules = isPlainObject(saved.presentationRules)
+      ? saved.presentationRules
+      : {};
+    const savedConfidenceRules = isPlainObject(saved.confidenceRules)
+      ? saved.confidenceRules
+      : {};
+    const nextGuardrails = {
+      enabled: typeof saved.enabled === "boolean"
+        ? saved.enabled
+        : DEFAULT_RECOMMENDATION_GUARDRAILS.enabled,
+      recommendationProfile,
+      recommendationTarget: {
+        mode: normalizeRecommendationTargetMode(
+          savedRecommendationTarget.mode,
+          defaultRecommendationTarget.mode
+        ),
+        minimumCoverageFloor: normalizeRecommendationMoneyValue(
+          savedRecommendationTarget.minimumCoverageFloor,
+          defaultRecommendationTarget.minimumCoverageFloor
+        ),
+        maximumCoverageCap: normalizeRecommendationMoneyValue(
+          savedRecommendationTarget.maximumCoverageCap,
+          defaultRecommendationTarget.maximumCoverageCap
+        ),
+        roundingIncrement: normalizeRecommendationRoundingIncrement(
+          savedRecommendationTarget.roundingIncrement ?? saved.roundingIncrement,
+          defaultRecommendationTarget.roundingIncrement
+        )
+      },
+      riskTolerance: {
+        posture: normalizeRecommendationProfile(
+          savedRiskTolerance.posture,
+          defaultRiskTolerance.posture
+        ),
+        maxRelianceOnAssetsPercent: normalizeRecommendationPercent(
+          savedRiskTolerance.maxRelianceOnAssetsPercent,
+          defaultRiskTolerance.maxRelianceOnAssetsPercent
+        ),
+        maxRelianceOnIlliquidAssetsPercent: normalizeRecommendationPercent(
+          savedRiskTolerance.maxRelianceOnIlliquidAssetsPercent,
+          defaultRiskTolerance.maxRelianceOnIlliquidAssetsPercent
+        ),
+        maxRelianceOnSurvivorIncomePercent: normalizeRecommendationPercent(
+          savedRiskTolerance.maxRelianceOnSurvivorIncomePercent,
+          defaultRiskTolerance.maxRelianceOnSurvivorIncomePercent
+        )
+      },
+      presentationRules: {
+        showMinimumRecommendedConservativeRange: typeof savedPresentationRules.showMinimumRecommendedConservativeRange === "boolean"
+          ? savedPresentationRules.showMinimumRecommendedConservativeRange
+          : Boolean(defaultPresentationRules.showMinimumRecommendedConservativeRange),
+        showMethodComparison: typeof savedPresentationRules.showMethodComparison === "boolean"
+          ? savedPresentationRules.showMethodComparison
+          : Boolean(defaultPresentationRules.showMethodComparison),
+        showWarnings: typeof savedPresentationRules.showWarnings === "boolean"
+          ? savedPresentationRules.showWarnings
+          : Boolean(defaultPresentationRules.showWarnings),
+        requireAdvisorReviewBeforeRecommendation: typeof savedPresentationRules.requireAdvisorReviewBeforeRecommendation === "boolean"
+          ? savedPresentationRules.requireAdvisorReviewBeforeRecommendation
+          : Boolean(defaultPresentationRules.requireAdvisorReviewBeforeRecommendation)
+      },
+      confidenceRules: {
+        minimumConfidencePercent: normalizeRecommendationPercent(
+          savedConfidenceRules.minimumConfidencePercent,
+          defaultConfidenceRules.minimumConfidencePercent
+        ),
+        flagMissingCriticalInputs: typeof savedConfidenceRules.flagMissingCriticalInputs === "boolean"
+          ? savedConfidenceRules.flagMissingCriticalInputs
+          : Boolean(defaultConfidenceRules.flagMissingCriticalInputs),
+        flagHeavyAssetReliance: typeof savedConfidenceRules.flagHeavyAssetReliance === "boolean"
+          ? savedConfidenceRules.flagHeavyAssetReliance
+          : Boolean(defaultConfidenceRules.flagHeavyAssetReliance),
+        flagHeavySurvivorIncomeReliance: typeof savedConfidenceRules.flagHeavySurvivorIncomeReliance === "boolean"
+          ? savedConfidenceRules.flagHeavySurvivorIncomeReliance
+          : Boolean(defaultConfidenceRules.flagHeavySurvivorIncomeReliance),
+        flagGroupCoverageReliance: typeof savedConfidenceRules.flagGroupCoverageReliance === "boolean"
+          ? savedConfidenceRules.flagGroupCoverageReliance
+          : Boolean(defaultConfidenceRules.flagGroupCoverageReliance)
+      },
+      source: String(saved.source || DEFAULT_RECOMMENDATION_GUARDRAILS.source)
+    };
+
+    if (saved.lastUpdatedAt) {
+      nextGuardrails.lastUpdatedAt = String(saved.lastUpdatedAt);
+    }
+
+    return nextGuardrails;
+  }
+
   function formatRateInputValue(value) {
     return Number(value || 0).toFixed(2);
   }
@@ -1545,6 +2178,69 @@
     return fields;
   }
 
+  function getSurvivorSupportFieldMap() {
+    const fields = {
+      defaultProfile: DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.globalTreatmentProfile,
+      defaultProfileButtons: Array.from(document.querySelectorAll("[data-analysis-survivor-profile]")),
+      values: {},
+      preview: {
+        netIncome: document.querySelector("[data-analysis-survivor-preview='netIncome']"),
+        startDelay: document.querySelector("[data-analysis-survivor-preview='startDelay']"),
+        supportDuration: document.querySelector("[data-analysis-survivor-preview='supportDuration']"),
+        discretionarySupport: document.querySelector("[data-analysis-survivor-preview='discretionarySupport']")
+      },
+      currentAssumptions: null
+    };
+
+    Array.from(document.querySelectorAll("[data-analysis-survivor-field]")).forEach(function (field) {
+      fields.values[field.getAttribute("data-analysis-survivor-field")] = field;
+    });
+
+    return fields;
+  }
+
+  function getEducationFieldMap() {
+    const fields = {
+      defaultProfile: DEFAULT_EDUCATION_ASSUMPTIONS.globalTreatmentProfile,
+      defaultProfileButtons: Array.from(document.querySelectorAll("[data-analysis-education-profile]")),
+      values: {},
+      preview: {
+        currentNeed: document.querySelector("[data-analysis-education-preview='currentNeed']"),
+        childrenNeedingFunding: document.querySelector("[data-analysis-education-preview='childrenNeedingFunding']"),
+        projectedDependents: document.querySelector("[data-analysis-education-preview='projectedDependents']"),
+        costPerChild: document.querySelector("[data-analysis-education-preview='costPerChild']"),
+        educationSavings: document.querySelector("[data-analysis-education-preview='educationSavings']")
+      },
+      currentAssumptions: null
+    };
+
+    Array.from(document.querySelectorAll("[data-analysis-education-field]")).forEach(function (field) {
+      fields.values[field.getAttribute("data-analysis-education-field")] = field;
+    });
+
+    return fields;
+  }
+
+  function getRecommendationGuardrailFieldMap() {
+    const fields = {
+      defaultProfile: DEFAULT_RECOMMENDATION_GUARDRAILS.recommendationProfile,
+      defaultProfileButtons: Array.from(document.querySelectorAll("[data-analysis-recommendation-profile]")),
+      values: {},
+      preview: {
+        currentMode: document.querySelector("[data-analysis-recommendation-preview='currentMode']"),
+        engineStatus: document.querySelector("[data-analysis-recommendation-preview='engineStatus']"),
+        savedFor: document.querySelector("[data-analysis-recommendation-preview='savedFor']")
+      },
+      currentAssumptions: null
+    };
+
+    Array.from(document.querySelectorAll("[data-analysis-recommendation-field]")).forEach(function (field) {
+      fields.values[field.getAttribute("data-analysis-recommendation-field")] = field;
+    });
+
+    return fields;
+  }
+
   function hasAssetLiquidityFields(fields) {
     return Boolean(fields.enabled) || ASSET_LIQUIDITY_ITEMS.some(function (item) {
       return Boolean(
@@ -1587,6 +2283,36 @@
       || Object.keys(fields.include || {}).length
       || Object.keys(fields.mode || {}).length
       || Object.keys(fields.payoff || {}).length
+    );
+  }
+
+  function hasSurvivorSupportFields(fields) {
+    return Boolean(
+      (fields.defaultProfileButtons || []).length
+      || Object.keys(fields.values || {}).length
+      || Object.keys(fields.preview || {}).some(function (key) {
+        return Boolean(fields.preview[key]);
+      })
+    );
+  }
+
+  function hasEducationFields(fields) {
+    return Boolean(
+      (fields.defaultProfileButtons || []).length
+      || Object.keys(fields.values || {}).length
+      || Object.keys(fields.preview || {}).some(function (key) {
+        return Boolean(fields.preview[key]);
+      })
+    );
+  }
+
+  function hasRecommendationGuardrailFields(fields) {
+    return Boolean(
+      (fields.defaultProfileButtons || []).length
+      || Object.keys(fields.values || {}).length
+      || Object.keys(fields.preview || {}).some(function (key) {
+        return Boolean(fields.preview[key]);
+      })
     );
   }
 
@@ -1672,6 +2398,69 @@
     );
   }
 
+  function setSurvivorSupportDefaultProfile(fields, profile) {
+    const normalizedProfile = normalizeSurvivorSupportProfile(
+      profile,
+      DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.globalTreatmentProfile
+    );
+    fields.defaultProfile = normalizedProfile;
+    (fields.defaultProfileButtons || []).forEach(function (button) {
+      const buttonProfile = String(button.getAttribute("data-analysis-survivor-profile") || "").trim();
+      const isActive = buttonProfile === normalizedProfile;
+      button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      button.dataset.active = isActive ? "true" : "false";
+    });
+  }
+
+  function getSurvivorSupportDefaultProfile(fields) {
+    return normalizeSurvivorSupportProfile(
+      fields.defaultProfile,
+      DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.globalTreatmentProfile
+    );
+  }
+
+  function setEducationDefaultProfile(fields, profile) {
+    const normalizedProfile = normalizeEducationProfile(
+      profile,
+      DEFAULT_EDUCATION_ASSUMPTIONS.globalTreatmentProfile
+    );
+    fields.defaultProfile = normalizedProfile;
+    (fields.defaultProfileButtons || []).forEach(function (button) {
+      const buttonProfile = String(button.getAttribute("data-analysis-education-profile") || "").trim();
+      const isActive = buttonProfile === normalizedProfile;
+      button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      button.dataset.active = isActive ? "true" : "false";
+    });
+  }
+
+  function getEducationDefaultProfile(fields) {
+    return normalizeEducationProfile(
+      fields.defaultProfile,
+      DEFAULT_EDUCATION_ASSUMPTIONS.globalTreatmentProfile
+    );
+  }
+
+  function setRecommendationDefaultProfile(fields, profile) {
+    const normalizedProfile = normalizeRecommendationProfile(
+      profile,
+      DEFAULT_RECOMMENDATION_GUARDRAILS.recommendationProfile
+    );
+    fields.defaultProfile = normalizedProfile;
+    (fields.defaultProfileButtons || []).forEach(function (button) {
+      const buttonProfile = String(button.getAttribute("data-analysis-recommendation-profile") || "").trim();
+      const isActive = buttonProfile === normalizedProfile;
+      button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      button.dataset.active = isActive ? "true" : "false";
+    });
+  }
+
+  function getRecommendationDefaultProfile(fields) {
+    return normalizeRecommendationProfile(
+      fields.defaultProfile,
+      DEFAULT_RECOMMENDATION_GUARDRAILS.recommendationProfile
+    );
+  }
+
   function setExistingCoverageChecked(fields, fieldPath, value) {
     const field = fields.values?.[fieldPath];
     if (field) {
@@ -1715,6 +2504,65 @@
   function setDebtCategoryValue(fields, groupName, itemKey, value) {
     const field = fields[groupName]?.[itemKey];
     if (!field) {
+      return;
+    }
+
+    field.value = value === null || value === undefined
+      ? ""
+      : formatHaircutInputValue(value);
+  }
+
+  function setSurvivorSupportChecked(fields, fieldPath, value) {
+    const field = fields.values?.[fieldPath];
+    if (field) {
+      field.checked = Boolean(value);
+    }
+  }
+
+  function setSurvivorSupportValue(fields, fieldPath, value) {
+    const field = fields.values?.[fieldPath];
+    if (!field) {
+      return;
+    }
+
+    field.value = value === null || value === undefined
+      ? ""
+      : formatHaircutInputValue(value);
+  }
+
+  function setEducationChecked(fields, fieldPath, value) {
+    const field = fields.values?.[fieldPath];
+    if (field) {
+      field.checked = Boolean(value);
+    }
+  }
+
+  function setEducationValue(fields, fieldPath, value) {
+    const field = fields.values?.[fieldPath];
+    if (!field) {
+      return;
+    }
+
+    field.value = value === null || value === undefined
+      ? ""
+      : formatHaircutInputValue(value);
+  }
+
+  function setRecommendationChecked(fields, fieldPath, value) {
+    const field = fields.values?.[fieldPath];
+    if (field) {
+      field.checked = Boolean(value);
+    }
+  }
+
+  function setRecommendationValue(fields, fieldPath, value) {
+    const field = fields.values?.[fieldPath];
+    if (!field) {
+      return;
+    }
+
+    if (field.tagName === "SELECT") {
+      field.value = value === null || value === undefined ? "" : String(value);
       return;
     }
 
@@ -1832,6 +2680,24 @@
       : DEFAULT_DEBT_TREATMENT_ASSUMPTIONS;
   }
 
+  function getSurvivorSupportCurrentAssumptions(fields) {
+    return isPlainObject(fields.currentAssumptions)
+      ? fields.currentAssumptions
+      : DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS;
+  }
+
+  function getEducationCurrentAssumptions(fields) {
+    return isPlainObject(fields.currentAssumptions)
+      ? fields.currentAssumptions
+      : DEFAULT_EDUCATION_ASSUMPTIONS;
+  }
+
+  function getRecommendationCurrentGuardrails(fields) {
+    return isPlainObject(fields.currentAssumptions)
+      ? fields.currentAssumptions
+      : DEFAULT_RECOMMENDATION_GUARDRAILS;
+  }
+
   function readDebtDraftBoolean(field, fallback) {
     return field ? Boolean(field.checked) : Boolean(fallback);
   }
@@ -1890,6 +2756,356 @@
     });
 
     return nextAssumptions;
+  }
+
+  function readSurvivorSupportDraftBoolean(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    return field ? Boolean(field.checked) : Boolean(fallback);
+  }
+
+  function readSurvivorSupportDraftPercent(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    const number = Number(rawValue);
+    return rawValue && Number.isFinite(number)
+      ? normalizeSurvivorSupportPercent(number, fallback)
+      : fallback;
+  }
+
+  function readSurvivorSupportDraftYears(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    return rawValue
+      ? normalizeSurvivorSupportYears(rawValue, fallback)
+      : null;
+  }
+
+  function getSurvivorSupportDraftAssumptions(fields) {
+    const current = getSurvivorSupportCurrentAssumptions(fields);
+    const currentSurvivorIncomeTreatment = current.survivorIncomeTreatment
+      || DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorIncomeTreatment;
+    const currentSupportTreatment = current.supportTreatment
+      || DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.supportTreatment;
+    const currentRiskFlags = current.riskFlags
+      || DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.riskFlags;
+
+    return {
+      enabled: Boolean(current.enabled),
+      globalTreatmentProfile: getSurvivorSupportDefaultProfile(fields),
+      survivorIncomeTreatment: {
+        includeSurvivorIncome: readSurvivorSupportDraftBoolean(
+          fields,
+          "survivorIncomeTreatment.includeSurvivorIncome",
+          currentSurvivorIncomeTreatment.includeSurvivorIncome
+        ),
+        applyStartDelay: readSurvivorSupportDraftBoolean(
+          fields,
+          "survivorIncomeTreatment.applyStartDelay",
+          currentSurvivorIncomeTreatment.applyStartDelay
+        ),
+        applyIncomeGrowth: readSurvivorSupportDraftBoolean(
+          fields,
+          "survivorIncomeTreatment.applyIncomeGrowth",
+          currentSurvivorIncomeTreatment.applyIncomeGrowth
+        ),
+        maxReliancePercent: readSurvivorSupportDraftPercent(
+          fields,
+          "survivorIncomeTreatment.maxReliancePercent",
+          currentSurvivorIncomeTreatment.maxReliancePercent
+        ),
+        incomeOffsetYears: normalizeSurvivorSupportYears(
+          currentSurvivorIncomeTreatment.incomeOffsetYears,
+          DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorIncomeTreatment.incomeOffsetYears
+        )
+      },
+      supportTreatment: {
+        includeEssentialSupport: readSurvivorSupportDraftBoolean(
+          fields,
+          "supportTreatment.includeEssentialSupport",
+          currentSupportTreatment.includeEssentialSupport
+        ),
+        includeDiscretionarySupport: readSurvivorSupportDraftBoolean(
+          fields,
+          "supportTreatment.includeDiscretionarySupport",
+          currentSupportTreatment.includeDiscretionarySupport
+        ),
+        includeTransitionNeeds: readSurvivorSupportDraftBoolean(
+          fields,
+          "supportTreatment.includeTransitionNeeds",
+          currentSupportTreatment.includeTransitionNeeds
+        ),
+        supportDurationYears: readSurvivorSupportDraftYears(
+          fields,
+          "supportTreatment.supportDurationYears",
+          currentSupportTreatment.supportDurationYears
+        )
+      },
+      riskFlags: {
+        flagHighSurvivorIncomeReliance: readSurvivorSupportDraftBoolean(
+          fields,
+          "riskFlags.flagHighSurvivorIncomeReliance",
+          currentRiskFlags.flagHighSurvivorIncomeReliance
+        ),
+        highRelianceThresholdPercent: readSurvivorSupportDraftPercent(
+          fields,
+          "riskFlags.highRelianceThresholdPercent",
+          currentRiskFlags.highRelianceThresholdPercent
+        )
+      },
+      source: "analysis-setup"
+    };
+  }
+
+  function readEducationDraftBoolean(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    return field ? Boolean(field.checked) : Boolean(fallback);
+  }
+
+  function readEducationDraftPercent(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    const number = Number(rawValue);
+    return rawValue && Number.isFinite(number)
+      ? normalizeEducationPercent(number, fallback)
+      : fallback;
+  }
+
+  function readEducationDraftYears(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    return rawValue
+      ? normalizeEducationYears(rawValue, fallback)
+      : null;
+  }
+
+  function readEducationDraftMoney(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    return rawValue
+      ? normalizeEducationMoneyValue(rawValue, fallback)
+      : null;
+  }
+
+  function readRecommendationDraftBoolean(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    return field ? Boolean(field.checked) : Boolean(fallback);
+  }
+
+  function readRecommendationDraftPercent(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    const number = Number(rawValue);
+    return rawValue && Number.isFinite(number)
+      ? normalizeRecommendationPercent(number, fallback)
+      : fallback;
+  }
+
+  function readRecommendationDraftMoney(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    return rawValue
+      ? normalizeRecommendationMoneyValue(rawValue, fallback)
+      : null;
+  }
+
+  function readRecommendationDraftRoundingIncrement(fields, fallback) {
+    const field = fields.values?.["recommendationTarget.roundingIncrement"];
+    const rawValue = String(field?.value || "").trim();
+    return rawValue
+      ? normalizeRecommendationRoundingIncrement(rawValue, fallback)
+      : fallback;
+  }
+
+  function readRecommendationDraftTargetMode(fields, fallback) {
+    const field = fields.values?.["recommendationTarget.mode"];
+    return normalizeRecommendationTargetMode(field?.value, fallback);
+  }
+
+  function getEducationDraftAssumptions(fields) {
+    const current = getEducationCurrentAssumptions(fields);
+    const currentFundingTreatment = current.fundingTreatment
+      || DEFAULT_EDUCATION_ASSUMPTIONS.fundingTreatment;
+    const currentSavingsTreatment = current.educationSavingsTreatment
+      || DEFAULT_EDUCATION_ASSUMPTIONS.educationSavingsTreatment;
+    const currentRiskFlags = current.riskFlags
+      || DEFAULT_EDUCATION_ASSUMPTIONS.riskFlags;
+
+    return {
+      enabled: Boolean(current.enabled),
+      globalTreatmentProfile: getEducationDefaultProfile(fields),
+      fundingTreatment: {
+        includeEducationFunding: readEducationDraftBoolean(
+          fields,
+          "fundingTreatment.includeEducationFunding",
+          currentFundingTreatment.includeEducationFunding
+        ),
+        fundingTargetPercent: readEducationDraftPercent(
+          fields,
+          "fundingTreatment.fundingTargetPercent",
+          currentFundingTreatment.fundingTargetPercent
+        ),
+        yearsFundedPerStudent: readEducationDraftYears(
+          fields,
+          "fundingTreatment.yearsFundedPerStudent",
+          currentFundingTreatment.yearsFundedPerStudent
+        ),
+        includeProjectedDependents: readEducationDraftBoolean(
+          fields,
+          "fundingTreatment.includeProjectedDependents",
+          currentFundingTreatment.includeProjectedDependents
+        ),
+        applyEducationInflation: readEducationDraftBoolean(
+          fields,
+          "fundingTreatment.applyEducationInflation",
+          currentFundingTreatment.applyEducationInflation
+        ),
+        useExistingEducationSavingsOffset: readEducationDraftBoolean(
+          fields,
+          "educationSavingsTreatment.includeAsOffset",
+          currentFundingTreatment.useExistingEducationSavingsOffset
+        )
+      },
+      educationSavingsTreatment: {
+        existingEducationSavingsValue: readEducationDraftMoney(
+          fields,
+          "educationSavingsTreatment.existingEducationSavingsValue",
+          currentSavingsTreatment.existingEducationSavingsValue
+        ),
+        includeAsOffset: readEducationDraftBoolean(
+          fields,
+          "educationSavingsTreatment.includeAsOffset",
+          currentSavingsTreatment.includeAsOffset
+        ),
+        taxDragPercent: readEducationDraftPercent(
+          fields,
+          "educationSavingsTreatment.taxDragPercent",
+          currentSavingsTreatment.taxDragPercent
+        ),
+        liquidityHaircutPercent: readEducationDraftPercent(
+          fields,
+          "educationSavingsTreatment.liquidityHaircutPercent",
+          currentSavingsTreatment.liquidityHaircutPercent
+        )
+      },
+      riskFlags: {
+        flagMissingDependentDetails: readEducationDraftBoolean(
+          fields,
+          "riskFlags.flagMissingDependentDetails",
+          currentRiskFlags.flagMissingDependentDetails
+        ),
+        flagProjectedDependentsIncluded: readEducationDraftBoolean(
+          fields,
+          "riskFlags.flagProjectedDependentsIncluded",
+          currentRiskFlags.flagProjectedDependentsIncluded
+        )
+      },
+      source: "analysis-setup"
+    };
+  }
+
+  function getRecommendationDraftGuardrails(fields) {
+    const current = getRecommendationCurrentGuardrails(fields);
+    const currentRecommendationTarget = current.recommendationTarget
+      || DEFAULT_RECOMMENDATION_GUARDRAILS.recommendationTarget;
+    const currentRiskTolerance = current.riskTolerance
+      || DEFAULT_RECOMMENDATION_GUARDRAILS.riskTolerance;
+    const currentPresentationRules = current.presentationRules
+      || DEFAULT_RECOMMENDATION_GUARDRAILS.presentationRules;
+    const currentConfidenceRules = current.confidenceRules
+      || DEFAULT_RECOMMENDATION_GUARDRAILS.confidenceRules;
+    const recommendationProfile = getRecommendationDefaultProfile(fields);
+
+    return {
+      enabled: Boolean(current.enabled),
+      recommendationProfile,
+      recommendationTarget: {
+        mode: readRecommendationDraftTargetMode(fields, currentRecommendationTarget.mode),
+        minimumCoverageFloor: readRecommendationDraftMoney(
+          fields,
+          "recommendationTarget.minimumCoverageFloor",
+          currentRecommendationTarget.minimumCoverageFloor
+        ),
+        maximumCoverageCap: readRecommendationDraftMoney(
+          fields,
+          "recommendationTarget.maximumCoverageCap",
+          currentRecommendationTarget.maximumCoverageCap
+        ),
+        roundingIncrement: readRecommendationDraftRoundingIncrement(
+          fields,
+          currentRecommendationTarget.roundingIncrement
+        )
+      },
+      riskTolerance: {
+        posture: recommendationProfile === "custom"
+          ? normalizeRecommendationProfile(currentRiskTolerance.posture, DEFAULT_RECOMMENDATION_GUARDRAILS.riskTolerance.posture)
+          : recommendationProfile,
+        maxRelianceOnAssetsPercent: readRecommendationDraftPercent(
+          fields,
+          "riskTolerance.maxRelianceOnAssetsPercent",
+          currentRiskTolerance.maxRelianceOnAssetsPercent
+        ),
+        maxRelianceOnIlliquidAssetsPercent: readRecommendationDraftPercent(
+          fields,
+          "riskTolerance.maxRelianceOnIlliquidAssetsPercent",
+          currentRiskTolerance.maxRelianceOnIlliquidAssetsPercent
+        ),
+        maxRelianceOnSurvivorIncomePercent: readRecommendationDraftPercent(
+          fields,
+          "riskTolerance.maxRelianceOnSurvivorIncomePercent",
+          currentRiskTolerance.maxRelianceOnSurvivorIncomePercent
+        )
+      },
+      presentationRules: {
+        showMinimumRecommendedConservativeRange: readRecommendationDraftBoolean(
+          fields,
+          "presentationRules.showMinimumRecommendedConservativeRange",
+          currentPresentationRules.showMinimumRecommendedConservativeRange
+        ),
+        showMethodComparison: readRecommendationDraftBoolean(
+          fields,
+          "presentationRules.showMethodComparison",
+          currentPresentationRules.showMethodComparison
+        ),
+        showWarnings: readRecommendationDraftBoolean(
+          fields,
+          "presentationRules.showWarnings",
+          currentPresentationRules.showWarnings
+        ),
+        requireAdvisorReviewBeforeRecommendation: readRecommendationDraftBoolean(
+          fields,
+          "presentationRules.requireAdvisorReviewBeforeRecommendation",
+          currentPresentationRules.requireAdvisorReviewBeforeRecommendation
+        )
+      },
+      confidenceRules: {
+        minimumConfidencePercent: readRecommendationDraftPercent(
+          fields,
+          "confidenceRules.minimumConfidencePercent",
+          currentConfidenceRules.minimumConfidencePercent
+        ),
+        flagMissingCriticalInputs: readRecommendationDraftBoolean(
+          fields,
+          "confidenceRules.flagMissingCriticalInputs",
+          currentConfidenceRules.flagMissingCriticalInputs
+        ),
+        flagHeavyAssetReliance: readRecommendationDraftBoolean(
+          fields,
+          "confidenceRules.flagHeavyAssetReliance",
+          currentConfidenceRules.flagHeavyAssetReliance
+        ),
+        flagHeavySurvivorIncomeReliance: readRecommendationDraftBoolean(
+          fields,
+          "confidenceRules.flagHeavySurvivorIncomeReliance",
+          currentConfidenceRules.flagHeavySurvivorIncomeReliance
+        ),
+        flagGroupCoverageReliance: readRecommendationDraftBoolean(
+          fields,
+          "confidenceRules.flagGroupCoverageReliance",
+          currentConfidenceRules.flagGroupCoverageReliance
+        )
+      },
+      source: "analysis-setup"
+    };
   }
 
   function populateFields(fields, assumptions, sliders) {
@@ -2234,6 +3450,112 @@
     return null;
   }
 
+  function getSurvivorSupportSourceRawValue(linkedRecord, sourceField) {
+    const sourceData = getLinkedProtectionModelingData(linkedRecord);
+    if (sourceField && Object.prototype.hasOwnProperty.call(sourceData, sourceField)) {
+      return sourceData[sourceField];
+    }
+
+    if (sourceField && Object.prototype.hasOwnProperty.call(linkedRecord || {}, sourceField)) {
+      return linkedRecord[sourceField];
+    }
+
+    return null;
+  }
+
+  function getSurvivorSupportMoneySourceValue(linkedRecord, sourceField) {
+    return parseOptionalMoneyValue(getSurvivorSupportSourceRawValue(linkedRecord, sourceField));
+  }
+
+  function getSurvivorSupportNumberSourceValue(linkedRecord, sourceField) {
+    return parseOptionalNumberValue(getSurvivorSupportSourceRawValue(linkedRecord, sourceField));
+  }
+
+  function getEducationSourceRawValue(linkedRecord, sourceField) {
+    const sourceData = getLinkedProtectionModelingData(linkedRecord);
+    if (sourceField && Object.prototype.hasOwnProperty.call(sourceData, sourceField)) {
+      return sourceData[sourceField];
+    }
+
+    if (sourceField && Object.prototype.hasOwnProperty.call(linkedRecord || {}, sourceField)) {
+      return linkedRecord[sourceField];
+    }
+
+    return null;
+  }
+
+  function getEducationSourceNumberValue(linkedRecord, sourceField) {
+    return parseOptionalNumberValue(getEducationSourceRawValue(linkedRecord, sourceField));
+  }
+
+  function getEducationSourceMoneyValue(linkedRecord, sourceField) {
+    return parseOptionalMoneyValue(getEducationSourceRawValue(linkedRecord, sourceField));
+  }
+
+  function getEducationProfileNumberValue(linkedRecord, fieldNames) {
+    const safeFieldNames = Array.isArray(fieldNames) ? fieldNames : [];
+    for (let index = 0; index < safeFieldNames.length; index += 1) {
+      const fieldName = safeFieldNames[index];
+      if (Object.prototype.hasOwnProperty.call(linkedRecord || {}, fieldName)) {
+        const value = parseOptionalNumberValue(linkedRecord[fieldName]);
+        if (value !== null) {
+          return value;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  function getEducationCountSourceValue(linkedRecord, sourceField, profileFields) {
+    const profileValue = getEducationProfileNumberValue(linkedRecord, profileFields);
+    if (profileValue !== null) {
+      return profileValue;
+    }
+
+    return getEducationSourceNumberValue(linkedRecord, sourceField);
+  }
+
+  function getEducationSameFundingValue(linkedRecord) {
+    const rawValue = getEducationSourceRawValue(linkedRecord, "sameEducationFunding");
+    const normalizedValue = String(rawValue == null || rawValue === "" ? "Yes" : rawValue).trim().toLowerCase();
+    return normalizedValue !== "no" && normalizedValue !== "false" && normalizedValue !== "0";
+  }
+
+  function getEducationSourcePreview(linkedRecord) {
+    const childrenNeedingFunding = getEducationCountSourceValue(
+      linkedRecord,
+      "childrenNeedingFunding",
+      ["dependentsCount", "dependentCount"]
+    );
+    const projectedDependents = getEducationCountSourceValue(
+      linkedRecord,
+      "projectedDependentsCount",
+      ["projectedDependentsCount", "desiredDependentsCount"]
+    );
+    const costPerChild = getEducationSourceMoneyValue(linkedRecord, "estimatedCostPerChild");
+    const sameFunding = getEducationSameFundingValue(linkedRecord);
+    const projectedCost = sameFunding
+      ? costPerChild
+      : getEducationSourceMoneyValue(linkedRecord, "projectedEducationFundingPerDependent");
+    const linkedNeed = childrenNeedingFunding === null || costPerChild === null
+      ? null
+      : childrenNeedingFunding * costPerChild;
+    const projectedNeed = projectedDependents === null || projectedCost === null
+      ? null
+      : projectedDependents * projectedCost;
+    const hasNeed = linkedNeed !== null || projectedNeed !== null;
+
+    return {
+      childrenNeedingFunding,
+      projectedDependents,
+      costPerChild,
+      totalEducationFundingNeed: hasNeed
+        ? (linkedNeed === null ? 0 : linkedNeed) + (projectedNeed === null ? 0 : projectedNeed)
+        : null
+    };
+  }
+
   function getDebtSourceTotals(linkedRecord) {
     const sourceFields = ["mortgageBalance"].concat(NON_MORTGAGE_DEBT_ITEMS.map(function (item) {
       return item.sourceField;
@@ -2339,6 +3661,72 @@
       fields.previewNote.textContent = adjustedPreview.mortgageHandledThroughSupport
         ? "Mortgage payoff preview excludes mortgage balance because this mode treats it through support later."
         : "Preview only. Current Needs, DIME, HLV, and recommendation results are unchanged.";
+    }
+  }
+
+  function syncSurvivorSupportPreview(fields, linkedRecord) {
+    const assumptions = getSurvivorSupportDraftAssumptions(fields);
+    fields.currentAssumptions = assumptions;
+
+    const survivorNetIncome = getSurvivorSupportMoneySourceValue(linkedRecord, "survivorNetAnnualIncome");
+    const startDelayMonths = getSurvivorSupportNumberSourceValue(linkedRecord, "survivorIncomeStartDelayMonths");
+    const supportDurationYears = assumptions.supportTreatment?.supportDurationYears;
+    const discretionaryIncluded = Boolean(assumptions.supportTreatment?.includeDiscretionarySupport);
+
+    if (fields.preview?.netIncome) {
+      fields.preview.netIncome.textContent = survivorNetIncome === null
+        ? "No saved net income found"
+        : formatCurrencyValue(survivorNetIncome);
+    }
+    if (fields.preview?.startDelay) {
+      fields.preview.startDelay.textContent = startDelayMonths === null
+        ? "No saved delay found"
+        : `${formatHaircutInputValue(startDelayMonths)} months`;
+    }
+    if (fields.preview?.supportDuration) {
+      fields.preview.supportDuration.textContent = supportDurationYears === null || supportDurationYears === undefined
+        ? "Method Defaults"
+        : `${formatHaircutInputValue(supportDurationYears)} years override`;
+    }
+    if (fields.preview?.discretionarySupport) {
+      fields.preview.discretionarySupport.textContent = discretionaryIncluded
+        ? "Included later"
+        : "Excluded later";
+    }
+  }
+
+  function syncEducationPreview(fields, linkedRecord) {
+    const assumptions = getEducationDraftAssumptions(fields);
+    fields.currentAssumptions = assumptions;
+
+    const sourcePreview = getEducationSourcePreview(linkedRecord);
+    const educationSavingsValue = assumptions.educationSavingsTreatment?.existingEducationSavingsValue;
+    const noSourceText = "No saved education data found";
+
+    if (fields.preview?.currentNeed) {
+      fields.preview.currentNeed.textContent = sourcePreview.totalEducationFundingNeed === null
+        ? noSourceText
+        : formatCurrencyValue(sourcePreview.totalEducationFundingNeed);
+    }
+    if (fields.preview?.childrenNeedingFunding) {
+      fields.preview.childrenNeedingFunding.textContent = sourcePreview.childrenNeedingFunding === null
+        ? noSourceText
+        : formatHaircutInputValue(sourcePreview.childrenNeedingFunding);
+    }
+    if (fields.preview?.projectedDependents) {
+      fields.preview.projectedDependents.textContent = sourcePreview.projectedDependents === null
+        ? noSourceText
+        : formatHaircutInputValue(sourcePreview.projectedDependents);
+    }
+    if (fields.preview?.costPerChild) {
+      fields.preview.costPerChild.textContent = sourcePreview.costPerChild === null
+        ? noSourceText
+        : formatCurrencyValue(sourcePreview.costPerChild);
+    }
+    if (fields.preview?.educationSavings) {
+      fields.preview.educationSavings.textContent = educationSavingsValue === null || educationSavingsValue === undefined
+        ? "Not entered"
+        : formatCurrencyValue(educationSavingsValue);
     }
   }
 
@@ -2535,6 +3923,225 @@
     syncDebtTreatmentPreview(fields, linkedRecord);
   }
 
+  function populateSurvivorSupportFields(fields, assumptions, linkedRecord) {
+    fields.currentAssumptions = assumptions;
+    setSurvivorSupportDefaultProfile(fields, assumptions.globalTreatmentProfile);
+    setSurvivorSupportChecked(
+      fields,
+      "survivorIncomeTreatment.includeSurvivorIncome",
+      assumptions.survivorIncomeTreatment.includeSurvivorIncome
+    );
+    setSurvivorSupportChecked(
+      fields,
+      "survivorIncomeTreatment.applyStartDelay",
+      assumptions.survivorIncomeTreatment.applyStartDelay
+    );
+    setSurvivorSupportChecked(
+      fields,
+      "survivorIncomeTreatment.applyIncomeGrowth",
+      assumptions.survivorIncomeTreatment.applyIncomeGrowth
+    );
+    setSurvivorSupportValue(
+      fields,
+      "survivorIncomeTreatment.maxReliancePercent",
+      assumptions.survivorIncomeTreatment.maxReliancePercent
+    );
+    setSurvivorSupportChecked(
+      fields,
+      "supportTreatment.includeEssentialSupport",
+      assumptions.supportTreatment.includeEssentialSupport
+    );
+    setSurvivorSupportChecked(
+      fields,
+      "supportTreatment.includeDiscretionarySupport",
+      assumptions.supportTreatment.includeDiscretionarySupport
+    );
+    setSurvivorSupportChecked(
+      fields,
+      "supportTreatment.includeTransitionNeeds",
+      assumptions.supportTreatment.includeTransitionNeeds
+    );
+    setSurvivorSupportValue(
+      fields,
+      "supportTreatment.supportDurationYears",
+      assumptions.supportTreatment.supportDurationYears
+    );
+    setSurvivorSupportChecked(
+      fields,
+      "riskFlags.flagHighSurvivorIncomeReliance",
+      assumptions.riskFlags.flagHighSurvivorIncomeReliance
+    );
+    setSurvivorSupportValue(
+      fields,
+      "riskFlags.highRelianceThresholdPercent",
+      assumptions.riskFlags.highRelianceThresholdPercent
+    );
+    syncSurvivorSupportPreview(fields, linkedRecord);
+  }
+
+  function populateEducationFields(fields, assumptions, linkedRecord) {
+    fields.currentAssumptions = assumptions;
+    setEducationDefaultProfile(fields, assumptions.globalTreatmentProfile);
+    setEducationChecked(
+      fields,
+      "fundingTreatment.includeEducationFunding",
+      assumptions.fundingTreatment.includeEducationFunding
+    );
+    setEducationValue(
+      fields,
+      "fundingTreatment.fundingTargetPercent",
+      assumptions.fundingTreatment.fundingTargetPercent
+    );
+    setEducationValue(
+      fields,
+      "fundingTreatment.yearsFundedPerStudent",
+      assumptions.fundingTreatment.yearsFundedPerStudent
+    );
+    setEducationChecked(
+      fields,
+      "fundingTreatment.includeProjectedDependents",
+      assumptions.fundingTreatment.includeProjectedDependents
+    );
+    setEducationChecked(
+      fields,
+      "fundingTreatment.applyEducationInflation",
+      assumptions.fundingTreatment.applyEducationInflation
+    );
+    setEducationChecked(
+      fields,
+      "fundingTreatment.useExistingEducationSavingsOffset",
+      assumptions.fundingTreatment.useExistingEducationSavingsOffset
+    );
+    setEducationValue(
+      fields,
+      "educationSavingsTreatment.existingEducationSavingsValue",
+      assumptions.educationSavingsTreatment.existingEducationSavingsValue
+    );
+    setEducationChecked(
+      fields,
+      "educationSavingsTreatment.includeAsOffset",
+      assumptions.educationSavingsTreatment.includeAsOffset
+    );
+    setEducationValue(
+      fields,
+      "educationSavingsTreatment.taxDragPercent",
+      assumptions.educationSavingsTreatment.taxDragPercent
+    );
+    setEducationValue(
+      fields,
+      "educationSavingsTreatment.liquidityHaircutPercent",
+      assumptions.educationSavingsTreatment.liquidityHaircutPercent
+    );
+    setEducationChecked(
+      fields,
+      "riskFlags.flagMissingDependentDetails",
+      assumptions.riskFlags.flagMissingDependentDetails
+    );
+    setEducationChecked(
+      fields,
+      "riskFlags.flagProjectedDependentsIncluded",
+      assumptions.riskFlags.flagProjectedDependentsIncluded
+    );
+    syncEducationPreview(fields, linkedRecord);
+  }
+
+  function syncRecommendationPreview(fields) {
+    const guardrails = getRecommendationDraftGuardrails(fields);
+    fields.currentAssumptions = guardrails;
+    const profileLabel = RECOMMENDATION_PROFILE_LABELS[guardrails.recommendationProfile] || RECOMMENDATION_PROFILE_LABELS.balanced;
+
+    if (fields.preview?.currentMode) {
+      fields.preview.currentMode.textContent = profileLabel;
+    }
+    if (fields.preview?.engineStatus) {
+      fields.preview.engineStatus.textContent = "Not active yet";
+    }
+    if (fields.preview?.savedFor) {
+      fields.preview.savedFor.textContent = "Future LENS recommendation logic";
+    }
+  }
+
+  function populateRecommendationGuardrailFields(fields, guardrails) {
+    fields.currentAssumptions = guardrails;
+    setRecommendationDefaultProfile(fields, guardrails.recommendationProfile);
+    setRecommendationValue(
+      fields,
+      "recommendationTarget.mode",
+      guardrails.recommendationTarget.mode
+    );
+    setRecommendationValue(
+      fields,
+      "recommendationTarget.minimumCoverageFloor",
+      guardrails.recommendationTarget.minimumCoverageFloor
+    );
+    setRecommendationValue(
+      fields,
+      "recommendationTarget.maximumCoverageCap",
+      guardrails.recommendationTarget.maximumCoverageCap
+    );
+    setRecommendationValue(
+      fields,
+      "recommendationTarget.roundingIncrement",
+      guardrails.recommendationTarget.roundingIncrement
+    );
+    setRecommendationValue(
+      fields,
+      "riskTolerance.maxRelianceOnAssetsPercent",
+      guardrails.riskTolerance.maxRelianceOnAssetsPercent
+    );
+    setRecommendationValue(
+      fields,
+      "riskTolerance.maxRelianceOnIlliquidAssetsPercent",
+      guardrails.riskTolerance.maxRelianceOnIlliquidAssetsPercent
+    );
+    setRecommendationValue(
+      fields,
+      "riskTolerance.maxRelianceOnSurvivorIncomePercent",
+      guardrails.riskTolerance.maxRelianceOnSurvivorIncomePercent
+    );
+    setRecommendationValue(
+      fields,
+      "confidenceRules.minimumConfidencePercent",
+      guardrails.confidenceRules.minimumConfidencePercent
+    );
+    setRecommendationChecked(
+      fields,
+      "confidenceRules.flagMissingCriticalInputs",
+      guardrails.confidenceRules.flagMissingCriticalInputs
+    );
+    setRecommendationChecked(
+      fields,
+      "confidenceRules.flagHeavyAssetReliance",
+      guardrails.confidenceRules.flagHeavyAssetReliance
+    );
+    setRecommendationChecked(
+      fields,
+      "confidenceRules.flagHeavySurvivorIncomeReliance",
+      guardrails.confidenceRules.flagHeavySurvivorIncomeReliance
+    );
+    setRecommendationChecked(
+      fields,
+      "confidenceRules.flagGroupCoverageReliance",
+      guardrails.confidenceRules.flagGroupCoverageReliance
+    );
+    setRecommendationChecked(
+      fields,
+      "presentationRules.showMethodComparison",
+      guardrails.presentationRules.showMethodComparison
+    );
+    setRecommendationChecked(
+      fields,
+      "presentationRules.showWarnings",
+      guardrails.presentationRules.showWarnings
+    );
+    setRecommendationChecked(
+      fields,
+      "presentationRules.requireAdvisorReviewBeforeRecommendation",
+      guardrails.presentationRules.requireAdvisorReviewBeforeRecommendation
+    );
+    syncRecommendationPreview(fields);
+  }
+
   function setFieldsDisabled(fields, sliders, disabled) {
     Object.keys(fields).forEach(function (fieldName) {
       fields[fieldName].disabled = Boolean(disabled);
@@ -2615,6 +4222,36 @@
       Object.keys(fields[groupName] || {}).forEach(function (fieldName) {
         fields[groupName][fieldName].disabled = Boolean(disabled);
       });
+    });
+  }
+
+  function setSurvivorSupportFieldsDisabled(fields, disabled) {
+    (fields.defaultProfileButtons || []).forEach(function (button) {
+      button.disabled = Boolean(disabled);
+    });
+
+    Object.keys(fields.values || {}).forEach(function (fieldPath) {
+      fields.values[fieldPath].disabled = Boolean(disabled);
+    });
+  }
+
+  function setEducationFieldsDisabled(fields, disabled) {
+    (fields.defaultProfileButtons || []).forEach(function (button) {
+      button.disabled = Boolean(disabled);
+    });
+
+    Object.keys(fields.values || {}).forEach(function (fieldPath) {
+      fields.values[fieldPath].disabled = Boolean(disabled);
+    });
+  }
+
+  function setRecommendationGuardrailFieldsDisabled(fields, disabled) {
+    (fields.defaultProfileButtons || []).forEach(function (button) {
+      button.disabled = Boolean(disabled);
+    });
+
+    Object.keys(fields.values || {}).forEach(function (fieldPath) {
+      fields.values[fieldPath].disabled = Boolean(disabled);
     });
   }
 
@@ -2895,6 +4532,115 @@
     });
 
     populateDebtTreatmentFields(fields, nextAssumptions, linkedRecord);
+  }
+
+  function applySurvivorSupportProfile(fields, profile, linkedRecord) {
+    const normalizedProfile = normalizeSurvivorSupportProfile(profile, "custom");
+    const profileDefaults = SURVIVOR_SUPPORT_PROFILE_DEFAULTS[normalizedProfile];
+    const current = getSurvivorSupportDraftAssumptions(fields);
+    setSurvivorSupportDefaultProfile(fields, normalizedProfile);
+
+    if (!profileDefaults) {
+      fields.currentAssumptions = {
+        ...current,
+        globalTreatmentProfile: normalizedProfile
+      };
+      syncSurvivorSupportPreview(fields, linkedRecord);
+      return;
+    }
+
+    const nextAssumptions = {
+      ...current,
+      globalTreatmentProfile: normalizedProfile,
+      survivorIncomeTreatment: {
+        ...current.survivorIncomeTreatment,
+        ...profileDefaults.survivorIncomeTreatment
+      },
+      supportTreatment: {
+        ...current.supportTreatment,
+        ...profileDefaults.supportTreatment
+      },
+      riskFlags: {
+        ...current.riskFlags,
+        ...profileDefaults.riskFlags
+      }
+    };
+
+    populateSurvivorSupportFields(fields, nextAssumptions, linkedRecord);
+  }
+
+  function applyEducationProfile(fields, profile, linkedRecord) {
+    const normalizedProfile = normalizeEducationProfile(profile, "custom");
+    const profileDefaults = EDUCATION_PROFILE_DEFAULTS[normalizedProfile];
+    const current = getEducationDraftAssumptions(fields);
+    setEducationDefaultProfile(fields, normalizedProfile);
+
+    if (!profileDefaults) {
+      fields.currentAssumptions = {
+        ...current,
+        globalTreatmentProfile: normalizedProfile
+      };
+      syncEducationPreview(fields, linkedRecord);
+      return;
+    }
+
+    const nextAssumptions = {
+      ...current,
+      globalTreatmentProfile: normalizedProfile,
+      fundingTreatment: {
+        ...current.fundingTreatment,
+        ...profileDefaults.fundingTreatment
+      },
+      educationSavingsTreatment: {
+        ...current.educationSavingsTreatment,
+        ...profileDefaults.educationSavingsTreatment
+      },
+      riskFlags: {
+        ...current.riskFlags,
+        ...profileDefaults.riskFlags
+      }
+    };
+
+    populateEducationFields(fields, nextAssumptions, linkedRecord);
+  }
+
+  function applyRecommendationProfile(fields, profile) {
+    const normalizedProfile = normalizeRecommendationProfile(profile, "custom");
+    const profileDefaults = RECOMMENDATION_PROFILE_DEFAULTS[normalizedProfile];
+    const current = getRecommendationDraftGuardrails(fields);
+    setRecommendationDefaultProfile(fields, normalizedProfile);
+
+    if (!profileDefaults) {
+      fields.currentAssumptions = {
+        ...current,
+        recommendationProfile: normalizedProfile
+      };
+      syncRecommendationPreview(fields);
+      return;
+    }
+
+    const nextGuardrails = {
+      ...current,
+      recommendationProfile: normalizedProfile,
+      recommendationTarget: {
+        ...current.recommendationTarget,
+        ...profileDefaults.recommendationTarget
+      },
+      riskTolerance: {
+        ...current.riskTolerance,
+        ...profileDefaults.riskTolerance
+      },
+      presentationRules: {
+        ...current.presentationRules,
+        ...profileDefaults.presentationRules
+      },
+      confidenceRules: {
+        ...current.confidenceRules,
+        ...profileDefaults.confidenceRules
+      }
+    };
+
+    populateRecommendationGuardrailFields(fields, nextGuardrails);
   }
 
   function readValidatedAssumptions(fields) {
@@ -3522,12 +5268,581 @@
     };
   }
 
-  function saveAnalysisSetupSettings(fields, sliders, methodFields, growthFields, growthSliders, assetFields, assetTreatmentFields, existingCoverageFields, debtTreatmentFields, linkedRecord, validationMessage, statusMessage) {
+  function readRequiredSurvivorSupportPercent(fields, fieldPath, label) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return {
+        error: `${label} is required. Enter a value from ${MIN_SURVIVOR_SUPPORT_PERCENT}% to ${MAX_SURVIVOR_SUPPORT_PERCENT}%.`
+      };
+    }
+
+    const number = Number(rawValue);
+    if (!Number.isFinite(number)) {
+      return {
+        error: `${label} must be a numeric percentage.`
+      };
+    }
+
+    if (number < MIN_SURVIVOR_SUPPORT_PERCENT || number > MAX_SURVIVOR_SUPPORT_PERCENT) {
+      return {
+        error: `${label} must be between ${MIN_SURVIVOR_SUPPORT_PERCENT}% and ${MAX_SURVIVOR_SUPPORT_PERCENT}%.`
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
+  function readOptionalSurvivorSupportYears(fields, fieldPath, label) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return { value: null };
+    }
+
+    const number = Number(rawValue);
+    if (!Number.isFinite(number)) {
+      return {
+        error: `${label} must be a numeric year value.`
+      };
+    }
+
+    if (number < MIN_SURVIVOR_SUPPORT_YEARS) {
+      return {
+        error: `${label} must be ${MIN_SURVIVOR_SUPPORT_YEARS} or greater.`
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
+  function readValidatedSurvivorSupportAssumptions(fields) {
+    const defaultProfile = getSurvivorSupportDefaultProfile(fields);
+    if (!SURVIVOR_SUPPORT_PROFILE_KEYS.includes(defaultProfile)) {
+      return {
+        error: "Survivor & Support Assumptions default settings must be Conservative, Balanced, Aggressive, or Custom."
+      };
+    }
+
+    const maxReliance = readRequiredSurvivorSupportPercent(
+      fields,
+      "survivorIncomeTreatment.maxReliancePercent",
+      "Maximum reliance on survivor income"
+    );
+    if (maxReliance.error) {
+      return maxReliance;
+    }
+
+    const supportDuration = readOptionalSurvivorSupportYears(
+      fields,
+      "supportTreatment.supportDurationYears",
+      "Support duration override"
+    );
+    if (supportDuration.error) {
+      return supportDuration;
+    }
+
+    const highRelianceThreshold = readRequiredSurvivorSupportPercent(
+      fields,
+      "riskFlags.highRelianceThresholdPercent",
+      "High survivor income reliance threshold"
+    );
+    if (highRelianceThreshold.error) {
+      return highRelianceThreshold;
+    }
+
+    const current = getSurvivorSupportDraftAssumptions(fields);
+    return {
+      value: {
+        enabled: false,
+        globalTreatmentProfile: defaultProfile,
+        survivorIncomeTreatment: {
+          includeSurvivorIncome: readSurvivorSupportDraftBoolean(
+            fields,
+            "survivorIncomeTreatment.includeSurvivorIncome",
+            current.survivorIncomeTreatment.includeSurvivorIncome
+          ),
+          applyStartDelay: readSurvivorSupportDraftBoolean(
+            fields,
+            "survivorIncomeTreatment.applyStartDelay",
+            current.survivorIncomeTreatment.applyStartDelay
+          ),
+          applyIncomeGrowth: readSurvivorSupportDraftBoolean(
+            fields,
+            "survivorIncomeTreatment.applyIncomeGrowth",
+            current.survivorIncomeTreatment.applyIncomeGrowth
+          ),
+          maxReliancePercent: maxReliance.value,
+          incomeOffsetYears: normalizeSurvivorSupportYears(
+            current.survivorIncomeTreatment.incomeOffsetYears,
+            DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorIncomeTreatment.incomeOffsetYears
+          )
+        },
+        supportTreatment: {
+          includeEssentialSupport: readSurvivorSupportDraftBoolean(
+            fields,
+            "supportTreatment.includeEssentialSupport",
+            current.supportTreatment.includeEssentialSupport
+          ),
+          includeDiscretionarySupport: readSurvivorSupportDraftBoolean(
+            fields,
+            "supportTreatment.includeDiscretionarySupport",
+            current.supportTreatment.includeDiscretionarySupport
+          ),
+          includeTransitionNeeds: readSurvivorSupportDraftBoolean(
+            fields,
+            "supportTreatment.includeTransitionNeeds",
+            current.supportTreatment.includeTransitionNeeds
+          ),
+          supportDurationYears: supportDuration.value
+        },
+        riskFlags: {
+          flagHighSurvivorIncomeReliance: readSurvivorSupportDraftBoolean(
+            fields,
+            "riskFlags.flagHighSurvivorIncomeReliance",
+            current.riskFlags.flagHighSurvivorIncomeReliance
+          ),
+          highRelianceThresholdPercent: highRelianceThreshold.value
+        },
+        lastUpdatedAt: new Date().toISOString(),
+        source: "analysis-setup"
+      }
+    };
+  }
+
+  function readRequiredEducationPercent(fields, fieldPath, label) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return {
+        error: `${label} is required. Enter a value from ${MIN_EDUCATION_PERCENT}% to ${MAX_EDUCATION_PERCENT}%.`
+      };
+    }
+
+    const number = Number(rawValue);
+    if (!Number.isFinite(number)) {
+      return {
+        error: `${label} must be a numeric percentage.`
+      };
+    }
+
+    if (number < MIN_EDUCATION_PERCENT || number > MAX_EDUCATION_PERCENT) {
+      return {
+        error: `${label} must be between ${MIN_EDUCATION_PERCENT}% and ${MAX_EDUCATION_PERCENT}%.`
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
+  function readOptionalEducationYears(fields, fieldPath, label) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return { value: null };
+    }
+
+    const number = Number(rawValue);
+    if (!Number.isFinite(number)) {
+      return {
+        error: `${label} must be a numeric year value.`
+      };
+    }
+
+    if (number < MIN_EDUCATION_YEARS) {
+      return {
+        error: `${label} must be ${MIN_EDUCATION_YEARS} or greater.`
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
+  function readOptionalEducationMoney(fields, fieldPath, label) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return { value: null };
+    }
+
+    const number = Number(rawValue.replace(/[$,\s]/g, ""));
+    if (!Number.isFinite(number)) {
+      return {
+        error: `${label} must be a numeric dollar value.`
+      };
+    }
+
+    if (number < 0) {
+      return {
+        error: `${label} must be 0 or greater.`
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
+  function readValidatedEducationAssumptions(fields) {
+    const defaultProfile = getEducationDefaultProfile(fields);
+    if (!EDUCATION_PROFILE_KEYS.includes(defaultProfile)) {
+      return {
+        error: "Education Assumptions default settings must be Conservative, Balanced, Aggressive, or Custom."
+      };
+    }
+
+    const fundingTarget = readRequiredEducationPercent(
+      fields,
+      "fundingTreatment.fundingTargetPercent",
+      "Education funding target percent"
+    );
+    if (fundingTarget.error) {
+      return fundingTarget;
+    }
+
+    const yearsFunded = readOptionalEducationYears(
+      fields,
+      "fundingTreatment.yearsFundedPerStudent",
+      "Years funded per student"
+    );
+    if (yearsFunded.error) {
+      return yearsFunded;
+    }
+
+    const savingsValue = readOptionalEducationMoney(
+      fields,
+      "educationSavingsTreatment.existingEducationSavingsValue",
+      "Existing education savings value"
+    );
+    if (savingsValue.error) {
+      return savingsValue;
+    }
+
+    const taxDrag = readRequiredEducationPercent(
+      fields,
+      "educationSavingsTreatment.taxDragPercent",
+      "Education savings tax drag"
+    );
+    if (taxDrag.error) {
+      return taxDrag;
+    }
+
+    const liquidityHaircut = readRequiredEducationPercent(
+      fields,
+      "educationSavingsTreatment.liquidityHaircutPercent",
+      "Education savings availability adjustment"
+    );
+    if (liquidityHaircut.error) {
+      return liquidityHaircut;
+    }
+
+    const current = getEducationDraftAssumptions(fields);
+    return {
+      value: {
+        enabled: false,
+        globalTreatmentProfile: defaultProfile,
+        fundingTreatment: {
+          includeEducationFunding: readEducationDraftBoolean(
+            fields,
+            "fundingTreatment.includeEducationFunding",
+            current.fundingTreatment.includeEducationFunding
+          ),
+          fundingTargetPercent: fundingTarget.value,
+          yearsFundedPerStudent: yearsFunded.value,
+          includeProjectedDependents: readEducationDraftBoolean(
+            fields,
+            "fundingTreatment.includeProjectedDependents",
+            current.fundingTreatment.includeProjectedDependents
+          ),
+          applyEducationInflation: readEducationDraftBoolean(
+            fields,
+            "fundingTreatment.applyEducationInflation",
+            current.fundingTreatment.applyEducationInflation
+          ),
+          useExistingEducationSavingsOffset: readEducationDraftBoolean(
+            fields,
+            "educationSavingsTreatment.includeAsOffset",
+            current.fundingTreatment.useExistingEducationSavingsOffset
+          )
+        },
+        educationSavingsTreatment: {
+          existingEducationSavingsValue: savingsValue.value,
+          includeAsOffset: readEducationDraftBoolean(
+            fields,
+            "educationSavingsTreatment.includeAsOffset",
+            current.educationSavingsTreatment.includeAsOffset
+          ),
+          taxDragPercent: taxDrag.value,
+          liquidityHaircutPercent: liquidityHaircut.value
+        },
+        riskFlags: {
+          flagMissingDependentDetails: readEducationDraftBoolean(
+            fields,
+            "riskFlags.flagMissingDependentDetails",
+            current.riskFlags.flagMissingDependentDetails
+          ),
+          flagProjectedDependentsIncluded: readEducationDraftBoolean(
+            fields,
+            "riskFlags.flagProjectedDependentsIncluded",
+            current.riskFlags.flagProjectedDependentsIncluded
+          )
+        },
+        lastUpdatedAt: new Date().toISOString(),
+        source: "analysis-setup"
+      }
+    };
+  }
+
+  function readRequiredRecommendationPercent(fields, fieldPath, label) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return {
+        error: `${label} is required. Enter a value from ${MIN_RECOMMENDATION_PERCENT}% to ${MAX_RECOMMENDATION_PERCENT}%.`
+      };
+    }
+
+    const number = Number(rawValue);
+    if (!Number.isFinite(number)) {
+      return {
+        error: `${label} must be a numeric percentage.`
+      };
+    }
+
+    if (number < MIN_RECOMMENDATION_PERCENT || number > MAX_RECOMMENDATION_PERCENT) {
+      return {
+        error: `${label} must be between ${MIN_RECOMMENDATION_PERCENT}% and ${MAX_RECOMMENDATION_PERCENT}%.`
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
+  function readOptionalRecommendationMoney(fields, fieldPath, label) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return { value: null };
+    }
+
+    const number = Number(rawValue.replace(/[$,\s]/g, ""));
+    if (!Number.isFinite(number)) {
+      return {
+        error: `${label} must be a numeric dollar value.`
+      };
+    }
+
+    if (number < MIN_RECOMMENDATION_MONEY) {
+      return {
+        error: `${label} must be ${MIN_RECOMMENDATION_MONEY} or greater.`
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
+  function readRequiredRecommendationRoundingIncrement(fields) {
+    const field = fields.values?.["recommendationTarget.roundingIncrement"];
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return {
+        error: "Rounding increment is required."
+      };
+    }
+
+    const number = Number(rawValue.replace(/[$,\s]/g, ""));
+    if (!Number.isFinite(number)) {
+      return {
+        error: "Rounding increment must be numeric."
+      };
+    }
+
+    if (number < MIN_RECOMMENDATION_ROUNDING_INCREMENT) {
+      return {
+        error: "Rounding increment must be greater than 0."
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
+  function readValidatedRecommendationGuardrails(fields) {
+    const recommendationProfile = getRecommendationDefaultProfile(fields);
+    if (!RECOMMENDATION_PROFILE_KEYS.includes(recommendationProfile)) {
+      return {
+        error: "Recommendation Guardrails profile must be Conservative, Balanced, Aggressive, or Custom."
+      };
+    }
+
+    const targetMode = String(fields.values?.["recommendationTarget.mode"]?.value || "").trim();
+    if (!RECOMMENDATION_TARGET_MODE_KEYS.includes(targetMode)) {
+      return {
+        error: "Recommendation target mode must be one of the available target modes."
+      };
+    }
+
+    const minimumCoverageFloor = readOptionalRecommendationMoney(
+      fields,
+      "recommendationTarget.minimumCoverageFloor",
+      "Minimum coverage floor"
+    );
+    if (minimumCoverageFloor.error) {
+      return minimumCoverageFloor;
+    }
+
+    const maximumCoverageCap = readOptionalRecommendationMoney(
+      fields,
+      "recommendationTarget.maximumCoverageCap",
+      "Maximum coverage cap"
+    );
+    if (maximumCoverageCap.error) {
+      return maximumCoverageCap;
+    }
+
+    if (
+      minimumCoverageFloor.value !== null
+      && maximumCoverageCap.value !== null
+      && maximumCoverageCap.value < minimumCoverageFloor.value
+    ) {
+      return {
+        error: "Maximum coverage cap must be greater than or equal to the minimum coverage floor."
+      };
+    }
+
+    const roundingIncrement = readRequiredRecommendationRoundingIncrement(fields);
+    if (roundingIncrement.error) {
+      return roundingIncrement;
+    }
+
+    const maxRelianceOnAssets = readRequiredRecommendationPercent(
+      fields,
+      "riskTolerance.maxRelianceOnAssetsPercent",
+      "Max reliance on assets"
+    );
+    if (maxRelianceOnAssets.error) {
+      return maxRelianceOnAssets;
+    }
+
+    const maxRelianceOnIlliquidAssets = readRequiredRecommendationPercent(
+      fields,
+      "riskTolerance.maxRelianceOnIlliquidAssetsPercent",
+      "Max reliance on illiquid assets"
+    );
+    if (maxRelianceOnIlliquidAssets.error) {
+      return maxRelianceOnIlliquidAssets;
+    }
+
+    const maxRelianceOnSurvivorIncome = readRequiredRecommendationPercent(
+      fields,
+      "riskTolerance.maxRelianceOnSurvivorIncomePercent",
+      "Max reliance on survivor income"
+    );
+    if (maxRelianceOnSurvivorIncome.error) {
+      return maxRelianceOnSurvivorIncome;
+    }
+
+    const minimumConfidence = readRequiredRecommendationPercent(
+      fields,
+      "confidenceRules.minimumConfidencePercent",
+      "Minimum confidence"
+    );
+    if (minimumConfidence.error) {
+      return minimumConfidence;
+    }
+
+    const current = getRecommendationDraftGuardrails(fields);
+    return {
+      value: {
+        enabled: false,
+        source: "analysis-setup",
+        lastUpdatedAt: new Date().toISOString(),
+        recommendationProfile,
+        recommendationTarget: {
+          mode: targetMode,
+          minimumCoverageFloor: minimumCoverageFloor.value,
+          maximumCoverageCap: maximumCoverageCap.value,
+          roundingIncrement: roundingIncrement.value
+        },
+        riskTolerance: {
+          posture: recommendationProfile === "custom"
+            ? normalizeRecommendationProfile(current.riskTolerance.posture, DEFAULT_RECOMMENDATION_GUARDRAILS.riskTolerance.posture)
+            : recommendationProfile,
+          maxRelianceOnAssetsPercent: maxRelianceOnAssets.value,
+          maxRelianceOnIlliquidAssetsPercent: maxRelianceOnIlliquidAssets.value,
+          maxRelianceOnSurvivorIncomePercent: maxRelianceOnSurvivorIncome.value
+        },
+        presentationRules: {
+          showMinimumRecommendedConservativeRange: readRecommendationDraftBoolean(
+            fields,
+            "presentationRules.showMinimumRecommendedConservativeRange",
+            current.presentationRules.showMinimumRecommendedConservativeRange
+          ),
+          showMethodComparison: readRecommendationDraftBoolean(
+            fields,
+            "presentationRules.showMethodComparison",
+            current.presentationRules.showMethodComparison
+          ),
+          showWarnings: readRecommendationDraftBoolean(
+            fields,
+            "presentationRules.showWarnings",
+            current.presentationRules.showWarnings
+          ),
+          requireAdvisorReviewBeforeRecommendation: readRecommendationDraftBoolean(
+            fields,
+            "presentationRules.requireAdvisorReviewBeforeRecommendation",
+            current.presentationRules.requireAdvisorReviewBeforeRecommendation
+          )
+        },
+        confidenceRules: {
+          minimumConfidencePercent: minimumConfidence.value,
+          flagMissingCriticalInputs: readRecommendationDraftBoolean(
+            fields,
+            "confidenceRules.flagMissingCriticalInputs",
+            current.confidenceRules.flagMissingCriticalInputs
+          ),
+          flagHeavyAssetReliance: readRecommendationDraftBoolean(
+            fields,
+            "confidenceRules.flagHeavyAssetReliance",
+            current.confidenceRules.flagHeavyAssetReliance
+          ),
+          flagHeavySurvivorIncomeReliance: readRecommendationDraftBoolean(
+            fields,
+            "confidenceRules.flagHeavySurvivorIncomeReliance",
+            current.confidenceRules.flagHeavySurvivorIncomeReliance
+          ),
+          flagGroupCoverageReliance: readRecommendationDraftBoolean(
+            fields,
+            "confidenceRules.flagGroupCoverageReliance",
+            current.confidenceRules.flagGroupCoverageReliance
+          )
+        }
+      }
+    };
+  }
+
+  function saveAnalysisSetupSettings(fields, sliders, methodFields, growthFields, growthSliders, assetFields, assetTreatmentFields, existingCoverageFields, debtTreatmentFields, survivorSupportFields, educationFields, recommendationGuardrailFields, linkedRecord, validationMessage, statusMessage) {
     const clientRecords = LensApp.clientRecords || {};
     const shouldSaveAssetLiquidity = hasAssetLiquidityFields(assetFields);
     const shouldSaveAssetTreatment = hasAssetTreatmentFields(assetTreatmentFields);
     const shouldSaveExistingCoverage = hasExistingCoverageFields(existingCoverageFields);
     const shouldSaveDebtTreatment = hasDebtTreatmentFields(debtTreatmentFields);
+    const shouldSaveSurvivorSupport = hasSurvivorSupportFields(survivorSupportFields);
+    const shouldSaveEducation = hasEducationFields(educationFields);
+    const shouldSaveRecommendationGuardrails = hasRecommendationGuardrailFields(recommendationGuardrailFields);
 
     RATE_FIELDS.forEach(function (fieldName) {
       syncSliderFromNumber(fields, sliders, fieldName, true);
@@ -3649,6 +5964,79 @@
       });
     }
 
+    if (shouldSaveSurvivorSupport) {
+      [
+        "survivorIncomeTreatment.maxReliancePercent",
+        "supportTreatment.supportDurationYears",
+        "riskFlags.highRelianceThresholdPercent"
+      ].forEach(function (fieldPath) {
+        const field = survivorSupportFields.values[fieldPath];
+        const rawValue = String(field?.value || "").trim();
+        const number = Number(rawValue);
+        const isPercentField = fieldPath !== "supportTreatment.supportDurationYears";
+        const isValid = field
+          && rawValue
+          && Number.isFinite(number)
+          && number >= MIN_SURVIVOR_SUPPORT_YEARS
+          && (!isPercentField || number <= MAX_SURVIVOR_SUPPORT_PERCENT);
+        if (isValid) {
+          field.value = formatHaircutInputValue(number);
+        }
+      });
+    }
+
+    if (shouldSaveEducation) {
+      [
+        "fundingTreatment.fundingTargetPercent",
+        "fundingTreatment.yearsFundedPerStudent",
+        "educationSavingsTreatment.existingEducationSavingsValue",
+        "educationSavingsTreatment.taxDragPercent",
+        "educationSavingsTreatment.liquidityHaircutPercent"
+      ].forEach(function (fieldPath) {
+        const field = educationFields.values[fieldPath];
+        const rawValue = String(field?.value || "").trim().replace(/[$,\s]/g, "");
+        const number = Number(rawValue);
+        const isPercentField = fieldPath === "fundingTreatment.fundingTargetPercent"
+          || fieldPath === "educationSavingsTreatment.taxDragPercent"
+          || fieldPath === "educationSavingsTreatment.liquidityHaircutPercent";
+        const isValid = field
+          && rawValue
+          && Number.isFinite(number)
+          && number >= MIN_EDUCATION_YEARS
+          && (!isPercentField || number <= MAX_EDUCATION_PERCENT);
+        if (isValid) {
+          field.value = formatHaircutInputValue(number);
+        }
+      });
+    }
+
+    if (shouldSaveRecommendationGuardrails) {
+      [
+        "recommendationTarget.minimumCoverageFloor",
+        "recommendationTarget.maximumCoverageCap",
+        "recommendationTarget.roundingIncrement",
+        "riskTolerance.maxRelianceOnAssetsPercent",
+        "riskTolerance.maxRelianceOnIlliquidAssetsPercent",
+        "riskTolerance.maxRelianceOnSurvivorIncomePercent",
+        "confidenceRules.minimumConfidencePercent"
+      ].forEach(function (fieldPath) {
+        const field = recommendationGuardrailFields.values[fieldPath];
+        const rawValue = String(field?.value || "").trim().replace(/[$,\s]/g, "");
+        const number = Number(rawValue);
+        const isPercentField = fieldPath.indexOf("riskTolerance.") === 0
+          || fieldPath === "confidenceRules.minimumConfidencePercent";
+        const isRoundingField = fieldPath === "recommendationTarget.roundingIncrement";
+        const isValid = field
+          && rawValue
+          && Number.isFinite(number)
+          && number >= (isRoundingField ? MIN_RECOMMENDATION_ROUNDING_INCREMENT : MIN_RECOMMENDATION_MONEY)
+          && (!isPercentField || number <= MAX_RECOMMENDATION_PERCENT);
+        if (isValid) {
+          field.value = formatHaircutInputValue(number);
+        }
+      });
+    }
+
     const validatedInflation = readValidatedAssumptions(fields);
 
     if (validatedInflation.error) {
@@ -3713,6 +6101,36 @@
       return null;
     }
 
+    const validatedSurvivorSupport = shouldSaveSurvivorSupport
+      ? readValidatedSurvivorSupportAssumptions(survivorSupportFields)
+      : null;
+
+    if (validatedSurvivorSupport?.error) {
+      setMessage(validationMessage, validatedSurvivorSupport.error, "error");
+      setStatus(statusMessage, "Analysis Setup settings were not saved.", "error");
+      return null;
+    }
+
+    const validatedEducation = shouldSaveEducation
+      ? readValidatedEducationAssumptions(educationFields)
+      : null;
+
+    if (validatedEducation?.error) {
+      setMessage(validationMessage, validatedEducation.error, "error");
+      setStatus(statusMessage, "Analysis Setup settings were not saved.", "error");
+      return null;
+    }
+
+    const validatedRecommendationGuardrails = shouldSaveRecommendationGuardrails
+      ? readValidatedRecommendationGuardrails(recommendationGuardrailFields)
+      : null;
+
+    if (validatedRecommendationGuardrails?.error) {
+      setMessage(validationMessage, validatedRecommendationGuardrails.error, "error");
+      setStatus(statusMessage, "Analysis Setup settings were not saved.", "error");
+      return null;
+    }
+
     const linkedCaseRef = String(linkedRecord?.caseRef || "").trim();
     if (!linkedCaseRef || typeof clientRecords.updateClientRecordByCaseRef !== "function") {
       setMessage(validationMessage, "Link a client profile before saving Analysis Setup settings.", "error");
@@ -3735,7 +6153,10 @@
           ...(validatedAssets ? { assetLiquidityAssumptions: validatedAssets.value } : {}),
           ...(validatedAssetTreatment ? { assetTreatmentAssumptions: validatedAssetTreatment.value } : {}),
           ...(validatedExistingCoverage ? { existingCoverageAssumptions: validatedExistingCoverage.value } : {}),
-          ...(validatedDebtTreatment ? { debtTreatmentAssumptions: validatedDebtTreatment.value } : {})
+          ...(validatedDebtTreatment ? { debtTreatmentAssumptions: validatedDebtTreatment.value } : {}),
+          ...(validatedSurvivorSupport ? { survivorSupportAssumptions: validatedSurvivorSupport.value } : {}),
+          ...(validatedEducation ? { educationAssumptions: validatedEducation.value } : {}),
+          ...(validatedRecommendationGuardrails ? { recommendationGuardrails: validatedRecommendationGuardrails.value } : {})
         }
       };
     });
@@ -3763,6 +6184,15 @@
     if (shouldSaveDebtTreatment) {
       populateDebtTreatmentFields(debtTreatmentFields, getDebtTreatmentAssumptions(updatedRecord), updatedRecord);
     }
+    if (shouldSaveSurvivorSupport) {
+      populateSurvivorSupportFields(survivorSupportFields, getSurvivorSupportAssumptions(updatedRecord), updatedRecord);
+    }
+    if (shouldSaveEducation) {
+      populateEducationFields(educationFields, getEducationAssumptions(updatedRecord), updatedRecord);
+    }
+    if (shouldSaveRecommendationGuardrails) {
+      populateRecommendationGuardrailFields(recommendationGuardrailFields, getRecommendationGuardrails(updatedRecord));
+    }
     setMessage(validationMessage, "", "neutral");
     setStatus(statusMessage, "Analysis Setup settings saved.", "success");
     return updatedRecord;
@@ -3786,6 +6216,9 @@
     const assetTreatmentFields = getAssetTreatmentFieldMap();
     const existingCoverageFields = getExistingCoverageFieldMap();
     const debtTreatmentFields = getDebtTreatmentFieldMap();
+    const survivorSupportFields = getSurvivorSupportFieldMap();
+    const educationFields = getEducationFieldMap();
+    const recommendationGuardrailFields = getRecommendationGuardrailFieldMap();
     const saveButton = document.querySelector("[data-analysis-setup-save]");
     const applyButton = document.querySelector("[data-analysis-setup-apply]");
     const statusMessage = document.querySelector("[data-analysis-setup-status]");
@@ -3803,6 +6236,9 @@
     populateAssetTreatmentFields(assetTreatmentFields, getAssetTreatmentAssumptions(linkedRecord), linkedRecord);
     populateExistingCoverageFields(existingCoverageFields, getExistingCoverageAssumptions(linkedRecord), linkedRecord);
     populateDebtTreatmentFields(debtTreatmentFields, getDebtTreatmentAssumptions(linkedRecord), linkedRecord);
+    populateSurvivorSupportFields(survivorSupportFields, getSurvivorSupportAssumptions(linkedRecord), linkedRecord);
+    populateEducationFields(educationFields, getEducationAssumptions(linkedRecord), linkedRecord);
+    populateRecommendationGuardrailFields(recommendationGuardrailFields, getRecommendationGuardrails(linkedRecord));
 
     if (setupShell && headerToggle) {
       headerToggle.addEventListener("click", function () {
@@ -3823,6 +6259,9 @@
       setAssetTreatmentFieldsDisabled(assetTreatmentFields, true);
       setExistingCoverageFieldsDisabled(existingCoverageFields, true);
       setDebtTreatmentFieldsDisabled(debtTreatmentFields, true);
+      setSurvivorSupportFieldsDisabled(survivorSupportFields, true);
+      setEducationFieldsDisabled(educationFields, true);
+      setRecommendationGuardrailFieldsDisabled(recommendationGuardrailFields, true);
       if (saveButton) {
         saveButton.disabled = true;
       }
@@ -3847,6 +6286,9 @@
     setAssetTreatmentFieldsDisabled(assetTreatmentFields, false);
     setExistingCoverageFieldsDisabled(existingCoverageFields, false);
     setDebtTreatmentFieldsDisabled(debtTreatmentFields, false);
+    setSurvivorSupportFieldsDisabled(survivorSupportFields, false);
+    setEducationFieldsDisabled(educationFields, false);
+    setRecommendationGuardrailFieldsDisabled(recommendationGuardrailFields, false);
     if (saveButton) {
       saveButton.disabled = false;
     }
@@ -3946,6 +6388,30 @@
       button.addEventListener("click", function () {
         const profile = String(button.getAttribute("data-analysis-debt-profile") || "").trim();
         applyDebtTreatmentProfile(debtTreatmentFields, profile, linkedRecord);
+        markUnsaved();
+      });
+    });
+
+    (survivorSupportFields.defaultProfileButtons || []).forEach(function (button) {
+      button.addEventListener("click", function () {
+        const profile = String(button.getAttribute("data-analysis-survivor-profile") || "").trim();
+        applySurvivorSupportProfile(survivorSupportFields, profile, linkedRecord);
+        markUnsaved();
+      });
+    });
+
+    (educationFields.defaultProfileButtons || []).forEach(function (button) {
+      button.addEventListener("click", function () {
+        const profile = String(button.getAttribute("data-analysis-education-profile") || "").trim();
+        applyEducationProfile(educationFields, profile, linkedRecord);
+        markUnsaved();
+      });
+    });
+
+    (recommendationGuardrailFields.defaultProfileButtons || []).forEach(function (button) {
+      button.addEventListener("click", function () {
+        const profile = String(button.getAttribute("data-analysis-recommendation-profile") || "").trim();
+        applyRecommendationProfile(recommendationGuardrailFields, profile);
         markUnsaved();
       });
     });
@@ -4084,6 +6550,148 @@
       });
     });
 
+    Object.keys(survivorSupportFields.values || {}).forEach(function (fieldPath) {
+      const field = survivorSupportFields.values[fieldPath];
+      if (!field) {
+        return;
+      }
+
+      const syncSurvivorSupportChange = function () {
+        setSurvivorSupportDefaultProfile(survivorSupportFields, "custom");
+        syncSurvivorSupportPreview(survivorSupportFields, linkedRecord);
+        markUnsaved();
+      };
+
+      field.addEventListener("input", function () {
+        if (fieldPath === "supportTreatment.supportDurationYears") {
+          const sanitizedValue = sanitizeNumericTextValue(field.value);
+          if (field.value !== sanitizedValue) {
+            field.value = sanitizedValue;
+          }
+        }
+        syncSurvivorSupportChange();
+      });
+
+      field.addEventListener("change", function () {
+        const rawValue = String(field.value || "").trim();
+        const number = Number(rawValue);
+        const isPercentField = fieldPath === "survivorIncomeTreatment.maxReliancePercent"
+          || fieldPath === "riskFlags.highRelianceThresholdPercent";
+        const isOptionalYearsField = fieldPath === "supportTreatment.supportDurationYears";
+
+        if (
+          field.type !== "checkbox"
+          && rawValue
+          && Number.isFinite(number)
+          && number >= MIN_SURVIVOR_SUPPORT_YEARS
+          && (!isPercentField || number <= MAX_SURVIVOR_SUPPORT_PERCENT)
+          && (isPercentField || isOptionalYearsField)
+        ) {
+          field.value = formatHaircutInputValue(number);
+        }
+        syncSurvivorSupportChange();
+      });
+    });
+
+    Object.keys(educationFields.values || {}).forEach(function (fieldPath) {
+      const field = educationFields.values[fieldPath];
+      if (!field) {
+        return;
+      }
+
+      const syncEducationChange = function () {
+        setEducationDefaultProfile(educationFields, "custom");
+        syncEducationPreview(educationFields, linkedRecord);
+        markUnsaved();
+      };
+
+      field.addEventListener("input", function () {
+        if (
+          fieldPath === "fundingTreatment.yearsFundedPerStudent"
+          || fieldPath === "educationSavingsTreatment.existingEducationSavingsValue"
+        ) {
+          const sanitizedValue = fieldPath === "fundingTreatment.yearsFundedPerStudent"
+            ? sanitizeNumericTextValue(field.value)
+            : String(field.value || "").replace(/[^0-9.]/g, "");
+          if (field.value !== sanitizedValue) {
+            field.value = sanitizedValue;
+          }
+        }
+        syncEducationChange();
+      });
+
+      field.addEventListener("change", function () {
+        const rawValue = String(field.value || "").trim().replace(/[$,\s]/g, "");
+        const number = Number(rawValue);
+        const isPercentField = fieldPath === "fundingTreatment.fundingTargetPercent"
+          || fieldPath === "educationSavingsTreatment.taxDragPercent"
+          || fieldPath === "educationSavingsTreatment.liquidityHaircutPercent";
+        const isOptionalNumberField = fieldPath === "fundingTreatment.yearsFundedPerStudent"
+          || fieldPath === "educationSavingsTreatment.existingEducationSavingsValue";
+
+        if (
+          field.type !== "checkbox"
+          && rawValue
+          && Number.isFinite(number)
+          && number >= MIN_EDUCATION_YEARS
+          && (!isPercentField || number <= MAX_EDUCATION_PERCENT)
+          && (isPercentField || isOptionalNumberField)
+        ) {
+          field.value = formatHaircutInputValue(number);
+        }
+        syncEducationChange();
+      });
+    });
+
+    Object.keys(recommendationGuardrailFields.values || {}).forEach(function (fieldPath) {
+      const field = recommendationGuardrailFields.values[fieldPath];
+      if (!field) {
+        return;
+      }
+
+      const syncRecommendationChange = function () {
+        setRecommendationDefaultProfile(recommendationGuardrailFields, "custom");
+        syncRecommendationPreview(recommendationGuardrailFields);
+        markUnsaved();
+      };
+
+      field.addEventListener("input", function () {
+        if (
+          fieldPath === "recommendationTarget.minimumCoverageFloor"
+          || fieldPath === "recommendationTarget.maximumCoverageCap"
+        ) {
+          const sanitizedValue = String(field.value || "").replace(/[^0-9.]/g, "");
+          if (field.value !== sanitizedValue) {
+            field.value = sanitizedValue;
+          }
+        }
+        syncRecommendationChange();
+      });
+
+      field.addEventListener("change", function () {
+        const rawValue = String(field.value || "").trim().replace(/[$,\s]/g, "");
+        const number = Number(rawValue);
+        const isPercentField = fieldPath.indexOf("riskTolerance.") === 0
+          || fieldPath === "confidenceRules.minimumConfidencePercent";
+        const isMoneyField = fieldPath === "recommendationTarget.minimumCoverageFloor"
+          || fieldPath === "recommendationTarget.maximumCoverageCap";
+        const isRoundingField = fieldPath === "recommendationTarget.roundingIncrement";
+
+        if (
+          field.type !== "checkbox"
+          && field.tagName !== "SELECT"
+          && rawValue
+          && Number.isFinite(number)
+          && number >= (isRoundingField ? MIN_RECOMMENDATION_ROUNDING_INCREMENT : MIN_RECOMMENDATION_MONEY)
+          && (!isPercentField || number <= MAX_RECOMMENDATION_PERCENT)
+          && (isPercentField || isMoneyField || isRoundingField)
+        ) {
+          field.value = formatHaircutInputValue(number);
+        }
+        syncRecommendationChange();
+      });
+    });
+
     ASSET_LIQUIDITY_ITEMS.forEach(function (item) {
       assetFields.include[item.key]?.addEventListener("change", markUnsaved);
       assetFields.liquidity[item.key]?.addEventListener("change", markUnsaved);
@@ -4207,6 +6815,9 @@
         assetTreatmentFields,
         existingCoverageFields,
         debtTreatmentFields,
+        survivorSupportFields,
+        educationFields,
+        recommendationGuardrailFields,
         linkedRecord,
         validationMessage,
         statusMessage
@@ -4224,6 +6835,9 @@
         assetTreatmentFields,
         existingCoverageFields,
         debtTreatmentFields,
+        survivorSupportFields,
+        educationFields,
+        recommendationGuardrailFields,
         linkedRecord,
         validationMessage,
         statusMessage
@@ -4246,12 +6860,18 @@
     DEFAULT_ASSET_TREATMENT_ASSUMPTIONS,
     DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS,
     DEFAULT_DEBT_TREATMENT_ASSUMPTIONS,
+    DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS,
+    DEFAULT_EDUCATION_ASSUMPTIONS,
+    DEFAULT_RECOMMENDATION_GUARDRAILS,
     getInflationAssumptions,
     getMethodDefaults,
     getGrowthAndReturnAssumptions,
     getAssetLiquidityAssumptions,
     getAssetTreatmentAssumptions,
     getExistingCoverageAssumptions,
-    getDebtTreatmentAssumptions
+    getDebtTreatmentAssumptions,
+    getSurvivorSupportAssumptions,
+    getEducationAssumptions,
+    getRecommendationGuardrails
   });
 })();
