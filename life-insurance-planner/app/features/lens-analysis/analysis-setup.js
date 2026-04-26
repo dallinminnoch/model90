@@ -17,6 +17,32 @@
     finalExpenseInflationRatePercent: "Final expense inflation"
   };
 
+  const GROWTH_RATE_FIELDS = [
+    "primaryIncomeGrowthRatePercent",
+    "partnerIncomeGrowthRatePercent",
+    "taxableInvestmentReturnRatePercent",
+    "retirementAssetReturnRatePercent"
+  ];
+
+  const GROWTH_RATE_LABELS = {
+    primaryIncomeGrowthRatePercent: "Primary income growth",
+    partnerIncomeGrowthRatePercent: "Partner / survivor income growth",
+    taxableInvestmentReturnRatePercent: "Taxable investment return",
+    retirementAssetReturnRatePercent: "Retirement asset return"
+  };
+
+  const METHOD_DEFAULT_FIELDS = [
+    "dimeIncomeYears",
+    "needsSupportYears",
+    "hlvProjectionYears"
+  ];
+
+  const METHOD_DEFAULT_LABELS = {
+    dimeIncomeYears: "DIME Income Years",
+    needsSupportYears: "Needs Support Years",
+    hlvProjectionYears: "HLV Projection Years"
+  };
+
   const DEFAULT_INFLATION_ASSUMPTIONS = Object.freeze({
     enabled: true,
     generalInflationRatePercent: 3,
@@ -24,6 +50,22 @@
     educationInflationRatePercent: 5,
     healthcareInflationRatePercent: 5,
     finalExpenseInflationRatePercent: 3,
+    source: "analysis-setup"
+  });
+
+  const DEFAULT_METHOD_DEFAULTS = Object.freeze({
+    dimeIncomeYears: 10,
+    needsSupportYears: 10,
+    hlvProjectionYears: 10,
+    source: "analysis-setup"
+  });
+
+  const DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS = Object.freeze({
+    enabled: false,
+    primaryIncomeGrowthRatePercent: 3,
+    partnerIncomeGrowthRatePercent: 3,
+    taxableInvestmentReturnRatePercent: 5,
+    retirementAssetReturnRatePercent: 4,
     source: "analysis-setup"
   });
 
@@ -85,6 +127,15 @@
     { key: "businessValue", label: "Business Value", sourceField: "businessValue" },
     { key: "otherAssets", label: "Other Assets", sourceField: "otherAssets" }
   ]);
+  const PMI_BACKED_ASSET_TREATMENT_KEYS = Object.freeze([
+    "cashSavings",
+    "emergencyFund",
+    "taxableBrokerage",
+    "traditionalRetirementAssets",
+    "realEstateEquity",
+    "businessValue"
+  ]);
+  const CUSTOM_ASSET_TREATMENT_USES_PMI_INPUT = false;
 
   const TAX_TREATMENT_LABELS = Object.freeze({
     "no-tax-drag": "No tax drag",
@@ -169,6 +220,13 @@
   });
 
   const ASSET_TREATMENT_PRESET_KEYS = Object.freeze(Object.keys(ASSET_TREATMENT_PRESETS));
+  const ASSET_TREATMENT_DEFAULT_PROFILE_LABELS = Object.freeze({
+    conservative: "Conservative",
+    balanced: "Balanced",
+    aggressive: "Aggressive",
+    custom: "Custom"
+  });
+  const ASSET_TREATMENT_DEFAULT_PROFILE_KEYS = Object.freeze(Object.keys(ASSET_TREATMENT_DEFAULT_PROFILE_LABELS));
 
   const DEFAULT_CUSTOM_ASSET_TREATMENT = Object.freeze({
     id: "custom-asset-1",
@@ -183,6 +241,7 @@
 
   const DEFAULT_ASSET_TREATMENT_ASSUMPTIONS = Object.freeze({
     enabled: false,
+    defaultProfile: "balanced",
     assets: Object.freeze({
       cashSavings: Object.freeze({
         include: true,
@@ -261,8 +320,49 @@
     source: "analysis-setup"
   });
 
+  const ASSET_TREATMENT_PROFILE_DEFAULTS = Object.freeze({
+    conservative: Object.freeze({
+      assets: Object.freeze({
+        cashSavings: Object.freeze({ include: true, treatmentPreset: "cash-like", taxTreatment: "no-tax-drag", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
+        emergencyFund: Object.freeze({ include: true, treatmentPreset: "cash-like", taxTreatment: "no-tax-drag", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
+        taxableBrokerage: Object.freeze({ include: true, treatmentPreset: "step-up-investment", taxTreatment: "step-up-eligible", taxDragPercent: 5, liquidityHaircutPercent: 10 }),
+        traditionalRetirementAssets: Object.freeze({ include: true, treatmentPreset: "taxable-retirement", taxTreatment: "ordinary-income-on-distribution", taxDragPercent: 30, liquidityHaircutPercent: 10 }),
+        rothRetirementAssets: Object.freeze({ include: true, treatmentPreset: "roth-retirement", taxTreatment: "tax-advantaged", taxDragPercent: 0, liquidityHaircutPercent: 10 }),
+        qualifiedAnnuities: Object.freeze({ include: true, treatmentPreset: "qualified-annuity", taxTreatment: "ordinary-income-on-distribution", taxDragPercent: 30, liquidityHaircutPercent: 10 }),
+        nonqualifiedAnnuities: Object.freeze({ include: true, treatmentPreset: "nonqualified-annuity", taxTreatment: "partially-taxable", taxDragPercent: 20, liquidityHaircutPercent: 15 }),
+        realEstateEquity: Object.freeze({ include: false, treatmentPreset: "real-estate-equity", taxTreatment: "step-up-eligible", taxDragPercent: 0, liquidityHaircutPercent: 35 }),
+        businessValue: Object.freeze({ include: false, treatmentPreset: "business-illiquid", taxTreatment: "case-specific", taxDragPercent: 15, liquidityHaircutPercent: 60 }),
+        otherAssets: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 35 })
+      }),
+      customAsset: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 35 })
+    }),
+    balanced: Object.freeze({
+      assets: DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.assets,
+      customAsset: DEFAULT_CUSTOM_ASSET_TREATMENT
+    }),
+    aggressive: Object.freeze({
+      assets: Object.freeze({
+        cashSavings: Object.freeze({ include: true, treatmentPreset: "cash-like", taxTreatment: "no-tax-drag", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
+        emergencyFund: Object.freeze({ include: true, treatmentPreset: "cash-like", taxTreatment: "no-tax-drag", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
+        taxableBrokerage: Object.freeze({ include: true, treatmentPreset: "step-up-investment", taxTreatment: "step-up-eligible", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
+        traditionalRetirementAssets: Object.freeze({ include: true, treatmentPreset: "taxable-retirement", taxTreatment: "ordinary-income-on-distribution", taxDragPercent: 20, liquidityHaircutPercent: 0 }),
+        rothRetirementAssets: Object.freeze({ include: true, treatmentPreset: "roth-retirement", taxTreatment: "tax-advantaged", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
+        qualifiedAnnuities: Object.freeze({ include: true, treatmentPreset: "qualified-annuity", taxTreatment: "ordinary-income-on-distribution", taxDragPercent: 20, liquidityHaircutPercent: 0 }),
+        nonqualifiedAnnuities: Object.freeze({ include: true, treatmentPreset: "nonqualified-annuity", taxTreatment: "partially-taxable", taxDragPercent: 10, liquidityHaircutPercent: 5 }),
+        realEstateEquity: Object.freeze({ include: true, treatmentPreset: "real-estate-equity", taxTreatment: "step-up-eligible", taxDragPercent: 0, liquidityHaircutPercent: 15 }),
+        businessValue: Object.freeze({ include: true, treatmentPreset: "business-illiquid", taxTreatment: "case-specific", taxDragPercent: 10, liquidityHaircutPercent: 35 }),
+        otherAssets: Object.freeze({ include: true, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 15 })
+      }),
+      customAsset: Object.freeze({ include: true, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 15 })
+    })
+  });
+
   const MIN_RATE = 0;
   const MAX_RATE = 10;
+  const MIN_GROWTH_RATE = 0;
+  const MAX_GROWTH_RATE = 12;
+  const MIN_METHOD_YEARS = 0;
+  const MAX_METHOD_YEARS = 60;
   const MIN_HAIRCUT = 0;
   const MAX_HAIRCUT = 100;
   const MIN_ASSET_TREATMENT_PERCENT = 0;
@@ -319,6 +419,56 @@
     return Math.min(MAX_RATE, Math.max(MIN_RATE, value));
   }
 
+  function normalizeGrowthRateValue(value, fallback) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return fallback;
+    }
+
+    return clampGrowthRateValue(number);
+  }
+
+  function clampGrowthRateValue(value) {
+    return Math.min(MAX_GROWTH_RATE, Math.max(MIN_GROWTH_RATE, value));
+  }
+
+  function normalizeMethodYearValue(value, fallback) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return fallback;
+    }
+
+    return Math.min(MAX_METHOD_YEARS, Math.max(MIN_METHOD_YEARS, Math.round(number)));
+  }
+
+  function parseOptionalNumberValue(value) {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    const normalizedValue = String(value).replace(/[,\s]/g, "");
+    if (!normalizedValue) {
+      return null;
+    }
+
+    const number = Number(normalizedValue);
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function sanitizeNumericTextValue(value) {
+    const rawValue = String(value || "");
+    let nextValue = "";
+
+    for (let index = 0; index < rawValue.length; index += 1) {
+      const character = rawValue[index];
+      if (character >= "0" && character <= "9") {
+        nextValue += character;
+      }
+    }
+
+    return nextValue;
+  }
+
   function normalizeLiquidityCategory(value, fallback) {
     const normalizedValue = String(value || "").trim().toLowerCase();
     return LIQUIDITY_CATEGORIES.includes(normalizedValue)
@@ -349,6 +499,13 @@
       : fallback;
   }
 
+  function normalizeAssetDefaultProfile(value, fallback) {
+    const normalizedValue = String(value || "").trim().toLowerCase();
+    return ASSET_TREATMENT_DEFAULT_PROFILE_KEYS.includes(normalizedValue)
+      ? normalizedValue
+      : fallback;
+  }
+
   function normalizeAssetTreatmentPercent(value, fallback) {
     const number = Number(value);
     if (!Number.isFinite(number)) {
@@ -363,6 +520,20 @@
 
   function getPresetDefaults(presetKey) {
     return ASSET_TREATMENT_PRESETS[presetKey] || ASSET_TREATMENT_PRESETS.custom;
+  }
+
+  function isAssetTreatmentItemEditable(itemKey) {
+    return PMI_BACKED_ASSET_TREATMENT_KEYS.includes(itemKey);
+  }
+
+  function getAssetTreatmentRenderItems() {
+    const activeItems = ASSET_TREATMENT_ITEMS.filter(function (item) {
+      return isAssetTreatmentItemEditable(item.key);
+    });
+    const inactiveItems = ASSET_TREATMENT_ITEMS.filter(function (item) {
+      return !isAssetTreatmentItemEditable(item.key);
+    });
+    return activeItems.concat(inactiveItems);
   }
 
   function getInflationAssumptions(record) {
@@ -381,6 +552,89 @@
       nextAssumptions[fieldName] = normalizeRateValue(
         saved[fieldName],
         DEFAULT_INFLATION_ASSUMPTIONS[fieldName]
+      );
+    });
+
+    if (saved.lastUpdatedAt) {
+      nextAssumptions.lastUpdatedAt = String(saved.lastUpdatedAt);
+    }
+
+    return nextAssumptions;
+  }
+
+  function getRetirementYearsDefault(record) {
+    const sourceData = getLinkedProtectionModelingData(record);
+    const sourceValue = Object.prototype.hasOwnProperty.call(sourceData, "yearsUntilRetirement")
+      ? parseOptionalNumberValue(sourceData.yearsUntilRetirement)
+      : null;
+    const recordValue = sourceValue === null && Object.prototype.hasOwnProperty.call(record || {}, "yearsUntilRetirement")
+      ? parseOptionalNumberValue(record.yearsUntilRetirement)
+      : null;
+    const fallback = DEFAULT_METHOD_DEFAULTS.hlvProjectionYears;
+    const value = sourceValue !== null ? sourceValue : recordValue;
+
+    return value === null
+      ? fallback
+      : normalizeMethodYearValue(value, fallback);
+  }
+
+  function getDefaultMethodDefaults(record) {
+    return {
+      ...DEFAULT_METHOD_DEFAULTS,
+      hlvProjectionYears: getRetirementYearsDefault(record)
+    };
+  }
+
+  function getMethodDefaults(record) {
+    const saved = isPlainObject(record?.analysisSettings?.methodDefaults)
+      ? record.analysisSettings.methodDefaults
+      : {};
+    const defaults = getDefaultMethodDefaults(record);
+    const nextDefaults = {
+      ...defaults,
+      source: String(saved.source || defaults.source)
+    };
+
+    nextDefaults.dimeIncomeYears = normalizeMethodYearValue(
+      saved.dimeIncomeYears,
+      defaults.dimeIncomeYears
+    );
+    nextDefaults.needsSupportYears = normalizeMethodYearValue(
+      saved.needsSupportYears,
+      defaults.needsSupportYears
+    );
+    nextDefaults.hlvProjectionYears = normalizeMethodYearValue(
+      saved.hlvProjectionYears,
+      defaults.hlvProjectionYears
+    );
+
+    if (saved.lastUpdatedAt) {
+      nextDefaults.lastUpdatedAt = String(saved.lastUpdatedAt);
+    }
+
+    return nextDefaults;
+  }
+
+  function getGrowthAndReturnAssumptions(record) {
+    const saved = isPlainObject(record?.analysisSettings?.growthAndReturnAssumptions)
+      ? record.analysisSettings.growthAndReturnAssumptions
+      : {};
+    const nextAssumptions = {
+      ...DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS,
+      enabled: typeof saved.enabled === "boolean"
+        ? saved.enabled
+        : DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS.enabled,
+      source: String(saved.source || DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS.source)
+    };
+
+    GROWTH_RATE_FIELDS.forEach(function (fieldName) {
+      const savedValue = fieldName === "taxableInvestmentReturnRatePercent"
+        && !Object.prototype.hasOwnProperty.call(saved, "taxableInvestmentReturnRatePercent")
+        ? saved.investmentReturnRatePercent
+        : saved[fieldName];
+      nextAssumptions[fieldName] = normalizeGrowthRateValue(
+        savedValue,
+        DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS[fieldName]
       );
     });
 
@@ -438,6 +692,10 @@
       enabled: typeof saved.enabled === "boolean"
         ? saved.enabled
         : DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.enabled,
+      defaultProfile: normalizeAssetDefaultProfile(
+        saved.defaultProfile,
+        DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.defaultProfile
+      ),
       assets: {},
       customAssets: [],
       source: String(saved.source || DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.source)
@@ -574,21 +832,25 @@
       return;
     }
 
-    ASSET_TREATMENT_ITEMS.forEach(function (item) {
+    getAssetTreatmentRenderItems().forEach(function (item) {
       const defaults = DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.assets[item.key];
+      const isEditable = isAssetTreatmentItemEditable(item.key);
+      const disabledAttribute = isEditable ? "" : " disabled";
+      const rowDisabledClass = isEditable ? "" : " analysis-setup-asset-row--disabled";
+      const ariaDisabled = isEditable ? "false" : "true";
       table.insertAdjacentHTML("beforeend", `
-        <div class="analysis-setup-asset-row" role="row" data-analysis-asset-treatment-row="${item.key}">
+        <div class="analysis-setup-asset-row${rowDisabledClass}" role="row" aria-disabled="${ariaDisabled}" data-analysis-asset-treatment-row="${item.key}">
           <span class="analysis-setup-asset-label" role="cell">${item.label}</span>
           <span role="cell">
             <label class="analysis-setup-asset-include" aria-label="Include ${item.label}">
               <span class="settings-switch analysis-setup-mini-switch">
-                <input class="analysis-setup-asset-field" type="checkbox" role="switch" aria-label="Include ${item.label}" data-analysis-asset-treatment-include="${item.key}">
+                <input class="analysis-setup-asset-field" type="checkbox" role="switch" aria-label="Include ${item.label}" data-analysis-asset-treatment-include="${item.key}"${disabledAttribute}>
                 <span class="settings-switch-track" aria-hidden="true"></span>
               </span>
             </label>
           </span>
           <span role="cell">
-            <select class="analysis-setup-asset-select analysis-setup-asset-field" aria-label="${item.label} treatment preset" data-analysis-asset-treatment-preset="${item.key}">
+            <select class="analysis-setup-asset-select analysis-setup-asset-field" aria-label="${item.label} treatment preset" data-analysis-asset-treatment-preset="${item.key}"${disabledAttribute}>
               ${getPresetOptionsMarkup(defaults.treatmentPreset)}
             </select>
           </span>
@@ -597,13 +859,13 @@
           </span>
           <span role="cell">
             <span class="analysis-setup-asset-percent">
-              <input class="analysis-setup-asset-percent-input analysis-setup-asset-field" type="text" inputmode="decimal" value="${defaults.taxDragPercent}" aria-label="${item.label} tax drag percentage" data-analysis-asset-treatment-tax="${item.key}">
+              <input class="analysis-setup-asset-percent-input analysis-setup-asset-field" type="text" inputmode="decimal" value="${defaults.taxDragPercent}" aria-label="${item.label} tax drag percentage" data-analysis-asset-treatment-tax="${item.key}"${disabledAttribute}>
               <span aria-hidden="true">%</span>
             </span>
           </span>
           <span role="cell">
             <span class="analysis-setup-asset-percent">
-              <input class="analysis-setup-asset-percent-input analysis-setup-asset-field" type="text" inputmode="decimal" value="${defaults.liquidityHaircutPercent}" aria-label="${item.label} liquidity and marketability haircut percentage" data-analysis-asset-treatment-haircut="${item.key}">
+              <input class="analysis-setup-asset-percent-input analysis-setup-asset-field" type="text" inputmode="decimal" value="${defaults.liquidityHaircutPercent}" aria-label="${item.label} liquidity and marketability haircut percentage" data-analysis-asset-treatment-haircut="${item.key}"${disabledAttribute}>
               <span aria-hidden="true">%</span>
             </span>
           </span>
@@ -613,21 +875,21 @@
     });
 
     table.insertAdjacentHTML("beforeend", `
-      <div class="analysis-setup-asset-row analysis-setup-asset-row--custom" role="row" data-analysis-asset-treatment-custom-row="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}">
+      <div class="analysis-setup-asset-row analysis-setup-asset-row--custom analysis-setup-asset-row--disabled" role="row" aria-disabled="true" data-analysis-asset-treatment-custom-row="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}">
         <span class="analysis-setup-custom-asset-stack" role="cell">
-          <input class="analysis-setup-asset-label-input analysis-setup-asset-field" type="text" value="${DEFAULT_CUSTOM_ASSET_TREATMENT.label}" aria-label="Custom asset label" data-analysis-asset-treatment-custom-label="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}">
-          <input class="analysis-setup-asset-value-input analysis-setup-asset-field" type="text" inputmode="decimal" placeholder="Estimated value" aria-label="Custom asset estimated value" data-analysis-asset-treatment-custom-value="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}">
+          <input class="analysis-setup-asset-label-input analysis-setup-asset-field" type="text" value="${DEFAULT_CUSTOM_ASSET_TREATMENT.label}" aria-label="Custom asset label" data-analysis-asset-treatment-custom-label="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}" disabled>
+          <input class="analysis-setup-asset-value-input analysis-setup-asset-field" type="text" inputmode="decimal" placeholder="Estimated value" aria-label="Custom asset estimated value" data-analysis-asset-treatment-custom-value="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}" disabled>
         </span>
         <span role="cell">
           <label class="analysis-setup-asset-include" aria-label="Include custom asset">
             <span class="settings-switch analysis-setup-mini-switch">
-              <input class="analysis-setup-asset-field" type="checkbox" role="switch" aria-label="Include custom asset" data-analysis-asset-treatment-custom-include="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}">
+              <input class="analysis-setup-asset-field" type="checkbox" role="switch" aria-label="Include custom asset" data-analysis-asset-treatment-custom-include="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}" disabled>
               <span class="settings-switch-track" aria-hidden="true"></span>
             </span>
           </label>
         </span>
         <span role="cell">
-          <select class="analysis-setup-asset-select analysis-setup-asset-field" aria-label="Custom asset treatment preset" data-analysis-asset-treatment-custom-preset="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}">
+          <select class="analysis-setup-asset-select analysis-setup-asset-field" aria-label="Custom asset treatment preset" data-analysis-asset-treatment-custom-preset="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}" disabled>
             ${getPresetOptionsMarkup(DEFAULT_CUSTOM_ASSET_TREATMENT.treatmentPreset)}
           </select>
         </span>
@@ -636,13 +898,13 @@
         </span>
         <span role="cell">
           <span class="analysis-setup-asset-percent">
-            <input class="analysis-setup-asset-percent-input analysis-setup-asset-field" type="text" inputmode="decimal" value="${DEFAULT_CUSTOM_ASSET_TREATMENT.taxDragPercent}" aria-label="Custom asset tax drag percentage" data-analysis-asset-treatment-custom-tax="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}">
+            <input class="analysis-setup-asset-percent-input analysis-setup-asset-field" type="text" inputmode="decimal" value="${DEFAULT_CUSTOM_ASSET_TREATMENT.taxDragPercent}" aria-label="Custom asset tax drag percentage" data-analysis-asset-treatment-custom-tax="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}" disabled>
             <span aria-hidden="true">%</span>
           </span>
         </span>
         <span role="cell">
           <span class="analysis-setup-asset-percent">
-            <input class="analysis-setup-asset-percent-input analysis-setup-asset-field" type="text" inputmode="decimal" value="${DEFAULT_CUSTOM_ASSET_TREATMENT.liquidityHaircutPercent}" aria-label="Custom asset liquidity and marketability haircut percentage" data-analysis-asset-treatment-custom-haircut="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}">
+            <input class="analysis-setup-asset-percent-input analysis-setup-asset-field" type="text" inputmode="decimal" value="${DEFAULT_CUSTOM_ASSET_TREATMENT.liquidityHaircutPercent}" aria-label="Custom asset liquidity and marketability haircut percentage" data-analysis-asset-treatment-custom-haircut="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}" disabled>
             <span aria-hidden="true">%</span>
           </span>
         </span>
@@ -665,6 +927,32 @@
     const sliders = {};
     Array.from(document.querySelectorAll("[data-analysis-inflation-slider]")).forEach(function (slider) {
       sliders[slider.getAttribute("data-analysis-inflation-slider")] = slider;
+    });
+    return sliders;
+  }
+
+  function getMethodFieldMap() {
+    const fields = {
+      resetButton: document.querySelector("[data-analysis-method-reset]")
+    };
+    Array.from(document.querySelectorAll("[data-analysis-method-field]")).forEach(function (field) {
+      fields[field.getAttribute("data-analysis-method-field")] = field;
+    });
+    return fields;
+  }
+
+  function getGrowthFieldMap() {
+    const fields = {};
+    Array.from(document.querySelectorAll("[data-analysis-growth-field]")).forEach(function (field) {
+      fields[field.getAttribute("data-analysis-growth-field")] = field;
+    });
+    return fields;
+  }
+
+  function getGrowthSliderMap() {
+    const sliders = {};
+    Array.from(document.querySelectorAll("[data-analysis-growth-slider]")).forEach(function (slider) {
+      sliders[slider.getAttribute("data-analysis-growth-slider")] = slider;
     });
     return sliders;
   }
@@ -695,6 +983,8 @@
   function getAssetTreatmentFieldMap() {
     const fields = {
       enabled: document.querySelector("[data-analysis-asset-treatment-enabled]"),
+      defaultProfile: DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.defaultProfile,
+      defaultProfileButtons: Array.from(document.querySelectorAll("[data-analysis-asset-default-profile]")),
       include: {},
       preset: {},
       taxTreatment: {},
@@ -815,12 +1105,81 @@
     element.dataset.tone = tone || "neutral";
   }
 
+  function setAssetDefaultProfile(fields, profile) {
+    const normalizedProfile = normalizeAssetDefaultProfile(
+      profile,
+      DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.defaultProfile
+    );
+    fields.defaultProfile = normalizedProfile;
+    (fields.defaultProfileButtons || []).forEach(function (button) {
+      const buttonProfile = String(button.getAttribute("data-analysis-asset-default-profile") || "").trim();
+      const isActive = buttonProfile === normalizedProfile;
+      button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      button.dataset.active = isActive ? "true" : "false";
+    });
+  }
+
+  function getAssetDefaultProfile(fields) {
+    return normalizeAssetDefaultProfile(
+      fields.defaultProfile,
+      DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.defaultProfile
+    );
+  }
+
   function populateFields(fields, assumptions, sliders) {
     if (fields.enabled) {
       fields.enabled.checked = Boolean(assumptions.enabled);
     }
 
     RATE_FIELDS.forEach(function (fieldName) {
+      const formattedValue = formatRateInputValue(assumptions[fieldName]);
+      if (fields[fieldName]) {
+        fields[fieldName].value = formattedValue;
+      }
+      if (sliders?.[fieldName]) {
+        sliders[fieldName].value = formattedValue;
+      }
+    });
+  }
+
+  function populateMethodFields(fields, defaults) {
+    if (fields.dimeIncomeYears) {
+      fields.dimeIncomeYears.value = formatHaircutInputValue(defaults.dimeIncomeYears);
+    }
+    if (fields.needsSupportYears) {
+      fields.needsSupportYears.value = formatHaircutInputValue(defaults.needsSupportYears);
+    }
+    if (fields.hlvProjectionYears) {
+      fields.hlvProjectionYears.value = formatHaircutInputValue(
+        defaults.hlvProjectionYears ?? DEFAULT_METHOD_DEFAULTS.hlvProjectionYears
+      );
+    }
+  }
+
+  function populateDefaultMethodFields(fields, linkedRecord) {
+    populateMethodFields(fields, getDefaultMethodDefaults(linkedRecord));
+  }
+
+  function resetHlvProjectionYearsToDefault(fields, linkedRecord) {
+    const field = fields.hlvProjectionYears;
+    if (!field) {
+      return;
+    }
+
+    const rawValue = String(field.value || "").trim();
+    if (rawValue) {
+      return;
+    }
+
+    field.value = formatHaircutInputValue(getRetirementYearsDefault(linkedRecord));
+  }
+
+  function populateGrowthFields(fields, assumptions, sliders) {
+    if (fields.enabled) {
+      fields.enabled.checked = Boolean(assumptions.enabled);
+    }
+
+    GROWTH_RATE_FIELDS.forEach(function (fieldName) {
       const formattedValue = formatRateInputValue(assumptions[fieldName]);
       if (fields[fieldName]) {
         fields[fieldName].value = formattedValue;
@@ -916,6 +1275,11 @@
       return;
     }
 
+    if (!isAssetTreatmentItemEditable(itemKey)) {
+      preview.textContent = "No PMI source";
+      return;
+    }
+
     const include = Boolean(fields.include[itemKey]?.checked);
     const preset = String(fields.preset[itemKey]?.value || "").trim();
     if (!include || preset === "excluded") {
@@ -942,6 +1306,11 @@
   function syncCustomAssetTreatmentPreview(fields, customAssetId) {
     const preview = fields.custom.preview[customAssetId];
     if (!preview) {
+      return;
+    }
+
+    if (!CUSTOM_ASSET_TREATMENT_USES_PMI_INPUT) {
+      preview.textContent = "No PMI source";
       return;
     }
 
@@ -972,6 +1341,7 @@
     if (fields.enabled) {
       fields.enabled.checked = Boolean(assumptions.enabled);
     }
+    setAssetDefaultProfile(fields, assumptions.defaultProfile);
 
     ASSET_TREATMENT_ITEMS.forEach(function (item) {
       const assumption = assumptions.assets[item.key] || DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.assets[item.key];
@@ -1029,6 +1399,21 @@
     });
   }
 
+  function setMethodFieldsDisabled(fields, disabled) {
+    Object.keys(fields).forEach(function (fieldName) {
+      fields[fieldName].disabled = Boolean(disabled);
+    });
+  }
+
+  function setGrowthFieldsDisabled(fields, sliders, disabled) {
+    Object.keys(fields).forEach(function (fieldName) {
+      fields[fieldName].disabled = Boolean(disabled);
+    });
+    Object.keys(sliders || {}).forEach(function (fieldName) {
+      sliders[fieldName].disabled = Boolean(disabled);
+    });
+  }
+
   function setAssetFieldsDisabled(fields, disabled) {
     if (fields.enabled) {
       fields.enabled.disabled = Boolean(disabled);
@@ -1045,16 +1430,19 @@
     if (fields.enabled) {
       fields.enabled.disabled = Boolean(disabled);
     }
+    (fields.defaultProfileButtons || []).forEach(function (button) {
+      button.disabled = Boolean(disabled);
+    });
 
     ["include", "preset", "tax", "haircut"].forEach(function (groupName) {
       Object.keys(fields[groupName] || {}).forEach(function (fieldName) {
-        fields[groupName][fieldName].disabled = Boolean(disabled);
+        fields[groupName][fieldName].disabled = Boolean(disabled) || !isAssetTreatmentItemEditable(fieldName);
       });
     });
 
     ["label", "value", "include", "preset", "tax", "haircut"].forEach(function (groupName) {
       Object.keys(fields.custom?.[groupName] || {}).forEach(function (fieldName) {
-        fields.custom[groupName][fieldName].disabled = Boolean(disabled);
+        fields.custom[groupName][fieldName].disabled = Boolean(disabled) || !CUSTOM_ASSET_TREATMENT_USES_PMI_INPUT;
       });
     });
   }
@@ -1094,6 +1482,47 @@
     const clampedValue = Number.isFinite(number)
       ? clampRateValue(number)
       : DEFAULT_INFLATION_ASSUMPTIONS[fieldName];
+    const formattedValue = formatRateInputValue(clampedValue);
+
+    slider.value = formattedValue;
+    field.value = formattedValue;
+  }
+
+  function syncGrowthSliderFromNumber(fields, sliders, fieldName, shouldFormat) {
+    const field = fields[fieldName];
+    const slider = sliders[fieldName];
+    const rawValue = String(field?.value || "").trim();
+
+    if (!field || !slider || !rawValue) {
+      return;
+    }
+
+    const number = Number(rawValue);
+    if (!Number.isFinite(number)) {
+      return;
+    }
+
+    const clampedValue = clampGrowthRateValue(number);
+    const formattedValue = formatRateInputValue(clampedValue);
+    slider.value = formattedValue;
+
+    if (shouldFormat || clampedValue !== number) {
+      field.value = formattedValue;
+    }
+  }
+
+  function syncGrowthNumberFromSlider(fields, sliders, fieldName) {
+    const field = fields[fieldName];
+    const slider = sliders[fieldName];
+
+    if (!field || !slider) {
+      return;
+    }
+
+    const number = Number(slider.value);
+    const clampedValue = Number.isFinite(number)
+      ? clampGrowthRateValue(number)
+      : DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS[fieldName];
     const formattedValue = formatRateInputValue(clampedValue);
 
     slider.value = formattedValue;
@@ -1148,6 +1577,68 @@
     syncCustomAssetTreatmentPreview(fields, customAssetId);
   }
 
+  function applyAssetTreatmentProfile(fields, profile, linkedRecord) {
+    const normalizedProfile = normalizeAssetDefaultProfile(profile, "custom");
+    const profileDefaults = ASSET_TREATMENT_PROFILE_DEFAULTS[normalizedProfile];
+    setAssetDefaultProfile(fields, normalizedProfile);
+
+    if (!profileDefaults) {
+      return;
+    }
+
+    ASSET_TREATMENT_ITEMS.forEach(function (item) {
+      if (!isAssetTreatmentItemEditable(item.key)) {
+        return;
+      }
+
+      const defaults = profileDefaults.assets[item.key] || DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.assets[item.key];
+
+      if (fields.include[item.key]) {
+        fields.include[item.key].checked = Boolean(defaults.include);
+      }
+      if (fields.preset[item.key]) {
+        fields.preset[item.key].value = normalizeAssetTreatmentPreset(
+          defaults.treatmentPreset,
+          DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.assets[item.key].treatmentPreset
+        );
+      }
+      syncTaxTreatmentPill(fields.taxTreatment[item.key], defaults.taxTreatment);
+      if (fields.tax[item.key]) {
+        fields.tax[item.key].value = formatHaircutInputValue(defaults.taxDragPercent);
+      }
+      if (fields.haircut[item.key]) {
+        fields.haircut[item.key].value = formatHaircutInputValue(defaults.liquidityHaircutPercent);
+      }
+
+      syncAssetTreatmentPreview(fields, item.key, linkedRecord);
+    });
+
+    const customAssetId = DEFAULT_CUSTOM_ASSET_TREATMENT.id;
+    const customDefaults = profileDefaults.customAsset || DEFAULT_CUSTOM_ASSET_TREATMENT;
+    if (!CUSTOM_ASSET_TREATMENT_USES_PMI_INPUT) {
+      syncCustomAssetTreatmentPreview(fields, customAssetId);
+      return;
+    }
+
+    if (fields.custom.include[customAssetId]) {
+      fields.custom.include[customAssetId].checked = Boolean(customDefaults.include);
+    }
+    if (fields.custom.preset[customAssetId]) {
+      fields.custom.preset[customAssetId].value = normalizeAssetTreatmentPreset(
+        customDefaults.treatmentPreset,
+        DEFAULT_CUSTOM_ASSET_TREATMENT.treatmentPreset
+      );
+    }
+    syncTaxTreatmentPill(fields.custom.taxTreatment[customAssetId], customDefaults.taxTreatment);
+    if (fields.custom.tax[customAssetId]) {
+      fields.custom.tax[customAssetId].value = formatHaircutInputValue(customDefaults.taxDragPercent);
+    }
+    if (fields.custom.haircut[customAssetId]) {
+      fields.custom.haircut[customAssetId].value = formatHaircutInputValue(customDefaults.liquidityHaircutPercent);
+    }
+    syncCustomAssetTreatmentPreview(fields, customAssetId);
+  }
+
   function readValidatedAssumptions(fields) {
     const nextAssumptions = {
       enabled: Boolean(fields.enabled?.checked)
@@ -1175,6 +1666,96 @@
       if (number < MIN_RATE || number > MAX_RATE) {
         return {
           error: `${label} must be between ${MIN_RATE}% and ${MAX_RATE}%.`
+        };
+      }
+
+      nextAssumptions[fieldName] = Number(number.toFixed(2));
+    }
+
+    return {
+      value: {
+        ...nextAssumptions,
+        lastUpdatedAt: new Date().toISOString(),
+        source: "analysis-setup"
+      }
+    };
+  }
+
+  function readValidatedMethodDefaults(fields) {
+    const nextDefaults = {};
+
+    for (let index = 0; index < METHOD_DEFAULT_FIELDS.length; index += 1) {
+      const fieldName = METHOD_DEFAULT_FIELDS[index];
+      const field = fields[fieldName];
+      const rawValue = String(field?.value || "").trim();
+      const label = METHOD_DEFAULT_LABELS[fieldName];
+
+      if (!rawValue) {
+        return {
+          error: `${label} is required. Enter a value from ${MIN_METHOD_YEARS} to ${MAX_METHOD_YEARS}.`
+        };
+      }
+
+      const number = Number(rawValue);
+      if (!Number.isFinite(number)) {
+        return {
+          error: `${label} must be a numeric year value.`
+        };
+      }
+
+      if (!Number.isInteger(number)) {
+        return {
+          error: `${label} must be a whole number of years.`
+        };
+      }
+
+      if (number < MIN_METHOD_YEARS || number > MAX_METHOD_YEARS) {
+        return {
+          error: `${label} must be between ${MIN_METHOD_YEARS} and ${MAX_METHOD_YEARS}.`
+        };
+      }
+
+      nextDefaults[fieldName] = number;
+    }
+
+    return {
+      value: {
+        dimeIncomeYears: nextDefaults.dimeIncomeYears,
+        needsSupportYears: nextDefaults.needsSupportYears,
+        hlvProjectionYears: nextDefaults.hlvProjectionYears,
+        lastUpdatedAt: new Date().toISOString(),
+        source: "analysis-setup"
+      }
+    };
+  }
+
+  function readValidatedGrowthAndReturnAssumptions(fields) {
+    const nextAssumptions = {
+      enabled: Boolean(fields.enabled?.checked)
+    };
+
+    for (let index = 0; index < GROWTH_RATE_FIELDS.length; index += 1) {
+      const fieldName = GROWTH_RATE_FIELDS[index];
+      const field = fields[fieldName];
+      const rawValue = String(field?.value || "").trim();
+      const label = GROWTH_RATE_LABELS[fieldName];
+
+      if (!rawValue) {
+        return {
+          error: `${label} is required. Enter a value from ${MIN_GROWTH_RATE}% to ${MAX_GROWTH_RATE}%.`
+        };
+      }
+
+      const number = Number(rawValue);
+      if (!Number.isFinite(number)) {
+        return {
+          error: `${label} must be a numeric percentage.`
+        };
+      }
+
+      if (number < MIN_GROWTH_RATE || number > MAX_GROWTH_RATE) {
+        return {
+          error: `${label} must be between ${MIN_GROWTH_RATE}% and ${MAX_GROWTH_RATE}%.`
         };
       }
 
@@ -1242,8 +1823,16 @@
   }
 
   function readValidatedAssetTreatmentAssumptions(fields) {
+    const defaultProfile = getAssetDefaultProfile(fields);
+    if (!ASSET_TREATMENT_DEFAULT_PROFILE_KEYS.includes(defaultProfile)) {
+      return {
+        error: "Asset Treatment default settings must be Conservative, Balanced, Aggressive, or Custom."
+      };
+    }
+
     const nextAssumptions = {
       enabled: Boolean(fields.enabled?.checked),
+      defaultProfile,
       assets: {},
       customAssets: []
     };
@@ -1400,13 +1989,28 @@
     };
   }
 
-  function saveAnalysisSetupSettings(fields, sliders, assetFields, assetTreatmentFields, linkedRecord, validationMessage, statusMessage) {
+  function saveAnalysisSetupSettings(fields, sliders, methodFields, growthFields, growthSliders, assetFields, assetTreatmentFields, linkedRecord, validationMessage, statusMessage) {
     const clientRecords = LensApp.clientRecords || {};
     const shouldSaveAssetLiquidity = hasAssetLiquidityFields(assetFields);
     const shouldSaveAssetTreatment = hasAssetTreatmentFields(assetTreatmentFields);
 
     RATE_FIELDS.forEach(function (fieldName) {
       syncSliderFromNumber(fields, sliders, fieldName, true);
+    });
+
+    resetHlvProjectionYearsToDefault(methodFields, linkedRecord);
+
+    METHOD_DEFAULT_FIELDS.forEach(function (fieldName) {
+      const field = methodFields[fieldName];
+      const rawValue = String(field?.value || "").trim();
+      const number = Number(rawValue);
+      if (field && rawValue && Number.isFinite(number) && number >= MIN_METHOD_YEARS && number <= MAX_METHOD_YEARS) {
+        field.value = formatHaircutInputValue(number);
+      }
+    });
+
+    GROWTH_RATE_FIELDS.forEach(function (fieldName) {
+      syncGrowthSliderFromNumber(growthFields, growthSliders, fieldName, true);
     });
 
     if (shouldSaveAssetLiquidity) {
@@ -1467,6 +2071,22 @@
       return null;
     }
 
+    const validatedMethodDefaults = readValidatedMethodDefaults(methodFields);
+
+    if (validatedMethodDefaults.error) {
+      setMessage(validationMessage, validatedMethodDefaults.error, "error");
+      setStatus(statusMessage, "Analysis Setup settings were not saved.", "error");
+      return null;
+    }
+
+    const validatedGrowth = readValidatedGrowthAndReturnAssumptions(growthFields);
+
+    if (validatedGrowth.error) {
+      setMessage(validationMessage, validatedGrowth.error, "error");
+      setStatus(statusMessage, "Analysis Setup settings were not saved.", "error");
+      return null;
+    }
+
     const validatedAssets = shouldSaveAssetLiquidity
       ? readValidatedAssetLiquidityAssumptions(assetFields)
       : null;
@@ -1504,6 +2124,8 @@
         analysisSettings: {
           ...currentSettings,
           inflationAssumptions: validatedInflation.value,
+          methodDefaults: validatedMethodDefaults.value,
+          growthAndReturnAssumptions: validatedGrowth.value,
           ...(validatedAssets ? { assetLiquidityAssumptions: validatedAssets.value } : {}),
           ...(validatedAssetTreatment ? { assetTreatmentAssumptions: validatedAssetTreatment.value } : {})
         }
@@ -1519,6 +2141,8 @@
     clientRecords.setLinkedCaseRef?.(updatedRecord.caseRef || linkedCaseRef);
     clientRecords.setLinkedRecordId?.(updatedRecord.id);
     populateFields(fields, getInflationAssumptions(updatedRecord), sliders);
+    populateMethodFields(methodFields, getMethodDefaults(updatedRecord));
+    populateGrowthFields(growthFields, getGrowthAndReturnAssumptions(updatedRecord), growthSliders);
     if (shouldSaveAssetLiquidity) {
       populateAssetFields(assetFields, getAssetLiquidityAssumptions(updatedRecord));
     }
@@ -1540,6 +2164,9 @@
 
     const fields = getFieldMap();
     const sliders = getSliderMap();
+    const methodFields = getMethodFieldMap();
+    const growthFields = getGrowthFieldMap();
+    const growthSliders = getGrowthSliderMap();
     const assetFields = getAssetFieldMap();
     const assetTreatmentFields = getAssetTreatmentFieldMap();
     const saveButton = document.querySelector("[data-analysis-setup-save]");
@@ -1551,11 +2178,15 @@
     let linkedRecord = resolveLinkedProfileRecord();
 
     populateFields(fields, getInflationAssumptions(linkedRecord), sliders);
+    populateMethodFields(methodFields, getMethodDefaults(linkedRecord));
+    populateGrowthFields(growthFields, getGrowthAndReturnAssumptions(linkedRecord), growthSliders);
     populateAssetFields(assetFields, getAssetLiquidityAssumptions(linkedRecord));
     populateAssetTreatmentFields(assetTreatmentFields, getAssetTreatmentAssumptions(linkedRecord), linkedRecord);
 
     if (!linkedRecord) {
       setFieldsDisabled(fields, sliders, true);
+      setMethodFieldsDisabled(methodFields, true);
+      setGrowthFieldsDisabled(growthFields, growthSliders, true);
       setAssetFieldsDisabled(assetFields, true);
       setAssetTreatmentFieldsDisabled(assetTreatmentFields, true);
       if (saveButton) {
@@ -1579,6 +2210,8 @@
     }
 
     setFieldsDisabled(fields, sliders, false);
+    setMethodFieldsDisabled(methodFields, false);
+    setGrowthFieldsDisabled(growthFields, growthSliders, false);
     setAssetFieldsDisabled(assetFields, false);
     setAssetTreatmentFieldsDisabled(assetTreatmentFields, false);
     if (saveButton) {
@@ -1620,8 +2253,64 @@
       });
     });
 
+    METHOD_DEFAULT_FIELDS.forEach(function (fieldName) {
+      methodFields[fieldName]?.addEventListener("input", function () {
+        const field = methodFields[fieldName];
+        const sanitizedValue = sanitizeNumericTextValue(field?.value);
+        if (field && field.value !== sanitizedValue) {
+          field.value = sanitizedValue;
+        }
+        markUnsaved();
+      });
+
+      methodFields[fieldName]?.addEventListener("change", function () {
+        if (fieldName === "hlvProjectionYears") {
+          resetHlvProjectionYearsToDefault(methodFields, linkedRecord);
+        }
+
+        const field = methodFields[fieldName];
+        const rawValue = String(field?.value || "").trim();
+        const number = Number(rawValue);
+        if (field && rawValue && Number.isFinite(number) && number >= MIN_METHOD_YEARS && number <= MAX_METHOD_YEARS) {
+          field.value = formatHaircutInputValue(number);
+        }
+        markUnsaved();
+      });
+    });
+
+    methodFields.resetButton?.addEventListener("click", function () {
+      populateDefaultMethodFields(methodFields, linkedRecord);
+      markUnsaved();
+    });
+
+    growthFields.enabled?.addEventListener("change", markUnsaved);
+
+    GROWTH_RATE_FIELDS.forEach(function (fieldName) {
+      growthFields[fieldName]?.addEventListener("input", function () {
+        syncGrowthSliderFromNumber(growthFields, growthSliders, fieldName, false);
+        markUnsaved();
+      });
+
+      growthFields[fieldName]?.addEventListener("change", function () {
+        syncGrowthSliderFromNumber(growthFields, growthSliders, fieldName, true);
+        markUnsaved();
+      });
+
+      growthSliders[fieldName]?.addEventListener("input", function () {
+        syncGrowthNumberFromSlider(growthFields, growthSliders, fieldName);
+        markUnsaved();
+      });
+    });
+
     assetFields.enabled?.addEventListener("change", markUnsaved);
     assetTreatmentFields.enabled?.addEventListener("change", markUnsaved);
+    (assetTreatmentFields.defaultProfileButtons || []).forEach(function (button) {
+      button.addEventListener("click", function () {
+        const profile = String(button.getAttribute("data-analysis-asset-default-profile") || "").trim();
+        applyAssetTreatmentProfile(assetTreatmentFields, profile, linkedRecord);
+        markUnsaved();
+      });
+    });
 
     ASSET_LIQUIDITY_ITEMS.forEach(function (item) {
       assetFields.include[item.key]?.addEventListener("change", markUnsaved);
@@ -1640,17 +2329,20 @@
 
     ASSET_TREATMENT_ITEMS.forEach(function (item) {
       assetTreatmentFields.include[item.key]?.addEventListener("change", function () {
+        setAssetDefaultProfile(assetTreatmentFields, "custom");
         syncAssetTreatmentPreview(assetTreatmentFields, item.key, linkedRecord);
         markUnsaved();
       });
 
       assetTreatmentFields.preset[item.key]?.addEventListener("change", function () {
+        setAssetDefaultProfile(assetTreatmentFields, "custom");
         applyAssetTreatmentPreset(assetTreatmentFields, item.key, linkedRecord);
         markUnsaved();
       });
 
       ["tax", "haircut"].forEach(function (groupName) {
         assetTreatmentFields[groupName][item.key]?.addEventListener("input", function () {
+          setAssetDefaultProfile(assetTreatmentFields, "custom");
           syncAssetTreatmentPreview(assetTreatmentFields, item.key, linkedRecord);
           markUnsaved();
         });
@@ -1668,6 +2360,7 @@
           ) {
             field.value = formatHaircutInputValue(number);
           }
+          setAssetDefaultProfile(assetTreatmentFields, "custom");
           syncAssetTreatmentPreview(assetTreatmentFields, item.key, linkedRecord);
           markUnsaved();
         });
@@ -1675,8 +2368,12 @@
     });
 
     const customAssetId = DEFAULT_CUSTOM_ASSET_TREATMENT.id;
-    assetTreatmentFields.custom.label[customAssetId]?.addEventListener("input", markUnsaved);
+    assetTreatmentFields.custom.label[customAssetId]?.addEventListener("input", function () {
+      setAssetDefaultProfile(assetTreatmentFields, "custom");
+      markUnsaved();
+    });
     assetTreatmentFields.custom.value[customAssetId]?.addEventListener("input", function () {
+      setAssetDefaultProfile(assetTreatmentFields, "custom");
       syncCustomAssetTreatmentPreview(assetTreatmentFields, customAssetId);
       markUnsaved();
     });
@@ -1687,19 +2384,23 @@
       if (field && rawValue && Number.isFinite(number) && number >= 0) {
         field.value = formatHaircutInputValue(number);
       }
+      setAssetDefaultProfile(assetTreatmentFields, "custom");
       syncCustomAssetTreatmentPreview(assetTreatmentFields, customAssetId);
       markUnsaved();
     });
     assetTreatmentFields.custom.include[customAssetId]?.addEventListener("change", function () {
+      setAssetDefaultProfile(assetTreatmentFields, "custom");
       syncCustomAssetTreatmentPreview(assetTreatmentFields, customAssetId);
       markUnsaved();
     });
     assetTreatmentFields.custom.preset[customAssetId]?.addEventListener("change", function () {
+      setAssetDefaultProfile(assetTreatmentFields, "custom");
       applyCustomAssetTreatmentPreset(assetTreatmentFields, customAssetId);
       markUnsaved();
     });
     ["tax", "haircut"].forEach(function (groupName) {
       assetTreatmentFields.custom[groupName][customAssetId]?.addEventListener("input", function () {
+        setAssetDefaultProfile(assetTreatmentFields, "custom");
         syncCustomAssetTreatmentPreview(assetTreatmentFields, customAssetId);
         markUnsaved();
       });
@@ -1717,6 +2418,7 @@
         ) {
           field.value = formatHaircutInputValue(number);
         }
+        setAssetDefaultProfile(assetTreatmentFields, "custom");
         syncCustomAssetTreatmentPreview(assetTreatmentFields, customAssetId);
         markUnsaved();
       });
@@ -1726,6 +2428,9 @@
       linkedRecord = saveAnalysisSetupSettings(
         fields,
         sliders,
+        methodFields,
+        growthFields,
+        growthSliders,
         assetFields,
         assetTreatmentFields,
         linkedRecord,
@@ -1738,6 +2443,9 @@
       const updatedRecord = saveAnalysisSetupSettings(
         fields,
         sliders,
+        methodFields,
+        growthFields,
+        growthSliders,
         assetFields,
         assetTreatmentFields,
         linkedRecord,
@@ -1756,9 +2464,13 @@
 
   LensApp.analysisSetup = Object.assign(LensApp.analysisSetup || {}, {
     DEFAULT_INFLATION_ASSUMPTIONS,
+    DEFAULT_METHOD_DEFAULTS,
+    DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS,
     DEFAULT_ASSET_LIQUIDITY_ASSUMPTIONS,
     DEFAULT_ASSET_TREATMENT_ASSUMPTIONS,
     getInflationAssumptions,
+    getMethodDefaults,
+    getGrowthAndReturnAssumptions,
     getAssetLiquidityAssumptions,
     getAssetTreatmentAssumptions
   });

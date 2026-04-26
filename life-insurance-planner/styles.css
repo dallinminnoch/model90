@@ -6832,7 +6832,7 @@ label:not(.analysis-setup-rate-label) {
   font-weight: 700;
 }
 
-input:not(.client-table-search-input):not(.analysis-setup-rate-slider):not([data-analysis-inflation-field]):not(.analysis-setup-asset-field),
+input:not(.client-table-search-input):not(.analysis-setup-rate-slider):not([data-analysis-inflation-field]):not([data-analysis-method-field]):not([data-analysis-growth-field]):not(.analysis-setup-asset-field),
 select:not(.analysis-setup-asset-field),
 textarea {
   width: 100%;

@@ -1,0 +1,368 @@
+(function (global) {
+  const LensApp = global.LensApp || (global.LensApp = {});
+  const lensAnalysis = LensApp.lensAnalysis || (LensApp.lensAnalysis = {});
+
+  // Owner: lens-analysis settings adapter.
+  // Purpose: map saved Analysis Setup settings into the flat settings objects
+  // consumed by the pure analysis method layer.
+  // Non-goals: no DOM reads, no persistence, no formula logic, no Lens model
+  // mutation, and no application of future-only inflation, growth, or asset
+  // treatment assumptions.
+
+  const DEFAULT_DIME_SETTINGS = Object.freeze({
+    dimeIncomeYears: 10,
+    includeExistingCoverageOffset: true,
+    includeOffsetAssets: false
+  });
+
+  const DEFAULT_NEEDS_ANALYSIS_SETTINGS = Object.freeze({
+    needsSupportDurationYears: 10,
+    includeExistingCoverageOffset: true,
+    includeOffsetAssets: true,
+    includeTransitionNeeds: true,
+    includeDiscretionarySupport: false,
+    includeSurvivorIncomeOffset: true
+  });
+
+  const DEFAULT_HUMAN_LIFE_VALUE_SETTINGS = Object.freeze({
+    includeExistingCoverageOffset: true,
+    includeOffsetAssets: false
+  });
+
+  function isPlainObject(value) {
+    return Boolean(value && typeof value === "object" && !Array.isArray(value));
+  }
+
+  function hasOwn(source, key) {
+    return Object.prototype.hasOwnProperty.call(source || {}, key);
+  }
+
+  function toOptionalNumber(value) {
+    if (value == null || value === "") {
+      return null;
+    }
+
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function createWarning(code, message, severity, sourcePaths) {
+    return {
+      code,
+      message,
+      severity: severity || "warning",
+      sourcePaths: Array.isArray(sourcePaths) ? sourcePaths : []
+    };
+  }
+
+  function createTrace(key, message, sourcePaths) {
+    return {
+      key,
+      message,
+      sourcePaths: Array.isArray(sourcePaths) ? sourcePaths : []
+    };
+  }
+
+  function cloneDefaults(defaults) {
+    return { ...(isPlainObject(defaults) ? defaults : {}) };
+  }
+
+  function getDefaultSettings(defaults) {
+    const safeDefaults = isPlainObject(defaults) ? defaults : {};
+
+    return {
+      dime: {
+        ...DEFAULT_DIME_SETTINGS,
+        ...cloneDefaults(safeDefaults.dimeSettings)
+      },
+      needsAnalysis: {
+        ...DEFAULT_NEEDS_ANALYSIS_SETTINGS,
+        ...cloneDefaults(safeDefaults.needsAnalysisSettings)
+      },
+      humanLifeValue: {
+        ...DEFAULT_HUMAN_LIFE_VALUE_SETTINGS,
+        ...cloneDefaults(safeDefaults.humanLifeValueSettings)
+      }
+    };
+  }
+
+  function addPositiveSetting(options) {
+    const settings = options.settings;
+    const source = options.source;
+    const sourceKey = options.sourceKey;
+    const targetKey = options.targetKey;
+    const fallback = options.fallback;
+    const warningCode = options.warningCode;
+    const warningMessage = options.warningMessage;
+    const warnings = options.warnings;
+    const trace = options.trace;
+    const sourcePath = options.sourcePath;
+
+    if (!hasOwn(source, sourceKey)) {
+      return;
+    }
+
+    const number = toOptionalNumber(source[sourceKey]);
+    if (number != null && number > 0) {
+      settings[targetKey] = number;
+      trace.push(createTrace(
+        `${targetKey}-saved`,
+        `${targetKey} came from saved Analysis Setup method defaults.`,
+        [sourcePath]
+      ));
+      return;
+    }
+
+    settings[targetKey] = fallback;
+    warnings.push(createWarning(
+      warningCode,
+      warningMessage,
+      "warning",
+      [sourcePath]
+    ));
+    trace.push(createTrace(
+      `${targetKey}-fallback`,
+      `${targetKey} fell back to the current method default.`,
+      [sourcePath]
+    ));
+  }
+
+  function addNonNegativeSetting(options) {
+    const settings = options.settings;
+    const source = options.source;
+    const sourceKey = options.sourceKey;
+    const targetKey = options.targetKey;
+    const warningCode = options.warningCode;
+    const warningMessage = options.warningMessage;
+    const warnings = options.warnings;
+    const trace = options.trace;
+    const sourcePath = options.sourcePath;
+
+    if (!hasOwn(source, sourceKey)) {
+      return;
+    }
+
+    const rawValue = source[sourceKey];
+    const normalizedString = String(rawValue == null ? "" : rawValue).trim();
+    const normalizedLabel = normalizedString.toLowerCase();
+    if (normalizedLabel === "retirement-horizon" || normalizedLabel === "retirementhorizon") {
+      trace.push(createTrace(
+        `${targetKey}-retirement-horizon`,
+        `${targetKey} was left unset so Simple HLV can use the Lens retirement horizon.`,
+        [sourcePath]
+      ));
+      return;
+    }
+
+    const number = toOptionalNumber(rawValue);
+    if (number != null && number >= 0) {
+      settings[targetKey] = number;
+      trace.push(createTrace(
+        `${targetKey}-saved`,
+        `${targetKey} came from saved Analysis Setup method defaults.`,
+        [sourcePath]
+      ));
+      return;
+    }
+
+    warnings.push(createWarning(
+      warningCode,
+      warningMessage,
+      "warning",
+      [sourcePath]
+    ));
+    trace.push(createTrace(
+      `${targetKey}-fallback`,
+      `${targetKey} was left unset so the method can use its built-in fallback.`,
+      [sourcePath]
+    ));
+  }
+
+  function addRoundingIfPresent(settings, analysisSettings, warnings, trace, sourcePath) {
+    const source = String(sourcePath || "").split(".").reduce(function (value, segment) {
+      return value == null ? undefined : value[segment];
+    }, analysisSettings);
+
+    if (!hasOwn(source, "roundingIncrement")) {
+      return;
+    }
+
+    const roundingIncrement = toOptionalNumber(source.roundingIncrement);
+    if (roundingIncrement != null && roundingIncrement > 0) {
+      settings.roundingIncrement = roundingIncrement;
+      trace.push(createTrace(
+        "rounding-increment-saved",
+        "roundingIncrement came from saved Analysis Setup settings.",
+        [`analysisSettings.${sourcePath}.roundingIncrement`]
+      ));
+      return;
+    }
+
+    warnings.push(createWarning(
+      "invalid-rounding-increment",
+      "Saved rounding increment was invalid and was ignored.",
+      "warning",
+      [`analysisSettings.${sourcePath}.roundingIncrement`]
+    ));
+  }
+
+  function addFutureSettingsTrace(analysisSettings, trace) {
+    [
+      ["inflationAssumptions", "Saved inflation assumptions are present but are not applied to current method results."],
+      ["growthAndReturnAssumptions", "Saved growth and return assumptions are present but are not applied to current method results."],
+      ["assetTreatmentAssumptions", "Saved asset treatment assumptions are present but are not applied to current offset assets."]
+    ].forEach(function (entry) {
+      const key = entry[0];
+      if (isPlainObject(analysisSettings[key])) {
+        trace.push(createTrace(
+          `${key}-not-applied`,
+          entry[1],
+          [`analysisSettings.${key}`]
+        ));
+      }
+    });
+  }
+
+  function createDimeSettings(input) {
+    const options = isPlainObject(input) ? input : {};
+    const analysisSettings = isPlainObject(options.analysisSettings) ? options.analysisSettings : {};
+    const methodDefaults = isPlainObject(analysisSettings.methodDefaults) ? analysisSettings.methodDefaults : {};
+    const defaults = getDefaultSettings(options.defaults);
+    const warnings = Array.isArray(options.warnings) ? options.warnings : [];
+    const trace = Array.isArray(options.trace) ? options.trace : [];
+    const settings = { ...defaults.dime };
+
+    addPositiveSetting({
+      settings,
+      source: methodDefaults,
+      sourceKey: "dimeIncomeYears",
+      targetKey: "dimeIncomeYears",
+      fallback: defaults.dime.dimeIncomeYears,
+      warningCode: "invalid-dime-income-years",
+      warningMessage: "Saved DIME income years was invalid and defaulted to 10.",
+      warnings,
+      trace,
+      sourcePath: "analysisSettings.methodDefaults.dimeIncomeYears"
+    });
+
+    addRoundingIfPresent(settings, analysisSettings, warnings, trace, "methodDefaults");
+    addRoundingIfPresent(settings, analysisSettings, warnings, trace, "recommendationGuardrails");
+
+    return settings;
+  }
+
+  function createNeedsAnalysisSettings(input) {
+    const options = isPlainObject(input) ? input : {};
+    const analysisSettings = isPlainObject(options.analysisSettings) ? options.analysisSettings : {};
+    const methodDefaults = isPlainObject(analysisSettings.methodDefaults) ? analysisSettings.methodDefaults : {};
+    const defaults = getDefaultSettings(options.defaults);
+    const warnings = Array.isArray(options.warnings) ? options.warnings : [];
+    const trace = Array.isArray(options.trace) ? options.trace : [];
+    const settings = { ...defaults.needsAnalysis };
+
+    if (hasOwn(methodDefaults, "needsSupportDurationYears")) {
+      addPositiveSetting({
+        settings,
+        source: methodDefaults,
+        sourceKey: "needsSupportDurationYears",
+        targetKey: "needsSupportDurationYears",
+        fallback: defaults.needsAnalysis.needsSupportDurationYears,
+        warningCode: "invalid-needs-support-duration-years",
+        warningMessage: "Saved Needs support duration was invalid and defaulted to 10.",
+        warnings,
+        trace,
+        sourcePath: "analysisSettings.methodDefaults.needsSupportDurationYears"
+      });
+    } else if (hasOwn(methodDefaults, "needsSupportYears")) {
+      warnings.push(createWarning(
+        "legacy-needs-support-years-key-used",
+        "Saved Analysis Setup used needsSupportYears; mapped it to needsSupportDurationYears for the method layer.",
+        "info",
+        ["analysisSettings.methodDefaults.needsSupportYears"]
+      ));
+      addPositiveSetting({
+        settings,
+        source: methodDefaults,
+        sourceKey: "needsSupportYears",
+        targetKey: "needsSupportDurationYears",
+        fallback: defaults.needsAnalysis.needsSupportDurationYears,
+        warningCode: "invalid-needs-support-duration-years",
+        warningMessage: "Saved Needs support years was invalid and defaulted to 10.",
+        warnings,
+        trace,
+        sourcePath: "analysisSettings.methodDefaults.needsSupportYears"
+      });
+    }
+
+    addRoundingIfPresent(settings, analysisSettings, warnings, trace, "methodDefaults");
+    addRoundingIfPresent(settings, analysisSettings, warnings, trace, "recommendationGuardrails");
+
+    return settings;
+  }
+
+  function createHumanLifeValueSettings(input) {
+    const options = isPlainObject(input) ? input : {};
+    const analysisSettings = isPlainObject(options.analysisSettings) ? options.analysisSettings : {};
+    const methodDefaults = isPlainObject(analysisSettings.methodDefaults) ? analysisSettings.methodDefaults : {};
+    const defaults = getDefaultSettings(options.defaults);
+    const warnings = Array.isArray(options.warnings) ? options.warnings : [];
+    const trace = Array.isArray(options.trace) ? options.trace : [];
+    const settings = { ...defaults.humanLifeValue };
+
+    addNonNegativeSetting({
+      settings,
+      source: methodDefaults,
+      sourceKey: "hlvProjectionYears",
+      targetKey: "hlvProjectionYears",
+      warningCode: "invalid-hlv-projection-years",
+      warningMessage: "Saved Human Life Value projection years was invalid and was ignored.",
+      warnings,
+      trace,
+      sourcePath: "analysisSettings.methodDefaults.hlvProjectionYears"
+    });
+
+    addRoundingIfPresent(settings, analysisSettings, warnings, trace, "methodDefaults");
+    addRoundingIfPresent(settings, analysisSettings, warnings, trace, "recommendationGuardrails");
+
+    return settings;
+  }
+
+  function createAnalysisMethodSettings(input) {
+    const options = isPlainObject(input) ? input : {};
+    const analysisSettings = isPlainObject(options.analysisSettings) ? options.analysisSettings : {};
+    const warnings = [];
+    const trace = [];
+    const sharedOptions = {
+      analysisSettings,
+      lensModel: options.lensModel,
+      profileRecord: options.profileRecord,
+      defaults: options.defaults,
+      warnings,
+      trace
+    };
+
+    const dimeSettings = createDimeSettings(sharedOptions);
+    const needsAnalysisSettings = createNeedsAnalysisSettings(sharedOptions);
+    const humanLifeValueSettings = createHumanLifeValueSettings(sharedOptions);
+
+    addFutureSettingsTrace(analysisSettings, trace);
+
+    return {
+      dimeSettings,
+      needsAnalysisSettings,
+      humanLifeValueSettings,
+      warnings,
+      trace
+    };
+  }
+
+  lensAnalysis.analysisSettingsAdapter = {
+    DEFAULT_DIME_SETTINGS,
+    DEFAULT_NEEDS_ANALYSIS_SETTINGS,
+    DEFAULT_HUMAN_LIFE_VALUE_SETTINGS,
+    createAnalysisMethodSettings,
+    createDimeSettings,
+    createNeedsAnalysisSettings,
+    createHumanLifeValueSettings
+  };
+})(window);

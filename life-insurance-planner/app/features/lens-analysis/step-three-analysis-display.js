@@ -17,6 +17,26 @@
     includeOffsetAssets: false
   });
 
+  function createFallbackAnalysisMethodSettings() {
+    return {
+      dimeSettings: DIME_SETTINGS,
+      needsAnalysisSettings: {
+        ...NEEDS_SETTINGS,
+        includeSurvivorIncomeOffset: true
+      },
+      humanLifeValueSettings: HUMAN_LIFE_VALUE_SETTINGS,
+      warnings: [
+        {
+          code: "analysis-settings-adapter-unavailable",
+          message: "Analysis settings adapter was unavailable; Step 3 used current default method settings.",
+          severity: "info",
+          sourcePaths: ["LensApp.lensAnalysis.analysisSettingsAdapter"]
+        }
+      ],
+      trace: []
+    };
+  }
+
   function escapeHtml(value) {
     return String(value == null ? "" : value)
       .replace(/&/g, "&amp;")
@@ -370,6 +390,7 @@
 
     const lensAnalysis = window.LensApp?.lensAnalysis || {};
     const buildLensModelFromSavedProtectionModeling = lensAnalysis.buildLensModelFromSavedProtectionModeling;
+    const createAnalysisMethodSettings = lensAnalysis.analysisSettingsAdapter?.createAnalysisMethodSettings;
     const runDimeAnalysis = lensAnalysis.analysisMethods?.runDimeAnalysis;
     const runNeedsAnalysis = lensAnalysis.analysisMethods?.runNeedsAnalysis;
     const runHumanLifeValueAnalysis = lensAnalysis.analysisMethods?.runHumanLifeValueAnalysis;
@@ -412,27 +433,39 @@
         return;
       }
 
+      const methodSettings = typeof createAnalysisMethodSettings === "function"
+        ? createAnalysisMethodSettings({
+            analysisSettings: profileRecord.analysisSettings,
+            lensModel: builderResult.lensModel,
+            profileRecord
+          })
+        : createFallbackAnalysisMethodSettings();
+      const sharedWarnings = [
+        ...(Array.isArray(builderResult.warnings) ? builderResult.warnings : []),
+        ...(Array.isArray(methodSettings.warnings) ? methodSettings.warnings : [])
+      ];
+
       if (dimeHost) {
         renderDimeResult(
           dimeHost,
-          runDimeAnalysis(builderResult.lensModel, DIME_SETTINGS),
-          builderResult.warnings
+          runDimeAnalysis(builderResult.lensModel, methodSettings.dimeSettings || DIME_SETTINGS),
+          sharedWarnings
         );
       }
 
       if (needsHost) {
         renderNeedsResult(
           needsHost,
-          runNeedsAnalysis(builderResult.lensModel, NEEDS_SETTINGS),
-          builderResult.warnings
+          runNeedsAnalysis(builderResult.lensModel, methodSettings.needsAnalysisSettings || NEEDS_SETTINGS),
+          sharedWarnings
         );
       }
 
       if (humanLifeValueHost) {
         renderHumanLifeValueResult(
           humanLifeValueHost,
-          runHumanLifeValueAnalysis(builderResult.lensModel, HUMAN_LIFE_VALUE_SETTINGS),
-          builderResult.warnings
+          runHumanLifeValueAnalysis(builderResult.lensModel, methodSettings.humanLifeValueSettings || HUMAN_LIFE_VALUE_SETTINGS),
+          sharedWarnings
         );
       }
     } catch (error) {

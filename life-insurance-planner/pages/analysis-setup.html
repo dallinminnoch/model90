@@ -100,7 +100,6 @@
               <div>
                 <div class="analysis-setup-panel-kicker">Planning Settings</div>
                 <h2 id="analysis-setup-panel-title">Assumption Controls</h2>
-                <p>Planning defaults, offset treatment, and recommendation guardrails are managed here.</p>
                 <p class="analysis-setup-linked-state" data-analysis-setup-linked-state>Resolving linked profile...</p>
               </div>
               <span class="analysis-setup-template-badge" data-analysis-setup-badge>Linked profile required</span>
@@ -108,7 +107,8 @@
 
             <div class="analysis-setup-panel-body">
               <div class="analysis-setup-panel-grid">
-                <section class="analysis-setup-control-group analysis-setup-control-group--inflation" aria-labelledby="analysis-setup-inflation">
+                <div class="analysis-setup-left-stack">
+                  <section class="analysis-setup-control-group analysis-setup-control-group--inflation" aria-labelledby="analysis-setup-inflation">
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-inflation">Inflation Assumptions</h3>
                   </div>
@@ -177,52 +177,80 @@
                   </div>
 
                   <p class="analysis-setup-validation-message" data-analysis-setup-validation role="alert" hidden></p>
-                </section>
+                  </section>
 
-                <section class="analysis-setup-control-group" aria-labelledby="analysis-setup-method-defaults">
-                  <h3 id="analysis-setup-method-defaults">Method Defaults</h3>
-                  <dl class="analysis-setup-setting-list">
-                    <div>
-                      <dt>DIME Income Years</dt>
-                      <dd>10</dd>
+                  <section class="analysis-setup-control-group" aria-labelledby="analysis-setup-method-defaults">
+                    <div class="analysis-setup-method-header">
+                      <h3 id="analysis-setup-method-defaults">Method Defaults</h3>
+                      <button class="analysis-setup-reset-button" type="button" data-analysis-method-reset>Reset to Default</button>
                     </div>
-                    <div>
-                      <dt>Needs Support Years</dt>
-                      <dd>10</dd>
+                    <div class="analysis-setup-method-list">
+                      <label class="analysis-setup-method-row" for="analysis-setup-dime-income-years">
+                        <span>DIME Income Years</span>
+                        <input id="analysis-setup-dime-income-years" class="analysis-setup-method-input" type="text" inputmode="numeric" autocomplete="off" data-analysis-method-field="dimeIncomeYears">
+                      </label>
+                      <label class="analysis-setup-method-row" for="analysis-setup-needs-support-years">
+                        <span>Needs Support Years</span>
+                        <input id="analysis-setup-needs-support-years" class="analysis-setup-method-input" type="text" inputmode="numeric" autocomplete="off" data-analysis-method-field="needsSupportYears">
+                      </label>
+                      <label class="analysis-setup-method-row" for="analysis-setup-hlv-projection-years">
+                        <span>HLV Projection Years</span>
+                        <input id="analysis-setup-hlv-projection-years" class="analysis-setup-method-input" type="text" inputmode="numeric" autocomplete="off" data-analysis-method-field="hlvProjectionYears">
+                      </label>
                     </div>
-                    <div>
-                      <dt>HLV Projection Years</dt>
-                      <dd>Retirement horizon</dd>
-                    </div>
-                  </dl>
-                </section>
+                  </section>
 
-                <section class="analysis-setup-control-group" aria-labelledby="analysis-setup-offset-settings">
-                  <h3 id="analysis-setup-offset-settings">Offset Settings</h3>
-                  <dl class="analysis-setup-setting-list">
-                    <div>
-                      <dt>Existing Coverage</dt>
-                      <dd>Included</dd>
+                  <section class="analysis-setup-control-group analysis-setup-control-group--growth" aria-labelledby="analysis-setup-growth-return">
+                    <div class="analysis-setup-control-heading">
+                      <h3 id="analysis-setup-growth-return">Growth &amp; Return Assumptions</h3>
+                      <p>Saved for future projections. These assumptions are not applied to current results yet.</p>
                     </div>
-                    <div>
-                      <dt>Available Assets</dt>
-                      <dd>Method-specific</dd>
+
+                    <div class="analysis-setup-rate-grid">
+                      <div class="analysis-setup-rate-control">
+                        <label class="analysis-setup-rate-label" id="analysis-setup-primary-income-growth-label" for="analysis-setup-primary-income-growth-value">Primary income growth</label>
+                        <input class="analysis-setup-rate-slider" type="range" min="0" max="12" step="0.25" aria-labelledby="analysis-setup-primary-income-growth-label" data-analysis-growth-slider="primaryIncomeGrowthRatePercent">
+                        <span class="analysis-setup-percent-input">
+                          <input id="analysis-setup-primary-income-growth-value" type="text" inputmode="decimal" aria-labelledby="analysis-setup-primary-income-growth-label" data-analysis-growth-field="primaryIncomeGrowthRatePercent">
+                          <span aria-hidden="true">%</span>
+                        </span>
+                      </div>
+
+                      <div class="analysis-setup-rate-control">
+                        <label class="analysis-setup-rate-label" id="analysis-setup-partner-income-growth-label" for="analysis-setup-partner-income-growth-value">Partner / survivor income growth</label>
+                        <input class="analysis-setup-rate-slider" type="range" min="0" max="12" step="0.25" aria-labelledby="analysis-setup-partner-income-growth-label" data-analysis-growth-slider="partnerIncomeGrowthRatePercent">
+                        <span class="analysis-setup-percent-input">
+                          <input id="analysis-setup-partner-income-growth-value" type="text" inputmode="decimal" aria-labelledby="analysis-setup-partner-income-growth-label" data-analysis-growth-field="partnerIncomeGrowthRatePercent">
+                          <span aria-hidden="true">%</span>
+                        </span>
+                      </div>
+
+                      <div class="analysis-setup-rate-control">
+                        <label class="analysis-setup-rate-label" id="analysis-setup-taxable-investment-return-label" for="analysis-setup-taxable-investment-return-value">Taxable investment return</label>
+                        <input class="analysis-setup-rate-slider" type="range" min="0" max="12" step="0.25" aria-labelledby="analysis-setup-taxable-investment-return-label" data-analysis-growth-slider="taxableInvestmentReturnRatePercent">
+                        <span class="analysis-setup-percent-input">
+                          <input id="analysis-setup-taxable-investment-return-value" type="text" inputmode="decimal" aria-labelledby="analysis-setup-taxable-investment-return-label" data-analysis-growth-field="taxableInvestmentReturnRatePercent">
+                          <span aria-hidden="true">%</span>
+                        </span>
+                      </div>
+
+                      <div class="analysis-setup-rate-control">
+                        <label class="analysis-setup-rate-label" id="analysis-setup-retirement-asset-return-label" for="analysis-setup-retirement-asset-return-value">Retirement asset return</label>
+                        <input class="analysis-setup-rate-slider" type="range" min="0" max="12" step="0.25" aria-labelledby="analysis-setup-retirement-asset-return-label" data-analysis-growth-slider="retirementAssetReturnRatePercent">
+                        <span class="analysis-setup-percent-input">
+                          <input id="analysis-setup-retirement-asset-return-value" type="text" inputmode="decimal" aria-labelledby="analysis-setup-retirement-asset-return-label" data-analysis-growth-field="retirementAssetReturnRatePercent">
+                          <span aria-hidden="true">%</span>
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <dt>Survivor Income</dt>
-                      <dd>Applied to Needs</dd>
-                    </div>
-                    <div>
-                      <dt>Discretionary Support</dt>
-                      <dd>Excluded</dd>
-                    </div>
-                  </dl>
-                </section>
+                  </section>
+                </div>
 
                 <section class="analysis-setup-control-group analysis-setup-control-group--wide analysis-setup-control-group--assets" aria-labelledby="analysis-setup-asset-treatment">
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-asset-treatment">Asset Treatment</h3>
                     <p>Set how each asset should be counted later in advanced offset modeling. Asset values are still collected in Protection Modeling Inputs.</p>
+                    <p class="analysis-setup-asset-note">Tax drag estimates taxes if the asset is used. Haircut estimates liquidity, timing, marketability, and planning risk before counting the asset as available.</p>
                     <p class="analysis-setup-asset-note">Step-up eligible assets may have little capital-gains tax drag at death. Retirement and annuity assets may be taxable when distributed.</p>
                   </div>
 
@@ -242,6 +270,16 @@
                     </span>
                   </label>
 
+                  <div class="analysis-setup-asset-defaults" aria-label="Asset treatment default settings">
+                    <span class="analysis-setup-asset-defaults-label">Default Settings:</span>
+                    <div class="analysis-setup-asset-default-buttons" role="group" aria-label="Asset treatment default profile">
+                      <button class="analysis-setup-asset-default-button" type="button" data-analysis-asset-default-profile="conservative" aria-pressed="false">Conservative</button>
+                      <button class="analysis-setup-asset-default-button" type="button" data-analysis-asset-default-profile="balanced" aria-pressed="true">Balanced</button>
+                      <button class="analysis-setup-asset-default-button" type="button" data-analysis-asset-default-profile="aggressive" aria-pressed="false">Aggressive</button>
+                      <button class="analysis-setup-asset-default-button" type="button" data-analysis-asset-default-profile="custom" aria-pressed="false">Custom</button>
+                    </div>
+                  </div>
+
                   <div class="analysis-setup-asset-table" role="table" aria-label="Asset treatment assumptions" data-analysis-asset-treatment-table>
                     <div class="analysis-setup-asset-row analysis-setup-asset-row--head" role="row">
                       <span role="columnheader">Asset</span>
@@ -255,49 +293,6 @@
                   </div>
                 </section>
 
-                <section class="analysis-setup-control-group" aria-labelledby="analysis-setup-tax">
-                  <h3 id="analysis-setup-tax">Tax &amp; Liquidation Assumptions</h3>
-                  <dl class="analysis-setup-setting-list">
-                    <div>
-                      <dt>Real Estate Liquidation Tax Rate</dt>
-                      <dd>Template</dd>
-                    </div>
-                    <div>
-                      <dt>Brokerage Tax Drag</dt>
-                      <dd>Template</dd>
-                    </div>
-                    <div>
-                      <dt>Retirement Distribution Tax Rate</dt>
-                      <dd>Template</dd>
-                    </div>
-                    <div>
-                      <dt>Business Sale Haircut</dt>
-                      <dd>Template</dd>
-                    </div>
-                  </dl>
-                </section>
-
-                <section class="analysis-setup-control-group" aria-labelledby="analysis-setup-guardrails">
-                  <h3 id="analysis-setup-guardrails">Recommendation Guardrails</h3>
-                  <dl class="analysis-setup-setting-list">
-                    <div>
-                      <dt>Recommendation Target</dt>
-                      <dd>Template</dd>
-                    </div>
-                    <div>
-                      <dt>Risk Profile</dt>
-                      <dd>Template</dd>
-                    </div>
-                    <div>
-                      <dt>Confidence Threshold</dt>
-                      <dd>Template</dd>
-                    </div>
-                    <div>
-                      <dt>Rounding</dt>
-                      <dd>Template</dd>
-                    </div>
-                  </dl>
-                </section>
               </div>
             </div>
 

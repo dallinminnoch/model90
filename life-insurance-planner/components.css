@@ -10967,7 +10967,8 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   background: rgba(255, 255, 255, 0.06);
 }
 
-.analysis-setup-control-group--inflation {
+.analysis-setup-control-group--inflation,
+.analysis-setup-control-group--growth {
   gap: 0.42rem;
   padding: 0.72rem 0.74rem 0.68rem;
   border-color: rgba(157, 140, 248, 0.22);
@@ -10990,11 +10991,13 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   min-width: 0;
 }
 
-.analysis-setup-control-group--inflation .analysis-setup-control-heading {
+.analysis-setup-control-group--inflation .analysis-setup-control-heading,
+.analysis-setup-control-group--growth .analysis-setup-control-heading {
   padding-bottom: 0.08rem;
 }
 
-.analysis-setup-control-group--inflation .analysis-setup-control-heading h3 {
+.analysis-setup-control-group--inflation .analysis-setup-control-heading h3,
+.analysis-setup-control-group--growth .analysis-setup-control-heading h3 {
   font-size: 0.9rem;
   font-weight: 820;
   letter-spacing: 0;
@@ -11007,10 +11010,15 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   line-height: 1.35;
 }
 
-.analysis-setup-control-group--inflation .analysis-setup-control-heading p {
+.analysis-setup-control-group--inflation .analysis-setup-control-heading p,
+.analysis-setup-control-group--growth .analysis-setup-control-heading p {
   color: #aebdd0;
   font-size: 0.71rem;
   line-height: 1.32;
+}
+
+.analysis-setup-control-group--growth .analysis-setup-rate-control > label {
+  font-size: 0.7rem;
 }
 
 .analysis-setup-toggle-control {
@@ -11233,6 +11241,67 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   padding: 0.34rem 0.44rem;
 }
 
+.analysis-setup-asset-defaults {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-width: 0;
+  min-height: 2rem;
+  padding: 0.34rem 0.44rem;
+  border: 1px solid rgba(185, 198, 216, 0.14);
+  border-radius: 0.38rem;
+  background: rgba(255, 255, 255, 0.065);
+}
+
+.analysis-setup-asset-defaults-label {
+  flex: 0 0 auto;
+  color: #dce5f1;
+  font-size: 0.72rem;
+  font-weight: 820;
+  line-height: 1;
+}
+
+.analysis-setup-asset-default-buttons {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.24rem;
+  min-width: 0;
+}
+
+.analysis-setup-asset-default-button {
+  min-height: 1.35rem;
+  padding: 0.18rem 0.48rem;
+  border: 1px solid rgba(185, 198, 216, 0.16);
+  border-radius: 999px;
+  background: rgba(12, 16, 37, 0.28);
+  color: #c7d4e5;
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 820;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.analysis-setup-asset-default-button[data-active="true"],
+.analysis-setup-asset-default-button[aria-pressed="true"] {
+  border-color: rgba(157, 140, 248, 0.48);
+  background: rgba(139, 124, 246, 0.25);
+  color: #ffffff;
+}
+
+.analysis-setup-asset-default-button:focus {
+  border-color: rgba(139, 124, 246, 0.78);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(139, 124, 246, 0.18);
+}
+
+.analysis-setup-asset-default-button:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
 .analysis-setup-asset-table {
   display: grid;
   gap: 0.32rem;
@@ -11362,6 +11431,20 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   text-align: center;
 }
 
+.analysis-setup-asset-percent-input {
+  width: 2.95rem;
+  min-height: 1.32rem;
+  padding: 0.12rem 0.16rem;
+  border: 1px solid rgba(185, 198, 216, 0.13);
+  border-radius: 0.28rem;
+  background: rgba(12, 16, 37, 0.32);
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-align: center;
+}
+
 .analysis-setup-asset-label-input,
 .analysis-setup-asset-value-input {
   width: 100%;
@@ -11376,6 +11459,14 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
 
 .analysis-setup-asset-row--custom {
   min-height: 3.9rem;
+}
+
+.analysis-setup-asset-row--disabled {
+  opacity: 0.52;
+}
+
+.analysis-setup-asset-row--disabled .analysis-setup-treatment-preview {
+  color: #9aa8ba;
 }
 
 .analysis-setup-asset-select:focus,
@@ -11487,6 +11578,99 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   font-weight: 760;
   line-height: 1.15;
   text-align: right;
+}
+
+.analysis-setup-method-list {
+  display: grid;
+  gap: 0.36rem;
+  margin: 0;
+}
+
+.analysis-setup-method-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.analysis-setup-reset-button {
+  min-height: 1.36rem;
+  padding: 0.18rem 0.46rem;
+  border: 1px solid rgba(185, 198, 216, 0.16);
+  border-radius: 999px;
+  background: rgba(12, 16, 37, 0.28);
+  color: #c7d4e5;
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 820;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.analysis-setup-reset-button:hover,
+.analysis-setup-reset-button:focus {
+  border-color: rgba(157, 140, 248, 0.48);
+  background: rgba(139, 124, 246, 0.25);
+  color: #ffffff;
+  outline: none;
+}
+
+.analysis-setup-reset-button:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.analysis-setup-method-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  min-width: 0;
+  min-height: 1.82rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(185, 198, 216, 0.14);
+  border-radius: 0.38rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.analysis-setup-method-row span {
+  min-width: 0;
+  color: #aebdd0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.analysis-setup-method-input {
+  width: 2.95rem;
+  min-height: 1.32rem;
+  padding: 0.12rem 0.16rem;
+  border: 1px solid rgba(185, 198, 216, 0.13);
+  border-radius: 0.28rem;
+  background: rgba(12, 16, 37, 0.32);
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.analysis-setup-method-input--wide {
+  width: min(8.7rem, 54%);
+  text-align: right;
+}
+
+.analysis-setup-method-input:focus {
+  border-color: rgba(139, 124, 246, 0.78);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(139, 124, 246, 0.18);
+}
+
+.analysis-setup-method-input:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
 }
 
 .analysis-setup-static-table {
