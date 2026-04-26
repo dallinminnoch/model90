@@ -357,6 +357,64 @@
     })
   });
 
+  const COVERAGE_TREATMENT_PROFILE_LABELS = Object.freeze({
+    conservative: "Conservative",
+    balanced: "Balanced",
+    aggressive: "Aggressive",
+    custom: "Custom"
+  });
+  const COVERAGE_TREATMENT_PROFILE_KEYS = Object.freeze(Object.keys(COVERAGE_TREATMENT_PROFILE_LABELS));
+
+  const DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS = Object.freeze({
+    enabled: false,
+    globalTreatmentProfile: "balanced",
+    includeExistingCoverage: true,
+    groupCoverageTreatment: Object.freeze({
+      include: true,
+      reliabilityDiscountPercent: 25,
+      portabilityRequired: false
+    }),
+    individualTermTreatment: Object.freeze({
+      include: true,
+      reliabilityDiscountPercent: 0,
+      excludeIfExpiresWithinYears: null
+    }),
+    permanentCoverageTreatment: Object.freeze({
+      include: true,
+      reliabilityDiscountPercent: 0
+    }),
+    pendingCoverageTreatment: Object.freeze({
+      include: false,
+      reliabilityDiscountPercent: 100
+    }),
+    unknownCoverageTreatment: Object.freeze({
+      include: true,
+      reliabilityDiscountPercent: 0
+    }),
+    source: "analysis-setup"
+  });
+
+  const EXISTING_COVERAGE_PROFILE_DEFAULTS = Object.freeze({
+    conservative: Object.freeze({
+      includeExistingCoverage: true,
+      groupCoverageTreatment: Object.freeze({ include: true, reliabilityDiscountPercent: 50, portabilityRequired: false }),
+      pendingCoverageTreatment: Object.freeze({ include: false, reliabilityDiscountPercent: 100 }),
+      unknownCoverageTreatment: Object.freeze({ include: true, reliabilityDiscountPercent: 25 })
+    }),
+    balanced: Object.freeze({
+      includeExistingCoverage: true,
+      groupCoverageTreatment: DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.groupCoverageTreatment,
+      pendingCoverageTreatment: DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.pendingCoverageTreatment,
+      unknownCoverageTreatment: DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.unknownCoverageTreatment
+    }),
+    aggressive: Object.freeze({
+      includeExistingCoverage: true,
+      groupCoverageTreatment: Object.freeze({ include: true, reliabilityDiscountPercent: 0, portabilityRequired: false }),
+      pendingCoverageTreatment: Object.freeze({ include: true, reliabilityDiscountPercent: 50 }),
+      unknownCoverageTreatment: Object.freeze({ include: true, reliabilityDiscountPercent: 0 })
+    })
+  });
+
   const MIN_RATE = 0;
   const MAX_RATE = 10;
   const MIN_GROWTH_RATE = 0;
@@ -367,6 +425,10 @@
   const MAX_HAIRCUT = 100;
   const MIN_ASSET_TREATMENT_PERCENT = 0;
   const MAX_ASSET_TREATMENT_PERCENT = 100;
+  const MIN_COVERAGE_TREATMENT_PERCENT = 0;
+  const MAX_COVERAGE_TREATMENT_PERCENT = 100;
+  const MIN_COVERAGE_TERM_GUARDRAIL_YEARS = 0;
+  const MAX_COVERAGE_TERM_GUARDRAIL_YEARS = 80;
 
   function isPlainObject(value) {
     return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -506,6 +568,13 @@
       : fallback;
   }
 
+  function normalizeCoverageTreatmentProfile(value, fallback) {
+    const normalizedValue = String(value || "").trim().toLowerCase();
+    return COVERAGE_TREATMENT_PROFILE_KEYS.includes(normalizedValue)
+      ? normalizedValue
+      : fallback;
+  }
+
   function normalizeAssetTreatmentPercent(value, fallback) {
     const number = Number(value);
     if (!Number.isFinite(number)) {
@@ -515,6 +584,34 @@
     return Math.min(
       MAX_ASSET_TREATMENT_PERCENT,
       Math.max(MIN_ASSET_TREATMENT_PERCENT, number)
+    );
+  }
+
+  function normalizeCoverageTreatmentPercent(value, fallback) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return fallback;
+    }
+
+    return Math.min(
+      MAX_COVERAGE_TREATMENT_PERCENT,
+      Math.max(MIN_COVERAGE_TREATMENT_PERCENT, number)
+    );
+  }
+
+  function normalizeCoverageTermGuardrailYears(value, fallback) {
+    if (value === null || value === undefined || String(value).trim() === "") {
+      return fallback == null ? null : fallback;
+    }
+
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return fallback == null ? null : fallback;
+    }
+
+    return Math.min(
+      MAX_COVERAGE_TERM_GUARDRAIL_YEARS,
+      Math.max(MIN_COVERAGE_TERM_GUARDRAIL_YEARS, Math.round(number))
     );
   }
 
@@ -768,6 +865,97 @@
         )
       }
     ];
+
+    if (saved.lastUpdatedAt) {
+      nextAssumptions.lastUpdatedAt = String(saved.lastUpdatedAt);
+    }
+
+    return nextAssumptions;
+  }
+
+  function getExistingCoverageAssumptions(record) {
+    const saved = isPlainObject(record?.analysisSettings?.existingCoverageAssumptions)
+      ? record.analysisSettings.existingCoverageAssumptions
+      : {};
+    const globalTreatmentProfile = normalizeCoverageTreatmentProfile(
+      saved.globalTreatmentProfile,
+      DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.globalTreatmentProfile
+    );
+    const profileDefaults = EXISTING_COVERAGE_PROFILE_DEFAULTS[globalTreatmentProfile]
+      || EXISTING_COVERAGE_PROFILE_DEFAULTS[DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.globalTreatmentProfile];
+    const defaultGroupTreatment = profileDefaults.groupCoverageTreatment
+      || DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.groupCoverageTreatment;
+    const defaultPendingTreatment = profileDefaults.pendingCoverageTreatment
+      || DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.pendingCoverageTreatment;
+    const defaultUnknownTreatment = profileDefaults.unknownCoverageTreatment
+      || DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.unknownCoverageTreatment;
+    const savedGroupTreatment = isPlainObject(saved.groupCoverageTreatment) ? saved.groupCoverageTreatment : {};
+    const savedIndividualTermTreatment = isPlainObject(saved.individualTermTreatment) ? saved.individualTermTreatment : {};
+    const savedPermanentTreatment = isPlainObject(saved.permanentCoverageTreatment) ? saved.permanentCoverageTreatment : {};
+    const savedPendingTreatment = isPlainObject(saved.pendingCoverageTreatment) ? saved.pendingCoverageTreatment : {};
+    const savedUnknownTreatment = isPlainObject(saved.unknownCoverageTreatment) ? saved.unknownCoverageTreatment : {};
+    const nextAssumptions = {
+      enabled: typeof saved.enabled === "boolean"
+        ? saved.enabled
+        : DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.enabled,
+      globalTreatmentProfile,
+      includeExistingCoverage: typeof saved.includeExistingCoverage === "boolean"
+        ? saved.includeExistingCoverage
+        : Boolean(profileDefaults.includeExistingCoverage),
+      groupCoverageTreatment: {
+        include: typeof savedGroupTreatment.include === "boolean"
+          ? savedGroupTreatment.include
+          : Boolean(defaultGroupTreatment.include),
+        reliabilityDiscountPercent: normalizeCoverageTreatmentPercent(
+          savedGroupTreatment.reliabilityDiscountPercent,
+          defaultGroupTreatment.reliabilityDiscountPercent
+        ),
+        portabilityRequired: typeof savedGroupTreatment.portabilityRequired === "boolean"
+          ? savedGroupTreatment.portabilityRequired
+          : Boolean(defaultGroupTreatment.portabilityRequired)
+      },
+      individualTermTreatment: {
+        include: typeof savedIndividualTermTreatment.include === "boolean"
+          ? savedIndividualTermTreatment.include
+          : DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.individualTermTreatment.include,
+        reliabilityDiscountPercent: normalizeCoverageTreatmentPercent(
+          savedIndividualTermTreatment.reliabilityDiscountPercent,
+          DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.individualTermTreatment.reliabilityDiscountPercent
+        ),
+        excludeIfExpiresWithinYears: normalizeCoverageTermGuardrailYears(
+          savedIndividualTermTreatment.excludeIfExpiresWithinYears,
+          DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.individualTermTreatment.excludeIfExpiresWithinYears
+        )
+      },
+      permanentCoverageTreatment: {
+        include: typeof savedPermanentTreatment.include === "boolean"
+          ? savedPermanentTreatment.include
+          : DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.permanentCoverageTreatment.include,
+        reliabilityDiscountPercent: normalizeCoverageTreatmentPercent(
+          savedPermanentTreatment.reliabilityDiscountPercent,
+          DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.permanentCoverageTreatment.reliabilityDiscountPercent
+        )
+      },
+      pendingCoverageTreatment: {
+        include: typeof savedPendingTreatment.include === "boolean"
+          ? savedPendingTreatment.include
+          : Boolean(defaultPendingTreatment.include),
+        reliabilityDiscountPercent: normalizeCoverageTreatmentPercent(
+          savedPendingTreatment.reliabilityDiscountPercent,
+          defaultPendingTreatment.reliabilityDiscountPercent
+        )
+      },
+      unknownCoverageTreatment: {
+        include: typeof savedUnknownTreatment.include === "boolean"
+          ? savedUnknownTreatment.include
+          : Boolean(defaultUnknownTreatment.include),
+        reliabilityDiscountPercent: normalizeCoverageTreatmentPercent(
+          savedUnknownTreatment.reliabilityDiscountPercent,
+          defaultUnknownTreatment.reliabilityDiscountPercent
+        )
+      },
+      source: String(saved.source || DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.source)
+    };
 
     if (saved.lastUpdatedAt) {
       nextAssumptions.lastUpdatedAt = String(saved.lastUpdatedAt);
@@ -1062,6 +1250,23 @@
     return fields;
   }
 
+  function getExistingCoverageFieldMap() {
+    const fields = {
+      defaultProfile: DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.globalTreatmentProfile,
+      defaultProfileButtons: Array.from(document.querySelectorAll("[data-analysis-coverage-profile]")),
+      values: {},
+      rawPreview: document.querySelector("[data-analysis-coverage-raw-preview]"),
+      adjustedPreview: document.querySelector("[data-analysis-coverage-adjusted-preview]"),
+      currentAssumptions: null
+    };
+
+    Array.from(document.querySelectorAll("[data-analysis-coverage-field]")).forEach(function (field) {
+      fields.values[field.getAttribute("data-analysis-coverage-field")] = field;
+    });
+
+    return fields;
+  }
+
   function hasAssetLiquidityFields(fields) {
     return Boolean(fields.enabled) || ASSET_LIQUIDITY_ITEMS.some(function (item) {
       return Boolean(
@@ -1084,6 +1289,15 @@
     });
     const hasCustomFields = Object.keys(fields.custom?.label || {}).length > 0;
     return Boolean(fields.enabled) || hasStandardFields || hasCustomFields;
+  }
+
+  function hasExistingCoverageFields(fields) {
+    return Boolean(
+      fields.rawPreview
+      || fields.adjustedPreview
+      || (fields.defaultProfileButtons || []).length
+      || Object.keys(fields.values || {}).length
+    );
   }
 
   function setMessage(element, message, tone) {
@@ -1124,6 +1338,148 @@
       fields.defaultProfile,
       DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.defaultProfile
     );
+  }
+
+  function setExistingCoverageDefaultProfile(fields, profile) {
+    const normalizedProfile = normalizeCoverageTreatmentProfile(
+      profile,
+      DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.globalTreatmentProfile
+    );
+    fields.defaultProfile = normalizedProfile;
+    (fields.defaultProfileButtons || []).forEach(function (button) {
+      const buttonProfile = String(button.getAttribute("data-analysis-coverage-profile") || "").trim();
+      const isActive = buttonProfile === normalizedProfile;
+      button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      button.dataset.active = isActive ? "true" : "false";
+    });
+  }
+
+  function getExistingCoverageDefaultProfile(fields) {
+    return normalizeCoverageTreatmentProfile(
+      fields.defaultProfile,
+      DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.globalTreatmentProfile
+    );
+  }
+
+  function setExistingCoverageChecked(fields, fieldPath, value) {
+    const field = fields.values?.[fieldPath];
+    if (field) {
+      field.checked = Boolean(value);
+    }
+  }
+
+  function setExistingCoverageValue(fields, fieldPath, value) {
+    const field = fields.values?.[fieldPath];
+    if (!field) {
+      return;
+    }
+
+    field.value = value === null || value === undefined
+      ? ""
+      : formatHaircutInputValue(value);
+  }
+
+  function getExistingCoverageCurrentAssumptions(fields) {
+    return isPlainObject(fields.currentAssumptions)
+      ? fields.currentAssumptions
+      : DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS;
+  }
+
+  function readExistingCoverageDraftBoolean(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    return field ? Boolean(field.checked) : Boolean(fallback);
+  }
+
+  function readExistingCoverageDraftPercent(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    const number = Number(rawValue);
+    return rawValue && Number.isFinite(number)
+      ? normalizeCoverageTreatmentPercent(number, fallback)
+      : fallback;
+  }
+
+  function readExistingCoverageDraftTermGuardrail(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    return rawValue
+      ? normalizeCoverageTermGuardrailYears(rawValue, fallback)
+      : null;
+  }
+
+  function getExistingCoverageDraftAssumptions(fields) {
+    const current = getExistingCoverageCurrentAssumptions(fields);
+    const currentGroupTreatment = current.groupCoverageTreatment || DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.groupCoverageTreatment;
+    const currentIndividualTermTreatment = current.individualTermTreatment || DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.individualTermTreatment;
+    const currentPermanentTreatment = current.permanentCoverageTreatment || DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.permanentCoverageTreatment;
+    const currentPendingTreatment = current.pendingCoverageTreatment || DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.pendingCoverageTreatment;
+    const currentUnknownTreatment = current.unknownCoverageTreatment || DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.unknownCoverageTreatment;
+
+    return {
+      enabled: Boolean(current.enabled),
+      globalTreatmentProfile: getExistingCoverageDefaultProfile(fields),
+      includeExistingCoverage: readExistingCoverageDraftBoolean(
+        fields,
+        "includeExistingCoverage",
+        current.includeExistingCoverage
+      ),
+      groupCoverageTreatment: {
+        include: readExistingCoverageDraftBoolean(
+          fields,
+          "groupCoverageTreatment.include",
+          currentGroupTreatment.include
+        ),
+        reliabilityDiscountPercent: readExistingCoverageDraftPercent(
+          fields,
+          "groupCoverageTreatment.reliabilityDiscountPercent",
+          currentGroupTreatment.reliabilityDiscountPercent
+        ),
+        portabilityRequired: Boolean(currentGroupTreatment.portabilityRequired)
+      },
+      individualTermTreatment: {
+        include: Boolean(currentIndividualTermTreatment.include),
+        reliabilityDiscountPercent: normalizeCoverageTreatmentPercent(
+          currentIndividualTermTreatment.reliabilityDiscountPercent,
+          DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.individualTermTreatment.reliabilityDiscountPercent
+        ),
+        excludeIfExpiresWithinYears: readExistingCoverageDraftTermGuardrail(
+          fields,
+          "individualTermTreatment.excludeIfExpiresWithinYears",
+          currentIndividualTermTreatment.excludeIfExpiresWithinYears
+        )
+      },
+      permanentCoverageTreatment: {
+        include: Boolean(currentPermanentTreatment.include),
+        reliabilityDiscountPercent: normalizeCoverageTreatmentPercent(
+          currentPermanentTreatment.reliabilityDiscountPercent,
+          DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.permanentCoverageTreatment.reliabilityDiscountPercent
+        )
+      },
+      pendingCoverageTreatment: {
+        include: readExistingCoverageDraftBoolean(
+          fields,
+          "pendingCoverageTreatment.include",
+          currentPendingTreatment.include
+        ),
+        reliabilityDiscountPercent: normalizeCoverageTreatmentPercent(
+          currentPendingTreatment.reliabilityDiscountPercent,
+          DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.pendingCoverageTreatment.reliabilityDiscountPercent
+        )
+      },
+      unknownCoverageTreatment: {
+        include: readExistingCoverageDraftBoolean(
+          fields,
+          "unknownCoverageTreatment.include",
+          currentUnknownTreatment.include
+        ),
+        reliabilityDiscountPercent: readExistingCoverageDraftPercent(
+          fields,
+          "unknownCoverageTreatment.reliabilityDiscountPercent",
+          currentUnknownTreatment.reliabilityDiscountPercent
+        )
+      },
+      source: "analysis-setup"
+    };
   }
 
   function populateFields(fields, assumptions, sliders) {
@@ -1254,6 +1610,205 @@
     const taxMultiplier = 1 - (taxDragPercent / 100);
     const liquidityMultiplier = 1 - (liquidityHaircutPercent / 100);
     return Math.max(0, sourceValue * taxMultiplier * liquidityMultiplier);
+  }
+
+  function getCoveragePolicyArray(record) {
+    return Array.isArray(record?.coveragePolicies)
+      ? record.coveragePolicies.filter(function (policy) {
+          return policy && typeof policy === "object";
+        })
+      : [];
+  }
+
+  function normalizeCoveragePolicyForPreview(policy) {
+    const coverageUtils = LensApp.coverage || {};
+    return typeof coverageUtils.normalizeCoveragePolicyRecord === "function"
+      ? coverageUtils.normalizeCoveragePolicyRecord(policy)
+      : (policy && typeof policy === "object" ? policy : {});
+  }
+
+  function getCoveragePolicyAmount(policy) {
+    const coverageUtils = LensApp.coverage || {};
+    if (typeof coverageUtils.getCoverageDeathBenefitAmount === "function") {
+      return coverageUtils.getCoverageDeathBenefitAmount(policy);
+    }
+
+    return parseOptionalMoneyValue(
+      policy?.faceAmount != null && policy.faceAmount !== ""
+        ? policy.faceAmount
+        : policy?.deathBenefitAmount
+    ) || 0;
+  }
+
+  function getCoveragePolicyClassification(policy) {
+    const coverageUtils = LensApp.coverage || {};
+    if (typeof coverageUtils.classifyCoveragePolicy === "function") {
+      return coverageUtils.classifyCoveragePolicy(policy);
+    }
+
+    const coverageSource = String(policy?.coverageSource || "").trim();
+    const policyType = String(policy?.policyType || "").trim().toLowerCase();
+    if (coverageSource === "groupEmployer" || /group\s*life/.test(policyType)) {
+      return "groupEmployer";
+    }
+    if (coverageSource === "individual" || policyType) {
+      return "individual";
+    }
+    return "unclassified";
+  }
+
+  function isPendingCoveragePolicy(policy) {
+    const status = String(policy?.status || "").trim().toLowerCase();
+    const notes = String(policy?.policyNotes || "").trim().toLowerCase();
+    return /pending|proposed|proposal|application|applied|underwriting|quoted/.test(status)
+      || /pending|proposed|proposal|application|applied|underwriting|quoted/.test(notes);
+  }
+
+  function isPermanentCoveragePolicy(policy) {
+    const policyType = String(policy?.policyType || "").trim().toLowerCase();
+    const termLength = String(policy?.termLength || "").trim().toLowerCase();
+    return /whole|universal|indexed|variable|iul|vul|permanent|final\s*expense|burial/.test(policyType)
+      || /permanent/.test(termLength);
+  }
+
+  function isTermCoveragePolicy(policy) {
+    const policyType = String(policy?.policyType || "").trim().toLowerCase();
+    const termLength = String(policy?.termLength || "").trim().toLowerCase();
+    return /term/.test(policyType) || (/year|yr|\d/.test(termLength) && !isPermanentCoveragePolicy(policy));
+  }
+
+  function getPolicyTermLengthYears(policy) {
+    const termLength = String(policy?.termLength || "").trim();
+    const match = termLength.match(/\d+/);
+    if (!match) {
+      return null;
+    }
+
+    const years = Number(match[0]);
+    return Number.isFinite(years) && years >= 0 ? years : null;
+  }
+
+  function getPolicyTermRemainingYears(policy) {
+    const termYears = getPolicyTermLengthYears(policy);
+    const effectiveDate = Date.parse(String(policy?.effectiveDate || "").trim());
+    if (termYears === null || !Number.isFinite(effectiveDate)) {
+      return null;
+    }
+
+    const endDate = new Date(effectiveDate);
+    endDate.setFullYear(endDate.getFullYear() + termYears);
+    const yearsRemaining = (endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 365.25);
+    return Math.max(0, yearsRemaining);
+  }
+
+  function getExistingCoverageTreatmentForPolicy(policy, assumptions) {
+    if (isPendingCoveragePolicy(policy)) {
+      return {
+        kind: "pending",
+        treatment: assumptions.pendingCoverageTreatment
+      };
+    }
+
+    const classification = getCoveragePolicyClassification(policy);
+    if (classification === "groupEmployer") {
+      return {
+        kind: "group",
+        treatment: assumptions.groupCoverageTreatment
+      };
+    }
+
+    if (isPermanentCoveragePolicy(policy)) {
+      return {
+        kind: "permanent",
+        treatment: assumptions.permanentCoverageTreatment
+      };
+    }
+
+    if (isTermCoveragePolicy(policy)) {
+      return {
+        kind: "term",
+        treatment: assumptions.individualTermTreatment
+      };
+    }
+
+    return {
+      kind: "unknown",
+      treatment: assumptions.unknownCoverageTreatment
+    };
+  }
+
+  function getAdjustedExistingCoverageAmount(policy, assumptions) {
+    const amount = getCoveragePolicyAmount(policy);
+    if (!assumptions.includeExistingCoverage || amount <= 0) {
+      return 0;
+    }
+
+    const policyTreatment = getExistingCoverageTreatmentForPolicy(policy, assumptions);
+    const treatment = policyTreatment.treatment || DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.unknownCoverageTreatment;
+    if (!treatment.include) {
+      return 0;
+    }
+
+    if (
+      policyTreatment.kind === "term"
+      && assumptions.individualTermTreatment.excludeIfExpiresWithinYears !== null
+    ) {
+      const yearsRemaining = getPolicyTermRemainingYears(policy);
+      if (
+        yearsRemaining !== null
+        && yearsRemaining <= assumptions.individualTermTreatment.excludeIfExpiresWithinYears
+      ) {
+        return 0;
+      }
+    }
+
+    const reliabilityDiscountPercent = normalizeCoverageTreatmentPercent(
+      treatment.reliabilityDiscountPercent,
+      DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.unknownCoverageTreatment.reliabilityDiscountPercent
+    );
+    return Math.max(0, amount * (1 - (reliabilityDiscountPercent / 100)));
+  }
+
+  function getExistingCoveragePreviewTotals(record, assumptions) {
+    const policies = getCoveragePolicyArray(record).map(normalizeCoveragePolicyForPreview);
+    return policies.reduce(function (totals, policy) {
+      const amount = getCoveragePolicyAmount(policy);
+      if (amount <= 0) {
+        return totals;
+      }
+
+      totals.hasPolicies = true;
+      totals.rawTotal += amount;
+      totals.adjustedTotal += getAdjustedExistingCoverageAmount(policy, assumptions);
+      return totals;
+    }, {
+      hasPolicies: false,
+      rawTotal: 0,
+      adjustedTotal: 0
+    });
+  }
+
+  function syncExistingCoveragePreview(fields, linkedRecord) {
+    if (!fields.rawPreview && !fields.adjustedPreview) {
+      return;
+    }
+
+    const assumptions = getExistingCoverageDraftAssumptions(fields);
+    fields.currentAssumptions = assumptions;
+    const totals = getExistingCoveragePreviewTotals(linkedRecord, assumptions);
+    const rawText = totals.hasPolicies
+      ? `${formatCurrencyValue(totals.rawTotal)} total raw coverage`
+      : "No linked coverage policies found";
+    const adjustedText = totals.hasPolicies
+      ? `${formatCurrencyValue(totals.adjustedTotal)} preview only`
+      : "No linked coverage policies found";
+
+    if (fields.rawPreview) {
+      fields.rawPreview.textContent = rawText;
+    }
+    if (fields.adjustedPreview) {
+      fields.adjustedPreview.textContent = adjustedText;
+    }
   }
 
   function syncTaxTreatmentPill(pill, taxTreatment) {
@@ -1390,6 +1945,31 @@
     syncCustomAssetTreatmentPreview(fields, customAssetId);
   }
 
+  function populateExistingCoverageFields(fields, assumptions, linkedRecord) {
+    fields.currentAssumptions = assumptions;
+    setExistingCoverageDefaultProfile(fields, assumptions.globalTreatmentProfile);
+    setExistingCoverageChecked(fields, "includeExistingCoverage", assumptions.includeExistingCoverage);
+    setExistingCoverageChecked(fields, "groupCoverageTreatment.include", assumptions.groupCoverageTreatment.include);
+    setExistingCoverageValue(
+      fields,
+      "groupCoverageTreatment.reliabilityDiscountPercent",
+      assumptions.groupCoverageTreatment.reliabilityDiscountPercent
+    );
+    setExistingCoverageChecked(fields, "pendingCoverageTreatment.include", assumptions.pendingCoverageTreatment.include);
+    setExistingCoverageChecked(fields, "unknownCoverageTreatment.include", assumptions.unknownCoverageTreatment.include);
+    setExistingCoverageValue(
+      fields,
+      "unknownCoverageTreatment.reliabilityDiscountPercent",
+      assumptions.unknownCoverageTreatment.reliabilityDiscountPercent
+    );
+    setExistingCoverageValue(
+      fields,
+      "individualTermTreatment.excludeIfExpiresWithinYears",
+      assumptions.individualTermTreatment.excludeIfExpiresWithinYears
+    );
+    syncExistingCoveragePreview(fields, linkedRecord);
+  }
+
   function setFieldsDisabled(fields, sliders, disabled) {
     Object.keys(fields).forEach(function (fieldName) {
       fields[fieldName].disabled = Boolean(disabled);
@@ -1444,6 +2024,16 @@
       Object.keys(fields.custom?.[groupName] || {}).forEach(function (fieldName) {
         fields.custom[groupName][fieldName].disabled = Boolean(disabled) || !CUSTOM_ASSET_TREATMENT_USES_PMI_INPUT;
       });
+    });
+  }
+
+  function setExistingCoverageFieldsDisabled(fields, disabled) {
+    (fields.defaultProfileButtons || []).forEach(function (button) {
+      button.disabled = Boolean(disabled);
+    });
+
+    Object.keys(fields.values || {}).forEach(function (fieldPath) {
+      fields.values[fieldPath].disabled = Boolean(disabled);
     });
   }
 
@@ -1637,6 +2227,57 @@
       fields.custom.haircut[customAssetId].value = formatHaircutInputValue(customDefaults.liquidityHaircutPercent);
     }
     syncCustomAssetTreatmentPreview(fields, customAssetId);
+  }
+
+  function applyExistingCoverageProfile(fields, profile, linkedRecord) {
+    const normalizedProfile = normalizeCoverageTreatmentProfile(profile, "custom");
+    const profileDefaults = EXISTING_COVERAGE_PROFILE_DEFAULTS[normalizedProfile];
+    const current = getExistingCoverageDraftAssumptions(fields);
+    setExistingCoverageDefaultProfile(fields, normalizedProfile);
+
+    if (!profileDefaults) {
+      fields.currentAssumptions = {
+        ...current,
+        globalTreatmentProfile: normalizedProfile
+      };
+      syncExistingCoveragePreview(fields, linkedRecord);
+      return;
+    }
+
+    const nextAssumptions = {
+      ...current,
+      globalTreatmentProfile: normalizedProfile,
+      includeExistingCoverage: Boolean(profileDefaults.includeExistingCoverage),
+      groupCoverageTreatment: {
+        ...current.groupCoverageTreatment,
+        ...profileDefaults.groupCoverageTreatment
+      },
+      pendingCoverageTreatment: {
+        ...current.pendingCoverageTreatment,
+        ...profileDefaults.pendingCoverageTreatment
+      },
+      unknownCoverageTreatment: {
+        ...current.unknownCoverageTreatment,
+        ...profileDefaults.unknownCoverageTreatment
+      }
+    };
+    fields.currentAssumptions = nextAssumptions;
+
+    setExistingCoverageChecked(fields, "includeExistingCoverage", nextAssumptions.includeExistingCoverage);
+    setExistingCoverageChecked(fields, "groupCoverageTreatment.include", nextAssumptions.groupCoverageTreatment.include);
+    setExistingCoverageValue(
+      fields,
+      "groupCoverageTreatment.reliabilityDiscountPercent",
+      nextAssumptions.groupCoverageTreatment.reliabilityDiscountPercent
+    );
+    setExistingCoverageChecked(fields, "pendingCoverageTreatment.include", nextAssumptions.pendingCoverageTreatment.include);
+    setExistingCoverageChecked(fields, "unknownCoverageTreatment.include", nextAssumptions.unknownCoverageTreatment.include);
+    setExistingCoverageValue(
+      fields,
+      "unknownCoverageTreatment.reliabilityDiscountPercent",
+      nextAssumptions.unknownCoverageTreatment.reliabilityDiscountPercent
+    );
+    syncExistingCoveragePreview(fields, linkedRecord);
   }
 
   function readValidatedAssumptions(fields) {
@@ -1989,10 +2630,162 @@
     };
   }
 
-  function saveAnalysisSetupSettings(fields, sliders, methodFields, growthFields, growthSliders, assetFields, assetTreatmentFields, linkedRecord, validationMessage, statusMessage) {
+  function readRequiredCoverageTreatmentPercent(fields, fieldPath, label, fallback) {
+    const field = fields.values?.[fieldPath];
+    if (!field) {
+      return { value: fallback };
+    }
+
+    const rawValue = String(field.value || "").trim();
+    if (!rawValue) {
+      return {
+        error: `${label} is required. Enter a value from ${MIN_COVERAGE_TREATMENT_PERCENT}% to ${MAX_COVERAGE_TREATMENT_PERCENT}%.`
+      };
+    }
+
+    const number = Number(rawValue);
+    if (!Number.isFinite(number)) {
+      return {
+        error: `${label} must be a numeric percentage.`
+      };
+    }
+
+    if (number < MIN_COVERAGE_TREATMENT_PERCENT || number > MAX_COVERAGE_TREATMENT_PERCENT) {
+      return {
+        error: `${label} must be between ${MIN_COVERAGE_TREATMENT_PERCENT}% and ${MAX_COVERAGE_TREATMENT_PERCENT}%.`
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
+  function readOptionalCoverageTermGuardrail(fields) {
+    const field = fields.values?.["individualTermTreatment.excludeIfExpiresWithinYears"];
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return { value: null };
+    }
+
+    const number = Number(rawValue);
+    if (!Number.isFinite(number)) {
+      return {
+        error: "Term expiration guardrail must be a numeric year value."
+      };
+    }
+
+    if (number < MIN_COVERAGE_TERM_GUARDRAIL_YEARS || number > MAX_COVERAGE_TERM_GUARDRAIL_YEARS) {
+      return {
+        error: `Term expiration guardrail must be between ${MIN_COVERAGE_TERM_GUARDRAIL_YEARS} and ${MAX_COVERAGE_TERM_GUARDRAIL_YEARS} years.`
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
+  function readValidatedExistingCoverageAssumptions(fields) {
+    const defaultProfile = getExistingCoverageDefaultProfile(fields);
+    if (!COVERAGE_TREATMENT_PROFILE_KEYS.includes(defaultProfile)) {
+      return {
+        error: "Existing Coverage Treatment default settings must be Conservative, Balanced, Aggressive, or Custom."
+      };
+    }
+
+    const current = getExistingCoverageDraftAssumptions(fields);
+    const groupDiscount = readRequiredCoverageTreatmentPercent(
+      fields,
+      "groupCoverageTreatment.reliabilityDiscountPercent",
+      "Group / employer coverage reliability discount",
+      current.groupCoverageTreatment.reliabilityDiscountPercent
+    );
+    if (groupDiscount.error) {
+      return groupDiscount;
+    }
+
+    const unknownDiscount = readRequiredCoverageTreatmentPercent(
+      fields,
+      "unknownCoverageTreatment.reliabilityDiscountPercent",
+      "Unknown coverage reliability discount",
+      current.unknownCoverageTreatment.reliabilityDiscountPercent
+    );
+    if (unknownDiscount.error) {
+      return unknownDiscount;
+    }
+
+    const termGuardrail = readOptionalCoverageTermGuardrail(fields);
+    if (termGuardrail.error) {
+      return termGuardrail;
+    }
+
+    const currentIndividualTermTreatment = current.individualTermTreatment || DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.individualTermTreatment;
+    const currentPermanentTreatment = current.permanentCoverageTreatment || DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.permanentCoverageTreatment;
+    const currentPendingTreatment = current.pendingCoverageTreatment || DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.pendingCoverageTreatment;
+    return {
+      value: {
+        enabled: false,
+        globalTreatmentProfile: defaultProfile,
+        includeExistingCoverage: readExistingCoverageDraftBoolean(
+          fields,
+          "includeExistingCoverage",
+          current.includeExistingCoverage
+        ),
+        groupCoverageTreatment: {
+          include: readExistingCoverageDraftBoolean(
+            fields,
+            "groupCoverageTreatment.include",
+            current.groupCoverageTreatment?.include
+          ),
+          reliabilityDiscountPercent: groupDiscount.value,
+          portabilityRequired: Boolean(current.groupCoverageTreatment?.portabilityRequired)
+        },
+        individualTermTreatment: {
+          include: Boolean(currentIndividualTermTreatment.include),
+          reliabilityDiscountPercent: normalizeCoverageTreatmentPercent(
+            currentIndividualTermTreatment.reliabilityDiscountPercent,
+            DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.individualTermTreatment.reliabilityDiscountPercent
+          ),
+          excludeIfExpiresWithinYears: termGuardrail.value
+        },
+        permanentCoverageTreatment: {
+          include: Boolean(currentPermanentTreatment.include),
+          reliabilityDiscountPercent: normalizeCoverageTreatmentPercent(
+            currentPermanentTreatment.reliabilityDiscountPercent,
+            DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.permanentCoverageTreatment.reliabilityDiscountPercent
+          )
+        },
+        pendingCoverageTreatment: {
+          include: readExistingCoverageDraftBoolean(
+            fields,
+            "pendingCoverageTreatment.include",
+            currentPendingTreatment.include
+          ),
+          reliabilityDiscountPercent: normalizeCoverageTreatmentPercent(
+            currentPendingTreatment.reliabilityDiscountPercent,
+            DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.pendingCoverageTreatment.reliabilityDiscountPercent
+          )
+        },
+        unknownCoverageTreatment: {
+          include: readExistingCoverageDraftBoolean(
+            fields,
+            "unknownCoverageTreatment.include",
+            current.unknownCoverageTreatment?.include
+          ),
+          reliabilityDiscountPercent: unknownDiscount.value
+        },
+        lastUpdatedAt: new Date().toISOString(),
+        source: "analysis-setup"
+      }
+    };
+  }
+
+  function saveAnalysisSetupSettings(fields, sliders, methodFields, growthFields, growthSliders, assetFields, assetTreatmentFields, existingCoverageFields, linkedRecord, validationMessage, statusMessage) {
     const clientRecords = LensApp.clientRecords || {};
     const shouldSaveAssetLiquidity = hasAssetLiquidityFields(assetFields);
     const shouldSaveAssetTreatment = hasAssetTreatmentFields(assetTreatmentFields);
+    const shouldSaveExistingCoverage = hasExistingCoverageFields(existingCoverageFields);
 
     RATE_FIELDS.forEach(function (fieldName) {
       syncSliderFromNumber(fields, sliders, fieldName, true);
@@ -2063,6 +2856,30 @@
       });
     }
 
+    if (shouldSaveExistingCoverage) {
+      [
+        "groupCoverageTreatment.reliabilityDiscountPercent",
+        "unknownCoverageTreatment.reliabilityDiscountPercent",
+        "individualTermTreatment.excludeIfExpiresWithinYears"
+      ].forEach(function (fieldPath) {
+        const field = existingCoverageFields.values[fieldPath];
+        const rawValue = String(field?.value || "").trim();
+        const number = Number(rawValue);
+        const maxValue = fieldPath === "individualTermTreatment.excludeIfExpiresWithinYears"
+          ? MAX_COVERAGE_TERM_GUARDRAIL_YEARS
+          : MAX_COVERAGE_TREATMENT_PERCENT;
+        if (
+          field
+          && rawValue
+          && Number.isFinite(number)
+          && number >= 0
+          && number <= maxValue
+        ) {
+          field.value = formatHaircutInputValue(number);
+        }
+      });
+    }
+
     const validatedInflation = readValidatedAssumptions(fields);
 
     if (validatedInflation.error) {
@@ -2107,6 +2924,16 @@
       return null;
     }
 
+    const validatedExistingCoverage = shouldSaveExistingCoverage
+      ? readValidatedExistingCoverageAssumptions(existingCoverageFields)
+      : null;
+
+    if (validatedExistingCoverage?.error) {
+      setMessage(validationMessage, validatedExistingCoverage.error, "error");
+      setStatus(statusMessage, "Analysis Setup settings were not saved.", "error");
+      return null;
+    }
+
     const linkedCaseRef = String(linkedRecord?.caseRef || "").trim();
     if (!linkedCaseRef || typeof clientRecords.updateClientRecordByCaseRef !== "function") {
       setMessage(validationMessage, "Link a client profile before saving Analysis Setup settings.", "error");
@@ -2127,7 +2954,8 @@
           methodDefaults: validatedMethodDefaults.value,
           growthAndReturnAssumptions: validatedGrowth.value,
           ...(validatedAssets ? { assetLiquidityAssumptions: validatedAssets.value } : {}),
-          ...(validatedAssetTreatment ? { assetTreatmentAssumptions: validatedAssetTreatment.value } : {})
+          ...(validatedAssetTreatment ? { assetTreatmentAssumptions: validatedAssetTreatment.value } : {}),
+          ...(validatedExistingCoverage ? { existingCoverageAssumptions: validatedExistingCoverage.value } : {})
         }
       };
     });
@@ -2149,6 +2977,9 @@
     if (shouldSaveAssetTreatment) {
       populateAssetTreatmentFields(assetTreatmentFields, getAssetTreatmentAssumptions(updatedRecord), updatedRecord);
     }
+    if (shouldSaveExistingCoverage) {
+      populateExistingCoverageFields(existingCoverageFields, getExistingCoverageAssumptions(updatedRecord), updatedRecord);
+    }
     setMessage(validationMessage, "", "neutral");
     setStatus(statusMessage, "Analysis Setup settings saved.", "success");
     return updatedRecord;
@@ -2169,6 +3000,7 @@
     const growthSliders = getGrowthSliderMap();
     const assetFields = getAssetFieldMap();
     const assetTreatmentFields = getAssetTreatmentFieldMap();
+    const existingCoverageFields = getExistingCoverageFieldMap();
     const saveButton = document.querySelector("[data-analysis-setup-save]");
     const applyButton = document.querySelector("[data-analysis-setup-apply]");
     const statusMessage = document.querySelector("[data-analysis-setup-status]");
@@ -2182,6 +3014,7 @@
     populateGrowthFields(growthFields, getGrowthAndReturnAssumptions(linkedRecord), growthSliders);
     populateAssetFields(assetFields, getAssetLiquidityAssumptions(linkedRecord));
     populateAssetTreatmentFields(assetTreatmentFields, getAssetTreatmentAssumptions(linkedRecord), linkedRecord);
+    populateExistingCoverageFields(existingCoverageFields, getExistingCoverageAssumptions(linkedRecord), linkedRecord);
 
     if (!linkedRecord) {
       setFieldsDisabled(fields, sliders, true);
@@ -2189,6 +3022,7 @@
       setGrowthFieldsDisabled(growthFields, growthSliders, true);
       setAssetFieldsDisabled(assetFields, true);
       setAssetTreatmentFieldsDisabled(assetTreatmentFields, true);
+      setExistingCoverageFieldsDisabled(existingCoverageFields, true);
       if (saveButton) {
         saveButton.disabled = true;
       }
@@ -2214,6 +3048,7 @@
     setGrowthFieldsDisabled(growthFields, growthSliders, false);
     setAssetFieldsDisabled(assetFields, false);
     setAssetTreatmentFieldsDisabled(assetTreatmentFields, false);
+    setExistingCoverageFieldsDisabled(existingCoverageFields, false);
     if (saveButton) {
       saveButton.disabled = false;
     }
@@ -2304,11 +3139,55 @@
 
     assetFields.enabled?.addEventListener("change", markUnsaved);
     assetTreatmentFields.enabled?.addEventListener("change", markUnsaved);
+    (existingCoverageFields.defaultProfileButtons || []).forEach(function (button) {
+      button.addEventListener("click", function () {
+        const profile = String(button.getAttribute("data-analysis-coverage-profile") || "").trim();
+        applyExistingCoverageProfile(existingCoverageFields, profile, linkedRecord);
+        markUnsaved();
+      });
+    });
+
     (assetTreatmentFields.defaultProfileButtons || []).forEach(function (button) {
       button.addEventListener("click", function () {
         const profile = String(button.getAttribute("data-analysis-asset-default-profile") || "").trim();
         applyAssetTreatmentProfile(assetTreatmentFields, profile, linkedRecord);
         markUnsaved();
+      });
+    });
+
+    Object.keys(existingCoverageFields.values || {}).forEach(function (fieldPath) {
+      const field = existingCoverageFields.values[fieldPath];
+      if (!field) {
+        return;
+      }
+
+      const syncCoverageChange = function () {
+        setExistingCoverageDefaultProfile(existingCoverageFields, "custom");
+        syncExistingCoveragePreview(existingCoverageFields, linkedRecord);
+        markUnsaved();
+      };
+
+      field.addEventListener("input", function () {
+        if (fieldPath === "individualTermTreatment.excludeIfExpiresWithinYears") {
+          const sanitizedValue = sanitizeNumericTextValue(field.value);
+          if (field.value !== sanitizedValue) {
+            field.value = sanitizedValue;
+          }
+        }
+        syncCoverageChange();
+      });
+
+      field.addEventListener("change", function () {
+        const rawValue = String(field.value || "").trim();
+        const number = Number(rawValue);
+        const isTermGuardrail = fieldPath === "individualTermTreatment.excludeIfExpiresWithinYears";
+        const maxValue = isTermGuardrail
+          ? MAX_COVERAGE_TERM_GUARDRAIL_YEARS
+          : MAX_COVERAGE_TREATMENT_PERCENT;
+        if (field.type !== "checkbox" && rawValue && Number.isFinite(number) && number >= 0 && number <= maxValue) {
+          field.value = formatHaircutInputValue(number);
+        }
+        syncCoverageChange();
       });
     });
 
@@ -2433,6 +3312,7 @@
         growthSliders,
         assetFields,
         assetTreatmentFields,
+        existingCoverageFields,
         linkedRecord,
         validationMessage,
         statusMessage
@@ -2448,6 +3328,7 @@
         growthSliders,
         assetFields,
         assetTreatmentFields,
+        existingCoverageFields,
         linkedRecord,
         validationMessage,
         statusMessage
@@ -2468,10 +3349,12 @@
     DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS,
     DEFAULT_ASSET_LIQUIDITY_ASSUMPTIONS,
     DEFAULT_ASSET_TREATMENT_ASSUMPTIONS,
+    DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS,
     getInflationAssumptions,
     getMethodDefaults,
     getGrowthAndReturnAssumptions,
     getAssetLiquidityAssumptions,
-    getAssetTreatmentAssumptions
+    getAssetTreatmentAssumptions,
+    getExistingCoverageAssumptions
   });
 })();
