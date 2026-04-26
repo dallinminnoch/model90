@@ -415,6 +415,77 @@
     })
   });
 
+  const DEBT_TREATMENT_PROFILE_LABELS = Object.freeze({
+    conservative: "Conservative",
+    balanced: "Balanced",
+    aggressive: "Aggressive",
+    custom: "Custom"
+  });
+  const DEBT_TREATMENT_PROFILE_KEYS = Object.freeze(Object.keys(DEBT_TREATMENT_PROFILE_LABELS));
+  const MORTGAGE_TREATMENT_MODES = Object.freeze(["payoff", "support", "custom"]);
+  const DEBT_CATEGORY_TREATMENT_MODES = Object.freeze(["payoff", "exclude", "custom"]);
+  const NON_MORTGAGE_DEBT_ITEMS = Object.freeze([
+    { key: "autoLoans", label: "Auto loans", sourceField: "autoLoans" },
+    { key: "creditCardDebt", label: "Credit cards", sourceField: "creditCardDebt" },
+    { key: "studentLoans", label: "Student loans", sourceField: "studentLoans" },
+    { key: "personalLoans", label: "Personal loans", sourceField: "personalLoans" },
+    { key: "taxLiabilities", label: "Tax liabilities", sourceField: "taxLiabilities" },
+    { key: "businessDebt", label: "Business debt", sourceField: "businessDebt" },
+    { key: "otherRealEstateLoans", label: "Other real estate loans", sourceField: "otherRealEstateLoans" },
+    { key: "otherLoanObligations", label: "Other debts", sourceField: "otherLoanObligations" }
+  ]);
+
+  function createDefaultNonMortgageDebtTreatment(key) {
+    return Object.freeze({
+      include: true,
+      mode: "payoff",
+      payoffPercent: 100,
+      ...(key === "studentLoans" ? { dischargeAssumption: "unknown" } : {})
+    });
+  }
+
+  const DEFAULT_DEBT_TREATMENT_ASSUMPTIONS = Object.freeze({
+    enabled: false,
+    globalTreatmentProfile: "balanced",
+    mortgageTreatment: Object.freeze({
+      mode: "payoff",
+      include: true,
+      payoffPercent: 100,
+      paymentSupportYears: null
+    }),
+    nonMortgageDebtTreatment: Object.freeze({
+      autoLoans: createDefaultNonMortgageDebtTreatment("autoLoans"),
+      creditCardDebt: createDefaultNonMortgageDebtTreatment("creditCardDebt"),
+      studentLoans: createDefaultNonMortgageDebtTreatment("studentLoans"),
+      personalLoans: createDefaultNonMortgageDebtTreatment("personalLoans"),
+      taxLiabilities: createDefaultNonMortgageDebtTreatment("taxLiabilities"),
+      businessDebt: createDefaultNonMortgageDebtTreatment("businessDebt"),
+      otherRealEstateLoans: createDefaultNonMortgageDebtTreatment("otherRealEstateLoans"),
+      otherLoanObligations: createDefaultNonMortgageDebtTreatment("otherLoanObligations")
+    }),
+    source: "analysis-setup"
+  });
+
+  const DEBT_TREATMENT_PROFILE_DEFAULTS = Object.freeze({
+    conservative: Object.freeze({
+      mortgageTreatment: DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.mortgageTreatment,
+      nonMortgageDebtTreatment: DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.nonMortgageDebtTreatment
+    }),
+    balanced: Object.freeze({
+      mortgageTreatment: DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.mortgageTreatment,
+      nonMortgageDebtTreatment: DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.nonMortgageDebtTreatment
+    }),
+    aggressive: Object.freeze({
+      mortgageTreatment: Object.freeze({
+        mode: "support",
+        include: false,
+        payoffPercent: 0,
+        paymentSupportYears: 10
+      }),
+      nonMortgageDebtTreatment: DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.nonMortgageDebtTreatment
+    })
+  });
+
   const MIN_RATE = 0;
   const MAX_RATE = 10;
   const MIN_GROWTH_RATE = 0;
@@ -429,6 +500,10 @@
   const MAX_COVERAGE_TREATMENT_PERCENT = 100;
   const MIN_COVERAGE_TERM_GUARDRAIL_YEARS = 0;
   const MAX_COVERAGE_TERM_GUARDRAIL_YEARS = 80;
+  const MIN_DEBT_PAYOFF_PERCENT = 0;
+  const MAX_DEBT_PAYOFF_PERCENT = 100;
+  const MIN_DEBT_SUPPORT_YEARS = 0;
+  const MAX_DEBT_SUPPORT_YEARS = 80;
 
   function isPlainObject(value) {
     return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -575,6 +650,27 @@
       : fallback;
   }
 
+  function normalizeDebtTreatmentProfile(value, fallback) {
+    const normalizedValue = String(value || "").trim().toLowerCase();
+    return DEBT_TREATMENT_PROFILE_KEYS.includes(normalizedValue)
+      ? normalizedValue
+      : fallback;
+  }
+
+  function normalizeMortgageTreatmentMode(value, fallback) {
+    const normalizedValue = String(value || "").trim().toLowerCase();
+    return MORTGAGE_TREATMENT_MODES.includes(normalizedValue)
+      ? normalizedValue
+      : fallback;
+  }
+
+  function normalizeDebtCategoryTreatmentMode(value, fallback) {
+    const normalizedValue = String(value || "").trim().toLowerCase();
+    return DEBT_CATEGORY_TREATMENT_MODES.includes(normalizedValue)
+      ? normalizedValue
+      : fallback;
+  }
+
   function normalizeAssetTreatmentPercent(value, fallback) {
     const number = Number(value);
     if (!Number.isFinite(number)) {
@@ -599,6 +695,18 @@
     );
   }
 
+  function normalizeDebtPayoffPercent(value, fallback) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return fallback;
+    }
+
+    return Math.min(
+      MAX_DEBT_PAYOFF_PERCENT,
+      Math.max(MIN_DEBT_PAYOFF_PERCENT, number)
+    );
+  }
+
   function normalizeCoverageTermGuardrailYears(value, fallback) {
     if (value === null || value === undefined || String(value).trim() === "") {
       return fallback == null ? null : fallback;
@@ -612,6 +720,22 @@
     return Math.min(
       MAX_COVERAGE_TERM_GUARDRAIL_YEARS,
       Math.max(MIN_COVERAGE_TERM_GUARDRAIL_YEARS, Math.round(number))
+    );
+  }
+
+  function normalizeDebtSupportYears(value, fallback) {
+    if (value === null || value === undefined || String(value).trim() === "") {
+      return fallback == null ? null : fallback;
+    }
+
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return fallback == null ? null : fallback;
+    }
+
+    return Math.min(
+      MAX_DEBT_SUPPORT_YEARS,
+      Math.max(MIN_DEBT_SUPPORT_YEARS, number)
     );
   }
 
@@ -964,6 +1088,72 @@
     return nextAssumptions;
   }
 
+  function getDebtTreatmentAssumptions(record) {
+    const saved = isPlainObject(record?.analysisSettings?.debtTreatmentAssumptions)
+      ? record.analysisSettings.debtTreatmentAssumptions
+      : {};
+    const savedMortgageTreatment = isPlainObject(saved.mortgageTreatment) ? saved.mortgageTreatment : {};
+    const savedNonMortgageTreatment = isPlainObject(saved.nonMortgageDebtTreatment)
+      ? saved.nonMortgageDebtTreatment
+      : {};
+    const globalTreatmentProfile = normalizeDebtTreatmentProfile(
+      saved.globalTreatmentProfile,
+      DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.globalTreatmentProfile
+    );
+    const defaultMortgageTreatment = DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.mortgageTreatment;
+    const nextAssumptions = {
+      enabled: typeof saved.enabled === "boolean"
+        ? saved.enabled
+        : DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.enabled,
+      globalTreatmentProfile,
+      mortgageTreatment: {
+        mode: normalizeMortgageTreatmentMode(
+          savedMortgageTreatment.mode,
+          defaultMortgageTreatment.mode
+        ),
+        include: typeof savedMortgageTreatment.include === "boolean"
+          ? savedMortgageTreatment.include
+          : defaultMortgageTreatment.include,
+        payoffPercent: normalizeDebtPayoffPercent(
+          savedMortgageTreatment.payoffPercent,
+          defaultMortgageTreatment.payoffPercent
+        ),
+        paymentSupportYears: normalizeDebtSupportYears(
+          savedMortgageTreatment.paymentSupportYears,
+          defaultMortgageTreatment.paymentSupportYears
+        )
+      },
+      nonMortgageDebtTreatment: {},
+      source: String(saved.source || DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.source)
+    };
+
+    NON_MORTGAGE_DEBT_ITEMS.forEach(function (item) {
+      const defaults = DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.nonMortgageDebtTreatment[item.key];
+      const savedTreatment = isPlainObject(savedNonMortgageTreatment[item.key])
+        ? savedNonMortgageTreatment[item.key]
+        : {};
+      nextAssumptions.nonMortgageDebtTreatment[item.key] = {
+        include: typeof savedTreatment.include === "boolean"
+          ? savedTreatment.include
+          : defaults.include,
+        mode: normalizeDebtCategoryTreatmentMode(savedTreatment.mode, defaults.mode),
+        payoffPercent: normalizeDebtPayoffPercent(
+          savedTreatment.payoffPercent,
+          defaults.payoffPercent
+        ),
+        ...(item.key === "studentLoans"
+          ? { dischargeAssumption: String(savedTreatment.dischargeAssumption || defaults.dischargeAssumption || "unknown") }
+          : {})
+      };
+    });
+
+    if (saved.lastUpdatedAt) {
+      nextAssumptions.lastUpdatedAt = String(saved.lastUpdatedAt);
+    }
+
+    return nextAssumptions;
+  }
+
   function formatRateInputValue(value) {
     return Number(value || 0).toFixed(2);
   }
@@ -1099,6 +1289,56 @@
         <span role="cell"><span class="analysis-setup-treatment-preview" data-analysis-asset-treatment-custom-preview="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}">No source value</span></span>
       </div>
     `);
+
+    table.dataset.rendered = "true";
+  }
+
+  function getDebtCategoryModeOptionsMarkup(selectedMode) {
+    const labels = {
+      payoff: "Payoff",
+      exclude: "Exclude",
+      custom: "Custom"
+    };
+    return DEBT_CATEGORY_TREATMENT_MODES.map(function (mode) {
+      const selected = mode === selectedMode ? " selected" : "";
+      return `<option value="${mode}"${selected}>${labels[mode]}</option>`;
+    }).join("");
+  }
+
+  function renderDebtTreatmentRows() {
+    const table = document.querySelector("[data-analysis-debt-table]");
+    if (!table || table.dataset.rendered === "true") {
+      return;
+    }
+
+    NON_MORTGAGE_DEBT_ITEMS.forEach(function (item) {
+      const defaults = DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.nonMortgageDebtTreatment[item.key];
+      table.insertAdjacentHTML("beforeend", `
+        <div class="analysis-setup-debt-row" role="row" data-analysis-debt-row="${item.key}">
+          <span class="analysis-setup-debt-label" role="cell">${item.label}</span>
+          <span role="cell">
+            <label class="analysis-setup-asset-include" aria-label="Include ${item.label}">
+              <span class="settings-switch analysis-setup-mini-switch">
+                <input class="analysis-setup-debt-field" type="checkbox" role="switch" aria-label="Include ${item.label}" data-analysis-debt-include="${item.key}">
+                <span class="settings-switch-track" aria-hidden="true"></span>
+              </span>
+            </label>
+          </span>
+          <span role="cell">
+            <select class="analysis-setup-asset-select analysis-setup-debt-field" aria-label="${item.label} debt treatment mode" data-analysis-debt-mode="${item.key}">
+              ${getDebtCategoryModeOptionsMarkup(defaults.mode)}
+            </select>
+          </span>
+          <span role="cell">
+            <span class="analysis-setup-asset-percent">
+              <input class="analysis-setup-asset-percent-input analysis-setup-debt-field" type="text" inputmode="decimal" value="${defaults.payoffPercent}" aria-label="${item.label} payoff percentage" data-analysis-debt-payoff="${item.key}">
+              <span aria-hidden="true">%</span>
+            </span>
+          </span>
+          <span role="cell"><span class="analysis-setup-treatment-preview" data-analysis-debt-source-preview="${item.key}">No source value</span></span>
+        </div>
+      `);
+    });
 
     table.dataset.rendered = "true";
   }
@@ -1267,6 +1507,44 @@
     return fields;
   }
 
+  function getDebtTreatmentFieldMap() {
+    const fields = {
+      defaultProfile: DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.globalTreatmentProfile,
+      defaultProfileButtons: Array.from(document.querySelectorAll("[data-analysis-debt-profile]")),
+      mortgage: {},
+      include: {},
+      mode: {},
+      payoff: {},
+      sourcePreview: {},
+      rawPreview: document.querySelector("[data-analysis-debt-raw-preview]"),
+      adjustedPreview: document.querySelector("[data-analysis-debt-adjusted-preview]"),
+      previewNote: document.querySelector("[data-analysis-debt-preview-note]"),
+      currentAssumptions: null
+    };
+
+    Array.from(document.querySelectorAll("[data-analysis-debt-mortgage-field]")).forEach(function (field) {
+      fields.mortgage[field.getAttribute("data-analysis-debt-mortgage-field")] = field;
+    });
+
+    Array.from(document.querySelectorAll("[data-analysis-debt-include]")).forEach(function (field) {
+      fields.include[field.getAttribute("data-analysis-debt-include")] = field;
+    });
+
+    Array.from(document.querySelectorAll("[data-analysis-debt-mode]")).forEach(function (field) {
+      fields.mode[field.getAttribute("data-analysis-debt-mode")] = field;
+    });
+
+    Array.from(document.querySelectorAll("[data-analysis-debt-payoff]")).forEach(function (field) {
+      fields.payoff[field.getAttribute("data-analysis-debt-payoff")] = field;
+    });
+
+    Array.from(document.querySelectorAll("[data-analysis-debt-source-preview]")).forEach(function (field) {
+      fields.sourcePreview[field.getAttribute("data-analysis-debt-source-preview")] = field;
+    });
+
+    return fields;
+  }
+
   function hasAssetLiquidityFields(fields) {
     return Boolean(fields.enabled) || ASSET_LIQUIDITY_ITEMS.some(function (item) {
       return Boolean(
@@ -1297,6 +1575,18 @@
       || fields.adjustedPreview
       || (fields.defaultProfileButtons || []).length
       || Object.keys(fields.values || {}).length
+    );
+  }
+
+  function hasDebtTreatmentFields(fields) {
+    return Boolean(
+      fields.rawPreview
+      || fields.adjustedPreview
+      || (fields.defaultProfileButtons || []).length
+      || Object.keys(fields.mortgage || {}).length
+      || Object.keys(fields.include || {}).length
+      || Object.keys(fields.mode || {}).length
+      || Object.keys(fields.payoff || {}).length
     );
   }
 
@@ -1361,6 +1651,27 @@
     );
   }
 
+  function setDebtTreatmentDefaultProfile(fields, profile) {
+    const normalizedProfile = normalizeDebtTreatmentProfile(
+      profile,
+      DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.globalTreatmentProfile
+    );
+    fields.defaultProfile = normalizedProfile;
+    (fields.defaultProfileButtons || []).forEach(function (button) {
+      const buttonProfile = String(button.getAttribute("data-analysis-debt-profile") || "").trim();
+      const isActive = buttonProfile === normalizedProfile;
+      button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      button.dataset.active = isActive ? "true" : "false";
+    });
+  }
+
+  function getDebtTreatmentDefaultProfile(fields) {
+    return normalizeDebtTreatmentProfile(
+      fields.defaultProfile,
+      DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.globalTreatmentProfile
+    );
+  }
+
   function setExistingCoverageChecked(fields, fieldPath, value) {
     const field = fields.values?.[fieldPath];
     if (field) {
@@ -1370,6 +1681,39 @@
 
   function setExistingCoverageValue(fields, fieldPath, value) {
     const field = fields.values?.[fieldPath];
+    if (!field) {
+      return;
+    }
+
+    field.value = value === null || value === undefined
+      ? ""
+      : formatHaircutInputValue(value);
+  }
+
+  function setDebtMortgageValue(fields, fieldName, value) {
+    const field = fields.mortgage?.[fieldName];
+    if (!field) {
+      return;
+    }
+
+    if (field.type === "checkbox") {
+      field.checked = Boolean(value);
+      return;
+    }
+
+    field.value = value === null || value === undefined
+      ? ""
+      : formatHaircutInputValue(value);
+  }
+
+  function setDebtCategoryChecked(fields, itemKey, value) {
+    if (fields.include?.[itemKey]) {
+      fields.include[itemKey].checked = Boolean(value);
+    }
+  }
+
+  function setDebtCategoryValue(fields, groupName, itemKey, value) {
+    const field = fields[groupName]?.[itemKey];
     if (!field) {
       return;
     }
@@ -1480,6 +1824,72 @@
       },
       source: "analysis-setup"
     };
+  }
+
+  function getDebtTreatmentCurrentAssumptions(fields) {
+    return isPlainObject(fields.currentAssumptions)
+      ? fields.currentAssumptions
+      : DEFAULT_DEBT_TREATMENT_ASSUMPTIONS;
+  }
+
+  function readDebtDraftBoolean(field, fallback) {
+    return field ? Boolean(field.checked) : Boolean(fallback);
+  }
+
+  function readDebtDraftPercent(field, fallback) {
+    const rawValue = String(field?.value || "").trim();
+    const number = Number(rawValue);
+    return rawValue && Number.isFinite(number)
+      ? normalizeDebtPayoffPercent(number, fallback)
+      : fallback;
+  }
+
+  function readDebtDraftSupportYears(field, fallback) {
+    const rawValue = String(field?.value || "").trim();
+    return rawValue
+      ? normalizeDebtSupportYears(rawValue, fallback)
+      : null;
+  }
+
+  function getDebtTreatmentDraftAssumptions(fields) {
+    const current = getDebtTreatmentCurrentAssumptions(fields);
+    const currentMortgageTreatment = current.mortgageTreatment || DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.mortgageTreatment;
+    const nextAssumptions = {
+      enabled: Boolean(current.enabled),
+      globalTreatmentProfile: getDebtTreatmentDefaultProfile(fields),
+      mortgageTreatment: {
+        mode: normalizeMortgageTreatmentMode(
+          fields.mortgage?.mode?.value,
+          currentMortgageTreatment.mode
+        ),
+        include: readDebtDraftBoolean(fields.mortgage?.include, currentMortgageTreatment.include),
+        payoffPercent: readDebtDraftPercent(
+          fields.mortgage?.payoffPercent,
+          currentMortgageTreatment.payoffPercent
+        ),
+        paymentSupportYears: readDebtDraftSupportYears(
+          fields.mortgage?.paymentSupportYears,
+          currentMortgageTreatment.paymentSupportYears
+        )
+      },
+      nonMortgageDebtTreatment: {},
+      source: "analysis-setup"
+    };
+
+    NON_MORTGAGE_DEBT_ITEMS.forEach(function (item) {
+      const currentTreatment = current.nonMortgageDebtTreatment?.[item.key]
+        || DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.nonMortgageDebtTreatment[item.key];
+      nextAssumptions.nonMortgageDebtTreatment[item.key] = {
+        include: readDebtDraftBoolean(fields.include?.[item.key], currentTreatment.include),
+        mode: normalizeDebtCategoryTreatmentMode(fields.mode?.[item.key]?.value, currentTreatment.mode),
+        payoffPercent: readDebtDraftPercent(fields.payoff?.[item.key], currentTreatment.payoffPercent),
+        ...(item.key === "studentLoans"
+          ? { dischargeAssumption: String(currentTreatment.dischargeAssumption || "unknown") }
+          : {})
+      };
+    });
+
+    return nextAssumptions;
   }
 
   function populateFields(fields, assumptions, sliders) {
@@ -1811,6 +2221,127 @@
     }
   }
 
+  function getDebtSourceValue(linkedRecord, sourceField) {
+    const sourceData = getLinkedProtectionModelingData(linkedRecord);
+    if (sourceField && Object.prototype.hasOwnProperty.call(sourceData, sourceField)) {
+      return parseOptionalMoneyValue(sourceData[sourceField]);
+    }
+
+    if (sourceField && Object.prototype.hasOwnProperty.call(linkedRecord || {}, sourceField)) {
+      return parseOptionalMoneyValue(linkedRecord[sourceField]);
+    }
+
+    return null;
+  }
+
+  function getDebtSourceTotals(linkedRecord) {
+    const sourceFields = ["mortgageBalance"].concat(NON_MORTGAGE_DEBT_ITEMS.map(function (item) {
+      return item.sourceField;
+    }));
+    return sourceFields.reduce(function (totals, sourceField) {
+      const sourceValue = getDebtSourceValue(linkedRecord, sourceField);
+      if (sourceValue === null) {
+        return totals;
+      }
+
+      totals.hasSource = true;
+      totals.rawTotal += Math.max(0, sourceValue);
+      return totals;
+    }, {
+      hasSource: false,
+      rawTotal: 0
+    });
+  }
+
+  function getAdjustedDebtTreatmentPreview(linkedRecord, assumptions) {
+    let adjustedTotal = 0;
+    let hasSource = false;
+    let mortgageHandledThroughSupport = false;
+    const mortgageBalance = getDebtSourceValue(linkedRecord, "mortgageBalance");
+    const mortgageTreatment = assumptions.mortgageTreatment || DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.mortgageTreatment;
+
+    if (mortgageBalance !== null) {
+      hasSource = true;
+      if (mortgageTreatment.mode === "support") {
+        mortgageHandledThroughSupport = true;
+      } else if (mortgageTreatment.include) {
+        adjustedTotal += Math.max(0, mortgageBalance) * (normalizeDebtPayoffPercent(
+          mortgageTreatment.payoffPercent,
+          DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.mortgageTreatment.payoffPercent
+        ) / 100);
+      }
+    }
+
+    NON_MORTGAGE_DEBT_ITEMS.forEach(function (item) {
+      const sourceValue = getDebtSourceValue(linkedRecord, item.sourceField);
+      if (sourceValue === null) {
+        return;
+      }
+
+      hasSource = true;
+      const treatment = assumptions.nonMortgageDebtTreatment?.[item.key]
+        || DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.nonMortgageDebtTreatment[item.key];
+      if (!treatment.include || treatment.mode === "exclude") {
+        return;
+      }
+
+      adjustedTotal += Math.max(0, sourceValue) * (normalizeDebtPayoffPercent(
+        treatment.payoffPercent,
+        DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.nonMortgageDebtTreatment[item.key].payoffPercent
+      ) / 100);
+    });
+
+    return {
+      hasSource,
+      adjustedTotal,
+      mortgageHandledThroughSupport
+    };
+  }
+
+  function syncDebtTreatmentPreview(fields, linkedRecord) {
+    const assumptions = getDebtTreatmentDraftAssumptions(fields);
+    fields.currentAssumptions = assumptions;
+
+    NON_MORTGAGE_DEBT_ITEMS.forEach(function (item) {
+      const preview = fields.sourcePreview?.[item.key];
+      if (!preview) {
+        return;
+      }
+
+      const sourceValue = getDebtSourceValue(linkedRecord, item.sourceField);
+      preview.textContent = sourceValue === null
+        ? "No source value"
+        : formatCurrencyValue(sourceValue);
+    });
+
+    const mortgagePreview = document.querySelector("[data-analysis-debt-mortgage-preview]");
+    if (mortgagePreview) {
+      const mortgageBalance = getDebtSourceValue(linkedRecord, "mortgageBalance");
+      mortgagePreview.textContent = mortgageBalance === null
+        ? "No source value"
+        : formatCurrencyValue(mortgageBalance);
+    }
+
+    const rawTotals = getDebtSourceTotals(linkedRecord);
+    const adjustedPreview = getAdjustedDebtTreatmentPreview(linkedRecord, assumptions);
+    const noSourceText = "No saved debt data found";
+    if (fields.rawPreview) {
+      fields.rawPreview.textContent = rawTotals.hasSource
+        ? formatCurrencyValue(rawTotals.rawTotal)
+        : noSourceText;
+    }
+    if (fields.adjustedPreview) {
+      fields.adjustedPreview.textContent = adjustedPreview.hasSource
+        ? formatCurrencyValue(adjustedPreview.adjustedTotal)
+        : noSourceText;
+    }
+    if (fields.previewNote) {
+      fields.previewNote.textContent = adjustedPreview.mortgageHandledThroughSupport
+        ? "Mortgage payoff preview excludes mortgage balance because this mode treats it through support later."
+        : "Preview only. Current Needs, DIME, HLV, and recommendation results are unchanged.";
+    }
+  }
+
   function syncTaxTreatmentPill(pill, taxTreatment) {
     if (!pill) {
       return;
@@ -1970,6 +2501,40 @@
     syncExistingCoveragePreview(fields, linkedRecord);
   }
 
+  function syncDebtSupportYearsVisibility(fields) {
+    const row = document.querySelector("[data-analysis-debt-support-years-row]");
+    if (!row) {
+      return;
+    }
+
+    const mode = String(fields.mortgage?.mode?.value || "").trim();
+    row.hidden = !(mode === "support" || mode === "custom");
+  }
+
+  function populateDebtTreatmentFields(fields, assumptions, linkedRecord) {
+    fields.currentAssumptions = assumptions;
+    setDebtTreatmentDefaultProfile(fields, assumptions.globalTreatmentProfile);
+    if (fields.mortgage.mode) {
+      fields.mortgage.mode.value = assumptions.mortgageTreatment.mode;
+    }
+    setDebtMortgageValue(fields, "include", assumptions.mortgageTreatment.include);
+    setDebtMortgageValue(fields, "payoffPercent", assumptions.mortgageTreatment.payoffPercent);
+    setDebtMortgageValue(fields, "paymentSupportYears", assumptions.mortgageTreatment.paymentSupportYears);
+
+    NON_MORTGAGE_DEBT_ITEMS.forEach(function (item) {
+      const assumption = assumptions.nonMortgageDebtTreatment[item.key]
+        || DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.nonMortgageDebtTreatment[item.key];
+      setDebtCategoryChecked(fields, item.key, assumption.include);
+      if (fields.mode[item.key]) {
+        fields.mode[item.key].value = assumption.mode;
+      }
+      setDebtCategoryValue(fields, "payoff", item.key, assumption.payoffPercent);
+    });
+
+    syncDebtSupportYearsVisibility(fields);
+    syncDebtTreatmentPreview(fields, linkedRecord);
+  }
+
   function setFieldsDisabled(fields, sliders, disabled) {
     Object.keys(fields).forEach(function (fieldName) {
       fields[fieldName].disabled = Boolean(disabled);
@@ -2034,6 +2599,22 @@
 
     Object.keys(fields.values || {}).forEach(function (fieldPath) {
       fields.values[fieldPath].disabled = Boolean(disabled);
+    });
+  }
+
+  function setDebtTreatmentFieldsDisabled(fields, disabled) {
+    (fields.defaultProfileButtons || []).forEach(function (button) {
+      button.disabled = Boolean(disabled);
+    });
+
+    Object.keys(fields.mortgage || {}).forEach(function (fieldName) {
+      fields.mortgage[fieldName].disabled = Boolean(disabled);
+    });
+
+    ["include", "mode", "payoff"].forEach(function (groupName) {
+      Object.keys(fields[groupName] || {}).forEach(function (fieldName) {
+        fields[groupName][fieldName].disabled = Boolean(disabled);
+      });
     });
   }
 
@@ -2278,6 +2859,42 @@
       nextAssumptions.unknownCoverageTreatment.reliabilityDiscountPercent
     );
     syncExistingCoveragePreview(fields, linkedRecord);
+  }
+
+  function applyDebtTreatmentProfile(fields, profile, linkedRecord) {
+    const normalizedProfile = normalizeDebtTreatmentProfile(profile, "custom");
+    const profileDefaults = DEBT_TREATMENT_PROFILE_DEFAULTS[normalizedProfile];
+    const current = getDebtTreatmentDraftAssumptions(fields);
+    setDebtTreatmentDefaultProfile(fields, normalizedProfile);
+
+    if (!profileDefaults) {
+      fields.currentAssumptions = {
+        ...current,
+        globalTreatmentProfile: normalizedProfile
+      };
+      syncDebtTreatmentPreview(fields, linkedRecord);
+      return;
+    }
+
+    const nextAssumptions = {
+      ...current,
+      globalTreatmentProfile: normalizedProfile,
+      mortgageTreatment: {
+        ...current.mortgageTreatment,
+        ...profileDefaults.mortgageTreatment
+      },
+      nonMortgageDebtTreatment: {}
+    };
+
+    NON_MORTGAGE_DEBT_ITEMS.forEach(function (item) {
+      nextAssumptions.nonMortgageDebtTreatment[item.key] = {
+        ...current.nonMortgageDebtTreatment[item.key],
+        ...(profileDefaults.nonMortgageDebtTreatment[item.key]
+          || DEFAULT_DEBT_TREATMENT_ASSUMPTIONS.nonMortgageDebtTreatment[item.key])
+      };
+    });
+
+    populateDebtTreatmentFields(fields, nextAssumptions, linkedRecord);
   }
 
   function readValidatedAssumptions(fields) {
@@ -2781,11 +3398,136 @@
     };
   }
 
-  function saveAnalysisSetupSettings(fields, sliders, methodFields, growthFields, growthSliders, assetFields, assetTreatmentFields, existingCoverageFields, linkedRecord, validationMessage, statusMessage) {
+  function readRequiredDebtPayoffPercent(field, label) {
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return {
+        error: `${label} is required. Enter a value from ${MIN_DEBT_PAYOFF_PERCENT}% to ${MAX_DEBT_PAYOFF_PERCENT}%.`
+      };
+    }
+
+    const number = Number(rawValue);
+    if (!Number.isFinite(number)) {
+      return {
+        error: `${label} must be a numeric percentage.`
+      };
+    }
+
+    if (number < MIN_DEBT_PAYOFF_PERCENT || number > MAX_DEBT_PAYOFF_PERCENT) {
+      return {
+        error: `${label} must be between ${MIN_DEBT_PAYOFF_PERCENT}% and ${MAX_DEBT_PAYOFF_PERCENT}%.`
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
+  function readOptionalDebtSupportYears(field) {
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return { value: null };
+    }
+
+    const number = Number(rawValue);
+    if (!Number.isFinite(number)) {
+      return {
+        error: "Mortgage payment support years must be a numeric year value."
+      };
+    }
+
+    if (number < MIN_DEBT_SUPPORT_YEARS || number > MAX_DEBT_SUPPORT_YEARS) {
+      return {
+        error: `Mortgage payment support years must be between ${MIN_DEBT_SUPPORT_YEARS} and ${MAX_DEBT_SUPPORT_YEARS}.`
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
+  function readValidatedDebtTreatmentAssumptions(fields) {
+    const defaultProfile = getDebtTreatmentDefaultProfile(fields);
+    if (!DEBT_TREATMENT_PROFILE_KEYS.includes(defaultProfile)) {
+      return {
+        error: "Debt & Mortgage Treatment default settings must be Conservative, Balanced, Aggressive, or Custom."
+      };
+    }
+
+    const mortgageMode = String(fields.mortgage?.mode?.value || "").trim();
+    if (!MORTGAGE_TREATMENT_MODES.includes(mortgageMode)) {
+      return {
+        error: "Mortgage treatment must be Payoff, Support, or Custom."
+      };
+    }
+
+    const mortgagePayoff = readRequiredDebtPayoffPercent(
+      fields.mortgage?.payoffPercent,
+      "Mortgage payoff percent"
+    );
+    if (mortgagePayoff.error) {
+      return mortgagePayoff;
+    }
+
+    const supportYears = readOptionalDebtSupportYears(fields.mortgage?.paymentSupportYears);
+    if (supportYears.error) {
+      return supportYears;
+    }
+
+    const nextAssumptions = {
+      enabled: false,
+      globalTreatmentProfile: defaultProfile,
+      mortgageTreatment: {
+        mode: mortgageMode,
+        include: Boolean(fields.mortgage?.include?.checked),
+        payoffPercent: mortgagePayoff.value,
+        paymentSupportYears: supportYears.value
+      },
+      nonMortgageDebtTreatment: {}
+    };
+
+    for (let index = 0; index < NON_MORTGAGE_DEBT_ITEMS.length; index += 1) {
+      const item = NON_MORTGAGE_DEBT_ITEMS[index];
+      const mode = String(fields.mode[item.key]?.value || "").trim();
+      if (!DEBT_CATEGORY_TREATMENT_MODES.includes(mode)) {
+        return {
+          error: `${item.label} treatment mode must be Payoff, Exclude, or Custom.`
+        };
+      }
+
+      const payoff = readRequiredDebtPayoffPercent(
+        fields.payoff[item.key],
+        `${item.label} payoff percent`
+      );
+      if (payoff.error) {
+        return payoff;
+      }
+
+      nextAssumptions.nonMortgageDebtTreatment[item.key] = {
+        include: Boolean(fields.include[item.key]?.checked),
+        mode,
+        payoffPercent: payoff.value,
+        ...(item.key === "studentLoans" ? { dischargeAssumption: "unknown" } : {})
+      };
+    }
+
+    return {
+      value: {
+        ...nextAssumptions,
+        lastUpdatedAt: new Date().toISOString(),
+        source: "analysis-setup"
+      }
+    };
+  }
+
+  function saveAnalysisSetupSettings(fields, sliders, methodFields, growthFields, growthSliders, assetFields, assetTreatmentFields, existingCoverageFields, debtTreatmentFields, linkedRecord, validationMessage, statusMessage) {
     const clientRecords = LensApp.clientRecords || {};
     const shouldSaveAssetLiquidity = hasAssetLiquidityFields(assetFields);
     const shouldSaveAssetTreatment = hasAssetTreatmentFields(assetTreatmentFields);
     const shouldSaveExistingCoverage = hasExistingCoverageFields(existingCoverageFields);
+    const shouldSaveDebtTreatment = hasDebtTreatmentFields(debtTreatmentFields);
 
     RATE_FIELDS.forEach(function (fieldName) {
       syncSliderFromNumber(fields, sliders, fieldName, true);
@@ -2880,6 +3622,33 @@
       });
     }
 
+    if (shouldSaveDebtTreatment) {
+      ["payoffPercent", "paymentSupportYears"].forEach(function (fieldName) {
+        const field = debtTreatmentFields.mortgage[fieldName];
+        const rawValue = String(field?.value || "").trim();
+        const number = Number(rawValue);
+        const maxValue = fieldName === "paymentSupportYears" ? MAX_DEBT_SUPPORT_YEARS : MAX_DEBT_PAYOFF_PERCENT;
+        if (field && rawValue && Number.isFinite(number) && number >= 0 && number <= maxValue) {
+          field.value = formatHaircutInputValue(number);
+        }
+      });
+
+      NON_MORTGAGE_DEBT_ITEMS.forEach(function (item) {
+        const field = debtTreatmentFields.payoff[item.key];
+        const rawValue = String(field?.value || "").trim();
+        const number = Number(rawValue);
+        if (
+          field
+          && rawValue
+          && Number.isFinite(number)
+          && number >= MIN_DEBT_PAYOFF_PERCENT
+          && number <= MAX_DEBT_PAYOFF_PERCENT
+        ) {
+          field.value = formatHaircutInputValue(number);
+        }
+      });
+    }
+
     const validatedInflation = readValidatedAssumptions(fields);
 
     if (validatedInflation.error) {
@@ -2934,6 +3703,16 @@
       return null;
     }
 
+    const validatedDebtTreatment = shouldSaveDebtTreatment
+      ? readValidatedDebtTreatmentAssumptions(debtTreatmentFields)
+      : null;
+
+    if (validatedDebtTreatment?.error) {
+      setMessage(validationMessage, validatedDebtTreatment.error, "error");
+      setStatus(statusMessage, "Analysis Setup settings were not saved.", "error");
+      return null;
+    }
+
     const linkedCaseRef = String(linkedRecord?.caseRef || "").trim();
     if (!linkedCaseRef || typeof clientRecords.updateClientRecordByCaseRef !== "function") {
       setMessage(validationMessage, "Link a client profile before saving Analysis Setup settings.", "error");
@@ -2955,7 +3734,8 @@
           growthAndReturnAssumptions: validatedGrowth.value,
           ...(validatedAssets ? { assetLiquidityAssumptions: validatedAssets.value } : {}),
           ...(validatedAssetTreatment ? { assetTreatmentAssumptions: validatedAssetTreatment.value } : {}),
-          ...(validatedExistingCoverage ? { existingCoverageAssumptions: validatedExistingCoverage.value } : {})
+          ...(validatedExistingCoverage ? { existingCoverageAssumptions: validatedExistingCoverage.value } : {}),
+          ...(validatedDebtTreatment ? { debtTreatmentAssumptions: validatedDebtTreatment.value } : {})
         }
       };
     });
@@ -2980,6 +3760,9 @@
     if (shouldSaveExistingCoverage) {
       populateExistingCoverageFields(existingCoverageFields, getExistingCoverageAssumptions(updatedRecord), updatedRecord);
     }
+    if (shouldSaveDebtTreatment) {
+      populateDebtTreatmentFields(debtTreatmentFields, getDebtTreatmentAssumptions(updatedRecord), updatedRecord);
+    }
     setMessage(validationMessage, "", "neutral");
     setStatus(statusMessage, "Analysis Setup settings saved.", "success");
     return updatedRecord;
@@ -2992,6 +3775,7 @@
     }
 
     renderAssetTreatmentRows();
+    renderDebtTreatmentRows();
 
     const fields = getFieldMap();
     const sliders = getSliderMap();
@@ -3001,12 +3785,15 @@
     const assetFields = getAssetFieldMap();
     const assetTreatmentFields = getAssetTreatmentFieldMap();
     const existingCoverageFields = getExistingCoverageFieldMap();
+    const debtTreatmentFields = getDebtTreatmentFieldMap();
     const saveButton = document.querySelector("[data-analysis-setup-save]");
     const applyButton = document.querySelector("[data-analysis-setup-apply]");
     const statusMessage = document.querySelector("[data-analysis-setup-status]");
     const validationMessage = document.querySelector("[data-analysis-setup-validation]");
     const linkedState = document.querySelector("[data-analysis-setup-linked-state]");
-    const badge = document.querySelector("[data-analysis-setup-badge]");
+    const setupShell = document.querySelector(".analysis-setup-shell");
+    const headerToggle = document.querySelector("[data-analysis-setup-header-toggle]");
+    const headerToggleLabel = document.querySelector("[data-analysis-setup-header-toggle-label]");
     let linkedRecord = resolveLinkedProfileRecord();
 
     populateFields(fields, getInflationAssumptions(linkedRecord), sliders);
@@ -3015,6 +3802,18 @@
     populateAssetFields(assetFields, getAssetLiquidityAssumptions(linkedRecord));
     populateAssetTreatmentFields(assetTreatmentFields, getAssetTreatmentAssumptions(linkedRecord), linkedRecord);
     populateExistingCoverageFields(existingCoverageFields, getExistingCoverageAssumptions(linkedRecord), linkedRecord);
+    populateDebtTreatmentFields(debtTreatmentFields, getDebtTreatmentAssumptions(linkedRecord), linkedRecord);
+
+    if (setupShell && headerToggle) {
+      headerToggle.addEventListener("click", function () {
+        const isCollapsed = setupShell.classList.toggle("is-header-collapsed");
+        headerToggle.setAttribute("aria-expanded", String(!isCollapsed));
+        headerToggle.title = isCollapsed ? "Expand setup header" : "Collapse setup header";
+        if (headerToggleLabel) {
+          headerToggleLabel.textContent = isCollapsed ? "Expand setup header" : "Collapse setup header";
+        }
+      });
+    }
 
     if (!linkedRecord) {
       setFieldsDisabled(fields, sliders, true);
@@ -3023,6 +3822,7 @@
       setAssetFieldsDisabled(assetFields, true);
       setAssetTreatmentFieldsDisabled(assetTreatmentFields, true);
       setExistingCoverageFieldsDisabled(existingCoverageFields, true);
+      setDebtTreatmentFieldsDisabled(debtTreatmentFields, true);
       if (saveButton) {
         saveButton.disabled = true;
       }
@@ -3036,9 +3836,6 @@
       if (linkedState) {
         linkedState.textContent = "Link a profile first to save Analysis Setup settings.";
       }
-      if (badge) {
-        badge.textContent = "No linked profile";
-      }
       setStatus(statusMessage, "Settings require a linked profile. Continue without saving.", "error");
       return;
     }
@@ -3049,6 +3846,7 @@
     setAssetFieldsDisabled(assetFields, false);
     setAssetTreatmentFieldsDisabled(assetTreatmentFields, false);
     setExistingCoverageFieldsDisabled(existingCoverageFields, false);
+    setDebtTreatmentFieldsDisabled(debtTreatmentFields, false);
     if (saveButton) {
       saveButton.disabled = false;
     }
@@ -3058,9 +3856,6 @@
     if (linkedState) {
       const profileName = String(linkedRecord.displayName || linkedRecord.clientName || "Linked profile").trim();
       linkedState.textContent = `${profileName} is linked for Analysis Setup.`;
-    }
-    if (badge) {
-      badge.textContent = "Settings editable";
     }
     setStatus(statusMessage, "Analysis Setup settings save to the linked profile.", "neutral");
 
@@ -3147,6 +3942,14 @@
       });
     });
 
+    (debtTreatmentFields.defaultProfileButtons || []).forEach(function (button) {
+      button.addEventListener("click", function () {
+        const profile = String(button.getAttribute("data-analysis-debt-profile") || "").trim();
+        applyDebtTreatmentProfile(debtTreatmentFields, profile, linkedRecord);
+        markUnsaved();
+      });
+    });
+
     (assetTreatmentFields.defaultProfileButtons || []).forEach(function (button) {
       button.addEventListener("click", function () {
         const profile = String(button.getAttribute("data-analysis-asset-default-profile") || "").trim();
@@ -3188,6 +3991,96 @@
           field.value = formatHaircutInputValue(number);
         }
         syncCoverageChange();
+      });
+    });
+
+    Object.keys(debtTreatmentFields.mortgage || {}).forEach(function (fieldName) {
+      const field = debtTreatmentFields.mortgage[fieldName];
+      if (!field) {
+        return;
+      }
+
+      const syncDebtChange = function () {
+        setDebtTreatmentDefaultProfile(debtTreatmentFields, "custom");
+        syncDebtSupportYearsVisibility(debtTreatmentFields);
+        syncDebtTreatmentPreview(debtTreatmentFields, linkedRecord);
+        markUnsaved();
+      };
+
+      field.addEventListener("input", function () {
+        if (fieldName === "paymentSupportYears") {
+          const sanitizedValue = sanitizeNumericTextValue(field.value);
+          if (field.value !== sanitizedValue) {
+            field.value = sanitizedValue;
+          }
+        }
+        syncDebtChange();
+      });
+
+      field.addEventListener("change", function () {
+        if (fieldName === "mode") {
+          const mode = String(field.value || "").trim();
+          if (mode === "support") {
+            if (debtTreatmentFields.mortgage.include) {
+              debtTreatmentFields.mortgage.include.checked = false;
+            }
+            if (debtTreatmentFields.mortgage.payoffPercent) {
+              debtTreatmentFields.mortgage.payoffPercent.value = "0";
+            }
+          } else if (mode === "payoff") {
+            if (debtTreatmentFields.mortgage.include) {
+              debtTreatmentFields.mortgage.include.checked = true;
+            }
+            if (debtTreatmentFields.mortgage.payoffPercent) {
+              debtTreatmentFields.mortgage.payoffPercent.value = "100";
+            }
+          }
+        }
+
+        const rawValue = String(field.value || "").trim();
+        const number = Number(rawValue);
+        const maxValue = fieldName === "paymentSupportYears" ? MAX_DEBT_SUPPORT_YEARS : MAX_DEBT_PAYOFF_PERCENT;
+        if (field.type !== "checkbox" && rawValue && Number.isFinite(number) && number >= 0 && number <= maxValue) {
+          field.value = formatHaircutInputValue(number);
+        }
+        syncDebtChange();
+      });
+    });
+
+    NON_MORTGAGE_DEBT_ITEMS.forEach(function (item) {
+      const syncDebtRowChange = function () {
+        setDebtTreatmentDefaultProfile(debtTreatmentFields, "custom");
+        syncDebtTreatmentPreview(debtTreatmentFields, linkedRecord);
+        markUnsaved();
+      };
+
+      debtTreatmentFields.include[item.key]?.addEventListener("change", syncDebtRowChange);
+      debtTreatmentFields.mode[item.key]?.addEventListener("change", function () {
+        const mode = String(debtTreatmentFields.mode[item.key]?.value || "").trim();
+        if (mode === "exclude") {
+          setDebtCategoryChecked(debtTreatmentFields, item.key, false);
+          setDebtCategoryValue(debtTreatmentFields, "payoff", item.key, 0);
+        } else if (mode === "payoff") {
+          setDebtCategoryChecked(debtTreatmentFields, item.key, true);
+          setDebtCategoryValue(debtTreatmentFields, "payoff", item.key, 100);
+        }
+        syncDebtRowChange();
+      });
+      debtTreatmentFields.payoff[item.key]?.addEventListener("input", syncDebtRowChange);
+      debtTreatmentFields.payoff[item.key]?.addEventListener("change", function () {
+        const field = debtTreatmentFields.payoff[item.key];
+        const rawValue = String(field?.value || "").trim();
+        const number = Number(rawValue);
+        if (
+          field
+          && rawValue
+          && Number.isFinite(number)
+          && number >= MIN_DEBT_PAYOFF_PERCENT
+          && number <= MAX_DEBT_PAYOFF_PERCENT
+        ) {
+          field.value = formatHaircutInputValue(number);
+        }
+        syncDebtRowChange();
       });
     });
 
@@ -3313,6 +4206,7 @@
         assetFields,
         assetTreatmentFields,
         existingCoverageFields,
+        debtTreatmentFields,
         linkedRecord,
         validationMessage,
         statusMessage
@@ -3329,6 +4223,7 @@
         assetFields,
         assetTreatmentFields,
         existingCoverageFields,
+        debtTreatmentFields,
         linkedRecord,
         validationMessage,
         statusMessage
@@ -3350,11 +4245,13 @@
     DEFAULT_ASSET_LIQUIDITY_ASSUMPTIONS,
     DEFAULT_ASSET_TREATMENT_ASSUMPTIONS,
     DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS,
+    DEFAULT_DEBT_TREATMENT_ASSUMPTIONS,
     getInflationAssumptions,
     getMethodDefaults,
     getGrowthAndReturnAssumptions,
     getAssetLiquidityAssumptions,
     getAssetTreatmentAssumptions,
-    getExistingCoverageAssumptions
+    getExistingCoverageAssumptions,
+    getDebtTreatmentAssumptions
   });
 })();

@@ -79,7 +79,7 @@
   <main class='home-shell app-home-shell prospect-shell lens-workflow-shell'>
     <section class='prospect-stage lens-workflow-stage'>
       <section class='analysis-setup-shell workspace-visible-pane'>
-        <header class="analysis-setup-header">
+        <header id="analysis-setup-page-header" class="analysis-setup-header">
           <div>
             <div class="analysis-setup-eyebrow">Step 2</div>
             <h1>Analysis Setup</h1>
@@ -102,7 +102,12 @@
                 <h2 id="analysis-setup-panel-title">Assumption Controls</h2>
                 <p class="analysis-setup-linked-state" data-analysis-setup-linked-state>Resolving linked profile...</p>
               </div>
-              <span class="analysis-setup-template-badge" data-analysis-setup-badge>Linked profile required</span>
+              <button class="analysis-setup-header-toggle" type="button" data-analysis-setup-header-toggle aria-controls="analysis-setup-page-header" aria-expanded="true" title="Collapse setup header">
+                <span class="analysis-setup-header-toggle-glyph" aria-hidden="true">
+                  <img class="analysis-setup-header-toggle-art" src="../Images/doublearrow.svg" alt="">
+                </span>
+                <span class="sr-only" data-analysis-setup-header-toggle-label>Collapse setup header</span>
+              </button>
             </header>
 
             <div class="analysis-setup-panel-body">
@@ -293,7 +298,8 @@
                   </div>
                 </section>
 
-                <section class="analysis-setup-control-group analysis-setup-control-group--wide analysis-setup-control-group--coverage" aria-labelledby="analysis-setup-coverage-treatment">
+                <div class="analysis-setup-treatment-row">
+                  <section class="analysis-setup-control-group analysis-setup-control-group--coverage" aria-labelledby="analysis-setup-coverage-treatment">
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-coverage-treatment">Existing Coverage Treatment</h3>
                     <p>Control how current policies will be counted later as coverage offsets. Raw policy details remain stored on the client profile.</p>
@@ -321,21 +327,24 @@
                       </span>
                     </label>
 
-                    <div class="analysis-setup-coverage-row">
-                      <label class="analysis-setup-coverage-switch">
-                        <span>Group / employer coverage</span>
-                        <span class="settings-switch analysis-setup-mini-switch">
-                          <input type="checkbox" role="switch" aria-label="Include group or employer coverage" data-analysis-coverage-field="groupCoverageTreatment.include">
-                          <span class="settings-switch-track" aria-hidden="true"></span>
-                        </span>
-                      </label>
-                      <label class="analysis-setup-coverage-percent" for="analysis-setup-group-coverage-discount">
-                        <span>Reliability discount</span>
-                        <span class="analysis-setup-asset-percent">
-                          <input id="analysis-setup-group-coverage-discount" class="analysis-setup-asset-percent-input" type="text" inputmode="decimal" data-analysis-coverage-field="groupCoverageTreatment.reliabilityDiscountPercent">
-                          <span aria-hidden="true">%</span>
-                        </span>
-                      </label>
+                    <div class="analysis-setup-coverage-row analysis-setup-coverage-row--discount">
+                      <span class="analysis-setup-coverage-title">Group / employer coverage</span>
+                      <div class="analysis-setup-coverage-control-line">
+                        <label class="analysis-setup-coverage-switch analysis-setup-coverage-switch--compact">
+                          <span class="sr-only">Include group or employer coverage</span>
+                          <span class="settings-switch analysis-setup-mini-switch">
+                            <input type="checkbox" role="switch" aria-label="Include group or employer coverage" data-analysis-coverage-field="groupCoverageTreatment.include">
+                            <span class="settings-switch-track" aria-hidden="true"></span>
+                          </span>
+                        </label>
+                        <label class="analysis-setup-coverage-percent" for="analysis-setup-group-coverage-discount">
+                          <span>Reliability discount</span>
+                          <span class="analysis-setup-asset-percent">
+                            <input id="analysis-setup-group-coverage-discount" class="analysis-setup-asset-percent-input" type="text" inputmode="decimal" data-analysis-coverage-field="groupCoverageTreatment.reliabilityDiscountPercent">
+                            <span aria-hidden="true">%</span>
+                          </span>
+                        </label>
+                      </div>
                       <p>Discounts employer/group coverage for portability and job-change risk.</p>
                     </div>
 
@@ -350,21 +359,24 @@
                       <p>Pending or proposed coverage should usually not offset the need until placed.</p>
                     </div>
 
-                    <div class="analysis-setup-coverage-row">
-                      <label class="analysis-setup-coverage-switch">
-                        <span>Unknown coverage</span>
-                        <span class="settings-switch analysis-setup-mini-switch">
-                          <input type="checkbox" role="switch" aria-label="Include unknown coverage" data-analysis-coverage-field="unknownCoverageTreatment.include">
-                          <span class="settings-switch-track" aria-hidden="true"></span>
-                        </span>
-                      </label>
-                      <label class="analysis-setup-coverage-percent" for="analysis-setup-unknown-coverage-discount">
-                        <span>Reliability discount</span>
-                        <span class="analysis-setup-asset-percent">
-                          <input id="analysis-setup-unknown-coverage-discount" class="analysis-setup-asset-percent-input" type="text" inputmode="decimal" data-analysis-coverage-field="unknownCoverageTreatment.reliabilityDiscountPercent">
-                          <span aria-hidden="true">%</span>
-                        </span>
-                      </label>
+                    <div class="analysis-setup-coverage-row analysis-setup-coverage-row--discount">
+                      <span class="analysis-setup-coverage-title">Unknown coverage</span>
+                      <div class="analysis-setup-coverage-control-line">
+                        <label class="analysis-setup-coverage-switch analysis-setup-coverage-switch--compact">
+                          <span class="sr-only">Include unknown coverage</span>
+                          <span class="settings-switch analysis-setup-mini-switch">
+                            <input type="checkbox" role="switch" aria-label="Include unknown coverage" data-analysis-coverage-field="unknownCoverageTreatment.include">
+                            <span class="settings-switch-track" aria-hidden="true"></span>
+                          </span>
+                        </label>
+                        <label class="analysis-setup-coverage-percent" for="analysis-setup-unknown-coverage-discount">
+                          <span>Reliability discount</span>
+                          <span class="analysis-setup-asset-percent">
+                            <input id="analysis-setup-unknown-coverage-discount" class="analysis-setup-asset-percent-input" type="text" inputmode="decimal" data-analysis-coverage-field="unknownCoverageTreatment.reliabilityDiscountPercent">
+                            <span aria-hidden="true">%</span>
+                          </span>
+                        </label>
+                      </div>
                     </div>
 
                     <label class="analysis-setup-coverage-row analysis-setup-coverage-row--inline" for="analysis-setup-term-expiration-guardrail">
@@ -388,14 +400,92 @@
                   </div>
                 </section>
 
+                  <section class="analysis-setup-control-group analysis-setup-control-group--debt" aria-labelledby="analysis-setup-debt-treatment">
+                  <div class="analysis-setup-control-heading">
+                    <h3 id="analysis-setup-debt-treatment">Debt &amp; Mortgage Treatment</h3>
+                    <p>Choose which debts should be paid off immediately or handled through ongoing support later. Raw balances remain in Protection Modeling Inputs.</p>
+                  </div>
+
+                  <div class="analysis-setup-asset-defaults analysis-setup-debt-defaults" aria-label="Debt and mortgage treatment default settings">
+                    <span class="analysis-setup-asset-defaults-label">Default Settings:</span>
+                    <div class="analysis-setup-asset-default-buttons" role="group" aria-label="Debt and mortgage treatment profile">
+                      <button class="analysis-setup-asset-default-button" type="button" data-analysis-debt-profile="conservative" aria-pressed="false">Conservative</button>
+                      <button class="analysis-setup-asset-default-button" type="button" data-analysis-debt-profile="balanced" aria-pressed="true">Balanced</button>
+                      <button class="analysis-setup-asset-default-button" type="button" data-analysis-debt-profile="aggressive" aria-pressed="false">Aggressive</button>
+                      <button class="analysis-setup-asset-default-button" type="button" data-analysis-debt-profile="custom" aria-pressed="false">Custom</button>
+                    </div>
+                  </div>
+
+                  <div class="analysis-setup-debt-mortgage-card" aria-label="Mortgage treatment">
+                    <div class="analysis-setup-debt-mortgage-head">
+                      <span>Mortgage treatment</span>
+                      <span class="analysis-setup-treatment-preview" data-analysis-debt-mortgage-preview>No source value</span>
+                    </div>
+                    <div class="analysis-setup-debt-mortgage-grid">
+                      <label>
+                        <span>Mode</span>
+                        <select class="analysis-setup-asset-select analysis-setup-debt-field" data-analysis-debt-mortgage-field="mode" aria-label="Mortgage treatment mode">
+                          <option value="payoff">Pay off full mortgage</option>
+                          <option value="support">Include mortgage payments in support</option>
+                          <option value="custom">Custom</option>
+                        </select>
+                      </label>
+                      <label class="analysis-setup-debt-switch">
+                        <span>Include mortgage payoff</span>
+                        <span class="settings-switch analysis-setup-mini-switch">
+                          <input class="analysis-setup-debt-field" type="checkbox" role="switch" aria-label="Include mortgage payoff" data-analysis-debt-mortgage-field="include">
+                          <span class="settings-switch-track" aria-hidden="true"></span>
+                        </span>
+                      </label>
+                      <label class="analysis-setup-debt-percent" for="analysis-setup-mortgage-payoff-percent">
+                        <span>Payoff percent</span>
+                        <span class="analysis-setup-asset-percent">
+                          <input id="analysis-setup-mortgage-payoff-percent" class="analysis-setup-asset-percent-input analysis-setup-debt-field" type="text" inputmode="decimal" data-analysis-debt-mortgage-field="payoffPercent">
+                          <span aria-hidden="true">%</span>
+                        </span>
+                      </label>
+                      <label class="analysis-setup-debt-years" for="analysis-setup-mortgage-support-years" data-analysis-debt-support-years-row hidden>
+                        <span>Payment support years</span>
+                        <span>
+                          <input id="analysis-setup-mortgage-support-years" class="analysis-setup-asset-percent-input analysis-setup-debt-field" type="text" inputmode="numeric" placeholder="Blank" data-analysis-debt-mortgage-field="paymentSupportYears">
+                          <span>years</span>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="analysis-setup-debt-table" role="table" aria-label="Non-mortgage debt treatment" data-analysis-debt-table>
+                    <div class="analysis-setup-debt-row analysis-setup-debt-row--head" role="row">
+                      <span role="columnheader">Debt</span>
+                      <span role="columnheader">Include</span>
+                      <span role="columnheader">Mode</span>
+                      <span role="columnheader">Payoff</span>
+                      <span role="columnheader">Source balance</span>
+                    </div>
+                  </div>
+
+                  <div class="analysis-setup-debt-preview" aria-label="Debt treatment preview">
+                    <div>
+                      <span>Raw debt payoff total</span>
+                      <strong data-analysis-debt-raw-preview>No saved debt data found</strong>
+                    </div>
+                    <div>
+                      <span>Future adjusted debt treatment preview</span>
+                      <strong data-analysis-debt-adjusted-preview>No saved debt data found</strong>
+                    </div>
+                  </div>
+                  <p class="analysis-setup-debt-preview-note" data-analysis-debt-preview-note>Preview only. Current Needs, DIME, HLV, and recommendation results are unchanged.</p>
+                  </section>
+                </div>
+
               </div>
             </div>
 
             <footer class="analysis-setup-panel-footer">
               <span id="analysis-setup-status" data-analysis-setup-status aria-live="polite">Analysis Setup settings save to the linked profile.</span>
               <div class="analysis-setup-action-row">
-                <button class="btn btn-secondary analysis-setup-action" type="button" data-analysis-setup-save disabled aria-describedby="analysis-setup-status">Save Assumptions</button>
-                <button class="btn btn-primary analysis-setup-action" type="button" data-analysis-setup-apply disabled aria-describedby="analysis-setup-status">Apply &amp; Continue</button>
+                <button class="analysis-setup-action" type="button" data-analysis-setup-save disabled aria-describedby="analysis-setup-status">Save Assumptions</button>
+                <button class="analysis-setup-action" type="button" data-analysis-setup-apply disabled aria-describedby="analysis-setup-status">Apply &amp; Continue</button>
               </div>
             </footer>
           </section>

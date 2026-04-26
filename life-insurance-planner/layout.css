@@ -1289,6 +1289,15 @@ body.lens-workflow-page {
   margin-top: 0.35rem;
 }
 
+.analysis-setup-shell.is-header-collapsed {
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+}
+
+.analysis-setup-shell.is-header-collapsed .analysis-setup-header {
+  display: none;
+}
+
 .analysis-setup-workspace {
   display: grid;
   grid-template-rows: minmax(0, 1fr);
@@ -1345,6 +1354,14 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
   grid-row: 1;
 }
 
+.analysis-setup-treatment-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 0.64fr) minmax(0, 1.36fr);
+  gap: clamp(0.55rem, 0.9vw, 0.78rem);
+  min-width: 0;
+}
+
 @media (max-width: 1180px) {
   .analysis-setup-header {
     grid-template-columns: 1fr;
@@ -1357,7 +1374,8 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
 
   .analysis-setup-left-stack,
   .analysis-setup-control-group--wide,
-  .analysis-setup-control-group--inflation {
+  .analysis-setup-control-group--inflation,
+  .analysis-setup-treatment-row {
     grid-column: 1 / -1;
   }
 
@@ -1373,12 +1391,17 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
 
   .analysis-setup-left-stack,
   .analysis-setup-control-group--wide,
-  .analysis-setup-control-group--inflation {
+  .analysis-setup-control-group--inflation,
+  .analysis-setup-treatment-row {
     grid-column: auto;
   }
 
   .analysis-setup-control-group--assets {
     grid-row: auto;
+  }
+
+  .analysis-setup-treatment-row {
+    grid-template-columns: 1fr;
   }
 }
 

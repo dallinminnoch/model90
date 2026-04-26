@@ -6832,8 +6832,8 @@ label:not(.analysis-setup-rate-label) {
   font-weight: 700;
 }
 
-input:not(.client-table-search-input):not(.analysis-setup-rate-slider):not([data-analysis-inflation-field]):not([data-analysis-method-field]):not([data-analysis-growth-field]):not(.analysis-setup-asset-field),
-select:not(.analysis-setup-asset-field),
+input:not(.client-table-search-input):not(.analysis-setup-rate-slider):not([data-analysis-inflation-field]):not([data-analysis-method-field]):not([data-analysis-growth-field]):not(.analysis-setup-asset-field):not(.analysis-setup-debt-field):not([data-analysis-coverage-field]),
+select:not(.analysis-setup-asset-field):not(.analysis-setup-debt-field):not(.analysis-setup-asset-select),
 textarea {
   width: 100%;
   min-height: clamp(2.75rem, 4vw, 2.9rem);
