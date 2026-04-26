@@ -5,7 +5,7 @@
   min-height: calc(100vh - 140px);
   background: rgba(255, 255, 255, 0.97);
   border: 1px solid rgba(213, 221, 232, 0.78);
-  border-radius: clamp(1.1rem, 1.8vw, 1.5rem);
+  border-radius: 0;
   box-shadow: 0 22px 48px rgba(16, 33, 52, 0.08);
   overflow: hidden;
 }
@@ -1084,7 +1084,7 @@ body[data-page="preliminary-linked"] .entry-page-viewport {
     min-height: 0;
     background: rgba(255, 255, 255, 0.97);
     border: 1px solid rgba(213, 221, 232, 0.78);
-    border-radius: 0.35em;
+    border-radius: 0;
     box-shadow: 0 22px 48px rgba(16, 33, 52, 0.08);
     overflow-y: auto;
     overflow-x: hidden;
@@ -1109,13 +1109,16 @@ body[data-page="preliminary-linked"] .entry-page-viewport {
     grid-template-rows: minmax(0, 1fr);
     height: 100%;
     min-height: 0;
-    padding-left: calc(var(--app-side-nav-width) + var(--app-side-nav-gap));
+    padding-left: var(--app-side-nav-width);
     overflow: hidden;
     box-sizing: border-box;
   }
 
-  body.lens-page.workspace-side-nav-collapsed .prospect-stage {
-    padding-left: calc(var(--app-side-nav-collapsed-width) + var(--app-side-nav-gap));
+  body.lens-page.workspace-side-nav-collapsed .prospect-stage,
+  body.lens-page .workspace-side-nav-host.is-collapsed[data-workspace-side-nav="lens"] ~ .home-shell .prospect-stage,
+  body.lens-workflow-page.workspace-side-nav-collapsed .lens-workflow-stage,
+  body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-side-nav="lens"] ~ .home-shell .lens-workflow-stage {
+    padding-left: var(--app-side-nav-collapsed-width) !important;
   }
 
   body.lens-page .lens-start-main {
@@ -1126,6 +1129,12 @@ body[data-page="preliminary-linked"] .entry-page-viewport {
     height: 100%;
     min-height: 0;
     padding: clamp(1.25rem, 2.5vw, 1.75rem) clamp(0.95rem, 1.45vw, 1.15rem) 0;
+  }
+
+  body.lens-workflow-page .lens-workflow-pane {
+    height: 100%;
+    min-height: 0;
+    padding: clamp(1.25rem, 2.5vw, 1.75rem) clamp(0.95rem, 1.45vw, 1.15rem);
   }
 
   body.settings-page .settings-shell {
@@ -1234,7 +1243,7 @@ body.lens-intake-page .workflow-shell {
   padding-top: 0.8rem;
 }
 
-body.analysis-estimate-page {
+body.lens-workflow-page {
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -1245,7 +1254,7 @@ body.analysis-estimate-page {
 
 .analysis-estimate-shell {
   --analysis-estimate-inline-pad: clamp(0.75rem, 1.5vw, 1.35rem);
-  --analysis-estimate-safe-bottom: max(0.35rem, env(safe-area-inset-bottom));
+  --analysis-estimate-safe-bottom: env(safe-area-inset-bottom, 0px);
   --analysis-control-panel-side-gap: clamp(0.45rem, 0.8vw, 0.7rem);
   --analysis-control-panel-expanded-height: clamp(10.5rem, 24dvh, 13.5rem);
   --analysis-control-panel-collapsed-height: clamp(3.1rem, 6dvh, 3.65rem);

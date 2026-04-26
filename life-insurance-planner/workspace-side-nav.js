@@ -711,6 +711,19 @@
 
   function renderLensSidebar(options) {
     const pages = getWorkspacePages("lens", options);
+    const workflowSteps = [
+      { id: "profile-1", label: "Analysis Setup", path: "profile.html", icon: "planning" },
+      { id: "income-loss", label: "Income Loss Impact", path: "income-loss-impact.html", icon: "financial-snapshot" },
+      { id: "estimate", label: "Estimate Need", path: "analysis-estimate.html", icon: "needs-analysis" },
+      { id: "detail", label: "Detailed Analysis", path: "analysis-detail.html", icon: "analysis" },
+      { id: "recommendations", label: "Coverage Options", path: "recommendations.html", icon: "recommendation" },
+      { id: "planner", label: "Policy Planner", path: "planner.html", icon: "placement" },
+      { id: "summary", label: "Summary", path: "summary.html", icon: "documents" }
+    ];
+    const currentStep = String(document.body?.dataset?.step || "").trim();
+    const isWorkflowPage = workflowSteps.some(function (step) {
+      return step.id === currentStep;
+    });
     const items = [
       { key: "overview", label: "Overview", href: "#lens-overview", active: true },
       { key: "start", label: "Start Analysis", href: "#lens-start-analysis", active: false },
@@ -721,14 +734,30 @@
       ariaLabel: "LENS workspace navigation",
       pages: pages,
       title: "LENS Analysis",
-      sectionLabel: "Sections",
+      sectionLabel: isWorkflowPage ? "Analysis Workflow" : "Sections",
       toggleClass: "client-profile-side-tabs-toggle",
       toggleGlyphClass: "client-profile-side-tabs-toggle-glyph",
       toggleDataAttr: "data-lens-side-tabs-toggle",
       toggleLabel: "Collapse section navigation",
       contextMarkup: `
-        <nav class="workspace-side-nav-items workspace-side-nav-context-items" aria-label="LENS page navigation">
-          ${items.map(function (item) {
+        <nav class="workspace-side-nav-items workspace-side-nav-context-items${isWorkflowPage ? " client-profile-workflow-nav" : ""}" aria-label="${isWorkflowPage ? "LENS workflow navigation" : "LENS page navigation"}">
+          ${isWorkflowPage ? workflowSteps.map(function (item) {
+            const isActive = item.id === currentStep;
+            return `
+              <a
+                class="workspace-side-nav-button workspace-side-nav-context-button client-profile-workflow-button client-profile-workflow-button--workflow${isActive ? " is-active is-current" : ""}"
+                href="${escapeHtml(item.path)}"
+                ${isActive ? ' aria-current="page"' : ""}
+                aria-label="${escapeHtml(item.label)}"
+                title="${escapeHtml(item.label)}"
+              >
+                <span class="client-profile-workflow-button-main">
+                  <span class="workspace-side-nav-icon workspace-side-nav-context-icon client-profile-workflow-button-icon" aria-hidden="true">${getClientDetailIcon(item.icon)}</span>
+                  <span class="workspace-side-nav-label workspace-side-nav-context-label client-profile-workflow-button-label">${escapeHtml(item.label)}</span>
+                </span>
+              </a>
+            `;
+          }).join("") : items.map(function (item) {
             return `
               <a
                 class="workspace-side-nav-button workspace-side-nav-context-button${item.active ? " is-active" : ""}"
@@ -867,10 +896,56 @@
     });
   }
 
+  function getStorageIdentity() {
+    try {
+      const session = JSON.parse(localStorage.getItem("lipPlannerAuthSession") || "null");
+      return session && session.email ? String(session.email).trim().toLowerCase() : "guest";
+    } catch (error) {
+      return "guest";
+    }
+  }
+
+  function initializeWorkspaceSideNavCollapse(root) {
+    const scope = root && typeof root.querySelectorAll === "function" ? root : document;
+    scope.querySelectorAll("[data-workspace-side-nav]").forEach(function (host) {
+      const toggle = host.querySelector(".workspace-side-nav-toggle");
+      if (!toggle || toggle.dataset.workspaceSideNavCollapseBound === "true") {
+        return;
+      }
+
+      toggle.dataset.workspaceSideNavCollapseBound = "true";
+      const storageKey = `workspaceSideNavCollapsed:${getStorageIdentity()}`;
+
+      function setCollapsed(isCollapsed) {
+        document.body.classList.toggle("workspace-side-nav-collapsed", isCollapsed);
+        host.classList.toggle("is-collapsed", isCollapsed);
+        toggle.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
+        toggle.setAttribute("aria-label", isCollapsed ? "Expand section navigation" : "Collapse section navigation");
+        toggle.setAttribute("title", isCollapsed ? "Expand section navigation" : "Collapse section navigation");
+      }
+
+      setCollapsed(
+        host.classList.contains("is-collapsed")
+          || document.body.classList.contains("workspace-side-nav-collapsed")
+      );
+
+      toggle.addEventListener("click", function () {
+        const nextCollapsed = !host.classList.contains("is-collapsed");
+        setCollapsed(nextCollapsed);
+        try {
+          localStorage.setItem(storageKey, nextCollapsed ? "1" : "0");
+        } catch (error) {
+        }
+      });
+    });
+  }
+
   window.WorkspaceSideNav = {
     render: render,
-    mountAll: mountAll
+    mountAll: mountAll,
+    initializeCollapse: initializeWorkspaceSideNavCollapse
   };
 
   mountAll(document);
+  initializeWorkspaceSideNavCollapse(document);
 })();

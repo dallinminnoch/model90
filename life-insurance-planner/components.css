@@ -10931,7 +10931,7 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
     clamp(0.85rem, 1.15vw, 1.05rem)
     var(--analysis-estimate-inline-pad);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem 0.5rem 0 0;
+  border-radius: 0.5rem;
   background: #172235;
   color: #f7fafc;
   box-shadow: 0 18px 36px rgba(16, 33, 52, 0.18);
