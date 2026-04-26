@@ -1311,14 +1311,29 @@ body.lens-workflow-page {
 }
 
 .analysis-setup-panel-grid {
+  --analysis-setup-inflation-column: minmax(16.75rem, 18.25rem);
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: var(--analysis-setup-inflation-column) repeat(2, minmax(0, 1fr));
   gap: clamp(0.55rem, 0.9vw, 0.78rem);
   min-width: 0;
 }
 
+body.lens-workflow-page.workspace-side-nav-collapsed .analysis-setup-panel-grid,
+body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-side-nav="lens"] ~ .home-shell .analysis-setup-panel-grid {
+  --analysis-setup-inflation-column: minmax(17.75rem, 20.5rem);
+}
+
 .analysis-setup-control-group--wide {
   grid-column: span 2;
+}
+
+.analysis-setup-control-group--inflation {
+  grid-column: auto;
+}
+
+.analysis-setup-control-group--assets {
+  grid-column: 2 / span 2;
+  grid-row: 1;
 }
 
 @media (max-width: 1180px) {
@@ -1331,8 +1346,13 @@ body.lens-workflow-page {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .analysis-setup-control-group--wide {
+  .analysis-setup-control-group--wide,
+  .analysis-setup-control-group--inflation {
     grid-column: 1 / -1;
+  }
+
+  .analysis-setup-control-group--assets {
+    grid-row: auto;
   }
 }
 
@@ -1341,8 +1361,13 @@ body.lens-workflow-page {
     grid-template-columns: 1fr;
   }
 
-  .analysis-setup-control-group--wide {
+  .analysis-setup-control-group--wide,
+  .analysis-setup-control-group--inflation {
     grid-column: auto;
+  }
+
+  .analysis-setup-control-group--assets {
+    grid-row: auto;
   }
 }
 

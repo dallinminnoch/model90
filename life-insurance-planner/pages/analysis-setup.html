@@ -85,22 +85,100 @@
             <h1>Analysis Setup</h1>
             <p class="intro-copy">Set planning assumptions before comparing needs, income value, and coverage options.</p>
           </div>
-          <p class="analysis-setup-note">Protection Modeling Inputs collect raw financial data. Planning assumptions, liquidity haircuts, and recommendation controls are managed here.</p>
+          <div class="analysis-setup-helper">
+            <span class="analysis-setup-helper-trigger" tabindex="0" aria-describedby="analysis-setup-helper-copy">
+              <span class="analysis-setup-helper-icon" aria-hidden="true">!</span>
+              <span>Why this?</span>
+            </span>
+            <p id="analysis-setup-helper-copy" class="analysis-setup-helper-tooltip" role="tooltip">Protection Modeling Inputs capture the client's raw financial facts. Assumption controls define how those facts are interpreted for planning, including default assumptions, tax treatment, liquidity haircuts, and recommendation guardrails. These assumptions matter for life insurance because they help determine how much existing wealth can realistically support survivors, reducing the risk of recommending unnecessary coverage while still protecting against underfunded needs.</p>
+          </div>
         </header>
 
         <section class="analysis-setup-workspace" aria-label="Analysis setup workspace">
           <section class="analysis-setup-assumption-panel" aria-labelledby="analysis-setup-panel-title">
             <header class="analysis-setup-panel-header">
               <div>
-                <div class="analysis-setup-panel-kicker">Template Only</div>
+                <div class="analysis-setup-panel-kicker">Planning Settings</div>
                 <h2 id="analysis-setup-panel-title">Assumption Controls</h2>
-                <p>Static setup controls reserved for planning defaults, offset treatment, and recommendation guardrails.</p>
+                <p>Planning defaults, offset treatment, and recommendation guardrails are managed here.</p>
+                <p class="analysis-setup-linked-state" data-analysis-setup-linked-state>Resolving linked profile...</p>
               </div>
-              <span class="analysis-setup-template-badge">Template only</span>
+              <span class="analysis-setup-template-badge" data-analysis-setup-badge>Linked profile required</span>
             </header>
 
             <div class="analysis-setup-panel-body">
               <div class="analysis-setup-panel-grid">
+                <section class="analysis-setup-control-group analysis-setup-control-group--inflation" aria-labelledby="analysis-setup-inflation">
+                  <div class="analysis-setup-control-heading">
+                    <h3 id="analysis-setup-inflation">Inflation Assumptions</h3>
+                  </div>
+
+                  <label class="settings-toggle-row analysis-setup-toggle-control">
+                    <span class="settings-toggle-copy">
+                      <span class="settings-toggle-label">Enable inflation adjustments</span>
+                      <span class="settings-toggle-note">Turning this off may understate long-term planning needs.</span>
+                    </span>
+                    <span class="settings-switch">
+                      <input
+                        type="checkbox"
+                        role="switch"
+                        aria-label="Enable inflation adjustments"
+                        checked
+                        data-analysis-inflation-field="enabled">
+                      <span class="settings-switch-track" aria-hidden="true"></span>
+                    </span>
+                  </label>
+
+                  <div class="analysis-setup-rate-grid">
+                    <div class="analysis-setup-rate-control">
+                      <label class="analysis-setup-rate-label" id="analysis-setup-general-inflation-label" for="analysis-setup-general-inflation-value">General inflation rate</label>
+                      <input class="analysis-setup-rate-slider" type="range" min="0" max="10" step="0.25" aria-labelledby="analysis-setup-general-inflation-label" data-analysis-inflation-slider="generalInflationRatePercent">
+                      <span class="analysis-setup-percent-input">
+                        <input id="analysis-setup-general-inflation-value" type="text" inputmode="decimal" aria-labelledby="analysis-setup-general-inflation-label" data-analysis-inflation-field="generalInflationRatePercent">
+                        <span aria-hidden="true">%</span>
+                      </span>
+                    </div>
+
+                    <div class="analysis-setup-rate-control">
+                      <label class="analysis-setup-rate-label" id="analysis-setup-household-inflation-label" for="analysis-setup-household-inflation-value">Household expense inflation</label>
+                      <input class="analysis-setup-rate-slider" type="range" min="0" max="10" step="0.25" aria-labelledby="analysis-setup-household-inflation-label" data-analysis-inflation-slider="householdExpenseInflationRatePercent">
+                      <span class="analysis-setup-percent-input">
+                        <input id="analysis-setup-household-inflation-value" type="text" inputmode="decimal" aria-labelledby="analysis-setup-household-inflation-label" data-analysis-inflation-field="householdExpenseInflationRatePercent">
+                        <span aria-hidden="true">%</span>
+                      </span>
+                    </div>
+
+                    <div class="analysis-setup-rate-control">
+                      <label class="analysis-setup-rate-label" id="analysis-setup-education-inflation-label" for="analysis-setup-education-inflation-value">Education inflation</label>
+                      <input class="analysis-setup-rate-slider" type="range" min="0" max="10" step="0.25" aria-labelledby="analysis-setup-education-inflation-label" data-analysis-inflation-slider="educationInflationRatePercent">
+                      <span class="analysis-setup-percent-input">
+                        <input id="analysis-setup-education-inflation-value" type="text" inputmode="decimal" aria-labelledby="analysis-setup-education-inflation-label" data-analysis-inflation-field="educationInflationRatePercent">
+                        <span aria-hidden="true">%</span>
+                      </span>
+                    </div>
+
+                    <div class="analysis-setup-rate-control">
+                      <label class="analysis-setup-rate-label" id="analysis-setup-healthcare-inflation-label" for="analysis-setup-healthcare-inflation-value">Healthcare inflation</label>
+                      <input class="analysis-setup-rate-slider" type="range" min="0" max="10" step="0.25" aria-labelledby="analysis-setup-healthcare-inflation-label" data-analysis-inflation-slider="healthcareInflationRatePercent">
+                      <span class="analysis-setup-percent-input">
+                        <input id="analysis-setup-healthcare-inflation-value" type="text" inputmode="decimal" aria-labelledby="analysis-setup-healthcare-inflation-label" data-analysis-inflation-field="healthcareInflationRatePercent">
+                        <span aria-hidden="true">%</span>
+                      </span>
+                    </div>
+
+                    <div class="analysis-setup-rate-control">
+                      <label class="analysis-setup-rate-label" id="analysis-setup-final-expense-inflation-label" for="analysis-setup-final-expense-inflation-value">Final expense inflation</label>
+                      <input class="analysis-setup-rate-slider" type="range" min="0" max="10" step="0.25" aria-labelledby="analysis-setup-final-expense-inflation-label" data-analysis-inflation-slider="finalExpenseInflationRatePercent">
+                      <span class="analysis-setup-percent-input">
+                        <input id="analysis-setup-final-expense-inflation-value" type="text" inputmode="decimal" aria-labelledby="analysis-setup-final-expense-inflation-label" data-analysis-inflation-field="finalExpenseInflationRatePercent">
+                        <span aria-hidden="true">%</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <p class="analysis-setup-validation-message" data-analysis-setup-validation role="alert" hidden></p>
+                </section>
+
                 <section class="analysis-setup-control-group" aria-labelledby="analysis-setup-method-defaults">
                   <h3 id="analysis-setup-method-defaults">Method Defaults</h3>
                   <dl class="analysis-setup-setting-list">
@@ -141,50 +219,38 @@
                   </dl>
                 </section>
 
-                <section class="analysis-setup-control-group analysis-setup-control-group--wide" aria-labelledby="analysis-setup-liquidity">
-                  <h3 id="analysis-setup-liquidity">Asset Liquidity &amp; Haircuts</h3>
-                  <div class="analysis-setup-static-table analysis-setup-static-table--assets" role="table" aria-label="Asset liquidity and haircut placeholders">
-                    <div class="analysis-setup-static-row analysis-setup-static-row--head" role="row">
+                <section class="analysis-setup-control-group analysis-setup-control-group--wide analysis-setup-control-group--assets" aria-labelledby="analysis-setup-asset-treatment">
+                  <div class="analysis-setup-control-heading">
+                    <h3 id="analysis-setup-asset-treatment">Asset Treatment</h3>
+                    <p>Set how each asset should be counted later in advanced offset modeling. Asset values are still collected in Protection Modeling Inputs.</p>
+                    <p class="analysis-setup-asset-note">Step-up eligible assets may have little capital-gains tax drag at death. Retirement and annuity assets may be taxable when distributed.</p>
+                  </div>
+
+                  <label class="settings-toggle-row analysis-setup-toggle-control analysis-setup-asset-enabled-control">
+                    <span class="settings-toggle-copy">
+                      <span class="settings-toggle-label">Enable asset treatment controls</span>
+                      <span class="settings-toggle-note">Saved for future offset modeling; not applied to current results.</span>
+                    </span>
+                    <span class="settings-switch">
+                      <input
+                        class="analysis-setup-asset-field"
+                        type="checkbox"
+                        role="switch"
+                        aria-label="Enable asset treatment controls"
+                        data-analysis-asset-treatment-enabled>
+                      <span class="settings-switch-track" aria-hidden="true"></span>
+                    </span>
+                  </label>
+
+                  <div class="analysis-setup-asset-table" role="table" aria-label="Asset treatment assumptions" data-analysis-asset-treatment-table>
+                    <div class="analysis-setup-asset-row analysis-setup-asset-row--head" role="row">
                       <span role="columnheader">Asset</span>
                       <span role="columnheader">Include</span>
-                      <span role="columnheader">Liquidity</span>
+                      <span role="columnheader">Treatment</span>
+                      <span role="columnheader">Tax treatment</span>
+                      <span role="columnheader">Tax drag</span>
                       <span role="columnheader">Haircut</span>
-                    </div>
-                    <div class="analysis-setup-static-row" role="row">
-                      <span role="cell">Cash Savings</span>
-                      <span role="cell">Include</span>
-                      <span role="cell">Liquidity</span>
-                      <span role="cell">Haircut</span>
-                    </div>
-                    <div class="analysis-setup-static-row" role="row">
-                      <span role="cell">Emergency Fund</span>
-                      <span role="cell">Include</span>
-                      <span role="cell">Liquidity</span>
-                      <span role="cell">Haircut</span>
-                    </div>
-                    <div class="analysis-setup-static-row" role="row">
-                      <span role="cell">Brokerage</span>
-                      <span role="cell">Include</span>
-                      <span role="cell">Liquidity</span>
-                      <span role="cell">Haircut</span>
-                    </div>
-                    <div class="analysis-setup-static-row" role="row">
-                      <span role="cell">Retirement Assets</span>
-                      <span role="cell">Include</span>
-                      <span role="cell">Liquidity</span>
-                      <span role="cell">Haircut</span>
-                    </div>
-                    <div class="analysis-setup-static-row" role="row">
-                      <span role="cell">Real Estate Equity</span>
-                      <span role="cell">Include</span>
-                      <span role="cell">Liquidity</span>
-                      <span role="cell">Haircut</span>
-                    </div>
-                    <div class="analysis-setup-static-row" role="row">
-                      <span role="cell">Business Value</span>
-                      <span role="cell">Include</span>
-                      <span role="cell">Liquidity</span>
-                      <span role="cell">Haircut</span>
+                      <span role="columnheader">Available preview</span>
                     </div>
                   </div>
                 </section>
@@ -236,10 +302,10 @@
             </div>
 
             <footer class="analysis-setup-panel-footer">
-              <span id="analysis-setup-template-note">Template only</span>
+              <span id="analysis-setup-status" data-analysis-setup-status aria-live="polite">Analysis Setup settings save to the linked profile.</span>
               <div class="analysis-setup-action-row">
-                <button class="btn btn-secondary analysis-setup-action" type="button" disabled aria-describedby="analysis-setup-template-note">Save Assumptions</button>
-                <a class="btn btn-primary analysis-setup-action" href="analysis-estimate.html" aria-describedby="analysis-setup-template-note">Apply &amp; Continue</a>
+                <button class="btn btn-secondary analysis-setup-action" type="button" data-analysis-setup-save disabled aria-describedby="analysis-setup-status">Save Assumptions</button>
+                <button class="btn btn-primary analysis-setup-action" type="button" data-analysis-setup-apply disabled aria-describedby="analysis-setup-status">Apply &amp; Continue</button>
               </div>
             </footer>
           </section>
@@ -257,6 +323,7 @@
   <script src="../app/features/client-records.js"></script>
   <script src="../app/features/client-intake.js"></script>
   <script src="../app/features/client-directory.js"></script>
+  <script src="../app/features/lens-analysis/analysis-setup.js"></script>
   <script src="../app.js"></script>
   <script src="../lens-workflow.js"></script>
 </body>
