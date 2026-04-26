@@ -916,22 +916,35 @@
       toggle.dataset.workspaceSideNavCollapseBound = "true";
       const storageKey = `workspaceSideNavCollapsed:${getStorageIdentity()}`;
 
-      function setCollapsed(isCollapsed) {
+      function notifyCollapsedChange(isCollapsed, source) {
+        try {
+          window.dispatchEvent(new CustomEvent("workspace-side-nav-collapse-change", {
+            detail: {
+              collapsed: Boolean(isCollapsed),
+              mode: String(host.getAttribute("data-workspace-side-nav") || "").trim(),
+              source: source || "set"
+            }
+          }));
+        } catch (error) {
+        }
+      }
+
+      function setCollapsed(isCollapsed, source) {
         document.body.classList.toggle("workspace-side-nav-collapsed", isCollapsed);
         host.classList.toggle("is-collapsed", isCollapsed);
         toggle.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
         toggle.setAttribute("aria-label", isCollapsed ? "Expand section navigation" : "Collapse section navigation");
         toggle.setAttribute("title", isCollapsed ? "Expand section navigation" : "Collapse section navigation");
+        notifyCollapsedChange(isCollapsed, source);
       }
 
-      setCollapsed(
-        host.classList.contains("is-collapsed")
-          || document.body.classList.contains("workspace-side-nav-collapsed")
-      );
+      const isInitiallyCollapsed = host.classList.contains("is-collapsed")
+        || document.body.classList.contains("workspace-side-nav-collapsed");
+      setCollapsed(isInitiallyCollapsed, "init");
 
       toggle.addEventListener("click", function () {
         const nextCollapsed = !host.classList.contains("is-collapsed");
-        setCollapsed(nextCollapsed);
+        setCollapsed(nextCollapsed, "toggle");
         try {
           localStorage.setItem(storageKey, nextCollapsed ? "1" : "0");
         } catch (error) {

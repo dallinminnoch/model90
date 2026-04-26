@@ -448,6 +448,16 @@
         setSaveStatus("Workspace preference saved");
       });
 
+      window.addEventListener("workspace-side-nav-collapse-change", function (event) {
+        const isCollapsed = Boolean(event?.detail?.collapsed);
+        if (sidebarCollapsedToggle instanceof HTMLInputElement) {
+          sidebarCollapsedToggle.checked = isCollapsed;
+        }
+        if (event?.detail?.source === "toggle") {
+          setSaveStatus("Workspace preference saved");
+        }
+      });
+
       accessibilityToggles.forEach(function (toggle) {
         toggle.addEventListener("change", function () {
           const key = String(toggle.dataset.settingsAccessibility || "").trim();
@@ -470,13 +480,6 @@
         syncParentSidebarState(false);
         syncAccessibilityToggles(accessibilitySettings);
         setSaveStatus("Settings reset");
-      });
-
-      const settingsToggle = document.querySelector("[data-settings-side-tabs-toggle]");
-      settingsToggle?.addEventListener("click", function () {
-        const nextCollapsed = !document.body.classList.contains("workspace-side-nav-collapsed");
-        persistSidebarPreference(nextCollapsed);
-        syncSidebarToggleState(nextCollapsed);
       });
 
       window.addEventListener("beforeunload", function () {

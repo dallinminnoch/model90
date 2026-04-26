@@ -453,58 +453,10 @@
   <script>
     (function () {
       const pageMenu = document.querySelector(".workspace-page-menu");
-      const lensSidebarHost = document.querySelector('[data-workspace-side-nav="lens"]');
-      const lensSidebarToggle = document.querySelector("[data-lens-side-tabs-toggle]");
       const lensNavLinks = Array.from(document.querySelectorAll("[data-lens-tab]"));
       const stage = document.querySelector("[data-lens-card-stage]");
       const cards = Array.from(document.querySelectorAll("[data-lens-card]"));
       const cardsPerView = 3;
-
-      function getStorageIdentity() {
-        try {
-          const session = JSON.parse(localStorage.getItem("lipPlannerAuthSession") || "null");
-          return session && session.email ? String(session.email).trim().toLowerCase() : "guest";
-        } catch (error) {
-          return "guest";
-        }
-      }
-
-      const lensSidebarStorageKey = `workspaceSideNavCollapsed:${getStorageIdentity()}`;
-
-      function setLensSidebarCollapsed(isCollapsed) {
-        if (!lensSidebarHost || !lensSidebarToggle) {
-          return;
-        }
-
-        document.body.classList.toggle("workspace-side-nav-collapsed", isCollapsed);
-        lensSidebarHost.classList.toggle("is-collapsed", isCollapsed);
-        lensSidebarToggle.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
-        lensSidebarToggle.setAttribute("aria-label", isCollapsed ? "Expand section navigation" : "Collapse section navigation");
-        lensSidebarToggle.setAttribute("title", isCollapsed ? "Expand section navigation" : "Collapse section navigation");
-      }
-
-      if (lensSidebarHost && lensSidebarToggle) {
-        let isSidebarCollapsed = false;
-
-        try {
-          isSidebarCollapsed = window.localStorage.getItem(lensSidebarStorageKey) === "1";
-        } catch (error) {
-          isSidebarCollapsed = false;
-        }
-
-        setLensSidebarCollapsed(isSidebarCollapsed);
-
-        lensSidebarToggle.addEventListener("click", function () {
-          const nextCollapsed = !lensSidebarHost.classList.contains("is-collapsed");
-          setLensSidebarCollapsed(nextCollapsed);
-
-          try {
-            window.localStorage.setItem(lensSidebarStorageKey, nextCollapsed ? "1" : "0");
-          } catch (error) {
-            // Ignore persistence issues and keep the in-memory state.
-          }
-        });
-      }
 
       lensNavLinks.forEach(function (link) {
         link.addEventListener("click", function () {

@@ -996,9 +996,6 @@
       const directoryStageWarningInput = document.querySelector("[data-accessibility-stage-warning]");
       const directoryStageDangerInput = document.querySelector("[data-accessibility-stage-danger]");
       const directoryStageThresholdResetButton = document.querySelector("[data-directory-stage-threshold-reset]");
-      const directorySidebarHost = document.querySelector('[data-workspace-side-nav="directory"]');
-      const directorySidebarLayout = document.querySelector("[data-directory-sidebar-layout]");
-      const directorySidebarToggle = document.querySelector("[data-directory-sidebar-toggle]");
       const directorySidebarGroups = Array.from(document.querySelectorAll("[data-directory-context-group-key]"));
       const clientDetailOverlay = document.querySelector("[data-client-detail-overlay]");
       const clientDetailOverlayHost = document.querySelector("[data-client-detail-overlay-host]");
@@ -1234,7 +1231,6 @@
         return `${STORAGE_KEYS.clientRecords}:${getStorageIdentity()}`;
       }
 
-      const directorySidebarStorageKey = `workspaceSideNavCollapsed:${getStorageIdentity()}`;
       const summaryCardsStorageKey = `${STORAGE_KEYS.summaryCards}:${getStorageIdentity()}`;
       const directoryOrderStorageKey = `${STORAGE_KEYS.directoryOrder}:${getStorageIdentity()}`;
       const directoryAccessibilityStorageKey = `${STORAGE_KEYS.accessibility}:${getStorageIdentity()}`;
@@ -4149,18 +4145,6 @@
         return false;
       }
 
-      function setDirectorySidebarCollapsed(isCollapsed) {
-        if (!directorySidebarLayout || !directorySidebarToggle || !directorySidebarHost) {
-          return;
-        }
-
-        document.body.classList.toggle("workspace-side-nav-collapsed", isCollapsed);
-        directorySidebarHost.classList.toggle("is-collapsed", isCollapsed);
-        directorySidebarToggle.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
-        directorySidebarToggle.setAttribute("aria-label", isCollapsed ? "Expand directory navigation" : "Collapse directory navigation");
-        directorySidebarToggle.setAttribute("title", isCollapsed ? "Expand directory navigation" : "Collapse directory navigation");
-      }
-
       function buildShellExternalRecordFilter() {
         if (activeScope === "all" && activePriority === "all") {
           return null;
@@ -4199,29 +4183,6 @@
         }
 
         directoryCoreApi.applyShellState(nextShellState);
-      }
-
-      if (directorySidebarLayout && directorySidebarToggle) {
-        let isDirectorySidebarCollapsed = false;
-
-        try {
-          isDirectorySidebarCollapsed = window.localStorage.getItem(directorySidebarStorageKey) === "1";
-        } catch (error) {
-          isDirectorySidebarCollapsed = false;
-        }
-
-        setDirectorySidebarCollapsed(isDirectorySidebarCollapsed);
-
-        directorySidebarToggle.addEventListener("click", function () {
-          const nextCollapsed = !document.body.classList.contains("workspace-side-nav-collapsed");
-          setDirectorySidebarCollapsed(nextCollapsed);
-
-          try {
-            window.localStorage.setItem(directorySidebarStorageKey, nextCollapsed ? "1" : "0");
-          } catch (error) {
-            // Ignore persistence issues and keep the in-memory state.
-          }
-        });
       }
 
       directorySidebarButtons.forEach(function (button) {
