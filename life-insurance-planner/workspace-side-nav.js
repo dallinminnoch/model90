@@ -712,8 +712,8 @@
   function renderLensSidebar(options) {
     const pages = getWorkspacePages("lens", options);
     const workflowSteps = [
-      { id: "profile-1", label: "Analysis Setup", path: "profile.html", icon: "planning" },
-      { id: "income-loss", label: "Income Loss Impact", path: "income-loss-impact.html", icon: "financial-snapshot" },
+      { id: "profile-1", label: "Link Profile", path: "profile.html", icon: "planning" },
+      { id: "analysis-setup", label: "Analysis Setup", path: "analysis-setup.html", icon: "financial-snapshot" },
       { id: "estimate", label: "Estimate Need", path: "analysis-estimate.html", icon: "needs-analysis" },
       { id: "detail", label: "Detailed Analysis", path: "analysis-detail.html", icon: "analysis" },
       { id: "recommendations", label: "Coverage Options", path: "recommendations.html", icon: "recommendation" },

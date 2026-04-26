@@ -1,7 +1,7 @@
 (function () {
   const WORKFLOW_STEPS = [
-    { id: "profile-1", label: "Analysis Setup", path: "profile.html" },
-    { id: "income-loss", label: "Income Loss Impact", path: "income-loss-impact.html" },
+    { id: "profile-1", label: "Link Profile", path: "profile.html" },
+    { id: "analysis-setup", label: "Analysis Setup", path: "analysis-setup.html" },
     { id: "estimate", label: "Estimate Need", path: "analysis-estimate.html" },
     { id: "detail", label: "Detailed Analysis", path: "analysis-detail.html" },
     { id: "recommendations", label: "Coverage Options", path: "recommendations.html" },

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analysis Setup | Life Evaluation &amp; Needs Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body class='home-page lens-page lens-workflow-page analysis-setup-page' data-step='analysis-setup'>
+  <script>
+    (function () {
+      try {
+        const session = JSON.parse(localStorage.getItem('lipPlannerAuthSession') || 'null');
+        const identity = session && session.email ? String(session.email).trim().toLowerCase() : 'guest';
+        if (localStorage.getItem(`workspaceSideNavCollapsed:${identity}`) === '1') {
+          document.body.classList.add('workspace-side-nav-collapsed');
+        }
+      } catch (error) {
+        // Ignore storage issues and fall back to the default expanded state.
+      }
+    })();
+  </script>
+  <div class='workspace-page-topbar'>
+    <div class='workspace-page-topbar-inner'>
+      <details class='workspace-page-menu'>
+        <summary class='workspace-page-menu-trigger' aria-label='Open pages menu' title='Pages'>
+          <img class='workspace-page-menu-icon' src='../Images/menu.svg' alt='' aria-hidden='true'>
+        </summary>
+        <div class='workspace-page-menu-panel'>
+          <a class='workspace-page-menu-link' href='../index.html'>
+            <span class='workspace-page-menu-link-icon' aria-hidden='true'>
+              <svg viewBox='0 0 20 20' fill='none'>
+                <path d='M3.6 8.45 10 3.55l6.4 4.9v7.2a1.35 1.35 0 0 1-1.35 1.35H4.95A1.35 1.35 0 0 1 3.6 15.65V8.45Z' stroke='currentColor' stroke-width='1.55' stroke-linejoin='round'/>
+                <path d='M7.75 16.95v-4.3h4.5v4.3' stroke='currentColor' stroke-width='1.55' stroke-linejoin='round'/>
+              </svg>
+            </span>
+            <span class='workspace-page-menu-link-label'>Home</span>
+          </a>
+          <a class='workspace-page-menu-link' href='clients.html'>
+            <span class='workspace-page-menu-link-icon' aria-hidden='true'>
+              <svg viewBox='0 0 20 20' fill='none'>
+                <circle cx='7' cy='7.2' r='2.35' stroke='currentColor' stroke-width='1.55'/>
+                <circle cx='13.3' cy='8.15' r='2.05' stroke='currentColor' stroke-width='1.55'/>
+                <path d='M3.9 15.35c.55-2.15 2.2-3.45 4.15-3.45 1.95 0 3.55 1.3 4.1 3.45' stroke='currentColor' stroke-width='1.55' stroke-linecap='round'/>
+                <path d='M11.2 15.35c.4-1.65 1.7-2.65 3.25-2.65 1.1 0 2.15.5 2.85 1.45' stroke='currentColor' stroke-width='1.55' stroke-linecap='round'/>
+              </svg>
+            </span>
+            <span class='workspace-page-menu-link-label'>Client Directory</span>
+          </a>
+          <a class='workspace-page-menu-link is-active' href='lens.html' aria-current='page'>
+            <span class='workspace-page-menu-link-icon' aria-hidden='true'>
+              <svg viewBox='0 0 20 20' fill='none'>
+                <circle cx='10' cy='10' r='6.05' stroke='currentColor' stroke-width='1.55'/>
+                <circle cx='10' cy='10' r='2.1' stroke='currentColor' stroke-width='1.55'/>
+                <path d='M10 2.95v1.85M10 15.2v1.85M17.05 10H15.2M4.8 10H2.95' stroke='currentColor' stroke-width='1.55' stroke-linecap='round'/>
+              </svg>
+            </span>
+            <span class='workspace-page-menu-link-label'>LENS Analysis</span>
+          </a>
+        </div>
+      </details>
+      <div class='workspace-page-topbar-actions'>
+        <button class='fullscreen-toggle' type='button' data-fullscreen-toggle aria-label='Enter full screen' title='Enter full screen' aria-pressed='false'>
+          <img class='fullscreen-toggle-icon' data-fullscreen-icon src='../Images/openfullscreen.svg' alt='' aria-hidden='true'>
+          <span class='sr-only'>Toggle full screen</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class='workspace-side-nav-host' data-workspace-side-nav-host data-workspace-side-nav='lens'></div>
+  <script>
+    if (document.body.classList.contains('workspace-side-nav-collapsed')) {
+      document.currentScript.previousElementSibling.classList.add('is-collapsed');
+    }
+  </script>
+  <main class='home-shell app-home-shell prospect-shell lens-workflow-shell'>
+    <section class='prospect-stage lens-workflow-stage'>
+      <section class='analysis-setup-shell workspace-visible-pane'>
+        <header class="analysis-setup-header">
+          <div>
+            <div class="analysis-setup-eyebrow">Step 2</div>
+            <h1>Analysis Setup</h1>
+            <p class="intro-copy">Set planning assumptions before comparing needs, income value, and coverage options.</p>
+          </div>
+          <p class="analysis-setup-note">Protection Modeling Inputs collect raw financial data. Planning assumptions, liquidity haircuts, and recommendation controls are managed here.</p>
+        </header>
+
+        <section class="analysis-setup-workspace" aria-label="Analysis setup workspace">
+          <section class="analysis-setup-assumption-panel" aria-labelledby="analysis-setup-panel-title">
+            <header class="analysis-setup-panel-header">
+              <div>
+                <div class="analysis-setup-panel-kicker">Template Only</div>
+                <h2 id="analysis-setup-panel-title">Assumption Controls</h2>
+                <p>Static setup controls reserved for planning defaults, offset treatment, and recommendation guardrails.</p>
+              </div>
+              <span class="analysis-setup-template-badge">Template only</span>
+            </header>
+
+            <div class="analysis-setup-panel-body">
+              <div class="analysis-setup-panel-grid">
+                <section class="analysis-setup-control-group" aria-labelledby="analysis-setup-method-defaults">
+                  <h3 id="analysis-setup-method-defaults">Method Defaults</h3>
+                  <dl class="analysis-setup-setting-list">
+                    <div>
+                      <dt>DIME Income Years</dt>
+                      <dd>10</dd>
+                    </div>
+                    <div>
+                      <dt>Needs Support Years</dt>
+                      <dd>10</dd>
+                    </div>
+                    <div>
+                      <dt>HLV Projection Years</dt>
+                      <dd>Retirement horizon</dd>
+                    </div>
+                  </dl>
+                </section>
+
+                <section class="analysis-setup-control-group" aria-labelledby="analysis-setup-offset-settings">
+                  <h3 id="analysis-setup-offset-settings">Offset Settings</h3>
+                  <dl class="analysis-setup-setting-list">
+                    <div>
+                      <dt>Existing Coverage</dt>
+                      <dd>Included</dd>
+                    </div>
+                    <div>
+                      <dt>Available Assets</dt>
+                      <dd>Method-specific</dd>
+                    </div>
+                    <div>
+                      <dt>Survivor Income</dt>
+                      <dd>Applied to Needs</dd>
+                    </div>
+                    <div>
+                      <dt>Discretionary Support</dt>
+                      <dd>Excluded</dd>
+                    </div>
+                  </dl>
+                </section>
+
+                <section class="analysis-setup-control-group analysis-setup-control-group--wide" aria-labelledby="analysis-setup-liquidity">
+                  <h3 id="analysis-setup-liquidity">Asset Liquidity &amp; Haircuts</h3>
+                  <div class="analysis-setup-static-table analysis-setup-static-table--assets" role="table" aria-label="Asset liquidity and haircut placeholders">
+                    <div class="analysis-setup-static-row analysis-setup-static-row--head" role="row">
+                      <span role="columnheader">Asset</span>
+                      <span role="columnheader">Include</span>
+                      <span role="columnheader">Liquidity</span>
+                      <span role="columnheader">Haircut</span>
+                    </div>
+                    <div class="analysis-setup-static-row" role="row">
+                      <span role="cell">Cash Savings</span>
+                      <span role="cell">Include</span>
+                      <span role="cell">Liquidity</span>
+                      <span role="cell">Haircut</span>
+                    </div>
+                    <div class="analysis-setup-static-row" role="row">
+                      <span role="cell">Emergency Fund</span>
+                      <span role="cell">Include</span>
+                      <span role="cell">Liquidity</span>
+                      <span role="cell">Haircut</span>
+                    </div>
+                    <div class="analysis-setup-static-row" role="row">
+                      <span role="cell">Brokerage</span>
+                      <span role="cell">Include</span>
+                      <span role="cell">Liquidity</span>
+                      <span role="cell">Haircut</span>
+                    </div>
+                    <div class="analysis-setup-static-row" role="row">
+                      <span role="cell">Retirement Assets</span>
+                      <span role="cell">Include</span>
+                      <span role="cell">Liquidity</span>
+                      <span role="cell">Haircut</span>
+                    </div>
+                    <div class="analysis-setup-static-row" role="row">
+                      <span role="cell">Real Estate Equity</span>
+                      <span role="cell">Include</span>
+                      <span role="cell">Liquidity</span>
+                      <span role="cell">Haircut</span>
+                    </div>
+                    <div class="analysis-setup-static-row" role="row">
+                      <span role="cell">Business Value</span>
+                      <span role="cell">Include</span>
+                      <span role="cell">Liquidity</span>
+                      <span role="cell">Haircut</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="analysis-setup-control-group" aria-labelledby="analysis-setup-tax">
+                  <h3 id="analysis-setup-tax">Tax &amp; Liquidation Assumptions</h3>
+                  <dl class="analysis-setup-setting-list">
+                    <div>
+                      <dt>Real Estate Liquidation Tax Rate</dt>
+                      <dd>Template</dd>
+                    </div>
+                    <div>
+                      <dt>Brokerage Tax Drag</dt>
+                      <dd>Template</dd>
+                    </div>
+                    <div>
+                      <dt>Retirement Distribution Tax Rate</dt>
+                      <dd>Template</dd>
+                    </div>
+                    <div>
+                      <dt>Business Sale Haircut</dt>
+                      <dd>Template</dd>
+                    </div>
+                  </dl>
+                </section>
+
+                <section class="analysis-setup-control-group" aria-labelledby="analysis-setup-guardrails">
+                  <h3 id="analysis-setup-guardrails">Recommendation Guardrails</h3>
+                  <dl class="analysis-setup-setting-list">
+                    <div>
+                      <dt>Recommendation Target</dt>
+                      <dd>Template</dd>
+                    </div>
+                    <div>
+                      <dt>Risk Profile</dt>
+                      <dd>Template</dd>
+                    </div>
+                    <div>
+                      <dt>Confidence Threshold</dt>
+                      <dd>Template</dd>
+                    </div>
+                    <div>
+                      <dt>Rounding</dt>
+                      <dd>Template</dd>
+                    </div>
+                  </dl>
+                </section>
+              </div>
+            </div>
+
+            <footer class="analysis-setup-panel-footer">
+              <span id="analysis-setup-template-note">Template only</span>
+              <div class="analysis-setup-action-row">
+                <button class="btn btn-secondary analysis-setup-action" type="button" disabled aria-describedby="analysis-setup-template-note">Save Assumptions</button>
+                <a class="btn btn-primary analysis-setup-action" href="analysis-estimate.html" aria-describedby="analysis-setup-template-note">Apply &amp; Continue</a>
+              </div>
+            </footer>
+          </section>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script src="../workspace-side-nav.js"></script>
+  <script src="../site-header.js"></script>
+  <script src="../app/core/config.js"></script>
+  <script src="../app/core/storage.js"></script>
+  <script src="../app/core/i18n.js"></script>
+  <script src="../app/features/auth.js"></script>
+  <script src="../app/features/client-records.js"></script>
+  <script src="../app/features/client-intake.js"></script>
+  <script src="../app/features/client-directory.js"></script>
+  <script src="../app.js"></script>
+  <script src="../lens-workflow.js"></script>
+</body>
+</html>

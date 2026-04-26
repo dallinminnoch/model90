@@ -274,6 +274,7 @@
     const adminHref = isNestedPage ? "admin-accounts.html" : "pages/admin-accounts.html";
     const fullscreenOpenSrc = isNestedPage ? "../Images/openfullscreen.svg" : "Images/openfullscreen.svg";
     const fullscreenCloseSrc = isNestedPage ? "../Images/closefullscreen.svg" : "Images/closefullscreen.svg";
+    const searchMarkup = getSearchMarkup();
 
     return {
       iconPaths: {
@@ -287,9 +288,7 @@
             <img class="site-brand-mark" src="${brandSrc}" alt="MODEL90">
           </a>
           <div class="site-header-main-nav">
-            <form class="site-search has-icon" role="search">
-              <input type="search" placeholder="Search" data-i18n-placeholder="search.placeholder">
-            </form>
+            ${searchMarkup}
             <nav class="site-nav" aria-label="Main navigation">
               <div class="site-dropdown">
                 <button class="site-nav-link site-dropdown-toggle" type="button" aria-expanded="false" data-i18n="nav.records">Records</button>
@@ -321,6 +320,32 @@
     };
   }
 
+  function getSearchMarkup() {
+    return `
+            <form class="site-search has-icon" role="search">
+              <input type="search" placeholder="Search" data-i18n-placeholder="search.placeholder">
+            </form>`;
+  }
+
+  function ensureWorkspaceTopbarSearch() {
+    const topbarInner = document.querySelector(".workspace-page-topbar-inner");
+    if (!topbarInner || topbarInner.querySelector(".workspace-page-topbar-search-host, .site-search")) {
+      return;
+    }
+
+    const host = document.createElement("div");
+    host.className = "workspace-page-topbar-search-host";
+    host.innerHTML = getSearchMarkup();
+
+    const actions = topbarInner.querySelector(".workspace-page-topbar-actions");
+    if (actions) {
+      topbarInner.insertBefore(host, actions);
+      return;
+    }
+
+    topbarInner.appendChild(host);
+  }
+
   function injectSiteHeader() {
     clearTemporaryAnalysisSessionIfOutsideLens();
 
@@ -331,6 +356,7 @@
     const { markup, iconPaths } = getHeaderMarkup();
 
     if (document.querySelector(".workspace-page-topbar")) {
+      ensureWorkspaceTopbarSearch();
       bindFullscreenToggle(iconPaths);
       return;
     }

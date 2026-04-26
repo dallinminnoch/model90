@@ -1252,6 +1252,100 @@ body.lens-workflow-page {
   overflow: hidden !important;
 }
 
+.analysis-setup-shell {
+  --analysis-setup-inline-pad: clamp(0.85rem, 1.5vw, 1.35rem);
+  flex: 1 1 auto;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  padding:
+    clamp(0.72rem, 1.1vw, 1rem)
+    var(--analysis-setup-inline-pad)
+    env(safe-area-inset-bottom, 0px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(0.65rem, 0.95vw, 0.85rem);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.analysis-setup-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.54fr);
+  align-items: end;
+  gap: clamp(0.9rem, 1.5vw, 1.25rem);
+  min-height: 0;
+}
+
+.analysis-setup-header h1 {
+  margin: 0.1rem 0 0;
+  font-size: clamp(1.55rem, 2.5vw, 2.35rem);
+  line-height: 1.02;
+}
+
+.analysis-setup-header .intro-copy {
+  max-width: 54rem;
+  margin-top: 0.35rem;
+}
+
+.analysis-setup-workspace {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  gap: clamp(0.68rem, 1vw, 0.9rem);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.analysis-setup-assumption-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.analysis-setup-panel-body {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.analysis-setup-panel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.55rem, 0.9vw, 0.78rem);
+  min-width: 0;
+}
+
+.analysis-setup-control-group--wide {
+  grid-column: span 2;
+}
+
+@media (max-width: 1180px) {
+  .analysis-setup-header {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .analysis-setup-panel-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .analysis-setup-control-group--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 860px) {
+  .analysis-setup-panel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-setup-control-group--wide {
+    grid-column: auto;
+  }
+}
+
 .analysis-estimate-shell {
   --analysis-estimate-inline-pad: clamp(0.75rem, 1.5vw, 1.35rem);
   --analysis-estimate-safe-bottom: env(safe-area-inset-bottom, 0px);
