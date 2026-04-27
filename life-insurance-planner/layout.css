@@ -1307,6 +1307,13 @@ body.lens-workflow-page {
   overflow: hidden;
 }
 
+.analysis-setup-view-frame {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
 .analysis-setup-panel-body {
   min-height: 0;
   overflow-y: auto;
@@ -1338,7 +1345,7 @@ body.lens-workflow-page {
 
 .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-left-stack {
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  align-items: start;
+  align-items: stretch;
 }
 
 .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--method-defaults {
@@ -1349,17 +1356,20 @@ body.lens-workflow-page {
   order: 2;
 }
 
-.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--policy-returns {
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--growth {
   order: 3;
 }
 
-.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--growth {
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--policy-returns {
   order: 4;
+  grid-column: 4;
+  grid-row: 1 / span 2;
 }
 
 .analysis-setup-control-group--calculation-snapshot {
   order: 5;
-  grid-column: 1 / -1;
+  grid-column: 1 / 4;
+  grid-row: 2;
 }
 
 body.lens-workflow-page.workspace-side-nav-collapsed .analysis-setup-panel-grid,
@@ -1428,6 +1438,12 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
   .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-left-stack {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--policy-returns,
+  .analysis-setup-control-group--calculation-snapshot {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
 }
 
 @media (max-width: 860px) {
@@ -1448,6 +1464,12 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
 
   .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-left-stack {
     grid-template-columns: 1fr;
+  }
+
+  .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--policy-returns,
+  .analysis-setup-control-group--calculation-snapshot {
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .analysis-setup-treatment-row {

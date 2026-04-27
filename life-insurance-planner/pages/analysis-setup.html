@@ -104,11 +104,6 @@
               <div>
                 <div class="analysis-setup-panel-kicker">Planning Settings</div>
                 <h2 id="analysis-setup-panel-title">Assumption Controls</h2>
-                <div class="analysis-setup-view-tabs" role="group" aria-label="Analysis Setup views">
-                  <button class="analysis-setup-view-tab" type="button" data-analysis-setup-view-tab="calculation" aria-pressed="true" data-active="true">Calculation Assumptions</button>
-                  <button class="analysis-setup-view-tab" type="button" data-analysis-setup-view-tab="offset" aria-pressed="false">Offset &amp; Balance Sheet Treatment</button>
-                  <button class="analysis-setup-view-tab" type="button" data-analysis-setup-view-tab="planning" aria-pressed="false">Planning Goals &amp; Guardrails</button>
-                </div>
                 <p class="analysis-setup-validation-message" data-analysis-setup-validation role="alert" hidden></p>
               </div>
               <button class="analysis-setup-header-toggle" type="button" data-analysis-setup-header-toggle aria-controls="analysis-setup-page-header" aria-expanded="true" title="Collapse setup header">
@@ -119,8 +114,15 @@
               </button>
             </header>
 
-            <div class="analysis-setup-panel-body">
-              <div class="analysis-setup-panel-grid" data-analysis-setup-view-grid data-analysis-setup-current-view="calculation">
+            <div class="analysis-setup-view-frame">
+              <div class="analysis-setup-view-tabs" role="group" aria-label="Analysis Setup views">
+                <button class="analysis-setup-view-tab" type="button" data-analysis-setup-view-tab="calculation" aria-pressed="true" data-active="true">Calculation Assumptions</button>
+                <button class="analysis-setup-view-tab" type="button" data-analysis-setup-view-tab="offset" aria-pressed="false">Offset &amp; Balance Sheet Treatment</button>
+                <button class="analysis-setup-view-tab" type="button" data-analysis-setup-view-tab="planning" aria-pressed="false">Planning Goals &amp; Guardrails</button>
+              </div>
+
+              <div class="analysis-setup-panel-body">
+                <div class="analysis-setup-panel-grid" data-analysis-setup-view-grid data-analysis-setup-current-view="calculation">
                 <div class="analysis-setup-left-stack" data-analysis-setup-view-panel="calculation" data-active="true">
                   <section class="analysis-setup-control-group analysis-setup-control-group--inflation" aria-labelledby="analysis-setup-inflation">
                   <div class="analysis-setup-control-heading">
@@ -221,12 +223,24 @@
                   </section>
 
                   <section class="analysis-setup-control-group analysis-setup-control-group--growth" aria-labelledby="analysis-setup-growth-return">
-                    <div class="analysis-setup-control-heading">
-                      <h3 id="analysis-setup-growth-return">Growth &amp; Return Assumptions</h3>
-                      <p>Saved for future projections. These assumptions are not applied to current results yet.</p>
+                    <div class="analysis-setup-method-header">
+                      <div class="analysis-setup-control-heading">
+                        <h3 id="analysis-setup-growth-return">Growth &amp; Return Assumptions</h3>
+                        <p>Saved for future projections. These assumptions are not applied to current results yet.</p>
+                      </div>
+                      <button class="analysis-setup-reset-button" type="button" data-analysis-growth-reset>Reset</button>
                     </div>
 
                     <div class="analysis-setup-rate-grid">
+                      <div class="analysis-setup-rate-control analysis-setup-return-basis-control">
+                        <label class="analysis-setup-rate-label" id="analysis-setup-return-basis-label" for="analysis-setup-return-basis">Return Basis</label>
+                        <p class="analysis-setup-return-basis-note">Used for future projections; keep nominal unless modeling real returns separately.</p>
+                        <select id="analysis-setup-return-basis" class="analysis-setup-method-select analysis-setup-return-basis-select" aria-labelledby="analysis-setup-return-basis-label" data-analysis-growth-field="returnBasis">
+                          <option value="nominal">Nominal returns</option>
+                          <option value="real">Real returns after inflation</option>
+                        </select>
+                      </div>
+
                       <div class="analysis-setup-rate-control">
                         <label class="analysis-setup-rate-label" id="analysis-setup-primary-income-growth-label" for="analysis-setup-primary-income-growth-value">Primary income growth</label>
                         <input class="analysis-setup-rate-slider" type="range" min="0" max="12" step="0.25" aria-labelledby="analysis-setup-primary-income-growth-label" data-analysis-growth-slider="primaryIncomeGrowthRatePercent">
@@ -269,7 +283,6 @@
                     <div class="analysis-setup-method-header">
                       <div class="analysis-setup-control-heading">
                         <h3 id="analysis-setup-policy-returns">Policy Type Return Assumptions</h3>
-                        <p>Future policy comparison only. Current DIME, Needs, and HLV results do not change.</p>
                       </div>
                       <button class="analysis-setup-reset-button" type="button" data-analysis-policy-return-reset>Reset</button>
                     </div>
@@ -1082,6 +1095,7 @@
                   <p class="analysis-setup-recommendation-preview-note">Preview only. Current Needs, DIME, HLV, and recommendation results are unchanged.</p>
                 </section>
 
+                </div>
               </div>
             </div>
 

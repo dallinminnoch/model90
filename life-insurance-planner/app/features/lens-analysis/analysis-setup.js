@@ -30,6 +30,13 @@
     taxableInvestmentReturnRatePercent: "Taxable investment return",
     retirementAssetReturnRatePercent: "Retirement asset return"
   };
+  const GROWTH_RETURN_BASIS_NOMINAL = "nominal";
+  const GROWTH_RETURN_BASIS_REAL = "real";
+  const GROWTH_RETURN_BASIS_LABELS = Object.freeze({
+    nominal: "Nominal returns",
+    real: "Real returns after inflation"
+  });
+  const GROWTH_RETURN_BASIS_KEYS = Object.freeze(Object.keys(GROWTH_RETURN_BASIS_LABELS));
 
   const METHOD_DEFAULT_FIELDS = [
     "dimeIncomeYears",
@@ -66,6 +73,7 @@
 
   const DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS = Object.freeze({
     enabled: false,
+    returnBasis: GROWTH_RETURN_BASIS_NOMINAL,
     primaryIncomeGrowthRatePercent: 3,
     partnerIncomeGrowthRatePercent: 3,
     taxableInvestmentReturnRatePercent: 5,
@@ -894,6 +902,13 @@
     return fallback || ASSET_OFFSET_SOURCE_LEGACY;
   }
 
+  function normalizeGrowthReturnBasis(value, fallback) {
+    const normalizedValue = String(value || "").trim().toLowerCase();
+    return GROWTH_RETURN_BASIS_KEYS.includes(normalizedValue)
+      ? normalizedValue
+      : fallback || GROWTH_RETURN_BASIS_NOMINAL;
+  }
+
   function parseOptionalNumberValue(value) {
     if (value === null || value === undefined) {
       return null;
@@ -1422,6 +1437,10 @@
       enabled: typeof saved.enabled === "boolean"
         ? saved.enabled
         : DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS.enabled,
+      returnBasis: normalizeGrowthReturnBasis(
+        saved.returnBasis,
+        DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS.returnBasis
+      ),
       source: String(saved.source || DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS.source)
     };
 
@@ -2262,7 +2281,9 @@
   }
 
   function getGrowthFieldMap() {
-    const fields = {};
+    const fields = {
+      resetButton: document.querySelector("[data-analysis-growth-reset]")
+    };
     Array.from(document.querySelectorAll("[data-analysis-growth-field]")).forEach(function (field) {
       fields[field.getAttribute("data-analysis-growth-field")] = field;
     });
@@ -3495,6 +3516,12 @@
     if (fields.enabled) {
       fields.enabled.checked = Boolean(assumptions.enabled);
     }
+    if (fields.returnBasis) {
+      fields.returnBasis.value = normalizeGrowthReturnBasis(
+        assumptions.returnBasis,
+        DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS.returnBasis
+      );
+    }
 
     GROWTH_RATE_FIELDS.forEach(function (fieldName) {
       const formattedValue = formatRateInputValue(assumptions[fieldName]);
@@ -3584,8 +3611,13 @@
     ].join(" - "));
 
     const growthStatus = growthFields.enabled?.checked ? "On" : "Off";
+    const returnBasis = normalizeGrowthReturnBasis(
+      growthFields.returnBasis?.value,
+      DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS.returnBasis
+    );
     setCalculationSnapshotText(snapshotFields, "growthSummary", [
       `${growthStatus}`,
+      GROWTH_RETURN_BASIS_LABELS[returnBasis],
       `Primary ${formatCalculationSnapshotPercent(growthFields, "primaryIncomeGrowthRatePercent")}`,
       `Survivor ${formatCalculationSnapshotPercent(growthFields, "partnerIncomeGrowthRatePercent")}`,
       `Taxable ${formatCalculationSnapshotPercent(growthFields, "taxableInvestmentReturnRatePercent")}`,
@@ -5134,7 +5166,11 @@
 
   function readValidatedGrowthAndReturnAssumptions(fields) {
     const nextAssumptions = {
-      enabled: Boolean(fields.enabled?.checked)
+      enabled: Boolean(fields.enabled?.checked),
+      returnBasis: normalizeGrowthReturnBasis(
+        fields.returnBasis?.value,
+        DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS.returnBasis
+      )
     };
 
     for (let index = 0; index < GROWTH_RATE_FIELDS.length; index += 1) {
@@ -6865,6 +6901,15 @@
     });
 
     growthFields.enabled?.addEventListener("change", function () {
+      syncCalculationSnapshot();
+      markUnsaved();
+    });
+    growthFields.returnBasis?.addEventListener("change", function () {
+      syncCalculationSnapshot();
+      markUnsaved();
+    });
+    growthFields.resetButton?.addEventListener("click", function () {
+      populateGrowthFields(growthFields, DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS, growthSliders);
       syncCalculationSnapshot();
       markUnsaved();
     });
