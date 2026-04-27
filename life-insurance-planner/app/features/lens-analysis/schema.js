@@ -182,8 +182,9 @@
         }
       },
 
-      // Future asset-offset output prepared from assetFacts plus Analysis
-      // Setup treatment assumptions. This is not consumed by current methods.
+      // Treated asset-offset output prepared from assetFacts plus Analysis
+      // Setup treatment assumptions. Methods use this when Asset Offset Source
+      // is Treated.
       treatedAssetOffsets: {
         assets: [],
         totalRawAssetValue: null,

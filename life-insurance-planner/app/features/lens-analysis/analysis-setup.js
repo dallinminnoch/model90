@@ -73,52 +73,6 @@
     source: "analysis-setup"
   });
 
-  const ASSET_LIQUIDITY_ITEMS = Object.freeze([
-    { key: "cashSavings", label: "Cash Savings" },
-    { key: "emergencyFund", label: "Emergency Fund" },
-    { key: "brokerageAccounts", label: "Brokerage Accounts" },
-    { key: "retirementAssets", label: "Retirement Assets" },
-    { key: "realEstateEquity", label: "Real Estate Equity" },
-    { key: "businessValue", label: "Business Value" }
-  ]);
-
-  const LIQUIDITY_CATEGORIES = Object.freeze(["high", "medium", "low", "illiquid"]);
-
-  const DEFAULT_ASSET_LIQUIDITY_ASSUMPTIONS = Object.freeze({
-    enabled: false,
-    cashSavings: Object.freeze({
-      include: true,
-      liquidityCategory: "high",
-      haircutPercent: 0
-    }),
-    emergencyFund: Object.freeze({
-      include: true,
-      liquidityCategory: "high",
-      haircutPercent: 0
-    }),
-    brokerageAccounts: Object.freeze({
-      include: true,
-      liquidityCategory: "medium",
-      haircutPercent: 15
-    }),
-    retirementAssets: Object.freeze({
-      include: true,
-      liquidityCategory: "medium",
-      haircutPercent: 25
-    }),
-    realEstateEquity: Object.freeze({
-      include: false,
-      liquidityCategory: "low",
-      haircutPercent: 30
-    }),
-    businessValue: Object.freeze({
-      include: false,
-      liquidityCategory: "low",
-      haircutPercent: 50
-    }),
-    source: "analysis-setup"
-  });
-
   const ASSET_TREATMENT_ITEMS = Object.freeze([
     { key: "cashAndCashEquivalents", label: "Cash & Cash Equivalents", sourceField: "cashSavings", legacyKeys: Object.freeze(["cashSavings"]) },
     { key: "emergencyFund", label: "Emergency Fund", sourceField: "emergencyFund", legacyKeys: Object.freeze(["emergencyFund"]) },
@@ -878,22 +832,6 @@
     return nextValue;
   }
 
-  function normalizeLiquidityCategory(value, fallback) {
-    const normalizedValue = String(value || "").trim().toLowerCase();
-    return LIQUIDITY_CATEGORIES.includes(normalizedValue)
-      ? normalizedValue
-      : fallback;
-  }
-
-  function normalizeHaircutValue(value, fallback) {
-    const number = Number(value);
-    if (!Number.isFinite(number)) {
-      return fallback;
-    }
-
-    return Math.min(MAX_HAIRCUT, Math.max(MIN_HAIRCUT, number));
-  }
-
   function normalizeAssetTreatmentPreset(value, fallback) {
     const normalizedValue = String(value || "").trim().toLowerCase();
     return ASSET_TREATMENT_PRESET_KEYS.includes(normalizedValue)
@@ -1273,43 +1211,6 @@
         savedValue,
         DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS[fieldName]
       );
-    });
-
-    if (saved.lastUpdatedAt) {
-      nextAssumptions.lastUpdatedAt = String(saved.lastUpdatedAt);
-    }
-
-    return nextAssumptions;
-  }
-
-  function getAssetLiquidityAssumptions(record) {
-    const saved = isPlainObject(record?.analysisSettings?.assetLiquidityAssumptions)
-      ? record.analysisSettings.assetLiquidityAssumptions
-      : {};
-    const nextAssumptions = {
-      enabled: typeof saved.enabled === "boolean"
-        ? saved.enabled
-        : DEFAULT_ASSET_LIQUIDITY_ASSUMPTIONS.enabled,
-      source: String(saved.source || DEFAULT_ASSET_LIQUIDITY_ASSUMPTIONS.source)
-    };
-
-    ASSET_LIQUIDITY_ITEMS.forEach(function (item) {
-      const defaults = DEFAULT_ASSET_LIQUIDITY_ASSUMPTIONS[item.key];
-      const savedAsset = isPlainObject(saved[item.key]) ? saved[item.key] : {};
-
-      nextAssumptions[item.key] = {
-        include: typeof savedAsset.include === "boolean"
-          ? savedAsset.include
-          : defaults.include,
-        liquidityCategory: normalizeLiquidityCategory(
-          savedAsset.liquidityCategory,
-          defaults.liquidityCategory
-        ),
-        haircutPercent: normalizeHaircutValue(
-          savedAsset.haircutPercent,
-          defaults.haircutPercent
-        )
-      };
     });
 
     if (saved.lastUpdatedAt) {
@@ -2094,29 +1995,6 @@
     return sliders;
   }
 
-  function getAssetFieldMap() {
-    const fields = {
-      enabled: document.querySelector("[data-analysis-asset-enabled]"),
-      include: {},
-      liquidity: {},
-      haircut: {}
-    };
-
-    Array.from(document.querySelectorAll("[data-analysis-asset-include]")).forEach(function (field) {
-      fields.include[field.getAttribute("data-analysis-asset-include")] = field;
-    });
-
-    Array.from(document.querySelectorAll("[data-analysis-asset-liquidity]")).forEach(function (field) {
-      fields.liquidity[field.getAttribute("data-analysis-asset-liquidity")] = field;
-    });
-
-    Array.from(document.querySelectorAll("[data-analysis-asset-haircut]")).forEach(function (field) {
-      fields.haircut[field.getAttribute("data-analysis-asset-haircut")] = field;
-    });
-
-    return fields;
-  }
-
   function getAssetTreatmentFieldMap() {
     const fields = {
       enabled: document.querySelector("[data-analysis-asset-treatment-enabled]"),
@@ -2315,16 +2193,6 @@
     });
 
     return fields;
-  }
-
-  function hasAssetLiquidityFields(fields) {
-    return Boolean(fields.enabled) || ASSET_LIQUIDITY_ITEMS.some(function (item) {
-      return Boolean(
-        fields.include[item.key]
-        || fields.liquidity[item.key]
-        || fields.haircut[item.key]
-      );
-    });
   }
 
   function hasAssetTreatmentFields(fields) {
@@ -3250,26 +3118,6 @@
       }
       if (sliders?.[fieldName]) {
         sliders[fieldName].value = formattedValue;
-      }
-    });
-  }
-
-  function populateAssetFields(fields, assumptions) {
-    if (fields.enabled) {
-      fields.enabled.checked = Boolean(assumptions.enabled);
-    }
-
-    ASSET_LIQUIDITY_ITEMS.forEach(function (item) {
-      const assumption = assumptions[item.key] || DEFAULT_ASSET_LIQUIDITY_ASSUMPTIONS[item.key];
-
-      if (fields.include[item.key]) {
-        fields.include[item.key].checked = Boolean(assumption.include);
-      }
-      if (fields.liquidity[item.key]) {
-        fields.liquidity[item.key].value = assumption.liquidityCategory;
-      }
-      if (fields.haircut[item.key]) {
-        fields.haircut[item.key].value = formatHaircutInputValue(assumption.haircutPercent);
       }
     });
   }
@@ -4248,18 +4096,6 @@
     });
   }
 
-  function setAssetFieldsDisabled(fields, disabled) {
-    if (fields.enabled) {
-      fields.enabled.disabled = Boolean(disabled);
-    }
-
-    ["include", "liquidity", "haircut"].forEach(function (groupName) {
-      Object.keys(fields[groupName] || {}).forEach(function (fieldName) {
-        fields[groupName][fieldName].disabled = Boolean(disabled);
-      });
-    });
-  }
-
   function setAssetTreatmentFieldsDisabled(fields, disabled) {
     if (fields.enabled) {
       fields.enabled.disabled = Boolean(disabled);
@@ -4854,57 +4690,6 @@
       }
 
       nextAssumptions[fieldName] = Number(number.toFixed(2));
-    }
-
-    return {
-      value: {
-        ...nextAssumptions,
-        lastUpdatedAt: new Date().toISOString(),
-        source: "analysis-setup"
-      }
-    };
-  }
-
-  function readValidatedAssetLiquidityAssumptions(fields) {
-    const nextAssumptions = {
-      enabled: Boolean(fields.enabled?.checked)
-    };
-
-    for (let index = 0; index < ASSET_LIQUIDITY_ITEMS.length; index += 1) {
-      const item = ASSET_LIQUIDITY_ITEMS[index];
-      const category = String(fields.liquidity[item.key]?.value || "").trim().toLowerCase();
-      const rawHaircut = String(fields.haircut[item.key]?.value || "").trim();
-
-      if (!LIQUIDITY_CATEGORIES.includes(category)) {
-        return {
-          error: `${item.label} liquidity must be high, medium, low, or illiquid.`
-        };
-      }
-
-      if (!rawHaircut) {
-        return {
-          error: `${item.label} haircut is required. Enter a value from ${MIN_HAIRCUT}% to ${MAX_HAIRCUT}%.`
-        };
-      }
-
-      const haircut = Number(rawHaircut);
-      if (!Number.isFinite(haircut)) {
-        return {
-          error: `${item.label} haircut must be a numeric percentage.`
-        };
-      }
-
-      if (haircut < MIN_HAIRCUT || haircut > MAX_HAIRCUT) {
-        return {
-          error: `${item.label} haircut must be between ${MIN_HAIRCUT}% and ${MAX_HAIRCUT}%.`
-        };
-      }
-
-      nextAssumptions[item.key] = {
-        include: Boolean(fields.include[item.key]?.checked),
-        liquidityCategory: category,
-        haircutPercent: Number(haircut.toFixed(2))
-      };
     }
 
     return {
@@ -5924,9 +5709,8 @@
     };
   }
 
-  function saveAnalysisSetupSettings(fields, sliders, methodFields, growthFields, growthSliders, assetFields, assetTreatmentFields, existingCoverageFields, debtTreatmentFields, survivorSupportFields, educationFields, recommendationGuardrailFields, linkedRecord, validationMessage, statusMessage) {
+  function saveAnalysisSetupSettings(fields, sliders, methodFields, growthFields, growthSliders, assetTreatmentFields, existingCoverageFields, debtTreatmentFields, survivorSupportFields, educationFields, recommendationGuardrailFields, linkedRecord, validationMessage, statusMessage) {
     const clientRecords = LensApp.clientRecords || {};
-    const shouldSaveAssetLiquidity = hasAssetLiquidityFields(assetFields);
     const shouldSaveAssetTreatment = hasAssetTreatmentFields(assetTreatmentFields);
     const shouldSaveExistingCoverage = hasExistingCoverageFields(existingCoverageFields);
     const shouldSaveDebtTreatment = hasDebtTreatmentFields(debtTreatmentFields);
@@ -5952,17 +5736,6 @@
     GROWTH_RATE_FIELDS.forEach(function (fieldName) {
       syncGrowthSliderFromNumber(growthFields, growthSliders, fieldName, true);
     });
-
-    if (shouldSaveAssetLiquidity) {
-      ASSET_LIQUIDITY_ITEMS.forEach(function (item) {
-        const field = assetFields.haircut[item.key];
-        const rawValue = String(field?.value || "").trim();
-        const number = Number(rawValue);
-        if (field && rawValue && Number.isFinite(number) && number >= MIN_HAIRCUT && number <= MAX_HAIRCUT) {
-          field.value = formatHaircutInputValue(number);
-        }
-      });
-    }
 
     if (shouldSaveAssetTreatment) {
       ASSET_TREATMENT_ITEMS.forEach(function (item) {
@@ -6151,16 +5924,6 @@
       return null;
     }
 
-    const validatedAssets = shouldSaveAssetLiquidity
-      ? readValidatedAssetLiquidityAssumptions(assetFields)
-      : null;
-
-    if (validatedAssets?.error) {
-      setMessage(validationMessage, validatedAssets.error, "error");
-      setStatus(statusMessage, "Analysis Setup settings were not saved.", "error");
-      return null;
-    }
-
     const validatedAssetTreatment = shouldSaveAssetTreatment
       ? readValidatedAssetTreatmentAssumptions(assetTreatmentFields)
       : null;
@@ -6240,7 +6003,6 @@
           inflationAssumptions: validatedInflation.value,
           methodDefaults: validatedMethodDefaults.value,
           growthAndReturnAssumptions: validatedGrowth.value,
-          ...(validatedAssets ? { assetLiquidityAssumptions: validatedAssets.value } : {}),
           ...(validatedAssetTreatment ? { assetTreatmentAssumptions: validatedAssetTreatment.value } : {}),
           ...(validatedExistingCoverage ? { existingCoverageAssumptions: validatedExistingCoverage.value } : {}),
           ...(validatedDebtTreatment ? { debtTreatmentAssumptions: validatedDebtTreatment.value } : {}),
@@ -6262,9 +6024,6 @@
     populateFields(fields, getInflationAssumptions(updatedRecord), sliders);
     populateMethodFields(methodFields, getMethodDefaults(updatedRecord));
     populateGrowthFields(growthFields, getGrowthAndReturnAssumptions(updatedRecord), growthSliders);
-    if (shouldSaveAssetLiquidity) {
-      populateAssetFields(assetFields, getAssetLiquidityAssumptions(updatedRecord));
-    }
     if (shouldSaveAssetTreatment) {
       populateAssetTreatmentFields(assetTreatmentFields, getAssetTreatmentAssumptions(updatedRecord), updatedRecord);
     }
@@ -6302,7 +6061,6 @@
     const methodFields = getMethodFieldMap();
     const growthFields = getGrowthFieldMap();
     const growthSliders = getGrowthSliderMap();
-    const assetFields = getAssetFieldMap();
     const assetTreatmentFields = getAssetTreatmentFieldMap();
     const existingCoverageFields = getExistingCoverageFieldMap();
     const debtTreatmentFields = getDebtTreatmentFieldMap();
@@ -6322,7 +6080,6 @@
     populateFields(fields, getInflationAssumptions(linkedRecord), sliders);
     populateMethodFields(methodFields, getMethodDefaults(linkedRecord));
     populateGrowthFields(growthFields, getGrowthAndReturnAssumptions(linkedRecord), growthSliders);
-    populateAssetFields(assetFields, getAssetLiquidityAssumptions(linkedRecord));
     populateAssetTreatmentFields(assetTreatmentFields, getAssetTreatmentAssumptions(linkedRecord), linkedRecord);
     populateExistingCoverageFields(existingCoverageFields, getExistingCoverageAssumptions(linkedRecord), linkedRecord);
     populateDebtTreatmentFields(debtTreatmentFields, getDebtTreatmentAssumptions(linkedRecord), linkedRecord);
@@ -6345,7 +6102,6 @@
       setFieldsDisabled(fields, sliders, true);
       setMethodFieldsDisabled(methodFields, true);
       setGrowthFieldsDisabled(growthFields, growthSliders, true);
-      setAssetFieldsDisabled(assetFields, true);
       setAssetTreatmentFieldsDisabled(assetTreatmentFields, true);
       setExistingCoverageFieldsDisabled(existingCoverageFields, true);
       setDebtTreatmentFieldsDisabled(debtTreatmentFields, true);
@@ -6372,7 +6128,6 @@
     setFieldsDisabled(fields, sliders, false);
     setMethodFieldsDisabled(methodFields, false);
     setGrowthFieldsDisabled(growthFields, growthSliders, false);
-    setAssetFieldsDisabled(assetFields, false);
     setAssetTreatmentFieldsDisabled(assetTreatmentFields, false);
     setExistingCoverageFieldsDisabled(existingCoverageFields, false);
     setDebtTreatmentFieldsDisabled(debtTreatmentFields, false);
@@ -6466,7 +6221,6 @@
       });
     });
 
-    assetFields.enabled?.addEventListener("change", markUnsaved);
     assetTreatmentFields.enabled?.addEventListener("change", markUnsaved);
     (existingCoverageFields.defaultProfileButtons || []).forEach(function (button) {
       button.addEventListener("click", function () {
@@ -6784,21 +6538,6 @@
       });
     });
 
-    ASSET_LIQUIDITY_ITEMS.forEach(function (item) {
-      assetFields.include[item.key]?.addEventListener("change", markUnsaved);
-      assetFields.liquidity[item.key]?.addEventListener("change", markUnsaved);
-      assetFields.haircut[item.key]?.addEventListener("input", markUnsaved);
-      assetFields.haircut[item.key]?.addEventListener("change", function () {
-        const field = assetFields.haircut[item.key];
-        const rawValue = String(field?.value || "").trim();
-        const number = Number(rawValue);
-        if (field && rawValue && Number.isFinite(number) && number >= MIN_HAIRCUT && number <= MAX_HAIRCUT) {
-          field.value = formatHaircutInputValue(number);
-        }
-        markUnsaved();
-      });
-    });
-
     ASSET_TREATMENT_ITEMS.forEach(function (item) {
       assetTreatmentFields.include[item.key]?.addEventListener("change", function () {
         setAssetDefaultProfile(assetTreatmentFields, "custom");
@@ -6903,7 +6642,6 @@
         methodFields,
         growthFields,
         growthSliders,
-        assetFields,
         assetTreatmentFields,
         existingCoverageFields,
         debtTreatmentFields,
@@ -6923,7 +6661,6 @@
         methodFields,
         growthFields,
         growthSliders,
-        assetFields,
         assetTreatmentFields,
         existingCoverageFields,
         debtTreatmentFields,
@@ -6948,7 +6685,6 @@
     DEFAULT_INFLATION_ASSUMPTIONS,
     DEFAULT_METHOD_DEFAULTS,
     DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS,
-    DEFAULT_ASSET_LIQUIDITY_ASSUMPTIONS,
     DEFAULT_ASSET_TREATMENT_ASSUMPTIONS,
     DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS,
     DEFAULT_DEBT_TREATMENT_ASSUMPTIONS,
@@ -6958,7 +6694,6 @@
     getInflationAssumptions,
     getMethodDefaults,
     getGrowthAndReturnAssumptions,
-    getAssetLiquidityAssumptions,
     getAssetTreatmentAssumptions,
     getExistingCoverageAssumptions,
     getDebtTreatmentAssumptions,

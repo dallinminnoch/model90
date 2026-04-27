@@ -11391,6 +11391,11 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   text-transform: uppercase;
 }
 
+.analysis-setup-eyebrow {
+  color: #4a62bd;
+  letter-spacing: 0.12em;
+}
+
 .analysis-setup-helper {
   position: relative;
   z-index: 50;
@@ -13384,6 +13389,15 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
 }
 
 .analysis-estimate-eyebrow {
+  color: #4a62bd;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.lens-workflow-pane .page-intro .section-label {
   color: #4a62bd;
   font-size: 0.72rem;
   font-weight: 800;

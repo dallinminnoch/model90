@@ -8,8 +8,8 @@
   // Purpose: map saved Analysis Setup settings into the flat settings objects
   // consumed by the pure analysis method layer.
   // Non-goals: no DOM reads, no persistence, no formula logic, no Lens model
-  // mutation, and no application of future-only inflation, growth, or asset
-  // treatment assumptions.
+  // mutation, and no calculation of inflation, growth, or asset treatment
+  // outputs.
 
   const DEFAULT_DIME_SETTINGS = Object.freeze({
     dimeIncomeYears: 10,
@@ -260,7 +260,7 @@
     [
       ["inflationAssumptions", "Saved inflation assumptions are present but are not applied to current method results."],
       ["growthAndReturnAssumptions", "Saved growth and return assumptions are present but are not applied to current method results."],
-      ["assetTreatmentAssumptions", "Saved asset treatment assumptions are present but are not applied to current offset assets."]
+      ["assetTreatmentAssumptions", "Saved asset treatment assumptions apply through treated asset offsets; legacy offsetAssets remains a compatibility path."]
     ].forEach(function (entry) {
       const key = entry[0];
       if (isPlainObject(analysisSettings[key])) {

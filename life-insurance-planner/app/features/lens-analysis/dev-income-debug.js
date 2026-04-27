@@ -1205,7 +1205,7 @@
 
     return {
       status: "treatedAssetOffsets preview complete",
-      note: "Debug-only preview. This output is not saved, not attached to offsetAssets, and not consumed by DIME, Needs, HLV, Step 3, or recommendations.",
+      note: "Debug-only preview. This output is not saved, not attached to legacy offsetAssets, and does not change DIME, Needs, HLV, Step 3, or recommendations.",
       treatedAssetOffsets
     };
   }
@@ -1390,7 +1390,7 @@
       newTreatedAssetOffsets,
       delta: createAssetOffsetComparisonDelta(legacyOffsetAssets, newTreatedAssetOffsets),
       consumedByMethods: false,
-      note: "Debug-only comparison. treatedAssetOffsets is not saved, not attached to offsetAssets, and not consumed by DIME, Needs, HLV, Step 3, or recommendations."
+      note: "Debug-only comparison. This debug result is not saved, not attached to legacy offsetAssets, and does not change production method outputs."
     });
   }
 
@@ -1574,7 +1574,7 @@
           legacy,
           treated,
           delta: createNeedsAssetOffsetComparisonDelta(legacy, treated),
-          defaultStepThreeStillLegacy: adapterDefaults.assetOffsetSource === "legacy",
+          stepThreeDefaultAssetOffsetSource: adapterDefaults.assetOffsetSource || null,
           debugContext: {
             linkedRecordId: modelResult.linkedRecord?.id || null,
             linkedCaseRef: modelResult.linkedRecord?.caseRef || null,
