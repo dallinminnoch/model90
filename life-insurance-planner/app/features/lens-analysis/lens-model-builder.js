@@ -799,6 +799,117 @@
     return blockOutputs;
   }
 
+  function createEmptyTreatedAssetOffsets(warnings, metadata) {
+    const safeWarnings = Array.isArray(warnings) ? warnings : [];
+    const safeMetadata = isPlainObject(metadata) ? metadata : {};
+
+    return {
+      assets: [],
+      totalRawAssetValue: null,
+      totalIncludedRawValue: null,
+      totalTreatedAssetValue: null,
+      excludedAssetValue: null,
+      warnings: safeWarnings,
+      trace: [],
+      metadata: {
+        ...safeMetadata,
+        source: "lens-model-preparation",
+        consumedByMethods: false
+      }
+    };
+  }
+
+  function resolveAssetTreatmentAssumptions(input) {
+    const builderInput = input && typeof input === "object" ? input : {};
+    const directAnalysisSettings = isPlainObject(builderInput.analysisSettings)
+      ? builderInput.analysisSettings
+      : null;
+    const profileRecord = isPlainObject(builderInput.profileRecord) ? builderInput.profileRecord : {};
+    const profileAnalysisSettings = isPlainObject(profileRecord.analysisSettings)
+      ? profileRecord.analysisSettings
+      : null;
+    const analysisSettings = directAnalysisSettings || profileAnalysisSettings || {};
+
+    return isPlainObject(analysisSettings.assetTreatmentAssumptions)
+      ? analysisSettings.assetTreatmentAssumptions
+      : null;
+  }
+
+  function createPreparedTreatedAssetOffsets(lensModel, input) {
+    const safeLensModel = isPlainObject(lensModel) ? lensModel : {};
+    const assetFacts = isPlainObject(safeLensModel.assetFacts) ? safeLensModel.assetFacts : null;
+    const assetTreatmentAssumptions = resolveAssetTreatmentAssumptions(input);
+    const calculateAssetTreatment = lensAnalysis.calculateAssetTreatment;
+
+    if (!assetFacts || !Array.isArray(assetFacts.assets)) {
+      return createEmptyTreatedAssetOffsets(
+        [
+          createWarning(
+            "missing-asset-facts",
+            "assetFacts.assets is missing; treated asset offsets were not calculated."
+          )
+        ],
+        { reason: "missing-asset-facts" }
+      );
+    }
+
+    if (!assetTreatmentAssumptions) {
+      return createEmptyTreatedAssetOffsets(
+        [
+          createWarning(
+            "missing-asset-treatment-assumptions",
+            "Analysis Setup assetTreatmentAssumptions are missing; treated asset offsets were not calculated."
+          )
+        ],
+        {
+          reason: "missing-asset-treatment-assumptions",
+          assetCount: assetFacts.assets.length
+        }
+      );
+    }
+
+    if (typeof calculateAssetTreatment !== "function") {
+      return createEmptyTreatedAssetOffsets(
+        [
+          createWarning(
+            "missing-asset-treatment-helper",
+            "calculateAssetTreatment is unavailable; treated asset offsets were not calculated."
+          )
+        ],
+        {
+          reason: "missing-asset-treatment-helper",
+          assetCount: assetFacts.assets.length
+        }
+      );
+    }
+
+    const result = calculateAssetTreatment({
+      assetFacts,
+      assetTreatmentAssumptions,
+      options: {
+        source: "lens-model-preparation",
+        consumedByMethods: false
+      }
+    });
+    const resultMetadata = isPlainObject(result?.metadata) ? result.metadata : {};
+
+    return {
+      assets: Array.isArray(result?.assets) ? result.assets : [],
+      totalRawAssetValue: result?.totalRawAssetValue ?? null,
+      totalIncludedRawValue: result?.totalIncludedRawValue ?? null,
+      totalTreatedAssetValue: result?.totalTreatedAssetValue ?? null,
+      excludedAssetValue: result?.excludedAssetValue ?? null,
+      warnings: Array.isArray(result?.warnings) ? result.warnings : [],
+      trace: Array.isArray(result?.trace) ? result.trace : [],
+      metadata: {
+        ...resultMetadata,
+        source: "lens-model-preparation",
+        calculationSource: resultMetadata.source || "asset-treatment-calculations",
+        consumedByMethods: false
+      }
+    };
+  }
+
   function buildLensModelFromSavedProtectionModeling(input) {
     const warnings = [];
     const builderInput = input && typeof input === "object" ? input : {};
@@ -817,6 +928,10 @@
       lensModel = createLensModelFromBlockOutputs(blockOutputs, {
         sourceData: sourceResult.sourceData
       });
+
+      if (isPlainObject(lensModel)) {
+        lensModel.treatedAssetOffsets = createPreparedTreatedAssetOffsets(lensModel, builderInput);
+      }
     }
 
     return {

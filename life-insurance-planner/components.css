@@ -13145,6 +13145,14 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   min-width: 0;
 }
 
+.analysis-setup-method-copy {
+  margin: 0;
+  color: #8796ad;
+  font-size: 0.68rem;
+  font-weight: 620;
+  line-height: 1.35;
+}
+
 .analysis-setup-reset-button {
   min-height: 1.36rem;
   padding: 0.18rem 0.46rem;

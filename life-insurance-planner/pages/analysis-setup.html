@@ -189,6 +189,7 @@
                       <h3 id="analysis-setup-method-defaults">Method Defaults</h3>
                       <button class="analysis-setup-reset-button" type="button" data-analysis-method-reset>Reset to Default</button>
                     </div>
+                    <p class="analysis-setup-method-copy">Choose method-level defaults and source behavior. Treated asset offsets use Asset Treatment assumptions and added asset records; legacy offset assets preserve the prior compatibility path.</p>
                     <div class="analysis-setup-method-list">
                       <label class="analysis-setup-method-row" for="analysis-setup-dime-income-years">
                         <span>DIME Income Years</span>
@@ -201,6 +202,13 @@
                       <label class="analysis-setup-method-row" for="analysis-setup-hlv-projection-years">
                         <span>HLV Projection Years</span>
                         <input id="analysis-setup-hlv-projection-years" class="analysis-setup-method-input" type="text" inputmode="numeric" autocomplete="off" data-analysis-method-field="hlvProjectionYears">
+                      </label>
+                      <label class="analysis-setup-method-row" for="analysis-setup-asset-offset-source">
+                        <span>Asset Offset Source</span>
+                        <select id="analysis-setup-asset-offset-source" class="analysis-setup-asset-select analysis-setup-method-input analysis-setup-method-input--wide" data-analysis-method-field="assetOffsetSource">
+                          <option value="legacy">Legacy offset assets</option>
+                          <option value="treated">Treated asset offsets</option>
+                        </select>
                       </label>
                     </div>
                   </section>

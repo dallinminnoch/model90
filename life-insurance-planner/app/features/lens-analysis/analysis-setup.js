@@ -42,6 +42,8 @@
     needsSupportYears: "Needs Support Years",
     hlvProjectionYears: "HLV Projection Years"
   };
+  const ASSET_OFFSET_SOURCE_LEGACY = "legacy";
+  const ASSET_OFFSET_SOURCE_TREATED = "treated";
 
   const DEFAULT_INFLATION_ASSUMPTIONS = Object.freeze({
     enabled: true,
@@ -57,6 +59,8 @@
     dimeIncomeYears: 10,
     needsSupportYears: 10,
     hlvProjectionYears: 10,
+    assetOffsetSource: ASSET_OFFSET_SOURCE_LEGACY,
+    fallbackToLegacyOffsetAssets: true,
     source: "analysis-setup"
   });
 
@@ -835,6 +839,17 @@
     return Math.min(MAX_METHOD_YEARS, Math.max(MIN_METHOD_YEARS, Math.round(number)));
   }
 
+  function normalizeAssetOffsetSource(value, fallback) {
+    const normalizedValue = String(value || "").trim().toLowerCase();
+    if (normalizedValue === ASSET_OFFSET_SOURCE_TREATED) {
+      return ASSET_OFFSET_SOURCE_TREATED;
+    }
+    if (normalizedValue === ASSET_OFFSET_SOURCE_LEGACY) {
+      return ASSET_OFFSET_SOURCE_LEGACY;
+    }
+    return fallback || ASSET_OFFSET_SOURCE_LEGACY;
+  }
+
   function parseOptionalNumberValue(value) {
     if (value === null || value === undefined) {
       return null;
@@ -1222,6 +1237,13 @@
       saved.hlvProjectionYears,
       defaults.hlvProjectionYears
     );
+    nextDefaults.assetOffsetSource = normalizeAssetOffsetSource(
+      saved.assetOffsetSource,
+      defaults.assetOffsetSource
+    );
+    nextDefaults.fallbackToLegacyOffsetAssets = typeof saved.fallbackToLegacyOffsetAssets === "boolean"
+      ? saved.fallbackToLegacyOffsetAssets
+      : defaults.fallbackToLegacyOffsetAssets;
 
     if (saved.lastUpdatedAt) {
       nextDefaults.lastUpdatedAt = String(saved.lastUpdatedAt);
@@ -3190,6 +3212,12 @@
         defaults.hlvProjectionYears ?? DEFAULT_METHOD_DEFAULTS.hlvProjectionYears
       );
     }
+    if (fields.assetOffsetSource) {
+      fields.assetOffsetSource.value = normalizeAssetOffsetSource(
+        defaults.assetOffsetSource,
+        DEFAULT_METHOD_DEFAULTS.assetOffsetSource
+      );
+    }
   }
 
   function populateDefaultMethodFields(fields, linkedRecord) {
@@ -4776,11 +4804,19 @@
       nextDefaults[fieldName] = number;
     }
 
+    nextDefaults.assetOffsetSource = normalizeAssetOffsetSource(
+      fields.assetOffsetSource?.value,
+      DEFAULT_METHOD_DEFAULTS.assetOffsetSource
+    );
+    nextDefaults.fallbackToLegacyOffsetAssets = true;
+
     return {
       value: {
         dimeIncomeYears: nextDefaults.dimeIncomeYears,
         needsSupportYears: nextDefaults.needsSupportYears,
         hlvProjectionYears: nextDefaults.hlvProjectionYears,
+        assetOffsetSource: nextDefaults.assetOffsetSource,
+        fallbackToLegacyOffsetAssets: nextDefaults.fallbackToLegacyOffsetAssets,
         lastUpdatedAt: new Date().toISOString(),
         source: "analysis-setup"
       }
@@ -6403,6 +6439,8 @@
         markUnsaved();
       });
     });
+
+    methodFields.assetOffsetSource?.addEventListener("change", markUnsaved);
 
     methodFields.resetButton?.addEventListener("click", function () {
       populateDefaultMethodFields(methodFields, linkedRecord);

@@ -1,6 +1,8 @@
 (function (global) {
   const LensApp = global.LensApp || (global.LensApp = {});
   const lensAnalysis = LensApp.lensAnalysis || (LensApp.lensAnalysis = {});
+  const ASSET_OFFSET_SOURCE_LEGACY = "legacy";
+  const ASSET_OFFSET_SOURCE_TREATED = "treated";
 
   // Owner: lens-analysis settings adapter.
   // Purpose: map saved Analysis Setup settings into the flat settings objects
@@ -12,13 +14,17 @@
   const DEFAULT_DIME_SETTINGS = Object.freeze({
     dimeIncomeYears: 10,
     includeExistingCoverageOffset: true,
-    includeOffsetAssets: false
+    includeOffsetAssets: false,
+    assetOffsetSource: ASSET_OFFSET_SOURCE_LEGACY,
+    fallbackToLegacyOffsetAssets: true
   });
 
   const DEFAULT_NEEDS_ANALYSIS_SETTINGS = Object.freeze({
     needsSupportDurationYears: 10,
     includeExistingCoverageOffset: true,
     includeOffsetAssets: true,
+    assetOffsetSource: ASSET_OFFSET_SOURCE_LEGACY,
+    fallbackToLegacyOffsetAssets: true,
     includeTransitionNeeds: true,
     includeDiscretionarySupport: false,
     includeSurvivorIncomeOffset: true
@@ -26,7 +32,9 @@
 
   const DEFAULT_HUMAN_LIFE_VALUE_SETTINGS = Object.freeze({
     includeExistingCoverageOffset: true,
-    includeOffsetAssets: false
+    includeOffsetAssets: false,
+    assetOffsetSource: ASSET_OFFSET_SOURCE_LEGACY,
+    fallbackToLegacyOffsetAssets: true
   });
 
   function isPlainObject(value) {
@@ -84,6 +92,48 @@
         ...cloneDefaults(safeDefaults.humanLifeValueSettings)
       }
     };
+  }
+
+  function normalizeAssetOffsetSource(value, fallback) {
+    const normalizedValue = String(value || "").trim().toLowerCase();
+    if (normalizedValue === ASSET_OFFSET_SOURCE_TREATED) {
+      return ASSET_OFFSET_SOURCE_TREATED;
+    }
+    if (normalizedValue === ASSET_OFFSET_SOURCE_LEGACY) {
+      return ASSET_OFFSET_SOURCE_LEGACY;
+    }
+    return fallback || ASSET_OFFSET_SOURCE_LEGACY;
+  }
+
+  function applyAssetOffsetSourceSettings(settings, methodDefaults, defaults, warnings, trace) {
+    const savedSource = hasOwn(methodDefaults, "assetOffsetSource")
+      ? normalizeAssetOffsetSource(methodDefaults.assetOffsetSource, defaults.assetOffsetSource)
+      : defaults.assetOffsetSource;
+
+    settings.assetOffsetSource = savedSource;
+    settings.fallbackToLegacyOffsetAssets = typeof methodDefaults.fallbackToLegacyOffsetAssets === "boolean"
+      ? methodDefaults.fallbackToLegacyOffsetAssets
+      : defaults.fallbackToLegacyOffsetAssets;
+
+    if (hasOwn(methodDefaults, "assetOffsetSource")) {
+      trace.push(createTrace(
+        "assetOffsetSource-saved",
+        "assetOffsetSource came from saved Analysis Setup method defaults.",
+        ["analysisSettings.methodDefaults.assetOffsetSource"]
+      ));
+    }
+
+    if (
+      hasOwn(methodDefaults, "assetOffsetSource")
+      && String(methodDefaults.assetOffsetSource || "").trim().toLowerCase() !== savedSource
+    ) {
+      warnings.push(createWarning(
+        "invalid-asset-offset-source",
+        "Saved asset offset source was invalid and defaulted to legacy.",
+        "warning",
+        ["analysisSettings.methodDefaults.assetOffsetSource"]
+      ));
+    }
   }
 
   function addPositiveSetting(options) {
@@ -232,6 +282,8 @@
     const trace = Array.isArray(options.trace) ? options.trace : [];
     const settings = { ...defaults.dime };
 
+    applyAssetOffsetSourceSettings(settings, methodDefaults, defaults.dime, warnings, trace);
+
     addPositiveSetting({
       settings,
       source: methodDefaults,
@@ -259,6 +311,8 @@
     const warnings = Array.isArray(options.warnings) ? options.warnings : [];
     const trace = Array.isArray(options.trace) ? options.trace : [];
     const settings = { ...defaults.needsAnalysis };
+
+    applyAssetOffsetSourceSettings(settings, methodDefaults, defaults.needsAnalysis, warnings, trace);
 
     if (hasOwn(methodDefaults, "needsSupportDurationYears")) {
       addPositiveSetting({
@@ -308,6 +362,8 @@
     const warnings = Array.isArray(options.warnings) ? options.warnings : [];
     const trace = Array.isArray(options.trace) ? options.trace : [];
     const settings = { ...defaults.humanLifeValue };
+
+    applyAssetOffsetSourceSettings(settings, methodDefaults, defaults.humanLifeValue, warnings, trace);
 
     addNonNegativeSetting({
       settings,

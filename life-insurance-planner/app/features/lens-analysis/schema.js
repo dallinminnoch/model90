@@ -182,6 +182,22 @@
         }
       },
 
+      // Future asset-offset output prepared from assetFacts plus Analysis
+      // Setup treatment assumptions. This is not consumed by current methods.
+      treatedAssetOffsets: {
+        assets: [],
+        totalRawAssetValue: null,
+        totalIncludedRawValue: null,
+        totalTreatedAssetValue: null,
+        excludedAssetValue: null,
+        warnings: [],
+        trace: [],
+        metadata: {
+          source: null,
+          consumedByMethods: false
+        }
+      },
+
       // Current non-coverage assets that may later be considered as offsets.
       // These are neutral current-resource facts. They do not create needs,
       // subtract from needs, calculate a coverage gap, or produce a
