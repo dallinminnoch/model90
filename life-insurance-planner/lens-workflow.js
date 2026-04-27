@@ -2,6 +2,7 @@
   const WORKFLOW_STEPS = [
     { id: "profile-1", label: "Link Profile", path: "profile.html" },
     { id: "analysis-setup", label: "Analysis Setup", path: "analysis-setup.html" },
+    { id: "income-impact", label: "Income Loss Impact", path: "income-loss-impact.html" },
     { id: "estimate", label: "Estimate Need", path: "analysis-estimate.html" },
     { id: "detail", label: "Detailed Analysis", path: "analysis-detail.html" },
     { id: "recommendations", label: "Coverage Options", path: "recommendations.html" },

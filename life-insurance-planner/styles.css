@@ -3,6 +3,7 @@
 @import "./base.css" layer(base);
 @import "./layout.css" layer(layout);
 @import "./components.css" layer(components);
+@import "./lens-analysis-styling/income-impact-timeline.css" layer(components);
 @import "./utilities.css" layer(utilities);
 
 @layer legacy {

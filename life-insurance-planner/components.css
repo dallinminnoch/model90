@@ -14099,23 +14099,6 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   gap: 0.8rem;
 }
 
-.income-impact-timeline-bar {
-  display: flex;
-  width: 100%;
-  height: 0.72rem;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #e7ecf4;
-}
-
-.income-impact-timeline-bar span:first-child {
-  background: #4a62bd;
-}
-
-.income-impact-timeline-bar span:last-child {
-  background: #52a17a;
-}
-
 .income-impact-timeline-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

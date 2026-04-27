@@ -4,6 +4,23 @@
 
   const UNAVAILABLE_COPY = "Not available";
   const EMPTY_MESSAGE = "Not available until income and survivor inputs are completed.";
+  const PLACEHOLDER_SUPPORT_GAP_TIMELINE_START_YEAR = 2026;
+  const PLACEHOLDER_SUPPORT_GAP_TIMELINE_YEARS = 15;
+  const PLACEHOLDER_SUPPORT_GAP_TIMELINE_START_VALUE = 184000;
+  const MONTH_LABELS = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec"
+  ];
 
   function isPlainObject(value) {
     return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -96,6 +113,20 @@
 
     const rounded = Math.round(number * 10) / 10;
     return `${rounded.toLocaleString("en-US", { maximumFractionDigits: 1 })} ${rounded === 1 ? "year" : "years"}`;
+  }
+
+  function formatCompactCurrency(value) {
+    const number = toOptionalNumber(value);
+    if (number == null) {
+      return UNAVAILABLE_COPY;
+    }
+
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      notation: "compact",
+      maximumFractionDigits: 0
+    }).format(number);
   }
 
   function formatBoolean(value) {
@@ -240,13 +271,266 @@
     `;
   }
 
-  function clampPercent(value) {
-    const number = toOptionalNumber(value);
-    if (number == null) {
-      return 0;
+  function smoothPlaceholderPoints(points) {
+    if (!Array.isArray(points) || points.length < 5) {
+      return Array.isArray(points) ? points : [];
     }
 
-    return Math.max(0, Math.min(100, number));
+    const weights = [1, 3, 4, 3, 1];
+    const weightTotal = weights.reduce(function (total, weight) {
+      return total + weight;
+    }, 0);
+
+    return points.map(function (point, index) {
+      if (index < 2 || index > points.length - 3) {
+        return point;
+      }
+
+      const y = weights.reduce(function (total, weight, weightIndex) {
+        return total + (points[index + weightIndex - 2].y * weight);
+      }, 0) / weightTotal;
+
+      return {
+        ...point,
+        y: Math.round(y * 100) / 100
+      };
+    });
+  }
+
+  function buildSmoothPath(points) {
+    if (!Array.isArray(points) || !points.length) {
+      return "";
+    }
+
+    if (points.length === 1) {
+      return `M ${points[0].x} ${points[0].y}`;
+    }
+
+    let path = `M ${points[0].x} ${points[0].y}`;
+    const tension = 0.82;
+    for (let index = 0; index < points.length - 1; index += 1) {
+      const previous = points[Math.max(0, index - 1)];
+      const current = points[index];
+      const next = points[index + 1];
+      const after = points[Math.min(points.length - 1, index + 2)];
+      const firstControl = {
+        x: current.x + ((next.x - previous.x) * tension / 6),
+        y: current.y + ((next.y - previous.y) * tension / 6)
+      };
+      const secondControl = {
+        x: next.x - ((after.x - current.x) * tension / 6),
+        y: next.y - ((after.y - current.y) * tension / 6)
+      };
+
+      path += ` C ${Math.round(firstControl.x * 100) / 100} ${Math.round(firstControl.y * 100) / 100}, ${Math.round(secondControl.x * 100) / 100} ${Math.round(secondControl.y * 100) / 100}, ${next.x} ${next.y}`;
+    }
+
+    return path;
+  }
+
+  function getPlaceholderChartY(value, maxValue, chartTop, chartBottom) {
+    const ratio = Math.max(0, Math.min(1, value / Math.max(maxValue, 1)));
+    return Math.round((chartBottom - (ratio * (chartBottom - chartTop))) * 100) / 100;
+  }
+
+  function buildPlaceholderSupportGapTimelineValues() {
+    const totalMonths = PLACEHOLDER_SUPPORT_GAP_TIMELINE_YEARS * 12;
+    const lastIndex = totalMonths - 1;
+
+    return Array.from({ length: totalMonths }, function (_item, index) {
+      const progress = lastIndex <= 0 ? 1 : index / lastIndex;
+      const monthIndex = index % 12;
+      const year = PLACEHOLDER_SUPPORT_GAP_TIMELINE_START_YEAR + Math.floor(index / 12);
+      const taper = Math.pow(1 - progress, 1.18);
+      const primaryWave = Math.sin(index * 0.42) * 4200 * (1 - progress);
+      const referenceWave = Math.cos(index * 0.38) * 2600 * (1 - progress);
+      const primaryGap = index === lastIndex
+        ? 0
+        : Math.max(0, Math.round((PLACEHOLDER_SUPPORT_GAP_TIMELINE_START_VALUE * taper) + primaryWave));
+      const referenceGap = index === lastIndex
+        ? 0
+        : Math.max(0, Math.round((PLACEHOLDER_SUPPORT_GAP_TIMELINE_START_VALUE * 0.78 * taper) + referenceWave));
+
+      return {
+        label: `${MONTH_LABELS[monthIndex]} ${year}`,
+        shortLabel: MONTH_LABELS[monthIndex],
+        year,
+        primaryGap,
+        referenceGap
+      };
+    });
+  }
+
+  function renderPlaceholderTimelineChart() {
+    const values = buildPlaceholderSupportGapTimelineValues();
+    const width = 960;
+    const height = 260;
+    const chartTop = 26;
+    const chartBottom = 202;
+    const xStart = 10;
+    const xEnd = width - 10;
+    const monthWidth = (xEnd - xStart) / Math.max(values.length, 1);
+    const maxGap = Math.max(...values.map(function (item) {
+      return Math.max(item.primaryGap, item.referenceGap);
+    }), 1);
+    const monthPoints = values.map(function (item, index) {
+      const leftX = xStart + (index * monthWidth);
+      const rightX = leftX + monthWidth;
+      const centerX = leftX + (monthWidth / 2);
+      const primaryY = getPlaceholderChartY(item.primaryGap, maxGap, chartTop, chartBottom);
+
+      return {
+        x: Math.round(centerX * 100) / 100,
+        y: primaryY,
+        leftX: Math.round(leftX * 100) / 100,
+        rightX: Math.round(rightX * 100) / 100,
+        item
+      };
+    });
+    const primaryPoints = monthPoints.map(function (point) {
+      return {
+        x: point.x,
+        y: point.y,
+        item: point.item
+      };
+    });
+    const referencePoints = values.map(function (item, index) {
+      const centerX = xStart + (index * monthWidth) + (monthWidth / 2);
+      return {
+        x: Math.round(centerX * 100) / 100,
+        y: getPlaceholderChartY(item.referenceGap, maxGap, chartTop, chartBottom),
+        item
+      };
+    });
+    const primaryLinePoints = smoothPlaceholderPoints(primaryPoints);
+    const referenceLinePoints = smoothPlaceholderPoints(referencePoints);
+    const boundaryLines = Array.from({ length: values.length + 1 }, function (_item, index) {
+      const x = xStart + (index * monthWidth);
+      const previousPoint = monthPoints[Math.max(0, index - 1)];
+      const nextPoint = monthPoints[Math.min(monthPoints.length - 1, index)];
+      const y = index === 0
+        ? nextPoint.y
+        : index === values.length
+          ? previousPoint.y
+          : (previousPoint.y + nextPoint.y) / 2;
+
+      return {
+        x: Math.round(x * 100) / 100,
+        y: Math.round(y * 100) / 100
+      };
+    });
+    const monthBands = monthPoints.map(function (point) {
+      const hitInset = Math.min(0.9, Math.max(0.35, monthWidth * 0.14));
+      const x = point.leftX + hitInset;
+      const width = Math.max(1, (point.rightX - point.leftX) - (hitInset * 2));
+
+      return {
+        x: Math.round(x * 100) / 100,
+        width: Math.round(width * 100) / 100,
+        point
+      };
+    });
+    const axisValues = values.filter(function (item, index) {
+      return index === 0 || index === values.length - 1 || (item.shortLabel === "Jan" && (item.year - PLACEHOLDER_SUPPORT_GAP_TIMELINE_START_YEAR) % 3 === 0);
+    });
+
+    return `
+      <div class="income-impact-timeline-chart" aria-label="Placeholder support gap timeline visualization">
+        <div class="income-impact-chart-topline">
+          <span class="income-impact-placeholder-badge">Placeholder visualization</span>
+          <p>15-year monthly placeholder values shown for layout only. Final timeline will use model-calculated support gap projections.</p>
+        </div>
+        <svg class="income-impact-timeline-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="Sample support gap timeline shown as thin columns under trendlines">
+          <g class="income-impact-chart-grid" aria-hidden="true">
+            <line x1="${xStart}" y1="${chartTop}" x2="${xEnd}" y2="${chartTop}"></line>
+            <line x1="${xStart}" y1="${Math.round(chartTop + ((chartBottom - chartTop) * 0.25))}" x2="${xEnd}" y2="${Math.round(chartTop + ((chartBottom - chartTop) * 0.25))}"></line>
+            <line x1="${xStart}" y1="${Math.round(chartTop + ((chartBottom - chartTop) * 0.5))}" x2="${xEnd}" y2="${Math.round(chartTop + ((chartBottom - chartTop) * 0.5))}"></line>
+            <line x1="${xStart}" y1="${Math.round(chartTop + ((chartBottom - chartTop) * 0.75))}" x2="${xEnd}" y2="${Math.round(chartTop + ((chartBottom - chartTop) * 0.75))}"></line>
+            <line x1="${xStart}" y1="${chartBottom}" x2="${xEnd}" y2="${chartBottom}"></line>
+          </g>
+          <g class="income-impact-timeline-columns" aria-hidden="true">
+            ${boundaryLines.map(function (boundary) {
+              return `
+                <line
+                  class="income-impact-timeline-column"
+                  x1="${boundary.x}"
+                  y1="${boundary.y}"
+                  x2="${boundary.x}"
+                  y2="${chartBottom}"
+                ></line>
+              `;
+            }).join("")}
+          </g>
+          <path class="income-impact-timeline-line income-impact-timeline-line--reference" d="${escapeHtml(buildSmoothPath(referenceLinePoints))}"></path>
+          <path class="income-impact-timeline-line income-impact-timeline-line--primary" d="${escapeHtml(buildSmoothPath(primaryLinePoints))}"></path>
+          <g class="income-impact-timeline-month-bands">
+            ${monthBands.map(function (band) {
+              return `
+                <rect
+                  class="income-impact-timeline-month-band"
+                  x="${band.x}"
+                  y="${chartTop}"
+                  width="${band.width}"
+                  height="${chartBottom - chartTop}"
+                  data-income-impact-timeline-month="${escapeHtml(band.point.item.label)}"
+                  data-income-impact-timeline-gap="${escapeHtml(String(band.point.item.primaryGap))}"
+                >
+                  <title>${escapeHtml(`${band.point.item.label}: ${formatCurrency(band.point.item.primaryGap)} sample gap`)}</title>
+                </rect>
+              `;
+            }).join("")}
+          </g>
+        </svg>
+        <div class="income-impact-chart-axis" aria-hidden="true">
+          ${axisValues.map(function (item) {
+            return `<span>${escapeHtml(item.label)}</span>`;
+          }).join("")}
+        </div>
+        <div
+          class="income-impact-chart-hover-label"
+          data-income-impact-chart-hover-label
+          data-default-text="Hover over a monthly bar to see the placeholder month and year."
+        >Hover over a monthly bar to see the placeholder month and year.</div>
+      </div>
+    `;
+  }
+
+  function bindPlaceholderTimelineHover(host) {
+    const charts = Array.from(host.querySelectorAll(".income-impact-timeline-chart"));
+    charts.forEach(function (chart) {
+      const label = chart.querySelector("[data-income-impact-chart-hover-label]");
+      if (!label) {
+        return;
+      }
+
+      const defaultText = label.getAttribute("data-default-text") || label.textContent;
+
+      function setDefaultText() {
+        label.textContent = defaultText;
+      }
+
+      function updateLabel(column) {
+        const monthLabel = String(column?.getAttribute("data-income-impact-timeline-month") || "").trim();
+        const gap = toOptionalNumber(column?.getAttribute("data-income-impact-timeline-gap"));
+        if (!monthLabel) {
+          setDefaultText();
+          return;
+        }
+
+        label.textContent = gap == null
+          ? monthLabel
+          : `${monthLabel} - sample gap ${formatCompactCurrency(gap)}`;
+      }
+
+      chart.addEventListener("mouseover", function (event) {
+        const column = event.target?.closest?.("[data-income-impact-timeline-month]");
+        if (column && chart.contains(column)) {
+          updateLabel(column);
+        }
+      });
+
+      chart.addEventListener("mouseleave", setDefaultText);
+    });
   }
 
   function renderTimeline(data) {
@@ -256,8 +540,9 @@
         <article class="income-impact-card income-impact-card--wide">
           <div class="income-impact-card-header">
             <h3>Support Gap Timeline</h3>
-            <p>Current-dollar v1 timeline.</p>
+            <p>Current-dollar v1 timeline. Chart values are placeholder only.</p>
           </div>
+          ${renderPlaceholderTimelineChart()}
           <div class="income-impact-empty-inline">${escapeHtml(EMPTY_MESSAGE)}</div>
         </article>
       `;
@@ -267,20 +552,15 @@
     const incomeOffsetMonths = Math.max(0, data.incomeOffsetMonths == null
       ? supportDurationMonths - delayMonths
       : data.incomeOffsetMonths);
-    const delayWidth = clampPercent((delayMonths / supportDurationMonths) * 100);
-    const incomeWidth = clampPercent((incomeOffsetMonths / supportDurationMonths) * 100);
 
     return `
       <article class="income-impact-card income-impact-card--wide">
         <div class="income-impact-card-header">
           <h3>Support Gap Timeline</h3>
-          <p>Current-dollar v1 timeline. Inflation and growth projections are not applied here.</p>
+          <p>Current-dollar v1 timeline. Chart values are placeholder only.</p>
         </div>
         <div class="income-impact-timeline" aria-label="Current-dollar support gap timeline">
-          <div class="income-impact-timeline-bar">
-            <span style="width:${delayWidth}%"></span>
-            <span style="width:${incomeWidth}%"></span>
-          </div>
+          ${renderPlaceholderTimelineChart()}
           <div class="income-impact-timeline-grid">
             <div>
               <span>Before survivor income starts</span>
@@ -402,6 +682,7 @@
         </div>
       ` : ""}
     `;
+    bindPlaceholderTimelineHover(host);
   }
 
   function initializeIncomeLossImpactDisplay() {
