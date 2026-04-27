@@ -59,7 +59,7 @@
     dimeIncomeYears: 10,
     needsSupportYears: 10,
     hlvProjectionYears: 10,
-    assetOffsetSource: ASSET_OFFSET_SOURCE_TREATED,
+    assetOffsetSource: ASSET_OFFSET_SOURCE_LEGACY,
     fallbackToLegacyOffsetAssets: true,
     source: "analysis-setup"
   });
@@ -87,7 +87,8 @@
     { key: "educationSpecificSavings", label: "Education-Specific Savings", sourceField: "educationSpecificSavings", legacyKeys: Object.freeze([]) },
     { key: "trustRestrictedAssets", label: "Trust / Restricted Assets", sourceField: "trustRestrictedAssets", legacyKeys: Object.freeze([]) },
     { key: "stockCompensationDeferredCompensation", label: "Stock Compensation / Deferred Compensation", sourceField: "stockCompensationDeferredCompensation", legacyKeys: Object.freeze([]) },
-    { key: "digitalAssetsCrypto", label: "Digital Assets / Crypto", sourceField: "digitalAssetsCrypto", legacyKeys: Object.freeze([]) }
+    { key: "digitalAssetsCrypto", label: "Digital Assets / Crypto", sourceField: "digitalAssetsCrypto", legacyKeys: Object.freeze([]) },
+    { key: "otherCustomAsset", label: "Other / Custom Asset", sourceField: "otherCustomAsset", legacyKeys: Object.freeze(["otherAssets"]) }
   ]);
   const PMI_BACKED_ASSET_TREATMENT_KEYS = Object.freeze([
     "cashAndCashEquivalents",
@@ -302,6 +303,13 @@
         taxTreatment: "custom",
         taxDragPercent: 0,
         liquidityHaircutPercent: 50
+      }),
+      otherCustomAsset: Object.freeze({
+        include: false,
+        treatmentPreset: "custom",
+        taxTreatment: "custom",
+        taxDragPercent: 0,
+        liquidityHaircutPercent: 25
       })
     }),
     customAssets: Object.freeze([
@@ -326,7 +334,8 @@
         educationSpecificSavings: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 35 }),
         trustRestrictedAssets: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 50 }),
         stockCompensationDeferredCompensation: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "case-specific", taxDragPercent: 20, liquidityHaircutPercent: 35 }),
-        digitalAssetsCrypto: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 60 })
+        digitalAssetsCrypto: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 60 }),
+        otherCustomAsset: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 35 })
       }),
       customAsset: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 35 })
     }),
@@ -349,7 +358,8 @@
         educationSpecificSavings: Object.freeze({ include: true, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 15 }),
         trustRestrictedAssets: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 35 }),
         stockCompensationDeferredCompensation: Object.freeze({ include: true, treatmentPreset: "custom", taxTreatment: "case-specific", taxDragPercent: 10, liquidityHaircutPercent: 15 }),
-        digitalAssetsCrypto: Object.freeze({ include: true, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 35 })
+        digitalAssetsCrypto: Object.freeze({ include: true, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 35 }),
+        otherCustomAsset: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 15 })
       }),
       customAsset: Object.freeze({ include: true, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 15 })
     })
@@ -724,6 +734,15 @@
     return Boolean(value && typeof value === "object" && !Array.isArray(value));
   }
 
+  function escapeHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   function getUrlValue(params, names) {
     for (let index = 0; index < names.length; index += 1) {
       const value = String(params.get(names[index]) || "").trim();
@@ -801,7 +820,7 @@
     if (normalizedValue === ASSET_OFFSET_SOURCE_LEGACY) {
       return ASSET_OFFSET_SOURCE_LEGACY;
     }
-    return fallback || ASSET_OFFSET_SOURCE_TREATED;
+    return fallback || ASSET_OFFSET_SOURCE_LEGACY;
   }
 
   function parseOptionalNumberValue(value) {
@@ -1082,8 +1101,118 @@
     return PMI_BACKED_ASSET_TREATMENT_KEYS.includes(itemKey);
   }
 
-  function getAssetTreatmentRenderItems() {
-    return ASSET_TREATMENT_ITEMS.slice();
+  function getAssetFactsForLinkedRecord(record) {
+    const createAssetFacts = LensApp.lensAnalysis?.createAssetFactsFromSourceData;
+    if (typeof createAssetFacts !== "function") {
+      return {
+        assets: []
+      };
+    }
+
+    return createAssetFacts(getLinkedProtectionModelingData(record));
+  }
+
+  function getAssetTreatmentRenderItems(linkedRecord) {
+    const assetFacts = getAssetFactsForLinkedRecord(linkedRecord);
+    const assets = Array.isArray(assetFacts?.assets) ? assetFacts.assets : [];
+
+    return assets.reduce(function (items, asset, index) {
+      const categoryKey = String(asset?.categoryKey || "").trim();
+      const currentValue = Number(asset?.currentValue);
+      if (!categoryKey || !Number.isFinite(currentValue) || currentValue <= 0) {
+        return items;
+      }
+
+      const taxonomyItem = getAssetTreatmentItemByKey(categoryKey);
+      const fallbackId = `${categoryKey}_${index + 1}`;
+      items.push({
+        key: categoryKey,
+        assetId: String(asset?.assetId || fallbackId).trim() || fallbackId,
+        label: String(asset?.label || taxonomyItem?.label || categoryKey).trim(),
+        currentValue,
+        source: String(asset?.source || "").trim(),
+        isDefaultAsset: asset?.isDefaultAsset === true,
+        isCustomAsset: asset?.isCustomAsset === true,
+        taxonomyItem
+      });
+
+      return items;
+    }, []);
+  }
+
+  function getAssetTreatmentItemByKey(itemKey) {
+    const key = String(itemKey || "").trim();
+    return ASSET_TREATMENT_ITEMS.find(function (item) {
+      return item.key === key;
+    }) || null;
+  }
+
+  function getAssetTreatmentDefaultForKey(itemKey) {
+    const key = String(itemKey || "").trim();
+    return DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.assets[key]
+      || DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.assets.otherCustomAsset
+      || DEFAULT_CUSTOM_ASSET_TREATMENT;
+  }
+
+  function getVisibleAssetTreatmentItemKeys(fields) {
+    const fieldLists = fields?.fieldLists?.preset;
+    if (isPlainObject(fieldLists)) {
+      return Object.keys(fieldLists).filter(function (itemKey) {
+        return Array.isArray(fieldLists[itemKey]) && fieldLists[itemKey].length > 0;
+      });
+    }
+
+    return Object.keys(fields?.preset || {});
+  }
+
+  function addAssetTreatmentField(fields, groupName, attributeName, field) {
+    const itemKey = String(field?.getAttribute(attributeName) || "").trim();
+    if (!itemKey) {
+      return;
+    }
+
+    if (!fields[groupName][itemKey]) {
+      fields[groupName][itemKey] = field;
+    }
+
+    if (!fields.fieldLists[groupName][itemKey]) {
+      fields.fieldLists[groupName][itemKey] = [];
+    }
+    fields.fieldLists[groupName][itemKey].push(field);
+  }
+
+  function getAssetTreatmentFieldList(fields, groupName, itemKey) {
+    const list = fields?.fieldLists?.[groupName]?.[itemKey];
+    if (Array.isArray(list)) {
+      return list;
+    }
+
+    const field = fields?.[groupName]?.[itemKey];
+    return field ? [field] : [];
+  }
+
+  function getAssetTreatmentField(fields, groupName, itemKey) {
+    return getAssetTreatmentFieldList(fields, groupName, itemKey)[0] || null;
+  }
+
+  function setAssetTreatmentFieldsChecked(fields, groupName, itemKey, checked) {
+    getAssetTreatmentFieldList(fields, groupName, itemKey).forEach(function (field) {
+      field.checked = Boolean(checked);
+    });
+  }
+
+  function setAssetTreatmentFieldsValue(fields, groupName, itemKey, value) {
+    getAssetTreatmentFieldList(fields, groupName, itemKey).forEach(function (field) {
+      field.value = value;
+    });
+  }
+
+  function syncAssetTreatmentFieldValueFromSource(fields, groupName, itemKey, sourceField) {
+    if (!sourceField) {
+      return;
+    }
+
+    setAssetTreatmentFieldsValue(fields, groupName, itemKey, sourceField.value);
   }
 
   function getSavedAssetTreatmentForItem(savedAssets, item) {
@@ -1814,91 +1943,70 @@
     }).join("");
   }
 
-  function renderAssetTreatmentRows() {
+  function renderAssetTreatmentRows(linkedRecord) {
     const table = document.querySelector("[data-analysis-asset-treatment-table]");
     if (!table || table.dataset.rendered === "true") {
       return;
     }
 
-    getAssetTreatmentRenderItems().forEach(function (item) {
-      const defaults = DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.assets[item.key];
-      const isEditable = isAssetTreatmentItemEditable(item.key);
-      const disabledAttribute = isEditable ? "" : " disabled";
-      const rowDisabledClass = isEditable ? "" : " analysis-setup-asset-row--disabled";
-      const ariaDisabled = isEditable ? "false" : "true";
+    const renderItems = getAssetTreatmentRenderItems(linkedRecord);
+    if (!renderItems.length) {
       table.insertAdjacentHTML("beforeend", `
-        <div class="analysis-setup-asset-row${rowDisabledClass}" role="row" aria-disabled="${ariaDisabled}" data-analysis-asset-treatment-row="${item.key}">
-          <span class="analysis-setup-asset-label" role="cell">${item.label}</span>
+        <div class="analysis-setup-asset-row analysis-setup-asset-row--disabled" role="row" aria-disabled="true" data-analysis-asset-treatment-empty="true">
+          <span class="analysis-setup-asset-label" role="cell">No asset values found yet. Add asset values in Protection Modeling Inputs.</span>
+          <span role="cell"></span>
+          <span role="cell"></span>
+          <span role="cell"></span>
+          <span role="cell"></span>
+          <span role="cell"></span>
+          <span role="cell"></span>
+        </div>
+      `);
+      table.dataset.rendered = "true";
+      return;
+    }
+
+    renderItems.forEach(function (item) {
+      const defaults = getAssetTreatmentDefaultForKey(item.key);
+      const safeLabel = escapeHtml(item.label);
+      const safeKey = escapeHtml(item.key);
+      const safeAssetId = escapeHtml(item.assetId);
+      const currentValue = Number(item.currentValue);
+      table.insertAdjacentHTML("beforeend", `
+        <div class="analysis-setup-asset-row" role="row" aria-disabled="false" data-analysis-asset-treatment-row="${safeKey}" data-analysis-asset-id="${safeAssetId}">
+          <span class="analysis-setup-asset-label" role="cell">${safeLabel} - ${formatCurrencyValue(currentValue)}</span>
           <span role="cell">
-            <label class="analysis-setup-asset-include" aria-label="Include ${item.label}">
+            <label class="analysis-setup-asset-include" aria-label="Include ${safeLabel}">
               <span class="settings-switch analysis-setup-mini-switch">
-                <input class="analysis-setup-asset-field" type="checkbox" role="switch" aria-label="Include ${item.label}" data-analysis-asset-treatment-include="${item.key}"${disabledAttribute}>
+                <input class="analysis-setup-asset-field" type="checkbox" role="switch" aria-label="Include ${safeLabel}" data-analysis-asset-treatment-include="${safeKey}">
                 <span class="settings-switch-track" aria-hidden="true"></span>
               </span>
             </label>
           </span>
           <span role="cell">
-            <select class="analysis-setup-asset-select analysis-setup-asset-field" aria-label="${item.label} treatment preset" data-analysis-asset-treatment-preset="${item.key}"${disabledAttribute}>
+            <select class="analysis-setup-asset-select analysis-setup-asset-field" aria-label="${safeLabel} treatment preset" data-analysis-asset-treatment-preset="${safeKey}">
               ${getPresetOptionsMarkup(defaults.treatmentPreset)}
             </select>
           </span>
           <span role="cell">
-            <span class="analysis-setup-tax-treatment-pill" data-analysis-asset-treatment-tax-treatment="${item.key}">${TAX_TREATMENT_LABELS[defaults.taxTreatment]}</span>
+            <span class="analysis-setup-tax-treatment-pill" data-analysis-asset-treatment-tax-treatment="${safeKey}">${TAX_TREATMENT_LABELS[defaults.taxTreatment]}</span>
           </span>
           <span role="cell">
             <span class="analysis-setup-asset-percent">
-              <input class="analysis-setup-asset-percent-input analysis-setup-asset-field" type="text" inputmode="decimal" value="${defaults.taxDragPercent}" aria-label="${item.label} tax drag percentage" data-analysis-asset-treatment-tax="${item.key}"${disabledAttribute}>
+              <input class="analysis-setup-asset-percent-input analysis-setup-asset-field" type="text" inputmode="decimal" value="${defaults.taxDragPercent}" aria-label="${safeLabel} tax drag percentage" data-analysis-asset-treatment-tax="${safeKey}">
               <span aria-hidden="true">%</span>
             </span>
           </span>
           <span role="cell">
             <span class="analysis-setup-asset-percent">
-              <input class="analysis-setup-asset-percent-input analysis-setup-asset-field" type="text" inputmode="decimal" value="${defaults.liquidityHaircutPercent}" aria-label="${item.label} liquidity and marketability haircut percentage" data-analysis-asset-treatment-haircut="${item.key}"${disabledAttribute}>
+              <input class="analysis-setup-asset-percent-input analysis-setup-asset-field" type="text" inputmode="decimal" value="${defaults.liquidityHaircutPercent}" aria-label="${safeLabel} liquidity and marketability haircut percentage" data-analysis-asset-treatment-haircut="${safeKey}">
               <span aria-hidden="true">%</span>
             </span>
           </span>
-          <span role="cell"><span class="analysis-setup-treatment-preview" data-analysis-asset-treatment-preview="${item.key}">No source value</span></span>
+          <span role="cell"><span class="analysis-setup-treatment-preview" data-analysis-asset-treatment-preview="${safeKey}" data-analysis-asset-treatment-current-value="${currentValue}">No source value</span></span>
         </div>
       `);
     });
-
-    table.insertAdjacentHTML("beforeend", `
-      <div class="analysis-setup-asset-row analysis-setup-asset-row--custom analysis-setup-asset-row--disabled" role="row" aria-disabled="true" data-analysis-asset-treatment-custom-row="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}">
-        <span class="analysis-setup-custom-asset-stack" role="cell">
-          <input class="analysis-setup-asset-label-input analysis-setup-asset-field" type="text" value="${DEFAULT_CUSTOM_ASSET_TREATMENT.label}" aria-label="Custom asset label" data-analysis-asset-treatment-custom-label="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}" disabled>
-          <input class="analysis-setup-asset-value-input analysis-setup-asset-field" type="text" inputmode="decimal" placeholder="Estimated value" aria-label="Custom asset estimated value" data-analysis-asset-treatment-custom-value="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}" disabled>
-        </span>
-        <span role="cell">
-          <label class="analysis-setup-asset-include" aria-label="Include custom asset">
-            <span class="settings-switch analysis-setup-mini-switch">
-              <input class="analysis-setup-asset-field" type="checkbox" role="switch" aria-label="Include custom asset" data-analysis-asset-treatment-custom-include="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}" disabled>
-              <span class="settings-switch-track" aria-hidden="true"></span>
-            </span>
-          </label>
-        </span>
-        <span role="cell">
-          <select class="analysis-setup-asset-select analysis-setup-asset-field" aria-label="Custom asset treatment preset" data-analysis-asset-treatment-custom-preset="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}" disabled>
-            ${getPresetOptionsMarkup(DEFAULT_CUSTOM_ASSET_TREATMENT.treatmentPreset)}
-          </select>
-        </span>
-        <span role="cell">
-          <span class="analysis-setup-tax-treatment-pill" data-analysis-asset-treatment-custom-tax-treatment="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}">${TAX_TREATMENT_LABELS[DEFAULT_CUSTOM_ASSET_TREATMENT.taxTreatment]}</span>
-        </span>
-        <span role="cell">
-          <span class="analysis-setup-asset-percent">
-            <input class="analysis-setup-asset-percent-input analysis-setup-asset-field" type="text" inputmode="decimal" value="${DEFAULT_CUSTOM_ASSET_TREATMENT.taxDragPercent}" aria-label="Custom asset tax drag percentage" data-analysis-asset-treatment-custom-tax="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}" disabled>
-            <span aria-hidden="true">%</span>
-          </span>
-        </span>
-        <span role="cell">
-          <span class="analysis-setup-asset-percent">
-            <input class="analysis-setup-asset-percent-input analysis-setup-asset-field" type="text" inputmode="decimal" value="${DEFAULT_CUSTOM_ASSET_TREATMENT.liquidityHaircutPercent}" aria-label="Custom asset liquidity and marketability haircut percentage" data-analysis-asset-treatment-custom-haircut="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}" disabled>
-            <span aria-hidden="true">%</span>
-          </span>
-        </span>
-        <span role="cell"><span class="analysis-setup-treatment-preview" data-analysis-asset-treatment-custom-preview="${DEFAULT_CUSTOM_ASSET_TREATMENT.id}">No source value</span></span>
-      </div>
-    `);
 
     table.dataset.rendered = "true";
   }
@@ -2006,6 +2114,14 @@
       tax: {},
       haircut: {},
       preview: {},
+      fieldLists: {
+        include: {},
+        preset: {},
+        taxTreatment: {},
+        tax: {},
+        haircut: {},
+        preview: {}
+      },
       custom: {
         label: {},
         value: {},
@@ -2019,27 +2135,27 @@
     };
 
     Array.from(document.querySelectorAll("[data-analysis-asset-treatment-include]")).forEach(function (field) {
-      fields.include[field.getAttribute("data-analysis-asset-treatment-include")] = field;
+      addAssetTreatmentField(fields, "include", "data-analysis-asset-treatment-include", field);
     });
 
     Array.from(document.querySelectorAll("[data-analysis-asset-treatment-preset]")).forEach(function (field) {
-      fields.preset[field.getAttribute("data-analysis-asset-treatment-preset")] = field;
+      addAssetTreatmentField(fields, "preset", "data-analysis-asset-treatment-preset", field);
     });
 
     Array.from(document.querySelectorAll("[data-analysis-asset-treatment-tax-treatment]")).forEach(function (field) {
-      fields.taxTreatment[field.getAttribute("data-analysis-asset-treatment-tax-treatment")] = field;
+      addAssetTreatmentField(fields, "taxTreatment", "data-analysis-asset-treatment-tax-treatment", field);
     });
 
     Array.from(document.querySelectorAll("[data-analysis-asset-treatment-tax]")).forEach(function (field) {
-      fields.tax[field.getAttribute("data-analysis-asset-treatment-tax")] = field;
+      addAssetTreatmentField(fields, "tax", "data-analysis-asset-treatment-tax", field);
     });
 
     Array.from(document.querySelectorAll("[data-analysis-asset-treatment-haircut]")).forEach(function (field) {
-      fields.haircut[field.getAttribute("data-analysis-asset-treatment-haircut")] = field;
+      addAssetTreatmentField(fields, "haircut", "data-analysis-asset-treatment-haircut", field);
     });
 
     Array.from(document.querySelectorAll("[data-analysis-asset-treatment-preview]")).forEach(function (field) {
-      fields.preview[field.getAttribute("data-analysis-asset-treatment-preview")] = field;
+      addAssetTreatmentField(fields, "preview", "data-analysis-asset-treatment-preview", field);
     });
 
     Array.from(document.querySelectorAll("[data-analysis-asset-treatment-custom-label]")).forEach(function (field) {
@@ -3670,41 +3786,35 @@
   }
 
   function syncAssetTreatmentPreview(fields, itemKey, linkedRecord) {
-    const preview = fields.preview[itemKey];
-    const item = ASSET_TREATMENT_ITEMS.find(function (candidate) {
-      return candidate.key === itemKey;
+    const previews = getAssetTreatmentFieldList(fields, "preview", itemKey);
+    if (!previews.length) {
+      return;
+    }
+
+    const include = Boolean(getAssetTreatmentField(fields, "include", itemKey)?.checked);
+    const preset = String(getAssetTreatmentField(fields, "preset", itemKey)?.value || "").trim();
+    const taxDragPercent = getValidatedPreviewPercent(getAssetTreatmentField(fields, "tax", itemKey));
+    const liquidityHaircutPercent = getValidatedPreviewPercent(getAssetTreatmentField(fields, "haircut", itemKey));
+
+    previews.forEach(function (preview) {
+      if (!include || preset === "excluded") {
+        preview.textContent = "Excluded";
+        return;
+      }
+
+      const sourceValue = parseOptionalMoneyValue(preview.getAttribute("data-analysis-asset-treatment-current-value"));
+      if (sourceValue === null || sourceValue <= 0) {
+        preview.textContent = "No source value";
+        return;
+      }
+
+      preview.textContent = formatCurrencyValue(getAvailablePreviewValue(
+        sourceValue,
+        include,
+        taxDragPercent,
+        liquidityHaircutPercent
+      ));
     });
-
-    if (!preview || !item) {
-      return;
-    }
-
-    if (!isAssetTreatmentItemEditable(itemKey)) {
-      preview.textContent = "No PMI source";
-      return;
-    }
-
-    const include = Boolean(fields.include[itemKey]?.checked);
-    const preset = String(fields.preset[itemKey]?.value || "").trim();
-    if (!include || preset === "excluded") {
-      preview.textContent = "Excluded";
-      return;
-    }
-
-    const sourceValue = getAssetSourceValue(linkedRecord, item);
-    if (sourceValue === null) {
-      preview.textContent = "No source value";
-      return;
-    }
-
-    const taxDragPercent = getValidatedPreviewPercent(fields.tax[itemKey]);
-    const liquidityHaircutPercent = getValidatedPreviewPercent(fields.haircut[itemKey]);
-    preview.textContent = formatCurrencyValue(getAvailablePreviewValue(
-      sourceValue,
-      include,
-      taxDragPercent,
-      liquidityHaircutPercent
-    ));
   }
 
   function syncCustomAssetTreatmentPreview(fields, customAssetId) {
@@ -3742,29 +3852,24 @@
   }
 
   function populateAssetTreatmentFields(fields, assumptions, linkedRecord) {
+    fields.currentAssumptions = assumptions;
     if (fields.enabled) {
       fields.enabled.checked = Boolean(assumptions.enabled);
     }
     setAssetDefaultProfile(fields, assumptions.defaultProfile);
 
-    ASSET_TREATMENT_ITEMS.forEach(function (item) {
-      const assumption = assumptions.assets[item.key] || DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.assets[item.key];
+    getVisibleAssetTreatmentItemKeys(fields).forEach(function (itemKey) {
+      const assumption = assumptions.assets[itemKey] || getAssetTreatmentDefaultForKey(itemKey);
 
-      if (fields.include[item.key]) {
-        fields.include[item.key].checked = Boolean(assumption.include);
-      }
-      if (fields.preset[item.key]) {
-        fields.preset[item.key].value = assumption.treatmentPreset;
-      }
-      syncTaxTreatmentPill(fields.taxTreatment[item.key], assumption.taxTreatment);
-      if (fields.tax[item.key]) {
-        fields.tax[item.key].value = formatHaircutInputValue(assumption.taxDragPercent);
-      }
-      if (fields.haircut[item.key]) {
-        fields.haircut[item.key].value = formatHaircutInputValue(assumption.liquidityHaircutPercent);
-      }
+      setAssetTreatmentFieldsChecked(fields, "include", itemKey, assumption.include);
+      setAssetTreatmentFieldsValue(fields, "preset", itemKey, assumption.treatmentPreset);
+      getAssetTreatmentFieldList(fields, "taxTreatment", itemKey).forEach(function (field) {
+        syncTaxTreatmentPill(field, assumption.taxTreatment);
+      });
+      setAssetTreatmentFieldsValue(fields, "tax", itemKey, formatHaircutInputValue(assumption.taxDragPercent));
+      setAssetTreatmentFieldsValue(fields, "haircut", itemKey, formatHaircutInputValue(assumption.liquidityHaircutPercent));
 
-      syncAssetTreatmentPreview(fields, item.key, linkedRecord);
+      syncAssetTreatmentPreview(fields, itemKey, linkedRecord);
     });
 
     const customAssumption = (Array.isArray(assumptions.customAssets) ? assumptions.customAssets : [])[0]
@@ -4105,8 +4210,11 @@
     });
 
     ["include", "preset", "tax", "haircut"].forEach(function (groupName) {
-      Object.keys(fields[groupName] || {}).forEach(function (fieldName) {
-        fields[groupName][fieldName].disabled = Boolean(disabled) || !isAssetTreatmentItemEditable(fieldName);
+      const fieldLists = fields.fieldLists?.[groupName] || {};
+      Object.keys(fieldLists).forEach(function (fieldName) {
+        (fieldLists[fieldName] || []).forEach(function (field) {
+          field.disabled = Boolean(disabled);
+        });
       });
     });
 
@@ -4256,25 +4364,23 @@
   }
 
   function applyAssetTreatmentPreset(fields, itemKey, linkedRecord) {
-    const presetKey = String(fields.preset[itemKey]?.value || "").trim();
+    const presetKey = String(getAssetTreatmentField(fields, "preset", itemKey)?.value || "").trim();
     const preset = ASSET_TREATMENT_PRESETS[presetKey];
 
     if (!preset || presetKey === "custom") {
-      syncTaxTreatmentPill(fields.taxTreatment[itemKey], preset?.taxTreatment || "custom");
+      getAssetTreatmentFieldList(fields, "taxTreatment", itemKey).forEach(function (field) {
+        syncTaxTreatmentPill(field, preset?.taxTreatment || "custom");
+      });
       syncAssetTreatmentPreview(fields, itemKey, linkedRecord);
       return;
     }
 
-    if (fields.include[itemKey]) {
-      fields.include[itemKey].checked = Boolean(preset.include);
-    }
-    syncTaxTreatmentPill(fields.taxTreatment[itemKey], preset.taxTreatment);
-    if (fields.tax[itemKey]) {
-      fields.tax[itemKey].value = formatHaircutInputValue(preset.taxDragPercent);
-    }
-    if (fields.haircut[itemKey]) {
-      fields.haircut[itemKey].value = formatHaircutInputValue(preset.liquidityHaircutPercent);
-    }
+    setAssetTreatmentFieldsChecked(fields, "include", itemKey, preset.include);
+    getAssetTreatmentFieldList(fields, "taxTreatment", itemKey).forEach(function (field) {
+      syncTaxTreatmentPill(field, preset.taxTreatment);
+    });
+    setAssetTreatmentFieldsValue(fields, "tax", itemKey, formatHaircutInputValue(preset.taxDragPercent));
+    setAssetTreatmentFieldsValue(fields, "haircut", itemKey, formatHaircutInputValue(preset.liquidityHaircutPercent));
 
     syncAssetTreatmentPreview(fields, itemKey, linkedRecord);
   }
@@ -4312,31 +4418,21 @@
       return;
     }
 
-    ASSET_TREATMENT_ITEMS.forEach(function (item) {
-      if (!isAssetTreatmentItemEditable(item.key)) {
-        return;
-      }
+    getVisibleAssetTreatmentItemKeys(fields).forEach(function (itemKey) {
+      const defaults = profileDefaults.assets[itemKey] || getAssetTreatmentDefaultForKey(itemKey);
 
-      const defaults = profileDefaults.assets[item.key] || DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.assets[item.key];
+      setAssetTreatmentFieldsChecked(fields, "include", itemKey, defaults.include);
+      setAssetTreatmentFieldsValue(fields, "preset", itemKey, normalizeAssetTreatmentPreset(
+        defaults.treatmentPreset,
+        getAssetTreatmentDefaultForKey(itemKey).treatmentPreset
+      ));
+      getAssetTreatmentFieldList(fields, "taxTreatment", itemKey).forEach(function (field) {
+        syncTaxTreatmentPill(field, defaults.taxTreatment);
+      });
+      setAssetTreatmentFieldsValue(fields, "tax", itemKey, formatHaircutInputValue(defaults.taxDragPercent));
+      setAssetTreatmentFieldsValue(fields, "haircut", itemKey, formatHaircutInputValue(defaults.liquidityHaircutPercent));
 
-      if (fields.include[item.key]) {
-        fields.include[item.key].checked = Boolean(defaults.include);
-      }
-      if (fields.preset[item.key]) {
-        fields.preset[item.key].value = normalizeAssetTreatmentPreset(
-          defaults.treatmentPreset,
-          DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.assets[item.key].treatmentPreset
-        );
-      }
-      syncTaxTreatmentPill(fields.taxTreatment[item.key], defaults.taxTreatment);
-      if (fields.tax[item.key]) {
-        fields.tax[item.key].value = formatHaircutInputValue(defaults.taxDragPercent);
-      }
-      if (fields.haircut[item.key]) {
-        fields.haircut[item.key].value = formatHaircutInputValue(defaults.liquidityHaircutPercent);
-      }
-
-      syncAssetTreatmentPreview(fields, item.key, linkedRecord);
+      syncAssetTreatmentPreview(fields, itemKey, linkedRecord);
     });
 
     const customAssetId = DEFAULT_CUSTOM_ASSET_TREATMENT.id;
@@ -4709,18 +4805,39 @@
       };
     }
 
+    const currentAssumptions = isPlainObject(fields.currentAssumptions)
+      ? fields.currentAssumptions
+      : DEFAULT_ASSET_TREATMENT_ASSUMPTIONS;
+    const currentAssets = isPlainObject(currentAssumptions.assets)
+      ? currentAssumptions.assets
+      : {};
     const nextAssumptions = {
       enabled: Boolean(fields.enabled?.checked),
       defaultProfile,
       assets: {},
-      customAssets: []
+      customAssets: Array.isArray(currentAssumptions.customAssets)
+        ? currentAssumptions.customAssets.map(function (asset) {
+          return isPlainObject(asset) ? { ...asset } : asset;
+        })
+        : DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.customAssets.map(function (asset) {
+          return { ...asset };
+        })
     };
 
-    for (let index = 0; index < ASSET_TREATMENT_ITEMS.length; index += 1) {
-      const item = ASSET_TREATMENT_ITEMS[index];
-      const preset = String(fields.preset[item.key]?.value || "").trim();
-      const rawTax = String(fields.tax[item.key]?.value || "").trim();
-      const rawHaircut = String(fields.haircut[item.key]?.value || "").trim();
+    ASSET_TREATMENT_ITEMS.forEach(function (item) {
+      const currentAsset = isPlainObject(currentAssets[item.key])
+        ? currentAssets[item.key]
+        : getAssetTreatmentDefaultForKey(item.key);
+      nextAssumptions.assets[item.key] = { ...currentAsset };
+    });
+
+    const visibleItemKeys = getVisibleAssetTreatmentItemKeys(fields);
+    for (let index = 0; index < visibleItemKeys.length; index += 1) {
+      const itemKey = visibleItemKeys[index];
+      const item = getAssetTreatmentItemByKey(itemKey) || { key: itemKey, label: itemKey };
+      const preset = String(getAssetTreatmentField(fields, "preset", itemKey)?.value || "").trim();
+      const rawTax = String(getAssetTreatmentField(fields, "tax", itemKey)?.value || "").trim();
+      const rawHaircut = String(getAssetTreatmentField(fields, "haircut", itemKey)?.value || "").trim();
 
       if (!ASSET_TREATMENT_PRESET_KEYS.includes(preset)) {
         return {
@@ -4767,7 +4884,7 @@
       }
 
       nextAssumptions.assets[item.key] = {
-        include: Boolean(fields.include[item.key]?.checked),
+        include: Boolean(getAssetTreatmentField(fields, "include", itemKey)?.checked),
         treatmentPreset: preset,
         taxTreatment: normalizeTaxTreatment(
           ASSET_TREATMENT_PRESETS[preset]?.taxTreatment,
@@ -4779,6 +4896,16 @@
     }
 
     const customAssetId = DEFAULT_CUSTOM_ASSET_TREATMENT.id;
+    if (!fields.custom.label[customAssetId]) {
+      return {
+        value: {
+          ...nextAssumptions,
+          lastUpdatedAt: new Date().toISOString(),
+          source: "analysis-setup"
+        }
+      };
+    }
+
     const customLabel = String(fields.custom.label[customAssetId]?.value || "").trim();
     const rawCustomValue = String(fields.custom.value[customAssetId]?.value || "").trim();
     const customPreset = String(fields.custom.preset[customAssetId]?.value || "").trim();
@@ -5738,20 +5865,21 @@
     });
 
     if (shouldSaveAssetTreatment) {
-      ASSET_TREATMENT_ITEMS.forEach(function (item) {
+      getVisibleAssetTreatmentItemKeys(assetTreatmentFields).forEach(function (itemKey) {
         ["tax", "haircut"].forEach(function (groupName) {
-          const field = assetTreatmentFields[groupName][item.key];
-          const rawValue = String(field?.value || "").trim();
-          const number = Number(rawValue);
-          if (
-            field
-            && rawValue
-            && Number.isFinite(number)
-            && number >= MIN_ASSET_TREATMENT_PERCENT
-            && number <= MAX_ASSET_TREATMENT_PERCENT
-          ) {
-            field.value = formatHaircutInputValue(number);
-          }
+          getAssetTreatmentFieldList(assetTreatmentFields, groupName, itemKey).forEach(function (field) {
+            const rawValue = String(field?.value || "").trim();
+            const number = Number(rawValue);
+            if (
+              field
+              && rawValue
+              && Number.isFinite(number)
+              && number >= MIN_ASSET_TREATMENT_PERCENT
+              && number <= MAX_ASSET_TREATMENT_PERCENT
+            ) {
+              field.value = formatHaircutInputValue(number);
+            }
+          });
         });
       });
 
@@ -6053,7 +6181,8 @@
       return;
     }
 
-    renderAssetTreatmentRows();
+    let linkedRecord = resolveLinkedProfileRecord();
+    renderAssetTreatmentRows(linkedRecord);
     renderDebtTreatmentRows();
 
     const fields = getFieldMap();
@@ -6075,8 +6204,6 @@
     const setupShell = document.querySelector(".analysis-setup-shell");
     const headerToggle = document.querySelector("[data-analysis-setup-header-toggle]");
     const headerToggleLabel = document.querySelector("[data-analysis-setup-header-toggle-label]");
-    let linkedRecord = resolveLinkedProfileRecord();
-
     populateFields(fields, getInflationAssumptions(linkedRecord), sliders);
     populateMethodFields(methodFields, getMethodDefaults(linkedRecord));
     populateGrowthFields(growthFields, getGrowthAndReturnAssumptions(linkedRecord), growthSliders);
@@ -6119,7 +6246,7 @@
         });
       }
       if (linkedState) {
-        linkedState.textContent = "Link a profile first to save Analysis Setup settings.";
+        linkedState.textContent = "No linked profile";
       }
       setStatus(statusMessage, "Settings require a linked profile. Continue without saving.", "error");
       return;
@@ -6142,7 +6269,7 @@
     }
     if (linkedState) {
       const profileName = String(linkedRecord.displayName || linkedRecord.clientName || "Linked profile").trim();
-      linkedState.textContent = `${profileName} is linked for Analysis Setup.`;
+      linkedState.textContent = profileName;
     }
     setStatus(statusMessage, "Analysis Setup settings save to the linked profile.", "neutral");
 
@@ -6538,42 +6665,51 @@
       });
     });
 
-    ASSET_TREATMENT_ITEMS.forEach(function (item) {
-      assetTreatmentFields.include[item.key]?.addEventListener("change", function () {
-        setAssetDefaultProfile(assetTreatmentFields, "custom");
-        syncAssetTreatmentPreview(assetTreatmentFields, item.key, linkedRecord);
-        markUnsaved();
+    getVisibleAssetTreatmentItemKeys(assetTreatmentFields).forEach(function (itemKey) {
+      getAssetTreatmentFieldList(assetTreatmentFields, "include", itemKey).forEach(function (field) {
+        field.addEventListener("change", function () {
+          setAssetTreatmentFieldsChecked(assetTreatmentFields, "include", itemKey, field.checked);
+          setAssetDefaultProfile(assetTreatmentFields, "custom");
+          syncAssetTreatmentPreview(assetTreatmentFields, itemKey, linkedRecord);
+          markUnsaved();
+        });
       });
 
-      assetTreatmentFields.preset[item.key]?.addEventListener("change", function () {
-        setAssetDefaultProfile(assetTreatmentFields, "custom");
-        applyAssetTreatmentPreset(assetTreatmentFields, item.key, linkedRecord);
-        markUnsaved();
+      getAssetTreatmentFieldList(assetTreatmentFields, "preset", itemKey).forEach(function (field) {
+        field.addEventListener("change", function () {
+          setAssetTreatmentFieldsValue(assetTreatmentFields, "preset", itemKey, field.value);
+          setAssetDefaultProfile(assetTreatmentFields, "custom");
+          applyAssetTreatmentPreset(assetTreatmentFields, itemKey, linkedRecord);
+          markUnsaved();
+        });
       });
 
       ["tax", "haircut"].forEach(function (groupName) {
-        assetTreatmentFields[groupName][item.key]?.addEventListener("input", function () {
-          setAssetDefaultProfile(assetTreatmentFields, "custom");
-          syncAssetTreatmentPreview(assetTreatmentFields, item.key, linkedRecord);
-          markUnsaved();
-        });
+        getAssetTreatmentFieldList(assetTreatmentFields, groupName, itemKey).forEach(function (field) {
+          field.addEventListener("input", function () {
+            syncAssetTreatmentFieldValueFromSource(assetTreatmentFields, groupName, itemKey, field);
+            setAssetDefaultProfile(assetTreatmentFields, "custom");
+            syncAssetTreatmentPreview(assetTreatmentFields, itemKey, linkedRecord);
+            markUnsaved();
+          });
 
-        assetTreatmentFields[groupName][item.key]?.addEventListener("change", function () {
-          const field = assetTreatmentFields[groupName][item.key];
-          const rawValue = String(field?.value || "").trim();
-          const number = Number(rawValue);
-          if (
-            field
-            && rawValue
-            && Number.isFinite(number)
-            && number >= MIN_ASSET_TREATMENT_PERCENT
-            && number <= MAX_ASSET_TREATMENT_PERCENT
-          ) {
-            field.value = formatHaircutInputValue(number);
-          }
-          setAssetDefaultProfile(assetTreatmentFields, "custom");
-          syncAssetTreatmentPreview(assetTreatmentFields, item.key, linkedRecord);
-          markUnsaved();
+          field.addEventListener("change", function () {
+            const rawValue = String(field?.value || "").trim();
+            const number = Number(rawValue);
+            if (
+              field
+              && rawValue
+              && Number.isFinite(number)
+              && number >= MIN_ASSET_TREATMENT_PERCENT
+              && number <= MAX_ASSET_TREATMENT_PERCENT
+            ) {
+              field.value = formatHaircutInputValue(number);
+            }
+            syncAssetTreatmentFieldValueFromSource(assetTreatmentFields, groupName, itemKey, field);
+            setAssetDefaultProfile(assetTreatmentFields, "custom");
+            syncAssetTreatmentPreview(assetTreatmentFields, itemKey, linkedRecord);
+            markUnsaved();
+          });
         });
       });
     });

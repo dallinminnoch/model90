@@ -81,9 +81,13 @@
       <section class='analysis-setup-shell workspace-visible-pane'>
         <header id="analysis-setup-page-header" class="analysis-setup-header">
           <div>
-            <div class="analysis-setup-eyebrow">Step 2</div>
-            <h1>Analysis Setup</h1>
-            <p class="intro-copy">Set planning assumptions before comparing needs, income value, and coverage options.</p>
+            <div class="analysis-setup-title-line">
+              <div class="analysis-setup-eyebrow">Step 2</div>
+              <span class="analysis-setup-title-dot" aria-hidden="true">&middot;</span>
+              <h1>Analysis Setup</h1>
+              <span class="analysis-setup-title-dot" aria-hidden="true">&middot;</span>
+              <span class="analysis-setup-linked-state" data-analysis-setup-linked-state>Resolving linked profile...</span>
+            </div>
           </div>
           <div class="analysis-setup-helper">
             <span class="analysis-setup-helper-trigger" tabindex="0" aria-describedby="analysis-setup-helper-copy">
@@ -100,7 +104,6 @@
               <div>
                 <div class="analysis-setup-panel-kicker">Planning Settings</div>
                 <h2 id="analysis-setup-panel-title">Assumption Controls</h2>
-                <p class="analysis-setup-linked-state" data-analysis-setup-linked-state>Resolving linked profile...</p>
               </div>
               <button class="analysis-setup-header-toggle" type="button" data-analysis-setup-header-toggle aria-controls="analysis-setup-page-header" aria-expanded="true" title="Collapse setup header">
                 <span class="analysis-setup-header-toggle-glyph" aria-hidden="true">
@@ -205,7 +208,7 @@
                       </label>
                       <label class="analysis-setup-method-row" for="analysis-setup-asset-offset-source">
                         <span>Asset Offset Source</span>
-                        <select id="analysis-setup-asset-offset-source" class="analysis-setup-asset-select analysis-setup-method-input analysis-setup-method-input--wide" data-analysis-method-field="assetOffsetSource">
+                        <select id="analysis-setup-asset-offset-source" class="analysis-setup-method-select" data-analysis-method-field="assetOffsetSource">
                           <option value="legacy">Legacy offset assets</option>
                           <option value="treated">Treated asset offsets</option>
                         </select>
@@ -263,6 +266,7 @@
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-asset-treatment">Asset Treatment</h3>
                     <p>Set how each asset should be counted later in advanced offset modeling. Asset values are still collected in Protection Modeling Inputs.</p>
+                    <p class="analysis-setup-asset-note">Rows use category-level treatment. Assets in the same category share treatment assumptions.</p>
                     <p class="analysis-setup-asset-note">Tax drag estimates taxes if the asset is used. Haircut estimates liquidity, timing, marketability, and planning risk before counting the asset as available.</p>
                     <p class="analysis-setup-asset-note">Step-up eligible assets may have little capital-gains tax drag at death. Retirement and annuity assets may be taxable when distributed.</p>
                   </div>
@@ -934,6 +938,8 @@
   <script src="../app/features/client-intake.js"></script>
   <script src="../app/features/client-directory.js"></script>
   <script src="../app/features/coverage/coverage-policy-utils.js"></script>
+  <script src="../app/features/lens-analysis/asset-taxonomy.js"></script>
+  <script src="../app/features/lens-analysis/normalize-lens-model.js"></script>
   <script src="../app/features/lens-analysis/analysis-setup.js"></script>
   <script src="../app.js"></script>
   <script src="../lens-workflow.js"></script>
