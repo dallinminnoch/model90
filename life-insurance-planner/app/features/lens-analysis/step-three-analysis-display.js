@@ -346,40 +346,7 @@
     `;
   }
 
-  function initializeAnalysisControlPanelToggle() {
-    const toggle = document.querySelector("[data-analysis-control-toggle]");
-    if (!toggle) {
-      return;
-    }
-
-    const shell = toggle.closest(".analysis-estimate-shell");
-    const panelBodyId = toggle.getAttribute("aria-controls");
-    const panelBody = panelBodyId ? document.getElementById(panelBodyId) : null;
-    if (!shell || !panelBody) {
-      return;
-    }
-
-    function setCollapsedState(isCollapsed) {
-      const labelText = isCollapsed ? "Expand controls" : "Collapse controls";
-      shell.classList.toggle("is-controls-collapsed", isCollapsed);
-      panelBody.hidden = isCollapsed;
-      toggle.setAttribute("aria-expanded", String(!isCollapsed));
-      toggle.setAttribute("aria-label", labelText);
-      toggle.setAttribute("title", labelText);
-      if (isCollapsed && panelBody.contains(document.activeElement)) {
-        toggle.focus();
-      }
-    }
-
-    setCollapsedState(shell.classList.contains("is-controls-collapsed"));
-    toggle.addEventListener("click", function () {
-      setCollapsedState(!shell.classList.contains("is-controls-collapsed"));
-    });
-  }
-
   function initializeStepThreeAnalysisDisplay() {
-    initializeAnalysisControlPanelToggle();
-
     const dimeHost = document.querySelector("[data-step-three-dime-analysis]");
     const needsHost = document.querySelector("[data-step-three-needs-analysis]");
     const humanLifeValueHost = document.querySelector("[data-step-three-human-life-value-analysis]");

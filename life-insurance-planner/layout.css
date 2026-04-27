@@ -1408,10 +1408,6 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
 .analysis-estimate-shell {
   --analysis-estimate-inline-pad: clamp(0.75rem, 1.5vw, 1.35rem);
   --analysis-estimate-safe-bottom: env(safe-area-inset-bottom, 0px);
-  --analysis-control-panel-side-gap: clamp(0.45rem, 0.8vw, 0.7rem);
-  --analysis-control-panel-expanded-height: clamp(10.5rem, 24dvh, 13.5rem);
-  --analysis-control-panel-collapsed-height: clamp(3.1rem, 6dvh, 3.65rem);
-  --analysis-control-panel-height: var(--analysis-control-panel-expanded-height);
   flex: 1 1 auto;
   width: 100%;
   height: auto;
@@ -1422,14 +1418,10 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
     var(--analysis-estimate-inline-pad)
     var(--analysis-estimate-safe-bottom);
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   gap: clamp(0.55rem, 0.9vw, 0.8rem);
   overflow: hidden;
   box-sizing: border-box;
-}
-
-.analysis-estimate-shell.is-controls-collapsed {
-  --analysis-control-panel-height: var(--analysis-control-panel-collapsed-height);
 }
 
 .analysis-estimate-header {
@@ -1453,7 +1445,7 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
 
 .analysis-estimate-workspace {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) var(--analysis-control-panel-height);
+  grid-template-rows: minmax(0, 1fr);
   gap: clamp(0.7rem, 1vw, 0.95rem);
   min-height: 0;
   overflow: visible;
@@ -1467,26 +1459,14 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
   overflow: hidden;
 }
 
-.analysis-control-groups {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(0.55rem, 0.9vw, 0.75rem);
-  min-width: 0;
-}
-
 @media (max-width: 1080px) {
-  .analysis-results-grid,
-  .analysis-control-groups {
+  .analysis-results-grid {
     grid-template-columns: 1fr;
   }
 
   .analysis-results-grid {
     overflow-y: auto;
     overflow-x: hidden;
-  }
-
-  .analysis-control-groups {
-    overflow: visible;
   }
 }
 
