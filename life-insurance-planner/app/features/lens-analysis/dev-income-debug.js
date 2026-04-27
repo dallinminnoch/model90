@@ -11,6 +11,7 @@
   const STYLE_ID = "lens-income-debug-style";
   const TABLE_BODY_ID = "lens-income-debug-table-body";
   const SUMMARY_ID = "lens-income-debug-summary";
+  const ASSET_DEBUG_OUTPUT_ID = "lens-asset-debug-output";
   const NET_INCOME_BLOCK_ID = lensAnalysis.NET_INCOME_BLOCK_ID || "income-net-income";
   const DEBT_PAYOFF_BLOCK_ID = lensAnalysis.DEBT_PAYOFF_BLOCK_ID || "debt-payoff";
   const HOUSING_ONGOING_SUPPORT_BLOCK_ID = lensAnalysis.HOUSING_ONGOING_SUPPORT_BLOCK_ID || "housing-ongoing-support";
@@ -769,6 +770,291 @@
     return "Runtime blocks: " + (availableBlocks.length ? availableBlocks.join(", ") : "none");
   }
 
+  function getAssetDebugOutputNode() {
+    return document.getElementById(ASSET_DEBUG_OUTPUT_ID);
+  }
+
+  function writeAssetDebugOutput(payload) {
+    const outputNode = getAssetDebugOutputNode();
+    if (!outputNode) {
+      return;
+    }
+
+    outputNode.textContent = typeof payload === "string"
+      ? payload
+      : JSON.stringify(payload, null, 2);
+  }
+
+  function getAssetFactsDebugSourceCases() {
+    return [
+      {
+        name: "Case 1 - new scalar fields",
+        expectedDefaultAssetIds: [
+          "default_cashAndCashEquivalents",
+          "default_taxableBrokerageInvestments",
+          "default_primaryResidenceEquity"
+        ],
+        sourceData: {
+          cashAndCashEquivalents: 100000,
+          taxableBrokerageInvestments: 250000,
+          primaryResidenceEquity: 500000
+        }
+      },
+      {
+        name: "Case 2 - legacy alias fields",
+        expectedDefaultAssetIds: [
+          "default_cashAndCashEquivalents",
+          "default_taxableBrokerageInvestments",
+          "default_primaryResidenceEquity"
+        ],
+        sourceData: {
+          cashSavings: 100000,
+          brokerageAccounts: 250000,
+          realEstateEquity: 500000
+        }
+      },
+      {
+        name: "Case 3 - default scalar plus assetRecords[]",
+        expectedRecordAssetIds: [
+          "default_taxableBrokerageInvestments",
+          "asset_joint_brokerage_001"
+        ],
+        sourceData: {
+          taxableBrokerageInvestments: 250000,
+          assetRecords: [
+            {
+              assetId: "asset_joint_brokerage_001",
+              categoryKey: "taxableBrokerageInvestments",
+              typeKey: "jointBrokerageAccount",
+              label: "Joint Brokerage Account",
+              currentValue: 80000,
+              isDefaultAsset: false,
+              isCustomAsset: false
+            },
+            {
+              assetId: "asset_joint_brokerage_001",
+              categoryKey: "taxableBrokerageInvestments",
+              typeKey: "duplicateBrokerageRecord",
+              label: "Duplicate Brokerage Record",
+              currentValue: 5000,
+              isDefaultAsset: false,
+              isCustomAsset: false
+            },
+            {
+              assetId: "asset_invalid_missing_category",
+              label: "Invalid Missing Category",
+              currentValue: 12000
+            }
+          ]
+        }
+      }
+    ];
+  }
+
+  function runAssetFactsDebugSample() {
+    const createAssetFactsFromSourceData = lensAnalysis.createAssetFactsFromSourceData;
+    const taxonomy = lensAnalysis.assetTaxonomy && typeof lensAnalysis.assetTaxonomy === "object"
+      ? lensAnalysis.assetTaxonomy
+      : null;
+
+    if (typeof createAssetFactsFromSourceData !== "function") {
+      writeAssetDebugOutput({
+        status: "unavailable",
+        message: "createAssetFactsFromSourceData is not loaded on this page."
+      });
+      return;
+    }
+
+    const cases = getAssetFactsDebugSourceCases().map(function (sampleCase) {
+      const result = createAssetFactsFromSourceData(sampleCase.sourceData);
+      const assetIds = Array.isArray(result.assets)
+        ? result.assets.map(function (asset) {
+          return asset.assetId;
+        })
+        : [];
+
+      return {
+        name: sampleCase.name,
+        expectedDefaultAssetIds: sampleCase.expectedDefaultAssetIds || null,
+        expectedRecordAssetIds: sampleCase.expectedRecordAssetIds || null,
+        actualAssetIds: assetIds,
+        result
+      };
+    });
+
+    writeAssetDebugOutput({
+      status: "assetFacts sample complete",
+      note: "Local sample objects only. No profile records, storage, or offsetAssets were mutated.",
+      taxonomyLoaded: Boolean(taxonomy && Array.isArray(taxonomy.DEFAULT_ASSET_CATEGORIES)),
+      cases
+    });
+  }
+
+  function getAssetTreatmentSampleAssetFacts() {
+    const createAssetFactsFromSourceData = lensAnalysis.createAssetFactsFromSourceData;
+    const sourceData = {
+      cashAndCashEquivalents: 100000,
+      taxableBrokerageInvestments: 250000,
+      primaryResidenceEquity: 500000,
+      assetRecords: [
+        {
+          assetId: "asset_joint_brokerage_001",
+          categoryKey: "taxableBrokerageInvestments",
+          typeKey: "jointBrokerageAccount",
+          label: "Joint Brokerage Account",
+          currentValue: 80000
+        }
+      ]
+    };
+
+    if (typeof createAssetFactsFromSourceData === "function") {
+      const result = createAssetFactsFromSourceData(sourceData);
+      if (result && Array.isArray(result.assets) && result.assets.length) {
+        return result;
+      }
+    }
+
+    return {
+      assets: [
+        {
+          assetId: "default_cashAndCashEquivalents",
+          categoryKey: "cashAndCashEquivalents",
+          typeKey: "default_cashAndCashEquivalents",
+          label: "Cash & Cash Equivalents",
+          currentValue: 100000,
+          source: "debug-sample",
+          sourceKey: "cashAndCashEquivalents",
+          isDefaultAsset: true,
+          isCustomAsset: false,
+          hasPmiSource: true,
+          legacySourceKeys: ["cashSavings"],
+          metadata: { recordSource: "debug-fallback" }
+        },
+        {
+          assetId: "default_taxableBrokerageInvestments",
+          categoryKey: "taxableBrokerageInvestments",
+          typeKey: "default_taxableBrokerageInvestments",
+          label: "Taxable Brokerage / Investments",
+          currentValue: 250000,
+          source: "debug-sample",
+          sourceKey: "taxableBrokerageInvestments",
+          isDefaultAsset: true,
+          isCustomAsset: false,
+          hasPmiSource: true,
+          legacySourceKeys: ["brokerageAccounts"],
+          metadata: { recordSource: "debug-fallback" }
+        },
+        {
+          assetId: "default_primaryResidenceEquity",
+          categoryKey: "primaryResidenceEquity",
+          typeKey: "default_primaryResidenceEquity",
+          label: "Primary Residence Equity",
+          currentValue: 500000,
+          source: "debug-sample",
+          sourceKey: "primaryResidenceEquity",
+          isDefaultAsset: true,
+          isCustomAsset: false,
+          hasPmiSource: true,
+          legacySourceKeys: ["realEstateEquity"],
+          metadata: { recordSource: "debug-fallback" }
+        }
+      ],
+      totalReportedAssetValue: 850000,
+      metadata: {
+        source: "debug-fallback",
+        note: "Used because createAssetFactsFromSourceData returned no assets or was unavailable."
+      }
+    };
+  }
+
+  function getAssetTreatmentDebugAssumptions() {
+    return {
+      enabled: true,
+      source: "debug-sample",
+      defaultProfile: "debug-sample",
+      assets: {
+        cashAndCashEquivalents: {
+          include: true,
+          taxDragPercent: 0,
+          liquidityHaircutPercent: 0
+        },
+        taxableBrokerageInvestments: {
+          include: true,
+          taxDragPercent: 15,
+          liquidityHaircutPercent: 5
+        },
+        primaryResidenceEquity: {
+          include: false,
+          taxDragPercent: 0,
+          liquidityHaircutPercent: 100
+        }
+      }
+    };
+  }
+
+  function runAssetTreatmentDebugSample() {
+    const calculateAssetTreatment = lensAnalysis.calculateAssetTreatment;
+
+    if (typeof calculateAssetTreatment !== "function") {
+      writeAssetDebugOutput({
+        status: "unavailable",
+        message: "Asset treatment helper is not loaded on this page."
+      });
+      return;
+    }
+
+    const assetFacts = getAssetTreatmentSampleAssetFacts();
+    const assetTreatmentAssumptions = getAssetTreatmentDebugAssumptions();
+    const result = calculateAssetTreatment({
+      assetFacts,
+      assetTreatmentAssumptions,
+      options: {
+        source: "dev-income-debug"
+      }
+    });
+
+    writeAssetDebugOutput({
+      status: "asset treatment sample complete",
+      note: "Local sample objects only. No profile records, storage, offsetAssets, or analysis methods were mutated.",
+      totalTreatedAssetValue: result.totalTreatedAssetValue,
+      warnings: result.warnings,
+      trace: result.trace,
+      assets: result.assets,
+      metadata: result.metadata
+    });
+  }
+
+  function clearAssetDebugOutput() {
+    writeAssetDebugOutput("");
+  }
+
+  function bindAssetDebugControls(panel) {
+    if (!panel || panel.getAttribute("data-asset-debug-bound") === "true") {
+      return;
+    }
+
+    panel.addEventListener("click", function (event) {
+      const actionButton = event.target && event.target.closest
+        ? event.target.closest("[data-asset-debug-action]")
+        : null;
+
+      if (!actionButton || !panel.contains(actionButton)) {
+        return;
+      }
+
+      const action = actionButton.getAttribute("data-asset-debug-action");
+      if (action === "asset-facts") {
+        runAssetFactsDebugSample();
+      } else if (action === "asset-treatment") {
+        runAssetTreatmentDebugSample();
+      } else if (action === "clear") {
+        clearAssetDebugOutput();
+      }
+    });
+
+    panel.setAttribute("data-asset-debug-bound", "true");
+  }
+
   function ensureDebugStyles() {
     if (!document || document.getElementById(STYLE_ID)) {
       return;
@@ -822,6 +1108,38 @@
       "}",
       "#" + PANEL_ID + " [data-null='true'] {",
       "  color: #6b7280;",
+      "}",
+      "#" + PANEL_ID + " .lens-asset-debug {",
+      "  margin-top: 12px;",
+      "  padding-top: 10px;",
+      "  border-top: 1px solid #d1d5db;",
+      "}",
+      "#" + PANEL_ID + " .lens-asset-debug-actions {",
+      "  display: flex;",
+      "  flex-wrap: wrap;",
+      "  gap: 6px;",
+      "  margin: 8px 0;",
+      "}",
+      "#" + PANEL_ID + " .lens-asset-debug-actions button {",
+      "  border: 1px solid #9ca3af;",
+      "  border-radius: 6px;",
+      "  background: #f9fafb;",
+      "  color: #111827;",
+      "  cursor: pointer;",
+      "  font: inherit;",
+      "  padding: 5px 8px;",
+      "}",
+      "#" + PANEL_ID + " .lens-asset-debug-output {",
+      "  min-height: 72px;",
+      "  max-height: 220px;",
+      "  overflow: auto;",
+      "  margin: 0;",
+      "  padding: 8px;",
+      "  border: 1px solid #d1d5db;",
+      "  border-radius: 6px;",
+      "  background: #111827;",
+      "  color: #e5e7eb;",
+      "  white-space: pre-wrap;",
       "}"
     ].join("\n");
     document.head.appendChild(style);
@@ -834,6 +1152,7 @@
 
     let panel = document.getElementById(PANEL_ID);
     if (panel) {
+      bindAssetDebugControls(panel);
       return panel;
     }
 
@@ -856,8 +1175,19 @@
       "    </tr>",
       "  </thead>",
       "  <tbody id=\"" + TABLE_BODY_ID + "\"></tbody>",
-      "</table>"
+      "</table>",
+      "<section class=\"lens-asset-debug\" aria-label=\"Asset Facts and Asset Treatment Debug\">",
+      "  <h2>Asset Facts / Asset Treatment Debug</h2>",
+      "  <p>Local samples only. These controls do not save records, mutate offsetAssets, or run production analysis methods.</p>",
+      "  <div class=\"lens-asset-debug-actions\">",
+      "    <button type=\"button\" data-asset-debug-action=\"asset-facts\">Run Asset Facts Sample</button>",
+      "    <button type=\"button\" data-asset-debug-action=\"asset-treatment\">Run Asset Treatment Sample</button>",
+      "    <button type=\"button\" data-asset-debug-action=\"clear\">Clear Asset Debug Output</button>",
+      "  </div>",
+      "  <pre class=\"lens-asset-debug-output\" id=\"" + ASSET_DEBUG_OUTPUT_ID + "\" aria-live=\"polite\"></pre>",
+      "</section>"
     ].join("");
+    bindAssetDebugControls(panel);
     document.body.appendChild(panel);
     return panel;
   }

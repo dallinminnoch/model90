@@ -703,6 +703,51 @@
     return null;
   }
 
+  function normalizeAssetRecordString(value) {
+    return String(value == null ? "" : value).trim();
+  }
+
+  function normalizeAssetRecordToken(value) {
+    return normalizeAssetRecordString(value)
+      .replace(/[^A-Za-z0-9_-]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+  }
+
+  function getTaxonomyCategoryByKey(taxonomy, categoryKey) {
+    const safeTaxonomy = taxonomy && typeof taxonomy === "object" ? taxonomy : {};
+    const categories = Array.isArray(safeTaxonomy.categories) ? safeTaxonomy.categories : [];
+    const safeCategoryKey = normalizeAssetRecordString(categoryKey);
+
+    if (!safeCategoryKey) {
+      return null;
+    }
+
+    return categories.find(function (category) {
+      return category && category.categoryKey === safeCategoryKey;
+    }) || null;
+  }
+
+  function createAssetFactWarning(code, message, details) {
+    return {
+      code,
+      message,
+      details: details || null
+    };
+  }
+
+  function createDefaultAssetRecordId(categoryKey) {
+    return "default_" + categoryKey;
+  }
+
+  function createFallbackAssetRecordId(record, index) {
+    const safeRecord = record && typeof record === "object" ? record : {};
+    const categoryToken = normalizeAssetRecordToken(safeRecord.categoryKey) || "uncategorized";
+    const typeToken = normalizeAssetRecordToken(safeRecord.typeKey || safeRecord.label) || "asset";
+    const positionToken = Number.isInteger(index) ? index + 1 : 1;
+
+    return "asset_record_" + categoryToken + "_" + typeToken + "_" + positionToken;
+  }
+
   function createAssetFactFromCategory(category, sourceEntry, legacyAliases) {
     const safeCategory = category && typeof category === "object" ? category : {};
     const safeSourceEntry = sourceEntry && typeof sourceEntry === "object" ? sourceEntry : {};
@@ -713,14 +758,17 @@
       : null;
 
     return {
-      assetId: "pmi:" + categoryKey + ":" + sourceKey,
+      assetId: createDefaultAssetRecordId(categoryKey),
       categoryKey,
+      typeKey: createDefaultAssetRecordId(categoryKey),
       label: String(safeCategory.label || categoryKey).trim(),
       group: String(safeCategory.group || "custom").trim(),
       currentValue: safeSourceEntry.currentValue,
       source: "protectionModeling.data",
       hasPmiSource: true,
       sourceKey,
+      isDefaultAsset: true,
+      isCustomAsset: false,
       legacySourceKeys: Array.isArray(safeCategory.legacySourceKeys)
         ? safeCategory.legacySourceKeys.slice()
         : [],
@@ -729,6 +777,7 @@
         sourceType: "user-input",
         confidence: "reported",
         canonicalDestination: "assetFacts.assets",
+        recordSource: "default-scalar-field",
         defaultPmiSourceKey: safeCategory.defaultPmiSourceKey || null,
         hasCurrentPmiSource: safeCategory.hasCurrentPmiSource === true,
         description: safeCategory.description || null,
@@ -736,6 +785,149 @@
         legacyAliasNote: legacyAlias && legacyAlias.note ? legacyAlias.note : null
       }
     };
+  }
+
+  function createAssetFactFromAssetRecord(assetRecord, index, taxonomy) {
+    const safeAssetRecord = assetRecord && typeof assetRecord === "object" ? assetRecord : {};
+    const warnings = [];
+    const categoryKey = normalizeAssetRecordString(safeAssetRecord.categoryKey);
+    const taxonomyCategory = getTaxonomyCategoryByKey(taxonomy, categoryKey);
+    const taxonomyAvailable = taxonomy && Array.isArray(taxonomy.categories) && taxonomy.categories.length > 0;
+    const rawValue = safeAssetRecord.currentValue !== undefined
+      ? safeAssetRecord.currentValue
+      : safeAssetRecord.rawValue !== undefined
+        ? safeAssetRecord.rawValue
+        : safeAssetRecord.value;
+    const currentValue = toOptionalNumber(rawValue);
+
+    if (!categoryKey) {
+      warnings.push(createAssetFactWarning(
+        "missing-asset-record-category",
+        "Asset record is missing a categoryKey.",
+        { index }
+      ));
+    } else if (taxonomyAvailable && !taxonomyCategory) {
+      warnings.push(createAssetFactWarning(
+        "unknown-asset-record-category",
+        "Asset record categoryKey is not present in the asset taxonomy.",
+        { index, categoryKey }
+      ));
+    }
+
+    if (currentValue == null) {
+      warnings.push(createAssetFactWarning(
+        "missing-asset-record-value",
+        "Asset record is missing a numeric currentValue.",
+        { index, categoryKey: categoryKey || null }
+      ));
+    }
+
+    if (warnings.length) {
+      return {
+        asset: null,
+        warnings
+      };
+    }
+
+    const assetId = normalizeAssetRecordString(safeAssetRecord.assetId)
+      || createFallbackAssetRecordId(safeAssetRecord, index);
+    const typeKey = normalizeAssetRecordString(safeAssetRecord.typeKey)
+      || normalizeAssetRecordString(taxonomyCategory && taxonomyCategory.categoryKey)
+      || categoryKey;
+    const label = normalizeAssetRecordString(safeAssetRecord.label)
+      || normalizeAssetRecordString(taxonomyCategory && taxonomyCategory.label)
+      || typeKey
+      || categoryKey;
+    const sourceKey = normalizeAssetRecordString(safeAssetRecord.sourceKey) || null;
+    const metadata = safeAssetRecord.metadata && typeof safeAssetRecord.metadata === "object"
+      ? clonePlainValue(safeAssetRecord.metadata)
+      : {};
+
+    return {
+      asset: {
+        assetId,
+        categoryKey,
+        typeKey,
+        label,
+        group: normalizeAssetRecordString(safeAssetRecord.group)
+          || normalizeAssetRecordString(taxonomyCategory && taxonomyCategory.group)
+          || "custom",
+        currentValue,
+        source: "protectionModeling.data.assetRecords",
+        hasPmiSource: true,
+        sourceKey,
+        isDefaultAsset: safeAssetRecord.isDefaultAsset === true,
+        isCustomAsset: safeAssetRecord.isCustomAsset === true || categoryKey === "otherCustomAsset",
+        legacySourceKeys: Array.isArray(safeAssetRecord.legacySourceKeys)
+          ? safeAssetRecord.legacySourceKeys.slice()
+          : [],
+        notes: normalizeAssetRecordString(safeAssetRecord.notes)
+          || normalizeAssetRecordString(taxonomyCategory && taxonomyCategory.notes)
+          || null,
+        metadata: Object.assign({}, metadata, {
+          sourceType: "user-input",
+          confidence: metadata.confidence || "reported",
+          canonicalDestination: "assetFacts.assets",
+          recordSource: "assetRecords",
+          sourceIndex: Number.isInteger(index) ? index : null,
+          taxonomyCategoryLabel: taxonomyCategory && taxonomyCategory.label ? taxonomyCategory.label : null,
+          defaultTreatmentBias: taxonomyCategory && taxonomyCategory.defaultTreatmentBias
+            ? taxonomyCategory.defaultTreatmentBias
+            : null
+        })
+      },
+      warnings
+    };
+  }
+
+  function createAssetFactsFromAssetRecords(sourceData, taxonomy) {
+    const safeSourceData = sourceData && typeof sourceData === "object" ? sourceData : {};
+    const sourceRecords = Array.isArray(safeSourceData.assetRecords) ? safeSourceData.assetRecords : [];
+    const assets = [];
+    const warnings = [];
+
+    sourceRecords.forEach(function (assetRecord, index) {
+      const result = createAssetFactFromAssetRecord(assetRecord, index, taxonomy);
+      warnings.push.apply(warnings, result.warnings);
+
+      if (result.asset) {
+        assets.push(result.asset);
+      }
+    });
+
+    return {
+      assets,
+      sourceRecordCount: sourceRecords.length,
+      acceptedRecordCount: assets.length,
+      invalidRecordCount: sourceRecords.length - assets.length,
+      warnings
+    };
+  }
+
+  function markDuplicateAssetIds(assets) {
+    const seenAssetIds = {};
+    const duplicateAssetIds = [];
+
+    assets.forEach(function (asset) {
+      const assetId = asset && asset.assetId ? asset.assetId : null;
+      if (!assetId) {
+        return;
+      }
+
+      if (seenAssetIds[assetId]) {
+        if (duplicateAssetIds.indexOf(assetId) === -1) {
+          duplicateAssetIds.push(assetId);
+        }
+        asset.metadata = Object.assign({}, asset.metadata, {
+          duplicateAssetId: true
+        });
+        return;
+      }
+
+      seenAssetIds[assetId] = true;
+    });
+
+    return duplicateAssetIds;
   }
 
   function createAssetFactsFromSourceData(sourceData) {
@@ -758,6 +950,10 @@
       }
     });
 
+    const assetRecordsProjection = createAssetFactsFromAssetRecords(safeSourceData, taxonomy);
+    assets.push.apply(assets, assetRecordsProjection.assets);
+    const duplicateAssetIds = markDuplicateAssetIds(assets);
+
     return {
       assets,
       totalReportedAssetValue: sumOptionalBucketComponents(assets.map(function (asset) {
@@ -766,7 +962,13 @@
       metadata: {
         source: "protectionModeling.data",
         taxonomySource: taxonomy.taxonomySource,
-        omittedNoSourceCategoryKeys
+        omittedNoSourceCategoryKeys,
+        assetRecordsSource: "protectionModeling.data.assetRecords",
+        assetRecordCount: assetRecordsProjection.sourceRecordCount,
+        acceptedAssetRecordCount: assetRecordsProjection.acceptedRecordCount,
+        invalidAssetRecordCount: assetRecordsProjection.invalidRecordCount,
+        duplicateAssetIds,
+        warnings: assetRecordsProjection.warnings
       }
     };
   }

@@ -13,11 +13,11 @@
       label: "Cash & Cash Equivalents",
       group: "liquid",
       description: "Checking, savings, money market, CDs, and other cash-like balances.",
-      defaultPmiSourceKey: "cashSavings",
+      defaultPmiSourceKey: "cashAndCashEquivalents",
       legacySourceKeys: Object.freeze(["cashSavings"]),
       hasCurrentPmiSource: true,
       defaultTreatmentBias: "cash-like",
-      notes: "Legacy PMI cashSavings maps here."
+      notes: "Current PMI cashAndCashEquivalents maps here; legacy cashSavings remains an alias."
     }),
     Object.freeze({
       categoryKey: "emergencyFund",
@@ -35,143 +35,143 @@
       label: "Taxable Brokerage / Investments",
       group: "investment",
       description: "Taxable brokerage and non-retirement investment account balances.",
-      defaultPmiSourceKey: "brokerageAccounts",
+      defaultPmiSourceKey: "taxableBrokerageInvestments",
       legacySourceKeys: Object.freeze(["brokerageAccounts"]),
       hasCurrentPmiSource: true,
       defaultTreatmentBias: "step-up-investment",
-      notes: "Legacy PMI brokerageAccounts maps here."
+      notes: "Current PMI taxableBrokerageInvestments maps here; legacy brokerageAccounts remains an alias."
     }),
     Object.freeze({
       categoryKey: "traditionalRetirementAssets",
       label: "Traditional Retirement Assets",
       group: "retirement",
       description: "Traditional 401(k), IRA, and similar pre-tax retirement account balances.",
-      defaultPmiSourceKey: "retirementAssets",
+      defaultPmiSourceKey: "traditionalRetirementAssets",
       legacySourceKeys: Object.freeze(["retirementAssets"]),
       hasCurrentPmiSource: true,
       defaultTreatmentBias: "taxable-retirement",
-      notes: "Legacy PMI retirementAssets may mix traditional, Roth, and other retirement balances."
+      notes: "Current PMI traditionalRetirementAssets maps here; legacy retirementAssets may mix traditional, Roth, and other retirement balances."
     }),
     Object.freeze({
       categoryKey: "rothTaxAdvantagedRetirementAssets",
       label: "Roth / Tax-Advantaged Retirement Assets",
       group: "retirement",
       description: "Roth IRA, Roth 401(k), and similar tax-advantaged retirement account balances.",
-      defaultPmiSourceKey: null,
+      defaultPmiSourceKey: "rothTaxAdvantagedRetirementAssets",
       legacySourceKeys: Object.freeze([]),
-      hasCurrentPmiSource: false,
+      hasCurrentPmiSource: true,
       defaultTreatmentBias: "roth-retirement",
-      notes: "Requires a new PMI raw source field before becoming PMI-backed."
+      notes: "Current PMI rothTaxAdvantagedRetirementAssets maps here."
     }),
     Object.freeze({
       categoryKey: "qualifiedAnnuities",
       label: "Qualified Annuities",
       group: "annuity",
       description: "Qualified annuity balances held inside tax-qualified retirement arrangements.",
-      defaultPmiSourceKey: null,
+      defaultPmiSourceKey: "qualifiedAnnuities",
       legacySourceKeys: Object.freeze([]),
-      hasCurrentPmiSource: false,
+      hasCurrentPmiSource: true,
       defaultTreatmentBias: "qualified-annuity",
-      notes: "Requires a new PMI raw source field before becoming PMI-backed."
+      notes: "Current PMI qualifiedAnnuities maps here."
     }),
     Object.freeze({
       categoryKey: "nonqualifiedAnnuities",
       label: "Nonqualified Annuities",
       group: "annuity",
       description: "Nonqualified annuity account values or surrender values.",
-      defaultPmiSourceKey: null,
+      defaultPmiSourceKey: "nonqualifiedAnnuities",
       legacySourceKeys: Object.freeze([]),
-      hasCurrentPmiSource: false,
+      hasCurrentPmiSource: true,
       defaultTreatmentBias: "nonqualified-annuity",
-      notes: "Requires a new PMI raw source field before becoming PMI-backed."
+      notes: "Current PMI nonqualifiedAnnuities maps here."
     }),
     Object.freeze({
       categoryKey: "primaryResidenceEquity",
       label: "Primary Residence Equity",
       group: "realEstate",
       description: "Estimated equity in the client's primary residence.",
-      defaultPmiSourceKey: null,
+      defaultPmiSourceKey: "primaryResidenceEquity",
       legacySourceKeys: Object.freeze(["realEstateEquity"]),
-      hasCurrentPmiSource: false,
+      hasCurrentPmiSource: true,
       defaultTreatmentBias: "real-estate-equity",
-      notes: "Legacy PMI realEstateEquity maps here for compatibility, but old records cannot distinguish primary residence from other real estate."
+      notes: "Current PMI primaryResidenceEquity maps here; legacy realEstateEquity remains an alias but old records cannot distinguish primary residence from other real estate."
     }),
     Object.freeze({
       categoryKey: "otherRealEstateEquity",
       label: "Other Real Estate Equity",
       group: "realEstate",
       description: "Estimated equity in rental, vacation, investment, or other non-primary real estate.",
-      defaultPmiSourceKey: null,
+      defaultPmiSourceKey: "otherRealEstateEquity",
       legacySourceKeys: Object.freeze([]),
-      hasCurrentPmiSource: false,
+      hasCurrentPmiSource: true,
       defaultTreatmentBias: "real-estate-equity",
-      notes: "Requires a new PMI raw source field before becoming PMI-backed."
+      notes: "Current PMI otherRealEstateEquity maps here."
     }),
     Object.freeze({
       categoryKey: "businessPrivateCompanyValue",
       label: "Business / Private Company Value",
       group: "business",
       description: "Estimated business ownership, private company, or closely held entity value.",
-      defaultPmiSourceKey: "businessValue",
+      defaultPmiSourceKey: "businessPrivateCompanyValue",
       legacySourceKeys: Object.freeze(["businessValue"]),
       hasCurrentPmiSource: true,
       defaultTreatmentBias: "business-illiquid",
-      notes: "Legacy PMI businessValue maps here."
+      notes: "Current PMI businessPrivateCompanyValue maps here; legacy businessValue remains an alias."
     }),
     Object.freeze({
       categoryKey: "educationSpecificSavings",
       label: "Education-Specific Savings",
       group: "restrictedPurpose",
       description: "529 plans, Coverdell accounts, or other education-dedicated savings.",
-      defaultPmiSourceKey: null,
+      defaultPmiSourceKey: "educationSpecificSavings",
       legacySourceKeys: Object.freeze([]),
-      hasCurrentPmiSource: false,
+      hasCurrentPmiSource: true,
       defaultTreatmentBias: "restricted-purpose",
-      notes: "Future PMI source should remain a raw balance; education treatment stays in Analysis Setup."
+      notes: "Current PMI educationSpecificSavings maps here; education treatment stays in Analysis Setup."
     }),
     Object.freeze({
       categoryKey: "trustRestrictedAssets",
       label: "Trust / Restricted Assets",
       group: "restrictedPurpose",
       description: "Trust-owned, restricted, pledged, or otherwise limited-access asset balances.",
-      defaultPmiSourceKey: null,
+      defaultPmiSourceKey: "trustRestrictedAssets",
       legacySourceKeys: Object.freeze([]),
-      hasCurrentPmiSource: false,
+      hasCurrentPmiSource: true,
       defaultTreatmentBias: "restricted-asset",
-      notes: "Future treatment should account for access restrictions outside PMI."
+      notes: "Current PMI trustRestrictedAssets maps here; future treatment should account for access restrictions outside PMI."
     }),
     Object.freeze({
       categoryKey: "stockCompensationDeferredCompensation",
       label: "Stock Compensation / Deferred Compensation",
       group: "compensation",
       description: "RSUs, options, deferred compensation, and other employer-linked asset values.",
-      defaultPmiSourceKey: null,
+      defaultPmiSourceKey: "stockCompensationDeferredCompensation",
       legacySourceKeys: Object.freeze([]),
-      hasCurrentPmiSource: false,
+      hasCurrentPmiSource: true,
       defaultTreatmentBias: "case-specific",
-      notes: "Future library entries may need vesting and forfeiture raw facts."
+      notes: "Current PMI stockCompensationDeferredCompensation maps here; future library entries may need vesting and forfeiture raw facts."
     }),
     Object.freeze({
       categoryKey: "digitalAssetsCrypto",
       label: "Digital Assets / Crypto",
       group: "alternative",
       description: "Digital assets, cryptocurrency, and similar alternative asset balances.",
-      defaultPmiSourceKey: null,
+      defaultPmiSourceKey: "digitalAssetsCrypto",
       legacySourceKeys: Object.freeze([]),
-      hasCurrentPmiSource: false,
+      hasCurrentPmiSource: true,
       defaultTreatmentBias: "alternative-asset",
-      notes: "Future treatment may account for volatility, custody, and access risk."
+      notes: "Current PMI digitalAssetsCrypto maps here; future treatment may account for volatility, custody, and access risk."
     }),
     Object.freeze({
       categoryKey: "otherCustomAsset",
       label: "Other / Custom Asset",
       group: "custom",
       description: "Advisor-defined asset category for raw asset facts not covered by the default list.",
-      defaultPmiSourceKey: null,
+      defaultPmiSourceKey: "otherCustomAsset",
       legacySourceKeys: Object.freeze([]),
-      hasCurrentPmiSource: false,
+      hasCurrentPmiSource: true,
       defaultTreatmentBias: "custom",
-      notes: "Use for exceptional cases; do not use to reintroduce standard personal belongings as default categories."
+      notes: "Current PMI otherCustomAsset maps here. Use for exceptional cases; do not use to reintroduce standard personal belongings as default categories."
     })
   ]);
 

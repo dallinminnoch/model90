@@ -718,7 +718,8 @@
       { id: "detail", label: "Detailed Analysis", path: "analysis-detail.html", icon: "analysis" },
       { id: "recommendations", label: "Coverage Options", path: "recommendations.html", icon: "recommendation" },
       { id: "planner", label: "Policy Planner", path: "planner.html", icon: "placement" },
-      { id: "summary", label: "Summary", path: "summary.html", icon: "documents" }
+      { id: "summary", label: "Summary", path: "summary.html", icon: "documents" },
+      { id: "debug-panel", label: "Debug Panel", path: "next-step.html?lensIncomeDebug=1", icon: "analysis" }
     ];
     const currentStep = String(document.body?.dataset?.step || "").trim();
     const isWorkflowPage = workflowSteps.some(function (step) {

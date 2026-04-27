@@ -523,44 +523,107 @@
                 </div>
                 <div class="form-grid">
                   <div class="field-group">
-                    <label for="cash-savings">Cash / Savings</label>
+                    <label for="cash-and-cash-equivalents">Cash &amp; Cash Equivalents</label>
                     <div class="profile-currency-field">
-                      <input id="cash-savings" name="cashSavings" type="number" min="0" step="1000">
+                      <input id="cash-and-cash-equivalents" name="cashAndCashEquivalents" type="number" min="0" step="1000">
                       <span class="profile-currency-suffix">USD</span>
                     </div>
                   </div>
                   <div class="field-group">
-                    <label for="emergency-fund">Current Emergency Fund</label>
+                    <label for="emergency-fund">Emergency Fund</label>
                     <div class="profile-currency-field">
                       <input id="emergency-fund" name="emergencyFund" type="number" min="0" step="1000">
                       <span class="profile-currency-suffix">USD</span>
                     </div>
                   </div>
                   <div class="field-group">
-                    <label for="brokerage-accounts">Brokerage Accounts</label>
+                    <label for="taxable-brokerage-investments">Taxable Brokerage / Investments</label>
                     <div class="profile-currency-field">
-                      <input id="brokerage-accounts" name="brokerageAccounts" type="number" min="0" step="1000">
+                      <input id="taxable-brokerage-investments" name="taxableBrokerageInvestments" type="number" min="0" step="1000">
                       <span class="profile-currency-suffix">USD</span>
                     </div>
                   </div>
                   <div class="field-group">
-                    <label for="retirement-assets">401(k), IRA Balances</label>
+                    <label for="traditional-retirement-assets">Traditional Retirement Assets</label>
                     <div class="profile-currency-field">
-                      <input id="retirement-assets" name="retirementAssets" type="number" min="0" step="1000">
+                      <input id="traditional-retirement-assets" name="traditionalRetirementAssets" type="number" min="0" step="1000">
                       <span class="profile-currency-suffix">USD</span>
                     </div>
                   </div>
                   <div class="field-group">
-                    <label for="real-estate-equity">Real Estate Equity</label>
+                    <label for="roth-tax-advantaged-retirement-assets">Roth / Tax-Advantaged Retirement Assets</label>
                     <div class="profile-currency-field">
-                      <input id="real-estate-equity" name="realEstateEquity" type="number" min="0" step="1000">
+                      <input id="roth-tax-advantaged-retirement-assets" name="rothTaxAdvantagedRetirementAssets" type="number" min="0" step="1000">
                       <span class="profile-currency-suffix">USD</span>
                     </div>
                   </div>
                   <div class="field-group">
-                    <label for="business-value">Business Value</label>
+                    <label for="qualified-annuities">Qualified Annuities</label>
                     <div class="profile-currency-field">
-                      <input id="business-value" name="businessValue" type="number" min="0" step="1000">
+                      <input id="qualified-annuities" name="qualifiedAnnuities" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="nonqualified-annuities">Nonqualified Annuities</label>
+                    <div class="profile-currency-field">
+                      <input id="nonqualified-annuities" name="nonqualifiedAnnuities" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="primary-residence-equity">Primary Residence Equity</label>
+                    <div class="profile-currency-field">
+                      <input id="primary-residence-equity" name="primaryResidenceEquity" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="other-real-estate-equity">Other Real Estate Equity</label>
+                    <div class="profile-currency-field">
+                      <input id="other-real-estate-equity" name="otherRealEstateEquity" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="business-private-company-value">Business / Private Company Value</label>
+                    <div class="profile-currency-field">
+                      <input id="business-private-company-value" name="businessPrivateCompanyValue" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="education-specific-savings">Education-Specific Savings</label>
+                    <div class="profile-currency-field">
+                      <input id="education-specific-savings" name="educationSpecificSavings" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="trust-restricted-assets">Trust / Restricted Assets</label>
+                    <div class="profile-currency-field">
+                      <input id="trust-restricted-assets" name="trustRestrictedAssets" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="stock-compensation-deferred-compensation">Stock Compensation / Deferred Compensation</label>
+                    <div class="profile-currency-field">
+                      <input id="stock-compensation-deferred-compensation" name="stockCompensationDeferredCompensation" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="digital-assets-crypto">Digital Assets / Crypto</label>
+                    <div class="profile-currency-field">
+                      <input id="digital-assets-crypto" name="digitalAssetsCrypto" type="number" min="0" step="1000">
+                      <span class="profile-currency-suffix">USD</span>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="other-custom-asset">Other / Custom Asset</label>
+                    <div class="profile-currency-field">
+                      <input id="other-custom-asset" name="otherCustomAsset" type="number" min="0" step="1000">
                       <span class="profile-currency-suffix">USD</span>
                     </div>
                   </div>
@@ -918,6 +981,7 @@
   <script src="../app/features/coverage/coverage-policy-summary-list.js"></script>
   <script src="../app/features/coverage/coverage-policy-manager.js"></script>
   <script src="../app/features/lens-analysis/schema.js"></script>
+  <script src="../app/features/lens-analysis/asset-taxonomy.js"></script>
   <script src="../app/features/lens-analysis/block-outputs.js"></script>
   <script src="../app/features/lens-analysis/helpers/housing-support-calculations.js"></script>
   <script src="../app/features/lens-analysis/blocks/existing-coverage.js"></script>
@@ -932,6 +996,7 @@
   <script src="../app/features/lens-analysis/blocks/final-expenses.js"></script>
   <script src="../app/features/lens-analysis/blocks/transition-needs.js"></script>
   <script src="../app/features/lens-analysis/normalize-lens-model.js"></script>
+  <script src="../app/features/lens-analysis/asset-treatment-calculations.js"></script>
   <script src="../app/features/lens-analysis/dev-income-debug.js"></script>
   <script src="../app.js"></script>
   <script src="../pmi-tax-utils.js"></script>
@@ -1170,12 +1235,21 @@
         "immediate-liquidity-buffer": "Short-term survivor cash need for the immediate aftermath of death, including near-term bills, disruption, delays, or transition cash flow.",
         "desired-emergency-fund": "Longer-term survivor emergency reserve target after the initial transition period.",
         "other-transition-needs": "Other one-time survivor transition needs not captured by liquidity buffer, desired emergency fund, or housing transition reserve. Do not include debt payoff, final expenses, education, ongoing monthly support, or relocation if already entered.",
-        "cash-savings": "Cash and savings available to offset need.",
+        "cash-and-cash-equivalents": "Checking, savings, money market, CDs, and other cash-like balances.",
         "emergency-fund": "Existing emergency fund asset currently available today. This is an asset/offset, not a survivor need.",
-        "brokerage-accounts": "Taxable investment accounts that could be used in a survivor plan.",
-        "retirement-assets": "Retirement account balances, which may be discounted in planning.",
-        "real-estate-equity": "Home or other property equity available to support the plan.",
-        "business-value": "Estimated business value or ownership value.",
+        "taxable-brokerage-investments": "Taxable brokerage and non-retirement investment account balances.",
+        "traditional-retirement-assets": "Traditional 401(k), IRA, and similar pre-tax retirement account balances.",
+        "roth-tax-advantaged-retirement-assets": "Roth IRA, Roth 401(k), and similar tax-advantaged retirement account balances.",
+        "qualified-annuities": "Qualified annuity balances held inside tax-qualified retirement arrangements.",
+        "nonqualified-annuities": "Nonqualified annuity account values or surrender values.",
+        "primary-residence-equity": "Estimated equity in the client's primary residence.",
+        "other-real-estate-equity": "Estimated equity in rental, vacation, investment, or other non-primary real estate.",
+        "business-private-company-value": "Estimated business ownership, private company, or closely held entity value.",
+        "education-specific-savings": "529 plans, Coverdell accounts, or other education-dedicated savings.",
+        "trust-restricted-assets": "Trust-owned, restricted, pledged, or otherwise limited-access asset balances.",
+        "stock-compensation-deferred-compensation": "RSUs, options, deferred compensation, and other employer-linked asset values.",
+        "digital-assets-crypto": "Digital assets, cryptocurrency, and similar alternative asset balances.",
+        "other-custom-asset": "Advisor-defined asset category for raw asset facts not covered by the default list.",
         "individual-policy-type": "Type of existing individual life insurance coverage.",
         "individual-death-benefit": "Total death benefit on existing individual coverage.",
         "individual-years-remaining": "Remaining years on any term policy.",
@@ -1828,6 +1902,88 @@
         }
       }
 
+      const ASSET_VALUE_FIELD_ALIASES = Object.freeze({
+        cashSavings: "cashAndCashEquivalents",
+        brokerageAccounts: "taxableBrokerageInvestments",
+        retirementAssets: "traditionalRetirementAssets",
+        realEstateEquity: "primaryResidenceEquity",
+        businessValue: "businessPrivateCompanyValue"
+      });
+
+      function getAssetValueFieldAlias(name) {
+        return ASSET_VALUE_FIELD_ALIASES[name] || null;
+      }
+
+      function getCurrentAssetValueFieldNames() {
+        return Object.values(ASSET_VALUE_FIELD_ALIASES).concat([
+          "emergencyFund",
+          "rothTaxAdvantagedRetirementAssets",
+          "qualifiedAnnuities",
+          "nonqualifiedAnnuities",
+          "otherRealEstateEquity",
+          "educationSpecificSavings",
+          "trustRestrictedAssets",
+          "stockCompensationDeferredCompensation",
+          "digitalAssetsCrypto",
+          "otherCustomAsset"
+        ]);
+      }
+
+      function getSavedAssetValue(saved, currentName, legacyName) {
+        if (!saved || typeof saved !== "object") {
+          return null;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(saved, currentName) && String(saved[currentName] ?? "").trim() !== "") {
+          return saved[currentName];
+        }
+
+        if (legacyName && Object.prototype.hasOwnProperty.call(saved, legacyName) && String(saved[legacyName] ?? "").trim() !== "") {
+          return saved[legacyName];
+        }
+
+        return null;
+      }
+
+      function restoreAssetValueAliases(saved) {
+        if (!saved || typeof saved !== "object") {
+          return;
+        }
+
+        Object.entries(ASSET_VALUE_FIELD_ALIASES).forEach(([legacyName, currentName]) => {
+          const control = form.elements.namedItem(currentName);
+          if (!control || control instanceof RadioNodeList || String(control.value || "").trim()) {
+            return;
+          }
+
+          const value = getSavedAssetValue(saved, currentName, legacyName);
+          if (value === null) {
+            return;
+          }
+
+          control.value = value;
+          control.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+      }
+
+      function preserveLegacyAssetValueAliases(draft) {
+        Object.entries(ASSET_VALUE_FIELD_ALIASES).forEach(([legacyName, currentName]) => {
+          if (!Object.prototype.hasOwnProperty.call(draft, currentName)) {
+            return;
+          }
+
+          draft[legacyName] = draft[currentName];
+        });
+
+        return draft;
+      }
+
+      function getOffsetAssetsEventFieldNames() {
+        return getOffsetAssetsSourceFieldNames()
+          .concat(getCurrentAssetValueFieldNames())
+          .filter((fieldName, index, fieldNames) => fieldName && fieldNames.indexOf(fieldName) === index);
+      }
+
       function getOffsetAssetsSourceFieldNames() {
         return [
           "cashSavings",
@@ -1859,7 +2015,13 @@
       }
 
       function getLensBlockSourceValueByFieldName(fieldName) {
-        return getLensBlockSourceFieldValue(form.elements.namedItem(fieldName));
+        const directField = form.elements.namedItem(fieldName);
+        if (directField && !(directField instanceof RadioNodeList)) {
+          return getLensBlockSourceFieldValue(directField);
+        }
+
+        const aliasFieldName = getAssetValueFieldAlias(fieldName);
+        return aliasFieldName ? getLensBlockSourceFieldValue(form.elements.namedItem(aliasFieldName)) : null;
       }
 
       function createOffsetAssetsSourceData() {
@@ -4187,6 +4349,7 @@
               control.dispatchEvent(new Event("input", { bubbles: true }));
             }
           });
+          restoreAssetValueAliases(saved);
           if (mortgageTermRemainingYearsField && !(mortgageTermRemainingYearsField instanceof RadioNodeList) && mortgageTermRemainingMonthsField && !(mortgageTermRemainingMonthsField instanceof RadioNodeList)) {
             const combinedTerm = parseCurrencyLikeNumber(saved.mortgageTermRemaining);
             if (combinedTerm && !saved.mortgageTermRemainingYears && !saved.mortgageTermRemainingMonths) {
@@ -4363,6 +4526,7 @@
           draft.survivorNetAnnualIncomeManualOverride = true;
         }
 
+        preserveLegacyAssetValueAliases(draft);
         preserveLegacyOffsetAssetTreatmentValues(draft);
 
         return draft;
@@ -4501,7 +4665,7 @@
         field.addEventListener("blur", syncFinalExpensesBlockOutput);
       });
 
-      getOffsetAssetsSourceFieldNames().forEach((fieldName) => {
+      getOffsetAssetsEventFieldNames().forEach((fieldName) => {
         const field = form.elements.namedItem(fieldName);
         if (!field || field instanceof RadioNodeList) {
           return;
