@@ -309,10 +309,13 @@
         categoryKey ||
         `asset-${Number.isInteger(index) ? index + 1 : 1}`,
       categoryKey,
+      typeKey: normalizeString(safeAsset.typeKey) || null,
       label: normalizeString(safeAsset.label) || (taxonomyCategory && taxonomyCategory.label) || categoryKey || "Asset",
       group: normalizeString(safeAsset.group) || (taxonomyCategory && taxonomyCategory.group) || null,
       rawValue,
       source: normalizeString(safeAsset.source) || null,
+      isDefaultAsset: safeAsset.isDefaultAsset === true,
+      isCustomAsset: safeAsset.isCustomAsset === true,
       hasPmiSource: safeAsset.hasPmiSource === true,
       sourceKey: normalizeString(safeAsset.sourceKey) || null,
       legacySourceKeys: Array.isArray(safeAsset.legacySourceKeys)
@@ -362,6 +365,7 @@
       asset: {
         assetId: normalizedAsset.assetId,
         categoryKey: normalizedAsset.categoryKey,
+        typeKey: normalizedAsset.typeKey,
         label: normalizedAsset.label,
         rawValue: roundMoney(rawValue),
         include,
@@ -370,10 +374,15 @@
         planningDiscountPercent,
         treatedValue: roundMoney(treatedValue),
         source: normalizedAsset.source,
+        isDefaultAsset: normalizedAsset.isDefaultAsset,
+        isCustomAsset: normalizedAsset.isCustomAsset,
         hasPmiSource: normalizedAsset.hasPmiSource,
         warnings,
         trace: {
           group: normalizedAsset.group,
+          typeKey: normalizedAsset.typeKey,
+          isDefaultAsset: normalizedAsset.isDefaultAsset,
+          isCustomAsset: normalizedAsset.isCustomAsset,
           sourceKey: normalizedAsset.sourceKey,
           legacySourceKeys: normalizedAsset.legacySourceKeys,
           treatmentSource: normalizedTreatment.source,
@@ -448,6 +457,9 @@
       trace.push({
         assetId: calculated.asset.assetId,
         categoryKey: calculated.asset.categoryKey,
+        typeKey: calculated.asset.typeKey,
+        isDefaultAsset: calculated.asset.isDefaultAsset,
+        isCustomAsset: calculated.asset.isCustomAsset,
         treatmentSource: calculated.asset.trace.treatmentSource,
         treatmentSourceKey: calculated.asset.trace.treatmentSourceKey,
         treatedValue: calculated.asset.treatedValue,
