@@ -179,6 +179,41 @@
     return createSearchText(entry).indexOf(normalizedQuery) !== -1;
   }
 
+  const SUGGESTED_ASSET_TYPE_KEYS = Object.freeze([
+    "checkingAccount",
+    "savingsAccount",
+    "highYieldSavingsAccount",
+    "moneyMarketDepositAccount",
+    "certificateOfDeposit",
+    "treasuryBills",
+    "taxableBrokerageAccount",
+    "jointBrokerageAccount",
+    "traditionalIra",
+    "rothIra",
+    "traditional401k",
+    "plan529Account"
+  ]);
+
+  function groupEntriesByCategory(entries) {
+    return entries.reduce(function (groups, entry) {
+      const categoryLabel = getCategoryLabel(entry.categoryKey);
+      const existingGroup = groups.find(function (group) {
+        return group.categoryLabel === categoryLabel;
+      });
+      const group = existingGroup || {
+        categoryLabel,
+        entries: []
+      };
+
+      if (!existingGroup) {
+        groups.push(group);
+      }
+
+      group.entries.push(entry);
+      return groups;
+    }, []);
+  }
+
   function formatValueForInput(value) {
     if (value == null || !Number.isFinite(Number(value))) {
       return "";
@@ -193,15 +228,9 @@
     }
 
     root.innerHTML = `
-      <div class="profile-form-section-heading">
-        <div>
-          <h2>Additional Assets</h2>
-          <p class="helper-text">Add specific asset or account rows from the asset library. Values only; treatment is managed in Analysis Setup.</p>
-        </div>
-      </div>
-      <div class="profile-dependent-builder" data-pmi-asset-records-builder>
-        <div class="profile-dependent-list" data-pmi-asset-records-list></div>
-        <button class="button tertiary-button profile-dependent-add-button" type="button" data-pmi-asset-records-add>Add Asset</button>
+      <div class="pmi-asset-records-list" data-pmi-asset-records-list></div>
+      <div class="field-group pmi-asset-records-add-field">
+        <button class="button tertiary-button pmi-asset-records-add-button" type="button" data-pmi-asset-records-add>Add Asset</button>
       </div>
     `;
     root.dataset.pmiAssetRecordsInitialized = "true";
@@ -222,11 +251,18 @@
       <div class="profile-search-modal-panel" role="dialog" aria-modal="true" aria-labelledby="pmi-asset-library-title">
         <button class="profile-search-modal-close" type="button" aria-label="Close asset library" data-pmi-asset-library-close>x</button>
         <div class="profile-search-modal-header">
-          <h2 id="pmi-asset-library-title">Add Asset</h2>
+          <div>
+            <h2 id="pmi-asset-library-title">Add Asset</h2>
+            <p>Search or browse asset types to add to the plan.</p>
+          </div>
         </div>
-        <div class="field-group full-width">
-          <label for="pmi-asset-library-search">Search</label>
+        <div class="pmi-asset-library-search">
           <input id="pmi-asset-library-search" type="text" placeholder="Search asset types" data-pmi-asset-library-search>
+        </div>
+        <div class="pmi-asset-library-filter-row" aria-label="Asset library views">
+          <button class="pmi-asset-library-filter is-active" type="button" data-pmi-asset-library-filter="suggested" aria-pressed="true">Suggested</button>
+          <button class="pmi-asset-library-filter" type="button" data-pmi-asset-library-filter="all" aria-pressed="false">All Assets</button>
+          <button class="pmi-asset-library-filter" type="button" data-pmi-asset-library-filter="recent" aria-pressed="false">Recent</button>
         </div>
         <div class="profile-search-results" data-pmi-asset-library-results></div>
       </div>
@@ -258,6 +294,8 @@
       searchInput: null,
       results: null
     };
+    controller.libraryFilter = "suggested";
+    controller.recentTypeKeys = [];
 
     function syncRecordsFromDom() {
       if (!controller.list) {
@@ -293,36 +331,21 @@
       }
 
       if (!controller.records.length) {
-        controller.list.innerHTML = `
-          <div class="profile-search-results-empty" data-pmi-asset-records-empty>No additional assets added.</div>
-        `;
+        controller.list.innerHTML = "";
         return;
       }
 
       controller.list.innerHTML = controller.records.map(function (record) {
-        const categoryLabel = getCategoryLabel(record.categoryKey);
+        const inputId = "pmi-asset-record-value-" + normalizeString(record.assetId).replace(/[^A-Za-z0-9_-]+/g, "-");
         return `
-          <div class="profile-dependent-entry" data-pmi-asset-record-entry data-pmi-asset-id="${escapeHtml(record.assetId)}">
-            <div class="profile-dependent-entry-header">
-              <span class="profile-dependent-entry-label">${escapeHtml(record.label)}</span>
-              <button class="profile-dependent-entry-remove" type="button" data-pmi-asset-record-remove>Remove</button>
+          <div class="field-group pmi-asset-record-field" data-pmi-asset-record-entry data-pmi-asset-id="${escapeHtml(record.assetId)}">
+            <div class="pmi-asset-record-label-row">
+              <label for="${escapeHtml(inputId)}">${escapeHtml(record.label)}</label>
+              <button class="pmi-asset-record-remove" type="button" data-pmi-asset-record-remove aria-label="Remove ${escapeHtml(record.label)}">Remove</button>
             </div>
-            <div class="form-grid">
-              <div class="field-group">
-                <label>Account / nickname</label>
-                <input class="profile-yes-no-field" data-pmi-asset-record-label type="text" value="${escapeHtml(record.label)}">
-              </div>
-              <div class="field-group">
-                <label>Category</label>
-                <input class="profile-yes-no-field" type="text" value="${escapeHtml(categoryLabel)}" readonly aria-readonly="true">
-              </div>
-              <div class="field-group">
-                <label>Current Value</label>
-                <div class="profile-currency-field">
-                  <input data-pmi-asset-record-value type="number" min="0" step="1000" value="${escapeHtml(formatValueForInput(record.currentValue))}">
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
+            <div class="profile-currency-field">
+              <input id="${escapeHtml(inputId)}" data-pmi-asset-record-value type="number" min="0" step="1000" value="${escapeHtml(formatValueForInput(record.currentValue))}">
+              <span class="profile-currency-suffix">USD</span>
             </div>
           </div>
         `;
@@ -335,24 +358,72 @@
       }
 
       const query = controller.searchInput ? controller.searchInput.value : "";
-      const entries = getLibraryEntries().filter(function (entry) {
+      const allEntries = getLibraryEntries();
+      const suggestedTypeKeys = SUGGESTED_ASSET_TYPE_KEYS.reduce(function (map, typeKey) {
+        map[typeKey] = true;
+        return map;
+      }, {});
+      const recentTypeKeys = controller.recentTypeKeys.reduce(function (map, typeKey) {
+        map[typeKey] = true;
+        return map;
+      }, {});
+      const entries = allEntries.filter(function (entry) {
+        if (!query && controller.libraryFilter === "suggested" && !suggestedTypeKeys[entry.typeKey]) {
+          return false;
+        }
+
+        if (!query && controller.libraryFilter === "recent" && !recentTypeKeys[entry.typeKey]) {
+          return false;
+        }
+
         return matchesSearch(entry, query);
       });
 
       if (!entries.length) {
-        controller.results.innerHTML = '<div class="profile-search-results-empty">No matching asset types found.</div>';
+        controller.results.innerHTML = controller.libraryFilter === "recent" && !query
+          ? '<div class="profile-search-results-empty">No recent assets added in this session.</div>'
+          : '<div class="profile-search-results-empty">No matching asset types found.</div>';
         return;
       }
 
-      controller.results.innerHTML = entries.map(function (entry) {
+      controller.results.innerHTML = groupEntriesByCategory(entries).map(function (group) {
         return `
-          <button class="profile-search-result-button" type="button" data-pmi-asset-library-type-key="${escapeHtml(entry.typeKey)}">
-            <strong>${escapeHtml(entry.label)}</strong>
-            <span>${escapeHtml(getCategoryLabel(entry.categoryKey))} - ${escapeHtml(entry.group || "Asset")}</span>
-            <span>${escapeHtml(entry.description || "")}</span>
-          </button>
+          <section class="pmi-asset-library-group">
+            <div class="pmi-asset-library-group-heading">
+              <h3>${escapeHtml(group.categoryLabel)}</h3>
+              <span>${escapeHtml(group.entries.length)} ${group.entries.length === 1 ? "asset type" : "asset types"}</span>
+            </div>
+            <div class="pmi-asset-library-items">
+              ${group.entries.map(function (entry) {
+                return `
+                  <button class="profile-search-result-button pmi-asset-library-result" type="button" data-pmi-asset-library-type-key="${escapeHtml(entry.typeKey)}">
+                    <span class="pmi-asset-library-result-copy">
+                      <strong>${escapeHtml(entry.label)}</strong>
+                      <span>${escapeHtml(entry.description || "")}</span>
+                    </span>
+                    <span class="pmi-asset-library-result-meta">${escapeHtml(getCategoryLabel(entry.categoryKey))}</span>
+                    <span class="pmi-asset-library-result-action" aria-hidden="true">
+                      <img src="../Images/addasset.svg" alt="">
+                    </span>
+                  </button>
+                `;
+              }).join("")}
+            </div>
+          </section>
         `;
       }).join("");
+    }
+
+    function updateFilterButtons() {
+      if (!controller.modal) {
+        return;
+      }
+
+      controller.modal.querySelectorAll("[data-pmi-asset-library-filter]").forEach(function (button) {
+        const isActive = button.getAttribute("data-pmi-asset-library-filter") === controller.libraryFilter;
+        button.classList.toggle("is-active", isActive);
+        button.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
     }
 
     function closeModal() {
@@ -377,6 +448,14 @@
             return;
           }
 
+          const filterButton = event.target.closest("[data-pmi-asset-library-filter]");
+          if (filterButton) {
+            controller.libraryFilter = filterButton.getAttribute("data-pmi-asset-library-filter") || "suggested";
+            updateFilterButtons();
+            renderResults();
+            return;
+          }
+
           const resultButton = event.target.closest("[data-pmi-asset-library-type-key]");
           if (!resultButton) {
             return;
@@ -390,6 +469,9 @@
           syncRecordsFromDom();
           const record = createAssetRecordFromLibraryEntry(entry);
           controller.records.push(record);
+          controller.recentTypeKeys = [entry.typeKey].concat(controller.recentTypeKeys.filter(function (typeKey) {
+            return typeKey !== entry.typeKey;
+          })).slice(0, 8);
           renderRows();
           closeModal();
 
@@ -415,6 +497,7 @@
       if (controller.searchInput) {
         controller.searchInput.value = "";
       }
+      updateFilterButtons();
       renderResults();
       controller.modal.hidden = false;
       controller.searchInput?.focus();
