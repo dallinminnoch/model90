@@ -626,6 +626,8 @@
                 </div>
               </section>
 
+              <section class="profile-form-section profile-form-subsection" data-pmi-asset-records-root></section>
+
               <section class="profile-form-section profile-form-subsection" data-pmi-existing-coverage-card>
                 <div class="profile-form-section-heading">
                   <h2>Existing Coverage</h2>
@@ -978,6 +980,8 @@
   <script src="../app/features/coverage/coverage-policy-manager.js"></script>
   <script src="../app/features/lens-analysis/schema.js"></script>
   <script src="../app/features/lens-analysis/asset-taxonomy.js"></script>
+  <script src="../app/features/lens-analysis/asset-library.js"></script>
+  <script src="../app/features/lens-analysis/pmi-asset-records.js"></script>
   <script src="../app/features/lens-analysis/block-outputs.js"></script>
   <script src="../app/features/lens-analysis/helpers/housing-support-calculations.js"></script>
   <script src="../app/features/lens-analysis/blocks/existing-coverage.js"></script>
@@ -1613,6 +1617,9 @@
       const existingCoverageTotalsContainer = form.querySelector("[data-pmi-existing-coverage-totals]");
       const existingCoverageListContainer = form.querySelector("[data-pmi-existing-coverage-list]");
       const existingCoverageManageLink = form.querySelector("[data-pmi-existing-coverage-manage]");
+      const pmiAssetRecordsController = window.LensApp?.lensAnalysis?.pmiAssetRecords?.initPmiAssetRecords({
+        root: form.querySelector("[data-pmi-asset-records-root]")
+      });
       const derivedDraftFieldNames = new Set([
         "linkedMaritalStatusDisplay",
         "standardDeduction",
@@ -4344,6 +4351,9 @@
             }
           });
           restoreAssetValueAliases(saved);
+          if (pmiAssetRecordsController && typeof pmiAssetRecordsController.hydrateAssetRecords === "function") {
+            pmiAssetRecordsController.hydrateAssetRecords(saved.assetRecords);
+          }
           if (mortgageTermRemainingYearsField && !(mortgageTermRemainingYearsField instanceof RadioNodeList) && mortgageTermRemainingMonthsField && !(mortgageTermRemainingMonthsField instanceof RadioNodeList)) {
             const combinedTerm = parseCurrencyLikeNumber(saved.mortgageTermRemaining);
             if (combinedTerm && !saved.mortgageTermRemainingYears && !saved.mortgageTermRemainingMonths) {
@@ -4518,6 +4528,10 @@
 
         if (isSurvivorScenarioManualOverride(survivorNetAnnualIncomeField) && String(survivorNetAnnualIncomeField.value || "").trim() !== "") {
           draft.survivorNetAnnualIncomeManualOverride = true;
+        }
+
+        if (pmiAssetRecordsController && typeof pmiAssetRecordsController.serializeAssetRecords === "function") {
+          draft.assetRecords = pmiAssetRecordsController.serializeAssetRecords();
         }
 
         preserveLegacyAssetValueAliases(draft);
