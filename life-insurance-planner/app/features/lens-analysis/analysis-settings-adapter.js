@@ -15,7 +15,7 @@
     dimeIncomeYears: 10,
     includeExistingCoverageOffset: true,
     includeOffsetAssets: false,
-    assetOffsetSource: ASSET_OFFSET_SOURCE_LEGACY,
+    assetOffsetSource: ASSET_OFFSET_SOURCE_TREATED,
     fallbackToLegacyOffsetAssets: true
   });
 
@@ -23,7 +23,7 @@
     needsSupportDurationYears: 10,
     includeExistingCoverageOffset: true,
     includeOffsetAssets: true,
-    assetOffsetSource: ASSET_OFFSET_SOURCE_LEGACY,
+    assetOffsetSource: ASSET_OFFSET_SOURCE_TREATED,
     fallbackToLegacyOffsetAssets: true,
     includeTransitionNeeds: true,
     includeDiscretionarySupport: false,
@@ -33,7 +33,7 @@
   const DEFAULT_HUMAN_LIFE_VALUE_SETTINGS = Object.freeze({
     includeExistingCoverageOffset: true,
     includeOffsetAssets: false,
-    assetOffsetSource: ASSET_OFFSET_SOURCE_LEGACY,
+    assetOffsetSource: ASSET_OFFSET_SOURCE_TREATED,
     fallbackToLegacyOffsetAssets: true
   });
 
@@ -102,7 +102,7 @@
     if (normalizedValue === ASSET_OFFSET_SOURCE_LEGACY) {
       return ASSET_OFFSET_SOURCE_LEGACY;
     }
-    return fallback || ASSET_OFFSET_SOURCE_LEGACY;
+    return fallback || ASSET_OFFSET_SOURCE_TREATED;
   }
 
   function applyAssetOffsetSourceSettings(settings, methodDefaults, defaults, warnings, trace) {

@@ -359,8 +359,8 @@
   }
 
   function getAssetOffsetSourceSetting(settings) {
-    const value = String(settings?.assetOffsetSource || ASSET_OFFSET_SOURCE_LEGACY).trim().toLowerCase();
-    return value === ASSET_OFFSET_SOURCE_TREATED ? ASSET_OFFSET_SOURCE_TREATED : ASSET_OFFSET_SOURCE_LEGACY;
+    const value = String(settings?.assetOffsetSource || ASSET_OFFSET_SOURCE_TREATED).trim().toLowerCase();
+    return value === ASSET_OFFSET_SOURCE_LEGACY ? ASSET_OFFSET_SOURCE_LEGACY : ASSET_OFFSET_SOURCE_TREATED;
   }
 
   function getFallbackToLegacyOffsetAssetsSetting(settings) {

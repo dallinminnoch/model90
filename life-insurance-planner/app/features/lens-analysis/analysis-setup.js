@@ -59,7 +59,7 @@
     dimeIncomeYears: 10,
     needsSupportYears: 10,
     hlvProjectionYears: 10,
-    assetOffsetSource: ASSET_OFFSET_SOURCE_LEGACY,
+    assetOffsetSource: ASSET_OFFSET_SOURCE_TREATED,
     fallbackToLegacyOffsetAssets: true,
     source: "analysis-setup"
   });
@@ -847,7 +847,7 @@
     if (normalizedValue === ASSET_OFFSET_SOURCE_LEGACY) {
       return ASSET_OFFSET_SOURCE_LEGACY;
     }
-    return fallback || ASSET_OFFSET_SOURCE_LEGACY;
+    return fallback || ASSET_OFFSET_SOURCE_TREATED;
   }
 
   function parseOptionalNumberValue(value) {
