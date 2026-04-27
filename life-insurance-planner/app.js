@@ -1062,7 +1062,6 @@
     "profile.html",
     "manual-protection-modeling-inputs.html",
     "manual-minimum-inputs.html",
-    "income-loss-impact.html",
     "analysis-estimate.html",
     "analysis-detail.html",
     "recommendations.html",

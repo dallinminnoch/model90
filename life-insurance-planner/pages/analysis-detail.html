@@ -88,6 +88,14 @@
     </section>
 
     <div class="panel-stack">
+      <section class="income-impact-section" data-income-impact-display aria-live="polite">
+        <div class="income-impact-empty-state">
+          <div class="section-label">Income Loss Impact</div>
+          <h2>Preparing income impact view</h2>
+          <p>Link a client profile with saved Protection Modeling Inputs to review income loss and survivor support impact.</p>
+        </div>
+      </section>
+
       <section class="content-panel">
         <div class="analysis-grid">
           <article class="analysis-card">
@@ -158,6 +166,29 @@
   <script src="../app/features/client-records.js"></script>
   <script src="../app/features/client-intake.js"></script>
   <script src="../app/features/client-directory.js"></script>
+  <script src="../app/features/coverage/coverage-policy-utils.js"></script>
+  <script src="../app/features/lens-analysis/schema.js"></script>
+  <script src="../app/features/lens-analysis/asset-taxonomy.js"></script>
+  <script src="../app/features/lens-analysis/block-outputs.js"></script>
+  <script src="../app/features/lens-analysis/helpers/income-tax-calculations.js"></script>
+  <script src="../app/features/lens-analysis/helpers/housing-support-calculations.js"></script>
+  <script src="../app/features/lens-analysis/blocks/existing-coverage.js"></script>
+  <script src="../app/features/lens-analysis/blocks/offset-assets.js"></script>
+  <script src="../app/features/lens-analysis/blocks/survivor-scenario.js"></script>
+  <script src="../app/features/lens-analysis/blocks/tax-context.js"></script>
+  <script src="../app/features/lens-analysis/blocks/income-net-income.js"></script>
+  <script src="../app/features/lens-analysis/blocks/debt-payoff.js"></script>
+  <script src="../app/features/lens-analysis/blocks/housing-ongoing-support.js"></script>
+  <script src="../app/features/lens-analysis/blocks/non-housing-ongoing-support.js"></script>
+  <script src="../app/features/lens-analysis/blocks/education-support.js"></script>
+  <script src="../app/features/lens-analysis/blocks/final-expenses.js"></script>
+  <script src="../app/features/lens-analysis/blocks/transition-needs.js"></script>
+  <script src="../app/features/lens-analysis/normalize-lens-model.js"></script>
+  <script src="../app/features/lens-analysis/asset-treatment-calculations.js"></script>
+  <script src="../app/features/lens-analysis/lens-model-builder.js"></script>
+  <script src="../app/features/lens-analysis/analysis-methods.js"></script>
+  <script src="../app/features/lens-analysis/analysis-settings-adapter.js"></script>
+  <script src="../app/features/lens-analysis/income-loss-impact-display.js"></script>
   <script src="../app.js"></script>
   <script src="../lens-workflow.js"></script>
 </body>

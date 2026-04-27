@@ -1358,6 +1358,46 @@ body[data-page="protection-modeling-inputs"] .preliminary-link-grid {
   text-align: center;
 }
 
+.linked-profile-title-line {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.linked-profile-title-eyebrow,
+.prospect-empty-panel .linked-profile-title {
+  margin: 0;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.linked-profile-title-eyebrow {
+  color: #4a62bd;
+}
+
+.prospect-empty-panel .linked-profile-title {
+  color: #111827;
+  text-align: left;
+}
+
+.linked-profile-title-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #111827;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
 .prospect-empty-panel p {
   margin: 0;
   color: #687385;
@@ -11510,7 +11550,7 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
 }
 
 .analysis-setup-assumption-panel {
-  border: 1.5px solid rgba(111, 82, 255, 0.46);
+  border: 0;
   border-radius: 0.5rem;
   background: #ffffff;
   color: #1f2937;
@@ -11572,7 +11612,7 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   padding: 0.34rem 0.72rem 0.3rem;
   border: 1px solid rgba(185, 198, 216, 0.18);
   border-radius: 0.48rem 0.48rem 0 0;
-  background: rgba(255, 255, 255, 0.07);
+  background: #2f2a58;
   color: #cbd6e8;
   font: inherit;
   font-size: 0.78rem;
@@ -11586,7 +11626,7 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
 
 .analysis-setup-view-tab:hover {
   border-color: rgba(196, 181, 253, 0.5);
-  background: rgba(139, 124, 246, 0.18);
+  background: #3a3470;
   color: #ffffff;
 }
 
@@ -11701,7 +11741,7 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   position: relative;
   z-index: 2;
   padding: clamp(0.7rem, 1vw, 0.92rem);
-  border: 1.5px solid var(--analysis-setup-view-accent);
+  border: 2px solid var(--analysis-setup-view-accent);
   border-radius: 0.5rem;
   background: #ffffff;
   box-shadow: none;
@@ -11710,7 +11750,7 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
 .analysis-setup-panel-body,
 .analysis-setup-control-group--policy-returns {
   scrollbar-width: thin;
-  scrollbar-color: #6f52ff transparent;
+  scrollbar-color: #2f2a58 transparent;
 }
 
 .analysis-setup-panel-body::-webkit-scrollbar,
@@ -11727,12 +11767,12 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
 .analysis-setup-panel-body::-webkit-scrollbar-thumb,
 .analysis-setup-control-group--policy-returns::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: #6f52ff;
+  background: #2f2a58;
 }
 
 .analysis-setup-panel-body::-webkit-scrollbar-thumb:hover,
 .analysis-setup-control-group--policy-returns::-webkit-scrollbar-thumb:hover {
-  background: #5f45d8;
+  background: #3a3470;
 }
 
 .analysis-setup-panel-body::-webkit-scrollbar-button,
@@ -12051,6 +12091,18 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
 .analysis-setup-rate-control:hover {
   border-bottom-color: rgba(139, 124, 246, 0.38);
   background: rgba(157, 140, 248, 0.055);
+}
+
+.analysis-setup-control-group--inflation .analysis-setup-rate-control:hover,
+.analysis-setup-control-group--growth .analysis-setup-rate-control:hover {
+  border-bottom-color: rgba(196, 181, 253, 0.48);
+  background: #3a3470;
+}
+
+.analysis-setup-control-group--inflation .analysis-setup-toggle-control:hover,
+.analysis-setup-control-group--inflation .analysis-setup-toggle-control:focus-within {
+  border-color: rgba(196, 181, 253, 0.38);
+  background: #3a3470;
 }
 
 .analysis-setup-return-basis-control {
@@ -13663,17 +13715,17 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   gap: 0.72rem;
   min-width: 0;
   padding: 0.56rem clamp(0.82rem, 1.15vw, 1rem);
-  border-top: 1px solid rgba(185, 198, 216, 0.16);
+  border-top: 1px solid rgba(111, 82, 255, 0.16);
 }
 
 .analysis-setup-panel-footer > [data-analysis-setup-status] {
   flex: 0 0 auto;
   max-width: min(100%, 22rem);
   padding: 0.26rem 0.54rem;
-  border: 1px solid rgba(185, 198, 216, 0.16);
+  border: 1px solid rgba(111, 82, 255, 0.18);
   border-radius: 0.42rem;
-  background: rgba(255, 255, 255, 0.065);
-  color: #c9d5e5;
+  background: #f5f3ff;
+  color: #4b5563;
   font-size: 0.68rem;
   font-weight: 720;
   line-height: 1.1;
@@ -13877,4 +13929,252 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   font-size: 0.78rem;
   font-weight: 760;
   cursor: pointer;
+}
+
+.income-impact-section {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1rem, 1.45vw, 1.3rem);
+  border: 1px solid rgba(211, 219, 231, 0.92);
+  border-radius: 0.65rem;
+  background: #ffffff;
+  box-shadow: 0 16px 34px rgba(16, 33, 52, 0.08);
+}
+
+.income-impact-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.income-impact-header h2,
+.income-impact-empty-state h2,
+.income-impact-card h3 {
+  margin: 0;
+  color: #17202c;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 760;
+  letter-spacing: 0;
+}
+
+.income-impact-header h2,
+.income-impact-empty-state h2 {
+  margin-top: 0.22rem;
+  font-size: clamp(1.35rem, 2.1vw, 1.85rem);
+  line-height: 1.08;
+}
+
+.income-impact-header p,
+.income-impact-empty-state p,
+.income-impact-card-header p,
+.income-impact-metric p,
+.income-impact-timeline p,
+.income-impact-notes li {
+  margin: 0;
+  color: #627086;
+  font-size: 0.82rem;
+  line-height: 1.42;
+}
+
+.income-impact-header p,
+.income-impact-empty-state p {
+  margin-top: 0.35rem;
+}
+
+.income-impact-source {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(74, 98, 189, 0.1);
+  color: #4054b8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.income-impact-snapshot {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.income-impact-metric,
+.income-impact-card,
+.income-impact-empty-state,
+.income-impact-notes {
+  border: 1px solid rgba(223, 229, 238, 0.92);
+  border-radius: 0.55rem;
+  background: #f8fafc;
+}
+
+.income-impact-metric {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+  padding: 0.75rem 0.85rem;
+}
+
+.income-impact-metric span,
+.income-impact-list span,
+.income-impact-timeline span {
+  color: #5e6c81;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.income-impact-metric strong {
+  overflow: hidden;
+  color: #17202c;
+  font-size: clamp(1.1rem, 1.6vw, 1.45rem);
+  font-weight: 780;
+  line-height: 1.06;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.income-impact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.income-impact-card {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.9rem;
+}
+
+.income-impact-card--wide {
+  grid-column: 1 / -1;
+}
+
+.income-impact-card h3 {
+  font-size: 1rem;
+  line-height: 1.12;
+}
+
+.income-impact-card-header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.income-impact-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.income-impact-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.42rem 0;
+  border-bottom: 1px solid rgba(223, 229, 238, 0.84);
+}
+
+.income-impact-list li:last-child {
+  border-bottom: 0;
+}
+
+.income-impact-list strong {
+  max-width: 56%;
+  color: #17202c;
+  font-size: 0.82rem;
+  font-weight: 780;
+  line-height: 1.18;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.income-impact-timeline {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.income-impact-timeline-bar {
+  display: flex;
+  width: 100%;
+  height: 0.72rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e7ecf4;
+}
+
+.income-impact-timeline-bar span:first-child {
+  background: #4a62bd;
+}
+
+.income-impact-timeline-bar span:last-child {
+  background: #52a17a;
+}
+
+.income-impact-timeline-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.income-impact-timeline-grid > div,
+.income-impact-empty-inline {
+  min-width: 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(223, 229, 238, 0.9);
+  border-radius: 0.5rem;
+  background: #ffffff;
+}
+
+.income-impact-timeline strong {
+  display: block;
+  margin-top: 0.18rem;
+  color: #17202c;
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+
+.income-impact-empty-state {
+  padding: 1rem;
+}
+
+.income-impact-empty-inline {
+  color: #627086;
+  font-size: 0.82rem;
+  line-height: 1.42;
+}
+
+.income-impact-notes {
+  padding: 0.8rem 0.9rem;
+}
+
+.income-impact-notes strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #17202c;
+  font-size: 0.82rem;
+}
+
+.income-impact-notes ul {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding-left: 1.05rem;
+}
+
+@media (max-width: 980px) {
+  .income-impact-snapshot,
+  .income-impact-grid,
+  .income-impact-timeline-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .income-impact-header {
+    flex-direction: column;
+  }
 }

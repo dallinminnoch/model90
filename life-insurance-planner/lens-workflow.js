@@ -167,17 +167,6 @@
       return 0;
     }
 
-    if (currentStep === "income-loss") {
-      const analysisSource = window.getLensAnalysisSource?.();
-      if (analysisSource?.buckets) {
-        const availableAssets = Number(analysisSource.buckets.availableAssetsTotal || 0);
-        const annualNeed = Number(analysisSource.buckets.annualIncomeToReplace || 0);
-        if (availableAssets > 0 || annualNeed > 0) {
-          return 1;
-        }
-      }
-    }
-
     const scopedForm = document.querySelector("main.workflow-shell form");
     const fields = Array.from((scopedForm || document).querySelectorAll("input, select, textarea"));
     return getFieldCompletionRatio(fields);

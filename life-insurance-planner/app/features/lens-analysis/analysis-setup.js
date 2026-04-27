@@ -2255,7 +2255,9 @@
   }
 
   function getFieldMap() {
-    const fields = {};
+    const fields = {
+      resetButton: document.querySelector("[data-analysis-inflation-reset]")
+    };
     Array.from(document.querySelectorAll("[data-analysis-inflation-field]")).forEach(function (field) {
       fields[field.getAttribute("data-analysis-inflation-field")] = field;
     });
@@ -6838,6 +6840,11 @@
     }
 
     fields.enabled?.addEventListener("change", function () {
+      syncCalculationSnapshot();
+      markUnsaved();
+    });
+    fields.resetButton?.addEventListener("click", function () {
+      populateFields(fields, DEFAULT_INFLATION_ASSUMPTIONS, sliders);
       syncCalculationSnapshot();
       markUnsaved();
     });
