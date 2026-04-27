@@ -104,6 +104,12 @@
               <div>
                 <div class="analysis-setup-panel-kicker">Planning Settings</div>
                 <h2 id="analysis-setup-panel-title">Assumption Controls</h2>
+                <div class="analysis-setup-view-tabs" role="group" aria-label="Analysis Setup views">
+                  <button class="analysis-setup-view-tab" type="button" data-analysis-setup-view-tab="calculation" aria-pressed="true" data-active="true">Calculation Assumptions</button>
+                  <button class="analysis-setup-view-tab" type="button" data-analysis-setup-view-tab="offset" aria-pressed="false">Offset &amp; Balance Sheet Treatment</button>
+                  <button class="analysis-setup-view-tab" type="button" data-analysis-setup-view-tab="planning" aria-pressed="false">Planning Goals &amp; Guardrails</button>
+                </div>
+                <p class="analysis-setup-validation-message" data-analysis-setup-validation role="alert" hidden></p>
               </div>
               <button class="analysis-setup-header-toggle" type="button" data-analysis-setup-header-toggle aria-controls="analysis-setup-page-header" aria-expanded="true" title="Collapse setup header">
                 <span class="analysis-setup-header-toggle-glyph" aria-hidden="true">
@@ -114,8 +120,8 @@
             </header>
 
             <div class="analysis-setup-panel-body">
-              <div class="analysis-setup-panel-grid">
-                <div class="analysis-setup-left-stack">
+              <div class="analysis-setup-panel-grid" data-analysis-setup-view-grid data-analysis-setup-current-view="calculation">
+                <div class="analysis-setup-left-stack" data-analysis-setup-view-panel="calculation" data-active="true">
                   <section class="analysis-setup-control-group analysis-setup-control-group--inflation" aria-labelledby="analysis-setup-inflation">
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-inflation">Inflation Assumptions</h3>
@@ -183,11 +189,9 @@
                       </span>
                     </div>
                   </div>
-
-                  <p class="analysis-setup-validation-message" data-analysis-setup-validation role="alert" hidden></p>
                   </section>
 
-                  <section class="analysis-setup-control-group" aria-labelledby="analysis-setup-method-defaults">
+                  <section class="analysis-setup-control-group analysis-setup-control-group--method-defaults" aria-labelledby="analysis-setup-method-defaults">
                     <div class="analysis-setup-method-header">
                       <h3 id="analysis-setup-method-defaults">Method Defaults</h3>
                       <button class="analysis-setup-reset-button" type="button" data-analysis-method-reset>Reset to Default</button>
@@ -260,9 +264,175 @@
                       </div>
                     </div>
                   </section>
+
+                  <section class="analysis-setup-control-group analysis-setup-control-group--policy-returns" aria-labelledby="analysis-setup-policy-returns">
+                    <div class="analysis-setup-method-header">
+                      <div class="analysis-setup-control-heading">
+                        <h3 id="analysis-setup-policy-returns">Policy Type Return Assumptions</h3>
+                        <p>Future policy comparison only. Current DIME, Needs, and HLV results do not change.</p>
+                      </div>
+                      <button class="analysis-setup-reset-button" type="button" data-analysis-policy-return-reset>Reset</button>
+                    </div>
+
+                    <label class="settings-toggle-row analysis-setup-toggle-control analysis-setup-policy-return-toggle">
+                      <span class="settings-toggle-copy">
+                        <span class="settings-toggle-label">Enable policy return assumptions</span>
+                      </span>
+                      <span class="settings-switch">
+                        <input
+                          type="checkbox"
+                          role="switch"
+                          aria-label="Enable policy type return assumptions"
+                          data-analysis-policy-return-enabled>
+                        <span class="settings-switch-track" aria-hidden="true"></span>
+                      </span>
+                    </label>
+
+                    <label class="analysis-setup-method-row analysis-setup-policy-return-profile" for="analysis-setup-policy-return-profile">
+                      <span>Return profile</span>
+                      <select id="analysis-setup-policy-return-profile" class="analysis-setup-method-select" data-analysis-policy-return-profile>
+                        <option value="conservative">Conservative</option>
+                        <option value="balanced">Balanced</option>
+                        <option value="aggressive">Aggressive</option>
+                        <option value="custom">Custom</option>
+                      </select>
+                    </label>
+
+                    <div class="analysis-setup-policy-return-grid" aria-label="Policy type return assumptions">
+                      <section class="analysis-setup-policy-return-section" aria-labelledby="analysis-setup-policy-return-term">
+                        <h4 id="analysis-setup-policy-return-term">Term Life</h4>
+                        <label class="analysis-setup-policy-return-field" for="analysis-setup-term-cash-value-return">
+                          <span>Cash value return</span>
+                          <span class="analysis-setup-asset-percent">
+                            <input id="analysis-setup-term-cash-value-return" class="analysis-setup-asset-percent-input analysis-setup-policy-return-input" type="text" inputmode="decimal" data-analysis-policy-return-field="termLife.cashValueReturnPercent">
+                            <span aria-hidden="true">%</span>
+                          </span>
+                        </label>
+                      </section>
+
+                      <section class="analysis-setup-policy-return-section" aria-labelledby="analysis-setup-policy-return-whole">
+                        <h4 id="analysis-setup-policy-return-whole">Whole Life</h4>
+                        <label class="analysis-setup-policy-return-field" for="analysis-setup-whole-guaranteed-growth">
+                          <span>Guaranteed growth</span>
+                          <span class="analysis-setup-asset-percent">
+                            <input id="analysis-setup-whole-guaranteed-growth" class="analysis-setup-asset-percent-input analysis-setup-policy-return-input" type="text" inputmode="decimal" placeholder="Blank" data-analysis-policy-return-field="wholeLife.guaranteedGrowthPercent">
+                            <span aria-hidden="true">%</span>
+                          </span>
+                        </label>
+                        <label class="analysis-setup-policy-return-field" for="analysis-setup-whole-dividend-credit">
+                          <span>Dividend credit</span>
+                          <span class="analysis-setup-asset-percent">
+                            <input id="analysis-setup-whole-dividend-credit" class="analysis-setup-asset-percent-input analysis-setup-policy-return-input" type="text" inputmode="decimal" placeholder="Blank" data-analysis-policy-return-field="wholeLife.dividendCreditPercent">
+                            <span aria-hidden="true">%</span>
+                          </span>
+                        </label>
+                      </section>
+
+                      <section class="analysis-setup-policy-return-section" aria-labelledby="analysis-setup-policy-return-universal">
+                        <h4 id="analysis-setup-policy-return-universal">Universal Life</h4>
+                        <label class="analysis-setup-policy-return-field" for="analysis-setup-ul-current-crediting">
+                          <span>Current crediting</span>
+                          <span class="analysis-setup-asset-percent">
+                            <input id="analysis-setup-ul-current-crediting" class="analysis-setup-asset-percent-input analysis-setup-policy-return-input" type="text" inputmode="decimal" placeholder="Blank" data-analysis-policy-return-field="universalLife.currentCreditingPercent">
+                            <span aria-hidden="true">%</span>
+                          </span>
+                        </label>
+                        <label class="analysis-setup-policy-return-field" for="analysis-setup-ul-guaranteed-crediting">
+                          <span>Guaranteed crediting</span>
+                          <span class="analysis-setup-asset-percent">
+                            <input id="analysis-setup-ul-guaranteed-crediting" class="analysis-setup-asset-percent-input analysis-setup-policy-return-input" type="text" inputmode="decimal" placeholder="Blank" data-analysis-policy-return-field="universalLife.guaranteedCreditingPercent">
+                            <span aria-hidden="true">%</span>
+                          </span>
+                        </label>
+                      </section>
+
+                      <section class="analysis-setup-policy-return-section" aria-labelledby="analysis-setup-policy-return-indexed">
+                        <h4 id="analysis-setup-policy-return-indexed">Indexed Universal Life</h4>
+                        <label class="analysis-setup-policy-return-field" for="analysis-setup-iul-assumed-crediting">
+                          <span>Assumed crediting</span>
+                          <span class="analysis-setup-asset-percent">
+                            <input id="analysis-setup-iul-assumed-crediting" class="analysis-setup-asset-percent-input analysis-setup-policy-return-input" type="text" inputmode="decimal" placeholder="Blank" data-analysis-policy-return-field="indexedUniversalLife.assumedCreditingPercent">
+                            <span aria-hidden="true">%</span>
+                          </span>
+                        </label>
+                        <label class="analysis-setup-policy-return-field" for="analysis-setup-iul-cap-rate">
+                          <span>Cap rate</span>
+                          <span class="analysis-setup-asset-percent">
+                            <input id="analysis-setup-iul-cap-rate" class="analysis-setup-asset-percent-input analysis-setup-policy-return-input" type="text" inputmode="decimal" placeholder="Blank" data-analysis-policy-return-field="indexedUniversalLife.capRatePercent">
+                            <span aria-hidden="true">%</span>
+                          </span>
+                        </label>
+                        <label class="analysis-setup-policy-return-field" for="analysis-setup-iul-participation-rate">
+                          <span>Participation rate</span>
+                          <span class="analysis-setup-asset-percent">
+                            <input id="analysis-setup-iul-participation-rate" class="analysis-setup-asset-percent-input analysis-setup-policy-return-input" type="text" inputmode="decimal" placeholder="Blank" data-analysis-policy-return-field="indexedUniversalLife.participationRatePercent">
+                            <span aria-hidden="true">%</span>
+                          </span>
+                        </label>
+                        <label class="analysis-setup-policy-return-field" for="analysis-setup-iul-floor-rate">
+                          <span>Floor rate</span>
+                          <span class="analysis-setup-asset-percent">
+                            <input id="analysis-setup-iul-floor-rate" class="analysis-setup-asset-percent-input analysis-setup-policy-return-input" type="text" inputmode="decimal" data-analysis-policy-return-field="indexedUniversalLife.floorRatePercent">
+                            <span aria-hidden="true">%</span>
+                          </span>
+                        </label>
+                      </section>
+
+                      <section class="analysis-setup-policy-return-section" aria-labelledby="analysis-setup-policy-return-variable">
+                        <h4 id="analysis-setup-policy-return-variable">Variable Universal Life</h4>
+                        <label class="analysis-setup-policy-return-field" for="analysis-setup-vul-gross-return">
+                          <span>Gross return</span>
+                          <span class="analysis-setup-asset-percent">
+                            <input id="analysis-setup-vul-gross-return" class="analysis-setup-asset-percent-input analysis-setup-policy-return-input" type="text" inputmode="decimal" placeholder="Blank" data-analysis-policy-return-field="variableUniversalLife.grossReturnPercent">
+                            <span aria-hidden="true">%</span>
+                          </span>
+                        </label>
+                        <label class="analysis-setup-policy-return-field" for="analysis-setup-vul-net-return">
+                          <span>Net return</span>
+                          <span class="analysis-setup-asset-percent">
+                            <input id="analysis-setup-vul-net-return" class="analysis-setup-asset-percent-input analysis-setup-policy-return-input" type="text" inputmode="decimal" placeholder="Blank" data-analysis-policy-return-field="variableUniversalLife.netReturnPercent">
+                            <span aria-hidden="true">%</span>
+                          </span>
+                        </label>
+                      </section>
+                    </div>
+                  </section>
+
+                  <section class="analysis-setup-control-group analysis-setup-control-group--calculation-snapshot" aria-labelledby="analysis-setup-calculation-snapshot">
+                    <div class="analysis-setup-control-heading">
+                      <h3 id="analysis-setup-calculation-snapshot">Calculation Snapshot</h3>
+                      <p>Read-only summary of the active calculation assumptions on this view.</p>
+                    </div>
+                    <div class="analysis-setup-calculation-snapshot-grid" aria-label="Calculation assumption snapshot">
+                      <div class="analysis-setup-calculation-snapshot-item">
+                        <span>DIME income years</span>
+                        <strong data-analysis-calculation-snapshot="dimeIncomeYears">-</strong>
+                      </div>
+                      <div class="analysis-setup-calculation-snapshot-item">
+                        <span>Needs support years</span>
+                        <strong data-analysis-calculation-snapshot="needsSupportYears">-</strong>
+                      </div>
+                      <div class="analysis-setup-calculation-snapshot-item">
+                        <span>HLV projection years</span>
+                        <strong data-analysis-calculation-snapshot="hlvProjectionYears">-</strong>
+                      </div>
+                      <div class="analysis-setup-calculation-snapshot-item analysis-setup-calculation-snapshot-item--wide">
+                        <span>Inflation</span>
+                        <strong data-analysis-calculation-snapshot="inflationSummary">-</strong>
+                      </div>
+                      <div class="analysis-setup-calculation-snapshot-item analysis-setup-calculation-snapshot-item--wide">
+                        <span>Growth &amp; return</span>
+                        <strong data-analysis-calculation-snapshot="growthSummary">-</strong>
+                      </div>
+                      <div class="analysis-setup-calculation-snapshot-item">
+                        <span>Asset offset source</span>
+                        <strong data-analysis-calculation-snapshot="assetOffsetSource">-</strong>
+                      </div>
+                    </div>
+                  </section>
                 </div>
 
-                <section class="analysis-setup-control-group analysis-setup-control-group--wide analysis-setup-control-group--assets" aria-labelledby="analysis-setup-asset-treatment">
+                <section class="analysis-setup-control-group analysis-setup-control-group--wide analysis-setup-control-group--assets" aria-labelledby="analysis-setup-asset-treatment" data-analysis-setup-view-panel="offset" hidden>
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-asset-treatment">Asset Treatment</h3>
                     <p>Set how each asset should be counted later in advanced offset modeling. Asset values are still collected in Protection Modeling Inputs.</p>
@@ -310,7 +480,7 @@
                   </div>
                 </section>
 
-                <div class="analysis-setup-treatment-row">
+                <div class="analysis-setup-treatment-row" data-analysis-setup-view-panel="offset" hidden>
                   <section class="analysis-setup-control-group analysis-setup-control-group--coverage" aria-labelledby="analysis-setup-coverage-treatment">
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-coverage-treatment">Existing Coverage Treatment</h3>
@@ -490,7 +660,7 @@
                   </section>
                 </div>
 
-                <section class="analysis-setup-control-group analysis-setup-control-group--survivor-support" aria-labelledby="analysis-setup-survivor-support-treatment">
+                <section class="analysis-setup-control-group analysis-setup-control-group--survivor-support" aria-labelledby="analysis-setup-survivor-support-treatment" data-analysis-setup-view-panel="planning" hidden>
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-survivor-support-treatment">Survivor &amp; Support Assumptions</h3>
                     <p>Control how survivor income and household support needs will be treated later in advanced Needs and LENS calculations. Raw survivor income and expense values remain in Protection Modeling Inputs.</p>
@@ -627,7 +797,7 @@
                   <p class="analysis-setup-survivor-preview-note">Preview only. Current Needs, DIME, HLV, and recommendation results are unchanged.</p>
                 </section>
 
-                <section class="analysis-setup-control-group analysis-setup-control-group--education" aria-labelledby="analysis-setup-education-treatment">
+                <section class="analysis-setup-control-group analysis-setup-control-group--education" aria-labelledby="analysis-setup-education-treatment" data-analysis-setup-view-panel="planning" hidden>
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-education-treatment">Education Assumptions</h3>
                     <p>Control how education funding will be treated later in advanced Needs and LENS calculations. Raw education inputs remain in Protection Modeling Inputs.</p>
@@ -751,7 +921,7 @@
                   <p class="analysis-setup-education-preview-note">Preview only. Current Needs, DIME, HLV, and recommendation results are unchanged.</p>
                 </section>
 
-                <section class="analysis-setup-control-group analysis-setup-control-group--recommendation" aria-labelledby="analysis-setup-recommendation-guardrails">
+                <section class="analysis-setup-control-group analysis-setup-control-group--recommendation" aria-labelledby="analysis-setup-recommendation-guardrails" data-analysis-setup-view-panel="planning" hidden>
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-recommendation-guardrails">Recommendation Guardrails</h3>
                     <p>Set how future LENS recommendations should be shaped and risk-flagged. These settings are saved for future recommendation logic and are not applied to current DIME, Needs, or HLV results yet.</p>

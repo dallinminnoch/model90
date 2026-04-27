@@ -73,6 +73,58 @@
     source: "analysis-setup"
   });
 
+  const POLICY_RETURN_PROFILE_LABELS = Object.freeze({
+    conservative: "Conservative",
+    balanced: "Balanced",
+    aggressive: "Aggressive",
+    custom: "Custom"
+  });
+  const POLICY_RETURN_PROFILE_KEYS = Object.freeze(Object.keys(POLICY_RETURN_PROFILE_LABELS));
+  const DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS = Object.freeze({
+    enabled: false,
+    profile: "balanced",
+    termLife: Object.freeze({
+      cashValueReturnPercent: 0
+    }),
+    wholeLife: Object.freeze({
+      guaranteedGrowthPercent: null,
+      dividendCreditPercent: null
+    }),
+    universalLife: Object.freeze({
+      currentCreditingPercent: null,
+      guaranteedCreditingPercent: null
+    }),
+    indexedUniversalLife: Object.freeze({
+      assumedCreditingPercent: null,
+      capRatePercent: null,
+      participationRatePercent: null,
+      floorRatePercent: 0
+    }),
+    variableUniversalLife: Object.freeze({
+      grossReturnPercent: null,
+      netReturnPercent: null
+    }),
+    source: "analysis-setup",
+    lastUpdatedAt: null
+  });
+  const POLICY_TYPE_RETURN_FIELD_LABELS = Object.freeze({
+    "termLife.cashValueReturnPercent": "Term Life cash value return",
+    "wholeLife.guaranteedGrowthPercent": "Whole Life guaranteed growth",
+    "wholeLife.dividendCreditPercent": "Whole Life dividend credit",
+    "universalLife.currentCreditingPercent": "Universal Life current crediting",
+    "universalLife.guaranteedCreditingPercent": "Universal Life guaranteed crediting",
+    "indexedUniversalLife.assumedCreditingPercent": "Indexed Universal Life assumed crediting",
+    "indexedUniversalLife.capRatePercent": "Indexed Universal Life cap rate",
+    "indexedUniversalLife.participationRatePercent": "Indexed Universal Life participation rate",
+    "indexedUniversalLife.floorRatePercent": "Indexed Universal Life floor rate",
+    "variableUniversalLife.grossReturnPercent": "Variable Universal Life gross return",
+    "variableUniversalLife.netReturnPercent": "Variable Universal Life net return"
+  });
+  const POLICY_TYPE_RETURN_REQUIRED_ZERO_FIELDS = Object.freeze([
+    "termLife.cashValueReturnPercent",
+    "indexedUniversalLife.floorRatePercent"
+  ]);
+
   const ASSET_TREATMENT_ITEMS = Object.freeze([
     { key: "cashAndCashEquivalents", label: "Cash & Cash Equivalents", sourceField: "cashSavings", legacyKeys: Object.freeze(["cashSavings"]) },
     { key: "emergencyFund", label: "Emergency Fund", sourceField: "emergencyFund", legacyKeys: Object.freeze(["emergencyFund"]) },
@@ -99,6 +151,25 @@
     "businessPrivateCompanyValue"
   ]);
   const CUSTOM_ASSET_TREATMENT_USES_PMI_INPUT = false;
+  const ANALYSIS_SETUP_DEFAULT_VIEW = "calculation";
+  const ANALYSIS_SETUP_VIEW_KEYS = Object.freeze([
+    ANALYSIS_SETUP_DEFAULT_VIEW,
+    "offset",
+    "planning"
+  ]);
+  const ANALYSIS_SETUP_VIEW_HASHES = Object.freeze({
+    calculation: "calculation-assumptions",
+    offset: "offset-treatment",
+    planning: "planning-goals"
+  });
+  const ANALYSIS_SETUP_VIEW_HASH_LOOKUP = Object.freeze({
+    calculation: "calculation",
+    "calculation-assumptions": "calculation",
+    offset: "offset",
+    "offset-treatment": "offset",
+    planning: "planning",
+    "planning-goals": "planning"
+  });
 
   const TAX_TREATMENT_LABELS = Object.freeze({
     "no-tax-drag": "No tax drag",
@@ -872,6 +943,13 @@
       : fallback;
   }
 
+  function normalizePolicyReturnProfile(value, fallback) {
+    const normalizedValue = String(value || "").trim().toLowerCase();
+    return POLICY_RETURN_PROFILE_KEYS.includes(normalizedValue)
+      ? normalizedValue
+      : fallback;
+  }
+
   function normalizeCoverageTreatmentProfile(value, fallback) {
     const normalizedValue = String(value || "").trim().toLowerCase();
     return COVERAGE_TREATMENT_PROFILE_KEYS.includes(normalizedValue)
@@ -989,6 +1067,22 @@
   }
 
   function normalizeRecommendationPercent(value, fallback) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return fallback;
+    }
+
+    return Math.min(
+      MAX_RECOMMENDATION_PERCENT,
+      Math.max(MIN_RECOMMENDATION_PERCENT, number)
+    );
+  }
+
+  function normalizePolicyReturnPercent(value, fallback) {
+    if (value === null || value === undefined || String(value).trim() === "") {
+      return fallback;
+    }
+
     const number = Number(value);
     if (!Number.isFinite(number)) {
       return fallback;
@@ -1345,6 +1439,86 @@
     if (saved.lastUpdatedAt) {
       nextAssumptions.lastUpdatedAt = String(saved.lastUpdatedAt);
     }
+
+    return nextAssumptions;
+  }
+
+  function getPolicyTypeReturnAssumptions(record) {
+    const saved = isPlainObject(record?.analysisSettings?.policyTypeReturnAssumptions)
+      ? record.analysisSettings.policyTypeReturnAssumptions
+      : {};
+    const savedTermLife = isPlainObject(saved.termLife) ? saved.termLife : {};
+    const savedWholeLife = isPlainObject(saved.wholeLife) ? saved.wholeLife : {};
+    const savedUniversalLife = isPlainObject(saved.universalLife) ? saved.universalLife : {};
+    const savedIndexedUniversalLife = isPlainObject(saved.indexedUniversalLife) ? saved.indexedUniversalLife : {};
+    const savedVariableUniversalLife = isPlainObject(saved.variableUniversalLife) ? saved.variableUniversalLife : {};
+    const nextAssumptions = {
+      enabled: typeof saved.enabled === "boolean"
+        ? saved.enabled
+        : DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.enabled,
+      profile: normalizePolicyReturnProfile(
+        saved.profile || saved.policyReturnProfile,
+        DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.profile
+      ),
+      termLife: {
+        cashValueReturnPercent: normalizePolicyReturnPercent(
+          savedTermLife.cashValueReturnPercent ?? saved.termCashValueReturnPercent,
+          DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.termLife.cashValueReturnPercent
+        )
+      },
+      wholeLife: {
+        guaranteedGrowthPercent: normalizePolicyReturnPercent(
+          savedWholeLife.guaranteedGrowthPercent ?? saved.wholeLifeGuaranteedGrowthPercent,
+          DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.wholeLife.guaranteedGrowthPercent
+        ),
+        dividendCreditPercent: normalizePolicyReturnPercent(
+          savedWholeLife.dividendCreditPercent ?? saved.wholeLifeDividendCreditPercent,
+          DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.wholeLife.dividendCreditPercent
+        )
+      },
+      universalLife: {
+        currentCreditingPercent: normalizePolicyReturnPercent(
+          savedUniversalLife.currentCreditingPercent ?? saved.universalLifeCurrentCreditingPercent,
+          DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.universalLife.currentCreditingPercent
+        ),
+        guaranteedCreditingPercent: normalizePolicyReturnPercent(
+          savedUniversalLife.guaranteedCreditingPercent ?? saved.universalLifeGuaranteedCreditingPercent,
+          DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.universalLife.guaranteedCreditingPercent
+        )
+      },
+      indexedUniversalLife: {
+        assumedCreditingPercent: normalizePolicyReturnPercent(
+          savedIndexedUniversalLife.assumedCreditingPercent ?? saved.indexedUlAssumedCreditingPercent,
+          DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.indexedUniversalLife.assumedCreditingPercent
+        ),
+        capRatePercent: normalizePolicyReturnPercent(
+          savedIndexedUniversalLife.capRatePercent ?? saved.indexedUlCapRatePercent,
+          DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.indexedUniversalLife.capRatePercent
+        ),
+        participationRatePercent: normalizePolicyReturnPercent(
+          savedIndexedUniversalLife.participationRatePercent ?? saved.indexedUlParticipationRatePercent,
+          DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.indexedUniversalLife.participationRatePercent
+        ),
+        floorRatePercent: normalizePolicyReturnPercent(
+          savedIndexedUniversalLife.floorRatePercent ?? saved.indexedUlFloorRatePercent,
+          DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.indexedUniversalLife.floorRatePercent
+        )
+      },
+      variableUniversalLife: {
+        grossReturnPercent: normalizePolicyReturnPercent(
+          savedVariableUniversalLife.grossReturnPercent ?? saved.variableUlGrossReturnPercent,
+          DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.variableUniversalLife.grossReturnPercent
+        ),
+        netReturnPercent: normalizePolicyReturnPercent(
+          savedVariableUniversalLife.netReturnPercent ?? saved.variableUlNetReturnPercent,
+          DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.variableUniversalLife.netReturnPercent
+        )
+      },
+      source: String(saved.source || DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.source),
+      lastUpdatedAt: saved.lastUpdatedAt
+        ? String(saved.lastUpdatedAt)
+        : DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.lastUpdatedAt
+    };
 
     return nextAssumptions;
   }
@@ -1974,7 +2148,7 @@
       const currentValue = Number(item.currentValue);
       table.insertAdjacentHTML("beforeend", `
         <div class="analysis-setup-asset-row" role="row" aria-disabled="false" data-analysis-asset-treatment-row="${safeKey}" data-analysis-asset-id="${safeAssetId}">
-          <span class="analysis-setup-asset-label" role="cell">${safeLabel} - ${formatCurrencyValue(currentValue)}</span>
+          <span class="analysis-setup-asset-label" role="cell">${safeLabel}</span>
           <span role="cell">
             <label class="analysis-setup-asset-include" aria-label="Include ${safeLabel}">
               <span class="settings-switch analysis-setup-mini-switch">
@@ -2101,6 +2275,30 @@
       sliders[slider.getAttribute("data-analysis-growth-slider")] = slider;
     });
     return sliders;
+  }
+
+  function getCalculationSnapshotFieldMap() {
+    const fields = {};
+    Array.from(document.querySelectorAll("[data-analysis-calculation-snapshot]")).forEach(function (field) {
+      fields[field.getAttribute("data-analysis-calculation-snapshot")] = field;
+    });
+    return fields;
+  }
+
+  function getPolicyTypeReturnFieldMap() {
+    const fields = {
+      enabled: document.querySelector("[data-analysis-policy-return-enabled]"),
+      profile: document.querySelector("[data-analysis-policy-return-profile]"),
+      resetButton: document.querySelector("[data-analysis-policy-return-reset]"),
+      values: {},
+      currentAssumptions: null
+    };
+
+    Array.from(document.querySelectorAll("[data-analysis-policy-return-field]")).forEach(function (field) {
+      fields.values[field.getAttribute("data-analysis-policy-return-field")] = field;
+    });
+
+    return fields;
   }
 
   function getAssetTreatmentFieldMap() {
@@ -2346,6 +2544,15 @@
     );
   }
 
+  function hasPolicyTypeReturnFields(fields) {
+    return Boolean(
+      fields.enabled
+      || fields.profile
+      || fields.resetButton
+      || Object.keys(fields.values || {}).length
+    );
+  }
+
   function hasSurvivorSupportFields(fields) {
     return Boolean(
       (fields.defaultProfileButtons || []).length
@@ -2393,6 +2600,57 @@
 
     element.textContent = message || "";
     element.dataset.tone = tone || "neutral";
+  }
+
+  function normalizeAnalysisSetupView(value) {
+    const normalizedValue = String(value || "").trim().toLowerCase();
+    return ANALYSIS_SETUP_VIEW_KEYS.includes(normalizedValue)
+      ? normalizedValue
+      : ANALYSIS_SETUP_DEFAULT_VIEW;
+  }
+
+  function getAnalysisSetupViewFromHash() {
+    const hashValue = String(window.location.hash || "").replace(/^#/, "").trim().toLowerCase();
+    return normalizeAnalysisSetupView(ANALYSIS_SETUP_VIEW_HASH_LOOKUP[hashValue] || hashValue);
+  }
+
+  function updateAnalysisSetupViewHash(viewName) {
+    const nextHash = ANALYSIS_SETUP_VIEW_HASHES[normalizeAnalysisSetupView(viewName)];
+    if (!nextHash || !window.history?.replaceState) {
+      return;
+    }
+
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${window.location.search}#${nextHash}`
+    );
+  }
+
+  function setAnalysisSetupView(viewName, viewTabs, viewPanels, viewGrid, options) {
+    const selectedView = normalizeAnalysisSetupView(viewName);
+
+    if (viewGrid) {
+      viewGrid.dataset.analysisSetupCurrentView = selectedView;
+    }
+
+    (viewTabs || []).forEach(function (tab) {
+      const tabView = normalizeAnalysisSetupView(tab.getAttribute("data-analysis-setup-view-tab"));
+      const isSelected = tabView === selectedView;
+      tab.setAttribute("aria-pressed", isSelected ? "true" : "false");
+      tab.dataset.active = isSelected ? "true" : "false";
+    });
+
+    (viewPanels || []).forEach(function (panel) {
+      const panelView = normalizeAnalysisSetupView(panel.getAttribute("data-analysis-setup-view-panel"));
+      const isSelected = panelView === selectedView;
+      panel.hidden = !isSelected;
+      panel.dataset.active = isSelected ? "true" : "false";
+    });
+
+    if (options?.updateHash) {
+      updateAnalysisSetupViewHash(selectedView);
+    }
   }
 
   function setAssetDefaultProfile(fields, profile) {
@@ -2623,6 +2881,17 @@
 
     if (field.tagName === "SELECT") {
       field.value = value === null || value === undefined ? "" : String(value);
+      return;
+    }
+
+    field.value = value === null || value === undefined
+      ? ""
+      : formatHaircutInputValue(value);
+  }
+
+  function setPolicyTypeReturnValue(fields, fieldPath, value) {
+    const field = fields.values?.[fieldPath];
+    if (!field) {
       return;
     }
 
@@ -3236,6 +3505,99 @@
         sliders[fieldName].value = formattedValue;
       }
     });
+  }
+
+  function populatePolicyTypeReturnFields(fields, assumptions) {
+    fields.currentAssumptions = assumptions;
+    if (fields.enabled) {
+      fields.enabled.checked = Boolean(assumptions.enabled);
+    }
+    if (fields.profile) {
+      fields.profile.value = normalizePolicyReturnProfile(
+        assumptions.profile,
+        DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.profile
+      );
+    }
+
+    setPolicyTypeReturnValue(fields, "termLife.cashValueReturnPercent", assumptions.termLife.cashValueReturnPercent);
+    setPolicyTypeReturnValue(fields, "wholeLife.guaranteedGrowthPercent", assumptions.wholeLife.guaranteedGrowthPercent);
+    setPolicyTypeReturnValue(fields, "wholeLife.dividendCreditPercent", assumptions.wholeLife.dividendCreditPercent);
+    setPolicyTypeReturnValue(fields, "universalLife.currentCreditingPercent", assumptions.universalLife.currentCreditingPercent);
+    setPolicyTypeReturnValue(fields, "universalLife.guaranteedCreditingPercent", assumptions.universalLife.guaranteedCreditingPercent);
+    setPolicyTypeReturnValue(fields, "indexedUniversalLife.assumedCreditingPercent", assumptions.indexedUniversalLife.assumedCreditingPercent);
+    setPolicyTypeReturnValue(fields, "indexedUniversalLife.capRatePercent", assumptions.indexedUniversalLife.capRatePercent);
+    setPolicyTypeReturnValue(fields, "indexedUniversalLife.participationRatePercent", assumptions.indexedUniversalLife.participationRatePercent);
+    setPolicyTypeReturnValue(fields, "indexedUniversalLife.floorRatePercent", assumptions.indexedUniversalLife.floorRatePercent);
+    setPolicyTypeReturnValue(fields, "variableUniversalLife.grossReturnPercent", assumptions.variableUniversalLife.grossReturnPercent);
+    setPolicyTypeReturnValue(fields, "variableUniversalLife.netReturnPercent", assumptions.variableUniversalLife.netReturnPercent);
+  }
+
+  function setCalculationSnapshotText(fields, fieldName, value) {
+    if (fields?.[fieldName]) {
+      fields[fieldName].textContent = value;
+    }
+  }
+
+  function formatCalculationSnapshotYears(field) {
+    const rawValue = String(field?.value || "").trim();
+    const number = Number(rawValue);
+    if (!rawValue) {
+      return "Not set";
+    }
+    if (!Number.isFinite(number)) {
+      return "Review input";
+    }
+
+    return `${formatHaircutInputValue(number)} years`;
+  }
+
+  function formatCalculationSnapshotPercent(fields, fieldName) {
+    const rawValue = String(fields?.[fieldName]?.value || "").trim();
+    const number = Number(rawValue);
+    if (!rawValue) {
+      return "not set";
+    }
+    if (!Number.isFinite(number)) {
+      return "review";
+    }
+
+    return `${formatHaircutInputValue(number)}%`;
+  }
+
+  function syncCalculationSnapshotFields(snapshotFields, inflationFields, methodFields, growthFields) {
+    if (!snapshotFields || !Object.keys(snapshotFields).length) {
+      return;
+    }
+
+    setCalculationSnapshotText(snapshotFields, "dimeIncomeYears", formatCalculationSnapshotYears(methodFields.dimeIncomeYears));
+    setCalculationSnapshotText(snapshotFields, "needsSupportYears", formatCalculationSnapshotYears(methodFields.needsSupportYears));
+    setCalculationSnapshotText(snapshotFields, "hlvProjectionYears", formatCalculationSnapshotYears(methodFields.hlvProjectionYears));
+
+    const inflationStatus = inflationFields.enabled?.checked ? "On" : "Off";
+    setCalculationSnapshotText(snapshotFields, "inflationSummary", [
+      `${inflationStatus}`,
+      `General ${formatCalculationSnapshotPercent(inflationFields, "generalInflationRatePercent")}`,
+      `Household ${formatCalculationSnapshotPercent(inflationFields, "householdExpenseInflationRatePercent")}`,
+      `Education ${formatCalculationSnapshotPercent(inflationFields, "educationInflationRatePercent")}`,
+      `Healthcare ${formatCalculationSnapshotPercent(inflationFields, "healthcareInflationRatePercent")}`,
+      `Final ${formatCalculationSnapshotPercent(inflationFields, "finalExpenseInflationRatePercent")}`
+    ].join(" - "));
+
+    const growthStatus = growthFields.enabled?.checked ? "On" : "Off";
+    setCalculationSnapshotText(snapshotFields, "growthSummary", [
+      `${growthStatus}`,
+      `Primary ${formatCalculationSnapshotPercent(growthFields, "primaryIncomeGrowthRatePercent")}`,
+      `Survivor ${formatCalculationSnapshotPercent(growthFields, "partnerIncomeGrowthRatePercent")}`,
+      `Taxable ${formatCalculationSnapshotPercent(growthFields, "taxableInvestmentReturnRatePercent")}`,
+      `Retirement ${formatCalculationSnapshotPercent(growthFields, "retirementAssetReturnRatePercent")}`
+    ].join(" - "));
+
+    const selectedOffsetOption = methodFields.assetOffsetSource?.selectedOptions?.[0];
+    setCalculationSnapshotText(
+      snapshotFields,
+      "assetOffsetSource",
+      String(selectedOffsetOption?.textContent || "Not set").trim()
+    );
   }
 
   function getLinkedProtectionModelingData(record) {
@@ -4201,6 +4563,21 @@
     });
   }
 
+  function setPolicyTypeReturnFieldsDisabled(fields, disabled) {
+    if (fields.enabled) {
+      fields.enabled.disabled = Boolean(disabled);
+    }
+    if (fields.profile) {
+      fields.profile.disabled = Boolean(disabled);
+    }
+    if (fields.resetButton) {
+      fields.resetButton.disabled = Boolean(disabled);
+    }
+    Object.keys(fields.values || {}).forEach(function (fieldPath) {
+      fields.values[fieldPath].disabled = Boolean(disabled);
+    });
+  }
+
   function setAssetTreatmentFieldsDisabled(fields, disabled) {
     if (fields.enabled) {
       fields.enabled.disabled = Boolean(disabled);
@@ -4793,6 +5170,90 @@
         ...nextAssumptions,
         lastUpdatedAt: new Date().toISOString(),
         source: "analysis-setup"
+      }
+    };
+  }
+
+  function readOptionalPolicyReturnPercent(fields, fieldPath, label) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return {
+        value: POLICY_TYPE_RETURN_REQUIRED_ZERO_FIELDS.includes(fieldPath) ? 0 : null
+      };
+    }
+
+    const number = Number(rawValue);
+    if (!Number.isFinite(number)) {
+      return {
+        error: `${label} must be a numeric percentage.`
+      };
+    }
+
+    if (number < MIN_RECOMMENDATION_PERCENT || number > MAX_RECOMMENDATION_PERCENT) {
+      return {
+        error: `${label} must be between ${MIN_RECOMMENDATION_PERCENT}% and ${MAX_RECOMMENDATION_PERCENT}%.`
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
+  function readValidatedPolicyTypeReturnAssumptions(fields) {
+    const profile = normalizePolicyReturnProfile(
+      fields.profile?.value,
+      DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS.profile
+    );
+    if (!POLICY_RETURN_PROFILE_KEYS.includes(profile)) {
+      return {
+        error: "Policy Type Return Assumptions profile must be Conservative, Balanced, Aggressive, or Custom."
+      };
+    }
+
+    const values = {};
+    const fieldPaths = Object.keys(POLICY_TYPE_RETURN_FIELD_LABELS);
+    for (let index = 0; index < fieldPaths.length; index += 1) {
+      const fieldPath = fieldPaths[index];
+      const fieldResult = readOptionalPolicyReturnPercent(
+        fields,
+        fieldPath,
+        POLICY_TYPE_RETURN_FIELD_LABELS[fieldPath]
+      );
+      if (fieldResult.error) {
+        return fieldResult;
+      }
+      values[fieldPath] = fieldResult.value;
+    }
+
+    return {
+      value: {
+        enabled: Boolean(fields.enabled?.checked),
+        profile,
+        termLife: {
+          cashValueReturnPercent: values["termLife.cashValueReturnPercent"]
+        },
+        wholeLife: {
+          guaranteedGrowthPercent: values["wholeLife.guaranteedGrowthPercent"],
+          dividendCreditPercent: values["wholeLife.dividendCreditPercent"]
+        },
+        universalLife: {
+          currentCreditingPercent: values["universalLife.currentCreditingPercent"],
+          guaranteedCreditingPercent: values["universalLife.guaranteedCreditingPercent"]
+        },
+        indexedUniversalLife: {
+          assumedCreditingPercent: values["indexedUniversalLife.assumedCreditingPercent"],
+          capRatePercent: values["indexedUniversalLife.capRatePercent"],
+          participationRatePercent: values["indexedUniversalLife.participationRatePercent"],
+          floorRatePercent: values["indexedUniversalLife.floorRatePercent"]
+        },
+        variableUniversalLife: {
+          grossReturnPercent: values["variableUniversalLife.grossReturnPercent"],
+          netReturnPercent: values["variableUniversalLife.netReturnPercent"]
+        },
+        source: "analysis-setup",
+        lastUpdatedAt: new Date().toISOString()
       }
     };
   }
@@ -5836,8 +6297,9 @@
     };
   }
 
-  function saveAnalysisSetupSettings(fields, sliders, methodFields, growthFields, growthSliders, assetTreatmentFields, existingCoverageFields, debtTreatmentFields, survivorSupportFields, educationFields, recommendationGuardrailFields, linkedRecord, validationMessage, statusMessage) {
+  function saveAnalysisSetupSettings(fields, sliders, methodFields, growthFields, growthSliders, policyReturnFields, assetTreatmentFields, existingCoverageFields, debtTreatmentFields, survivorSupportFields, educationFields, recommendationGuardrailFields, linkedRecord, validationMessage, statusMessage) {
     const clientRecords = LensApp.clientRecords || {};
+    const shouldSavePolicyReturns = hasPolicyTypeReturnFields(policyReturnFields);
     const shouldSaveAssetTreatment = hasAssetTreatmentFields(assetTreatmentFields);
     const shouldSaveExistingCoverage = hasExistingCoverageFields(existingCoverageFields);
     const shouldSaveDebtTreatment = hasDebtTreatmentFields(debtTreatmentFields);
@@ -5863,6 +6325,23 @@
     GROWTH_RATE_FIELDS.forEach(function (fieldName) {
       syncGrowthSliderFromNumber(growthFields, growthSliders, fieldName, true);
     });
+
+    if (shouldSavePolicyReturns) {
+      Object.keys(policyReturnFields.values || {}).forEach(function (fieldPath) {
+        const field = policyReturnFields.values[fieldPath];
+        const rawValue = String(field?.value || "").trim();
+        const number = Number(rawValue);
+        if (
+          field
+          && rawValue
+          && Number.isFinite(number)
+          && number >= MIN_RECOMMENDATION_PERCENT
+          && number <= MAX_RECOMMENDATION_PERCENT
+        ) {
+          field.value = formatHaircutInputValue(number);
+        }
+      });
+    }
 
     if (shouldSaveAssetTreatment) {
       getVisibleAssetTreatmentItemKeys(assetTreatmentFields).forEach(function (itemKey) {
@@ -6052,6 +6531,16 @@
       return null;
     }
 
+    const validatedPolicyReturns = shouldSavePolicyReturns
+      ? readValidatedPolicyTypeReturnAssumptions(policyReturnFields)
+      : null;
+
+    if (validatedPolicyReturns?.error) {
+      setMessage(validationMessage, validatedPolicyReturns.error, "error");
+      setStatus(statusMessage, "Analysis Setup settings were not saved.", "error");
+      return null;
+    }
+
     const validatedAssetTreatment = shouldSaveAssetTreatment
       ? readValidatedAssetTreatmentAssumptions(assetTreatmentFields)
       : null;
@@ -6131,6 +6620,7 @@
           inflationAssumptions: validatedInflation.value,
           methodDefaults: validatedMethodDefaults.value,
           growthAndReturnAssumptions: validatedGrowth.value,
+          ...(validatedPolicyReturns ? { policyTypeReturnAssumptions: validatedPolicyReturns.value } : {}),
           ...(validatedAssetTreatment ? { assetTreatmentAssumptions: validatedAssetTreatment.value } : {}),
           ...(validatedExistingCoverage ? { existingCoverageAssumptions: validatedExistingCoverage.value } : {}),
           ...(validatedDebtTreatment ? { debtTreatmentAssumptions: validatedDebtTreatment.value } : {}),
@@ -6152,6 +6642,9 @@
     populateFields(fields, getInflationAssumptions(updatedRecord), sliders);
     populateMethodFields(methodFields, getMethodDefaults(updatedRecord));
     populateGrowthFields(growthFields, getGrowthAndReturnAssumptions(updatedRecord), growthSliders);
+    if (shouldSavePolicyReturns) {
+      populatePolicyTypeReturnFields(policyReturnFields, getPolicyTypeReturnAssumptions(updatedRecord));
+    }
     if (shouldSaveAssetTreatment) {
       populateAssetTreatmentFields(assetTreatmentFields, getAssetTreatmentAssumptions(updatedRecord), updatedRecord);
     }
@@ -6190,6 +6683,8 @@
     const methodFields = getMethodFieldMap();
     const growthFields = getGrowthFieldMap();
     const growthSliders = getGrowthSliderMap();
+    const calculationSnapshotFields = getCalculationSnapshotFieldMap();
+    const policyReturnFields = getPolicyTypeReturnFieldMap();
     const assetTreatmentFields = getAssetTreatmentFieldMap();
     const existingCoverageFields = getExistingCoverageFieldMap();
     const debtTreatmentFields = getDebtTreatmentFieldMap();
@@ -6204,9 +6699,35 @@
     const setupShell = document.querySelector(".analysis-setup-shell");
     const headerToggle = document.querySelector("[data-analysis-setup-header-toggle]");
     const headerToggleLabel = document.querySelector("[data-analysis-setup-header-toggle-label]");
+    const viewTabs = Array.from(document.querySelectorAll("[data-analysis-setup-view-tab]"));
+    const viewPanels = Array.from(document.querySelectorAll("[data-analysis-setup-view-panel]"));
+    const viewGrid = document.querySelector("[data-analysis-setup-view-grid]");
+    const syncAnalysisSetupViewFromHash = function () {
+      setAnalysisSetupView(getAnalysisSetupViewFromHash(), viewTabs, viewPanels, viewGrid);
+    };
+
+    syncAnalysisSetupViewFromHash();
+    viewTabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        setAnalysisSetupView(
+          tab.getAttribute("data-analysis-setup-view-tab"),
+          viewTabs,
+          viewPanels,
+          viewGrid,
+          { updateHash: true }
+        );
+      });
+    });
+    window.addEventListener("hashchange", syncAnalysisSetupViewFromHash);
+
     populateFields(fields, getInflationAssumptions(linkedRecord), sliders);
     populateMethodFields(methodFields, getMethodDefaults(linkedRecord));
     populateGrowthFields(growthFields, getGrowthAndReturnAssumptions(linkedRecord), growthSliders);
+    populatePolicyTypeReturnFields(policyReturnFields, getPolicyTypeReturnAssumptions(linkedRecord));
+    const syncCalculationSnapshot = function () {
+      syncCalculationSnapshotFields(calculationSnapshotFields, fields, methodFields, growthFields);
+    };
+    syncCalculationSnapshot();
     populateAssetTreatmentFields(assetTreatmentFields, getAssetTreatmentAssumptions(linkedRecord), linkedRecord);
     populateExistingCoverageFields(existingCoverageFields, getExistingCoverageAssumptions(linkedRecord), linkedRecord);
     populateDebtTreatmentFields(debtTreatmentFields, getDebtTreatmentAssumptions(linkedRecord), linkedRecord);
@@ -6229,6 +6750,7 @@
       setFieldsDisabled(fields, sliders, true);
       setMethodFieldsDisabled(methodFields, true);
       setGrowthFieldsDisabled(growthFields, growthSliders, true);
+      setPolicyTypeReturnFieldsDisabled(policyReturnFields, true);
       setAssetTreatmentFieldsDisabled(assetTreatmentFields, true);
       setExistingCoverageFieldsDisabled(existingCoverageFields, true);
       setDebtTreatmentFieldsDisabled(debtTreatmentFields, true);
@@ -6255,6 +6777,7 @@
     setFieldsDisabled(fields, sliders, false);
     setMethodFieldsDisabled(methodFields, false);
     setGrowthFieldsDisabled(growthFields, growthSliders, false);
+    setPolicyTypeReturnFieldsDisabled(policyReturnFields, false);
     setAssetTreatmentFieldsDisabled(assetTreatmentFields, false);
     setExistingCoverageFieldsDisabled(existingCoverageFields, false);
     setDebtTreatmentFieldsDisabled(debtTreatmentFields, false);
@@ -6278,21 +6801,27 @@
       setStatus(statusMessage, "Unsaved Analysis Setup changes.", "neutral");
     }
 
-    fields.enabled?.addEventListener("change", markUnsaved);
+    fields.enabled?.addEventListener("change", function () {
+      syncCalculationSnapshot();
+      markUnsaved();
+    });
 
     RATE_FIELDS.forEach(function (fieldName) {
       fields[fieldName]?.addEventListener("input", function () {
         syncSliderFromNumber(fields, sliders, fieldName, false);
+        syncCalculationSnapshot();
         markUnsaved();
       });
 
       fields[fieldName]?.addEventListener("change", function () {
         syncSliderFromNumber(fields, sliders, fieldName, true);
+        syncCalculationSnapshot();
         markUnsaved();
       });
 
       sliders[fieldName]?.addEventListener("input", function () {
         syncNumberFromSlider(fields, sliders, fieldName);
+        syncCalculationSnapshot();
         markUnsaved();
       });
     });
@@ -6304,6 +6833,7 @@
         if (field && field.value !== sanitizedValue) {
           field.value = sanitizedValue;
         }
+        syncCalculationSnapshot();
         markUnsaved();
       });
 
@@ -6318,33 +6848,82 @@
         if (field && rawValue && Number.isFinite(number) && number >= MIN_METHOD_YEARS && number <= MAX_METHOD_YEARS) {
           field.value = formatHaircutInputValue(number);
         }
+        syncCalculationSnapshot();
         markUnsaved();
       });
     });
 
-    methodFields.assetOffsetSource?.addEventListener("change", markUnsaved);
-
-    methodFields.resetButton?.addEventListener("click", function () {
-      populateDefaultMethodFields(methodFields, linkedRecord);
+    methodFields.assetOffsetSource?.addEventListener("change", function () {
+      syncCalculationSnapshot();
       markUnsaved();
     });
 
-    growthFields.enabled?.addEventListener("change", markUnsaved);
+    methodFields.resetButton?.addEventListener("click", function () {
+      populateDefaultMethodFields(methodFields, linkedRecord);
+      syncCalculationSnapshot();
+      markUnsaved();
+    });
+
+    growthFields.enabled?.addEventListener("change", function () {
+      syncCalculationSnapshot();
+      markUnsaved();
+    });
 
     GROWTH_RATE_FIELDS.forEach(function (fieldName) {
       growthFields[fieldName]?.addEventListener("input", function () {
         syncGrowthSliderFromNumber(growthFields, growthSliders, fieldName, false);
+        syncCalculationSnapshot();
         markUnsaved();
       });
 
       growthFields[fieldName]?.addEventListener("change", function () {
         syncGrowthSliderFromNumber(growthFields, growthSliders, fieldName, true);
+        syncCalculationSnapshot();
         markUnsaved();
       });
 
       growthSliders[fieldName]?.addEventListener("input", function () {
         syncGrowthNumberFromSlider(growthFields, growthSliders, fieldName);
+        syncCalculationSnapshot();
         markUnsaved();
+      });
+    });
+
+    policyReturnFields.enabled?.addEventListener("change", markUnsaved);
+    policyReturnFields.profile?.addEventListener("change", markUnsaved);
+    policyReturnFields.resetButton?.addEventListener("click", function () {
+      populatePolicyTypeReturnFields(policyReturnFields, DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS);
+      markUnsaved();
+    });
+    Object.keys(policyReturnFields.values || {}).forEach(function (fieldPath) {
+      const field = policyReturnFields.values[fieldPath];
+      if (!field) {
+        return;
+      }
+
+      const syncPolicyReturnChange = function () {
+        if (policyReturnFields.profile) {
+          policyReturnFields.profile.value = "custom";
+        }
+        markUnsaved();
+      };
+
+      field.addEventListener("input", function () {
+        syncPolicyReturnChange();
+      });
+
+      field.addEventListener("change", function () {
+        const rawValue = String(field.value || "").trim();
+        const number = Number(rawValue);
+        if (
+          rawValue
+          && Number.isFinite(number)
+          && number >= MIN_RECOMMENDATION_PERCENT
+          && number <= MAX_RECOMMENDATION_PERCENT
+        ) {
+          field.value = formatHaircutInputValue(number);
+        }
+        syncPolicyReturnChange();
       });
     });
 
@@ -6778,6 +7357,7 @@
         methodFields,
         growthFields,
         growthSliders,
+        policyReturnFields,
         assetTreatmentFields,
         existingCoverageFields,
         debtTreatmentFields,
@@ -6788,6 +7368,7 @@
         validationMessage,
         statusMessage
       ) || linkedRecord;
+      syncCalculationSnapshot();
     });
 
     applyButton?.addEventListener("click", function () {
@@ -6797,6 +7378,7 @@
         methodFields,
         growthFields,
         growthSliders,
+        policyReturnFields,
         assetTreatmentFields,
         existingCoverageFields,
         debtTreatmentFields,
@@ -6821,6 +7403,7 @@
     DEFAULT_INFLATION_ASSUMPTIONS,
     DEFAULT_METHOD_DEFAULTS,
     DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS,
+    DEFAULT_POLICY_TYPE_RETURN_ASSUMPTIONS,
     DEFAULT_ASSET_TREATMENT_ASSUMPTIONS,
     DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS,
     DEFAULT_DEBT_TREATMENT_ASSUMPTIONS,
@@ -6830,6 +7413,7 @@
     getInflationAssumptions,
     getMethodDefaults,
     getGrowthAndReturnAssumptions,
+    getPolicyTypeReturnAssumptions,
     getAssetTreatmentAssumptions,
     getExistingCoverageAssumptions,
     getDebtTreatmentAssumptions,

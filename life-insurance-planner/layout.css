@@ -1321,6 +1321,12 @@ body.lens-workflow-page {
   min-width: 0;
 }
 
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"],
+.analysis-setup-panel-grid[data-analysis-setup-current-view="offset"],
+.analysis-setup-panel-grid[data-analysis-setup-current-view="planning"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .analysis-setup-left-stack {
   display: grid;
   grid-column: 1;
@@ -1328,6 +1334,32 @@ body.lens-workflow-page {
   align-self: start;
   gap: clamp(0.55rem, 0.9vw, 0.78rem);
   min-width: 0;
+}
+
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-left-stack {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: start;
+}
+
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--method-defaults {
+  order: 1;
+}
+
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--inflation {
+  order: 2;
+}
+
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--policy-returns {
+  order: 3;
+}
+
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--growth {
+  order: 4;
+}
+
+.analysis-setup-control-group--calculation-snapshot {
+  order: 5;
+  grid-column: 1 / -1;
 }
 
 body.lens-workflow-page.workspace-side-nav-collapsed .analysis-setup-panel-grid,
@@ -1346,6 +1378,16 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
 .analysis-setup-control-group--assets {
   grid-column: 2 / span 2;
   grid-row: 1;
+}
+
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-left-stack,
+.analysis-setup-panel-grid[data-analysis-setup-current-view="offset"] .analysis-setup-control-group--assets,
+.analysis-setup-panel-grid[data-analysis-setup-current-view="offset"] .analysis-setup-treatment-row,
+.analysis-setup-panel-grid[data-analysis-setup-current-view="planning"] .analysis-setup-control-group--survivor-support,
+.analysis-setup-panel-grid[data-analysis-setup-current-view="planning"] .analysis-setup-control-group--education,
+.analysis-setup-panel-grid[data-analysis-setup-current-view="planning"] .analysis-setup-control-group--recommendation {
+  grid-column: 1 / -1;
+  grid-row: auto;
 }
 
 .analysis-setup-control-group--survivor-support,
@@ -1382,6 +1424,10 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
   .analysis-setup-control-group--assets {
     grid-row: auto;
   }
+
+  .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-left-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 860px) {
@@ -1398,6 +1444,10 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
 
   .analysis-setup-control-group--assets {
     grid-row: auto;
+  }
+
+  .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-left-stack {
+    grid-template-columns: 1fr;
   }
 
   .analysis-setup-treatment-row {
