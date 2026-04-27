@@ -814,7 +814,9 @@
         "createLensModelFromBlockOutputs is unavailable; normalized Lens model could not be built."
       );
     } else {
-      lensModel = createLensModelFromBlockOutputs(blockOutputs);
+      lensModel = createLensModelFromBlockOutputs(blockOutputs, {
+        sourceData: sourceResult.sourceData
+      });
     }
 
     return {

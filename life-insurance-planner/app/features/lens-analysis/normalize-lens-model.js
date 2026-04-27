@@ -629,6 +629,164 @@
     return null;
   }
 
+  function getAssetTaxonomy() {
+    const taxonomy = lensAnalysis.assetTaxonomy && typeof lensAnalysis.assetTaxonomy === "object"
+      ? lensAnalysis.assetTaxonomy
+      : {};
+    const categories = Array.isArray(taxonomy.DEFAULT_ASSET_CATEGORIES)
+      ? taxonomy.DEFAULT_ASSET_CATEGORIES
+      : [];
+
+    return {
+      categories,
+      legacyAliases: taxonomy.LEGACY_ASSET_SOURCE_ALIASES && typeof taxonomy.LEGACY_ASSET_SOURCE_ALIASES === "object"
+        ? taxonomy.LEGACY_ASSET_SOURCE_ALIASES
+        : {},
+      taxonomySource: categories.length ? "asset-taxonomy" : "unavailable"
+    };
+  }
+
+  function getAssetCategorySourceKeys(category) {
+    const sourceKeys = [];
+    const normalizedCategory = category && typeof category === "object" ? category : {};
+
+    if (normalizedCategory.defaultPmiSourceKey) {
+      sourceKeys.push(normalizedCategory.defaultPmiSourceKey);
+    }
+
+    if (Array.isArray(normalizedCategory.legacySourceKeys)) {
+      normalizedCategory.legacySourceKeys.forEach(function (sourceKey) {
+        if (sourceKey) {
+          sourceKeys.push(sourceKey);
+        }
+      });
+    }
+
+    return sourceKeys.filter(function (sourceKey, index) {
+      return sourceKeys.indexOf(sourceKey) === index;
+    });
+  }
+
+  function hasUsableAssetSourceValue(sourceData, sourceKey) {
+    if (!sourceData || typeof sourceData !== "object" || !sourceKey) {
+      return false;
+    }
+
+    if (!Object.prototype.hasOwnProperty.call(sourceData, sourceKey)) {
+      return false;
+    }
+
+    const rawValue = sourceData[sourceKey];
+    return rawValue != null && String(rawValue).trim() !== "";
+  }
+
+  function getFirstAssetSourceEntry(sourceData, sourceKeys) {
+    const keys = Array.isArray(sourceKeys) ? sourceKeys : [];
+
+    for (let index = 0; index < keys.length; index += 1) {
+      const sourceKey = keys[index];
+      if (!hasUsableAssetSourceValue(sourceData, sourceKey)) {
+        continue;
+      }
+
+      const currentValue = toOptionalNumber(sourceData[sourceKey]);
+      if (currentValue == null) {
+        continue;
+      }
+
+      return {
+        sourceKey,
+        currentValue
+      };
+    }
+
+    return null;
+  }
+
+  function createAssetFactFromCategory(category, sourceEntry, legacyAliases) {
+    const safeCategory = category && typeof category === "object" ? category : {};
+    const safeSourceEntry = sourceEntry && typeof sourceEntry === "object" ? sourceEntry : {};
+    const categoryKey = String(safeCategory.categoryKey || "").trim();
+    const sourceKey = String(safeSourceEntry.sourceKey || "").trim();
+    const legacyAlias = legacyAliases && sourceKey && legacyAliases[sourceKey]
+      ? legacyAliases[sourceKey]
+      : null;
+
+    return {
+      assetId: "pmi:" + categoryKey + ":" + sourceKey,
+      categoryKey,
+      label: String(safeCategory.label || categoryKey).trim(),
+      group: String(safeCategory.group || "custom").trim(),
+      currentValue: safeSourceEntry.currentValue,
+      source: "protectionModeling.data",
+      hasPmiSource: true,
+      sourceKey,
+      legacySourceKeys: Array.isArray(safeCategory.legacySourceKeys)
+        ? safeCategory.legacySourceKeys.slice()
+        : [],
+      notes: safeCategory.notes || null,
+      metadata: {
+        sourceType: "user-input",
+        confidence: "reported",
+        canonicalDestination: "assetFacts.assets",
+        defaultPmiSourceKey: safeCategory.defaultPmiSourceKey || null,
+        hasCurrentPmiSource: safeCategory.hasCurrentPmiSource === true,
+        description: safeCategory.description || null,
+        defaultTreatmentBias: safeCategory.defaultTreatmentBias || null,
+        legacyAliasNote: legacyAlias && legacyAlias.note ? legacyAlias.note : null
+      }
+    };
+  }
+
+  function createAssetFactsFromSourceData(sourceData) {
+    const safeSourceData = sourceData && typeof sourceData === "object" ? sourceData : {};
+    const taxonomy = getAssetTaxonomy();
+    const assets = [];
+    const omittedNoSourceCategoryKeys = [];
+
+    taxonomy.categories.forEach(function (category) {
+      const sourceKeys = getAssetCategorySourceKeys(category);
+      const sourceEntry = getFirstAssetSourceEntry(safeSourceData, sourceKeys);
+
+      if (sourceEntry) {
+        assets.push(createAssetFactFromCategory(category, sourceEntry, taxonomy.legacyAliases));
+        return;
+      }
+
+      if (category && category.categoryKey && category.hasCurrentPmiSource !== true) {
+        omittedNoSourceCategoryKeys.push(category.categoryKey);
+      }
+    });
+
+    return {
+      assets,
+      totalReportedAssetValue: sumOptionalBucketComponents(assets.map(function (asset) {
+        return asset.currentValue;
+      })),
+      metadata: {
+        source: "protectionModeling.data",
+        taxonomySource: taxonomy.taxonomySource,
+        omittedNoSourceCategoryKeys
+      }
+    };
+  }
+
+  function applyAssetFactsProjection(lensModel, options) {
+    const safeLensModel = lensModel && typeof lensModel === "object" ? lensModel : {};
+    const normalizedOptions = options && typeof options === "object" ? options : {};
+    const projection = createAssetFactsFromSourceData(normalizedOptions.sourceData);
+
+    if (!safeLensModel.assetFacts || typeof safeLensModel.assetFacts !== "object") {
+      safeLensModel.assetFacts = {};
+    }
+
+    safeLensModel.assetFacts.assets = projection.assets;
+    safeLensModel.assetFacts.totalReportedAssetValue = projection.totalReportedAssetValue;
+    safeLensModel.assetFacts.metadata = projection.metadata;
+
+    return projection.metadata;
+  }
+
   function normalizeBlockOutputValue(value, mapping) {
     const normalizedMapping = mapping && typeof mapping === "object" ? mapping : {};
 
@@ -800,7 +958,7 @@
     });
   }
 
-  function createLensModelFromBlockOutputs(blockOutputs) {
+  function createLensModelFromBlockOutputs(blockOutputs, options) {
     const lensModel = createEmptyLensModelInstance();
     const incomeBasisNormalizationMetadata = normalizeBucketFromBlockOutput(lensModel.incomeBasis, blockOutputs, {
       blockId: INCOME_NET_INCOME_BLOCK_ID,
@@ -863,6 +1021,7 @@
       }
     );
     applyOngoingSupportComposition(lensModel.ongoingSupport, ongoingSupportNormalizationMetadata);
+    const assetFactsNormalizationMetadata = applyAssetFactsProjection(lensModel, options);
 
     // Provenance stays outside the canonical bucket facts so future formulas
     // can read canonical buckets directly without mixing data and metadata.
@@ -874,6 +1033,7 @@
       finalExpenses: finalExpensesNormalizationMetadata,
       transitionNeeds: transitionNeedsNormalizationMetadata,
       existingCoverage: existingCoverageNormalizationMetadata,
+      assetFacts: assetFactsNormalizationMetadata,
       offsetAssets: offsetAssetsNormalizationMetadata,
       survivorScenario: survivorScenarioNormalizationMetadata,
       assumptions: {
@@ -908,5 +1068,7 @@
   lensAnalysis.EXISTING_COVERAGE_BLOCK_OUTPUT_NORMALIZATION_MAP = EXISTING_COVERAGE_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.OFFSET_ASSETS_BLOCK_OUTPUT_NORMALIZATION_MAP = OFFSET_ASSETS_BLOCK_OUTPUT_NORMALIZATION_MAP;
   lensAnalysis.SURVIVOR_SCENARIO_BLOCK_OUTPUT_NORMALIZATION_MAP = SURVIVOR_SCENARIO_BLOCK_OUTPUT_NORMALIZATION_MAP;
+  lensAnalysis.createAssetFactsFromSourceData = createAssetFactsFromSourceData;
+  lensAnalysis.applyAssetFactsProjection = applyAssetFactsProjection;
   lensAnalysis.createLensModelFromBlockOutputs = createLensModelFromBlockOutputs;
 })();

@@ -116,24 +116,28 @@
   });
 
   const ASSET_TREATMENT_ITEMS = Object.freeze([
-    { key: "cashSavings", label: "Cash Savings", sourceField: "cashSavings" },
-    { key: "emergencyFund", label: "Emergency Fund", sourceField: "emergencyFund" },
-    { key: "taxableBrokerage", label: "Taxable Brokerage / Stocks", sourceField: "brokerageAccounts", legacyKey: "brokerageAccounts" },
-    { key: "traditionalRetirementAssets", label: "Traditional Retirement Assets", sourceField: "retirementAssets", legacyKey: "retirementAssets" },
-    { key: "rothRetirementAssets", label: "Roth Retirement Assets", sourceField: "rothRetirementAssets" },
-    { key: "qualifiedAnnuities", label: "Qualified Annuities", sourceField: "qualifiedAnnuities" },
-    { key: "nonqualifiedAnnuities", label: "Nonqualified Annuities", sourceField: "nonqualifiedAnnuities" },
-    { key: "realEstateEquity", label: "Real Estate Equity", sourceField: "realEstateEquity" },
-    { key: "businessValue", label: "Business Value", sourceField: "businessValue" },
-    { key: "otherAssets", label: "Other Assets", sourceField: "otherAssets" }
+    { key: "cashAndCashEquivalents", label: "Cash & Cash Equivalents", sourceField: "cashSavings", legacyKeys: Object.freeze(["cashSavings"]) },
+    { key: "emergencyFund", label: "Emergency Fund", sourceField: "emergencyFund", legacyKeys: Object.freeze(["emergencyFund"]) },
+    { key: "taxableBrokerageInvestments", label: "Taxable Brokerage / Investments", sourceField: "brokerageAccounts", legacyKeys: Object.freeze(["taxableBrokerage", "brokerageAccounts"]) },
+    { key: "traditionalRetirementAssets", label: "Traditional Retirement Assets", sourceField: "retirementAssets", legacyKeys: Object.freeze(["retirementAssets"]) },
+    { key: "rothTaxAdvantagedRetirementAssets", label: "Roth / Tax-Advantaged Retirement Assets", sourceField: "rothTaxAdvantagedRetirementAssets", legacyKeys: Object.freeze(["rothRetirementAssets"]) },
+    { key: "qualifiedAnnuities", label: "Qualified Annuities", sourceField: "qualifiedAnnuities", legacyKeys: Object.freeze(["qualifiedAnnuities"]) },
+    { key: "nonqualifiedAnnuities", label: "Nonqualified Annuities", sourceField: "nonqualifiedAnnuities", legacyKeys: Object.freeze(["nonqualifiedAnnuities"]) },
+    { key: "primaryResidenceEquity", label: "Primary Residence Equity", sourceField: "realEstateEquity", legacyKeys: Object.freeze(["realEstateEquity"]) },
+    { key: "otherRealEstateEquity", label: "Other Real Estate Equity", sourceField: "otherRealEstateEquity", legacyKeys: Object.freeze([]) },
+    { key: "businessPrivateCompanyValue", label: "Business / Private Company Value", sourceField: "businessValue", legacyKeys: Object.freeze(["businessValue"]) },
+    { key: "educationSpecificSavings", label: "Education-Specific Savings", sourceField: "educationSpecificSavings", legacyKeys: Object.freeze([]) },
+    { key: "trustRestrictedAssets", label: "Trust / Restricted Assets", sourceField: "trustRestrictedAssets", legacyKeys: Object.freeze([]) },
+    { key: "stockCompensationDeferredCompensation", label: "Stock Compensation / Deferred Compensation", sourceField: "stockCompensationDeferredCompensation", legacyKeys: Object.freeze([]) },
+    { key: "digitalAssetsCrypto", label: "Digital Assets / Crypto", sourceField: "digitalAssetsCrypto", legacyKeys: Object.freeze([]) }
   ]);
   const PMI_BACKED_ASSET_TREATMENT_KEYS = Object.freeze([
-    "cashSavings",
+    "cashAndCashEquivalents",
     "emergencyFund",
-    "taxableBrokerage",
+    "taxableBrokerageInvestments",
     "traditionalRetirementAssets",
-    "realEstateEquity",
-    "businessValue"
+    "primaryResidenceEquity",
+    "businessPrivateCompanyValue"
   ]);
   const CUSTOM_ASSET_TREATMENT_USES_PMI_INPUT = false;
 
@@ -243,7 +247,7 @@
     enabled: false,
     defaultProfile: "balanced",
     assets: Object.freeze({
-      cashSavings: Object.freeze({
+      cashAndCashEquivalents: Object.freeze({
         include: true,
         treatmentPreset: "cash-like",
         taxTreatment: "no-tax-drag",
@@ -257,7 +261,7 @@
         taxDragPercent: 0,
         liquidityHaircutPercent: 0
       }),
-      taxableBrokerage: Object.freeze({
+      taxableBrokerageInvestments: Object.freeze({
         include: true,
         treatmentPreset: "step-up-investment",
         taxTreatment: "step-up-eligible",
@@ -271,7 +275,7 @@
         taxDragPercent: 25,
         liquidityHaircutPercent: 5
       }),
-      rothRetirementAssets: Object.freeze({
+      rothTaxAdvantagedRetirementAssets: Object.freeze({
         include: true,
         treatmentPreset: "roth-retirement",
         taxTreatment: "tax-advantaged",
@@ -292,26 +296,54 @@
         taxDragPercent: 15,
         liquidityHaircutPercent: 10
       }),
-      realEstateEquity: Object.freeze({
+      primaryResidenceEquity: Object.freeze({
         include: false,
         treatmentPreset: "real-estate-equity",
         taxTreatment: "step-up-eligible",
         taxDragPercent: 0,
         liquidityHaircutPercent: 25
       }),
-      businessValue: Object.freeze({
+      otherRealEstateEquity: Object.freeze({
+        include: false,
+        treatmentPreset: "real-estate-equity",
+        taxTreatment: "step-up-eligible",
+        taxDragPercent: 0,
+        liquidityHaircutPercent: 35
+      }),
+      businessPrivateCompanyValue: Object.freeze({
         include: false,
         treatmentPreset: "business-illiquid",
         taxTreatment: "case-specific",
         taxDragPercent: 10,
         liquidityHaircutPercent: 50
       }),
-      otherAssets: Object.freeze({
+      educationSpecificSavings: Object.freeze({
         include: false,
         treatmentPreset: "custom",
         taxTreatment: "custom",
         taxDragPercent: 0,
         liquidityHaircutPercent: 25
+      }),
+      trustRestrictedAssets: Object.freeze({
+        include: false,
+        treatmentPreset: "custom",
+        taxTreatment: "custom",
+        taxDragPercent: 0,
+        liquidityHaircutPercent: 40
+      }),
+      stockCompensationDeferredCompensation: Object.freeze({
+        include: true,
+        treatmentPreset: "custom",
+        taxTreatment: "case-specific",
+        taxDragPercent: 15,
+        liquidityHaircutPercent: 25
+      }),
+      digitalAssetsCrypto: Object.freeze({
+        include: false,
+        treatmentPreset: "custom",
+        taxTreatment: "custom",
+        taxDragPercent: 0,
+        liquidityHaircutPercent: 50
       })
     }),
     customAssets: Object.freeze([
@@ -323,16 +355,20 @@
   const ASSET_TREATMENT_PROFILE_DEFAULTS = Object.freeze({
     conservative: Object.freeze({
       assets: Object.freeze({
-        cashSavings: Object.freeze({ include: true, treatmentPreset: "cash-like", taxTreatment: "no-tax-drag", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
+        cashAndCashEquivalents: Object.freeze({ include: true, treatmentPreset: "cash-like", taxTreatment: "no-tax-drag", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
         emergencyFund: Object.freeze({ include: true, treatmentPreset: "cash-like", taxTreatment: "no-tax-drag", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
-        taxableBrokerage: Object.freeze({ include: true, treatmentPreset: "step-up-investment", taxTreatment: "step-up-eligible", taxDragPercent: 5, liquidityHaircutPercent: 10 }),
+        taxableBrokerageInvestments: Object.freeze({ include: true, treatmentPreset: "step-up-investment", taxTreatment: "step-up-eligible", taxDragPercent: 5, liquidityHaircutPercent: 10 }),
         traditionalRetirementAssets: Object.freeze({ include: true, treatmentPreset: "taxable-retirement", taxTreatment: "ordinary-income-on-distribution", taxDragPercent: 30, liquidityHaircutPercent: 10 }),
-        rothRetirementAssets: Object.freeze({ include: true, treatmentPreset: "roth-retirement", taxTreatment: "tax-advantaged", taxDragPercent: 0, liquidityHaircutPercent: 10 }),
+        rothTaxAdvantagedRetirementAssets: Object.freeze({ include: true, treatmentPreset: "roth-retirement", taxTreatment: "tax-advantaged", taxDragPercent: 0, liquidityHaircutPercent: 10 }),
         qualifiedAnnuities: Object.freeze({ include: true, treatmentPreset: "qualified-annuity", taxTreatment: "ordinary-income-on-distribution", taxDragPercent: 30, liquidityHaircutPercent: 10 }),
         nonqualifiedAnnuities: Object.freeze({ include: true, treatmentPreset: "nonqualified-annuity", taxTreatment: "partially-taxable", taxDragPercent: 20, liquidityHaircutPercent: 15 }),
-        realEstateEquity: Object.freeze({ include: false, treatmentPreset: "real-estate-equity", taxTreatment: "step-up-eligible", taxDragPercent: 0, liquidityHaircutPercent: 35 }),
-        businessValue: Object.freeze({ include: false, treatmentPreset: "business-illiquid", taxTreatment: "case-specific", taxDragPercent: 15, liquidityHaircutPercent: 60 }),
-        otherAssets: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 35 })
+        primaryResidenceEquity: Object.freeze({ include: false, treatmentPreset: "real-estate-equity", taxTreatment: "step-up-eligible", taxDragPercent: 0, liquidityHaircutPercent: 35 }),
+        otherRealEstateEquity: Object.freeze({ include: false, treatmentPreset: "real-estate-equity", taxTreatment: "step-up-eligible", taxDragPercent: 0, liquidityHaircutPercent: 40 }),
+        businessPrivateCompanyValue: Object.freeze({ include: false, treatmentPreset: "business-illiquid", taxTreatment: "case-specific", taxDragPercent: 15, liquidityHaircutPercent: 60 }),
+        educationSpecificSavings: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 35 }),
+        trustRestrictedAssets: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 50 }),
+        stockCompensationDeferredCompensation: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "case-specific", taxDragPercent: 20, liquidityHaircutPercent: 35 }),
+        digitalAssetsCrypto: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 60 })
       }),
       customAsset: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 35 })
     }),
@@ -342,16 +378,20 @@
     }),
     aggressive: Object.freeze({
       assets: Object.freeze({
-        cashSavings: Object.freeze({ include: true, treatmentPreset: "cash-like", taxTreatment: "no-tax-drag", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
+        cashAndCashEquivalents: Object.freeze({ include: true, treatmentPreset: "cash-like", taxTreatment: "no-tax-drag", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
         emergencyFund: Object.freeze({ include: true, treatmentPreset: "cash-like", taxTreatment: "no-tax-drag", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
-        taxableBrokerage: Object.freeze({ include: true, treatmentPreset: "step-up-investment", taxTreatment: "step-up-eligible", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
+        taxableBrokerageInvestments: Object.freeze({ include: true, treatmentPreset: "step-up-investment", taxTreatment: "step-up-eligible", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
         traditionalRetirementAssets: Object.freeze({ include: true, treatmentPreset: "taxable-retirement", taxTreatment: "ordinary-income-on-distribution", taxDragPercent: 20, liquidityHaircutPercent: 0 }),
-        rothRetirementAssets: Object.freeze({ include: true, treatmentPreset: "roth-retirement", taxTreatment: "tax-advantaged", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
+        rothTaxAdvantagedRetirementAssets: Object.freeze({ include: true, treatmentPreset: "roth-retirement", taxTreatment: "tax-advantaged", taxDragPercent: 0, liquidityHaircutPercent: 0 }),
         qualifiedAnnuities: Object.freeze({ include: true, treatmentPreset: "qualified-annuity", taxTreatment: "ordinary-income-on-distribution", taxDragPercent: 20, liquidityHaircutPercent: 0 }),
         nonqualifiedAnnuities: Object.freeze({ include: true, treatmentPreset: "nonqualified-annuity", taxTreatment: "partially-taxable", taxDragPercent: 10, liquidityHaircutPercent: 5 }),
-        realEstateEquity: Object.freeze({ include: true, treatmentPreset: "real-estate-equity", taxTreatment: "step-up-eligible", taxDragPercent: 0, liquidityHaircutPercent: 15 }),
-        businessValue: Object.freeze({ include: true, treatmentPreset: "business-illiquid", taxTreatment: "case-specific", taxDragPercent: 10, liquidityHaircutPercent: 35 }),
-        otherAssets: Object.freeze({ include: true, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 15 })
+        primaryResidenceEquity: Object.freeze({ include: true, treatmentPreset: "real-estate-equity", taxTreatment: "step-up-eligible", taxDragPercent: 0, liquidityHaircutPercent: 15 }),
+        otherRealEstateEquity: Object.freeze({ include: true, treatmentPreset: "real-estate-equity", taxTreatment: "step-up-eligible", taxDragPercent: 0, liquidityHaircutPercent: 20 }),
+        businessPrivateCompanyValue: Object.freeze({ include: true, treatmentPreset: "business-illiquid", taxTreatment: "case-specific", taxDragPercent: 10, liquidityHaircutPercent: 35 }),
+        educationSpecificSavings: Object.freeze({ include: true, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 15 }),
+        trustRestrictedAssets: Object.freeze({ include: false, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 35 }),
+        stockCompensationDeferredCompensation: Object.freeze({ include: true, treatmentPreset: "custom", taxTreatment: "case-specific", taxDragPercent: 10, liquidityHaircutPercent: 15 }),
+        digitalAssetsCrypto: Object.freeze({ include: true, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 35 })
       }),
       customAsset: Object.freeze({ include: true, treatmentPreset: "custom", taxTreatment: "custom", taxDragPercent: 0, liquidityHaircutPercent: 15 })
     })
@@ -1090,13 +1130,25 @@
   }
 
   function getAssetTreatmentRenderItems() {
-    const activeItems = ASSET_TREATMENT_ITEMS.filter(function (item) {
-      return isAssetTreatmentItemEditable(item.key);
-    });
-    const inactiveItems = ASSET_TREATMENT_ITEMS.filter(function (item) {
-      return !isAssetTreatmentItemEditable(item.key);
-    });
-    return activeItems.concat(inactiveItems);
+    return ASSET_TREATMENT_ITEMS.slice();
+  }
+
+  function getSavedAssetTreatmentForItem(savedAssets, item) {
+    if (!isPlainObject(savedAssets) || !item) {
+      return {};
+    }
+
+    const candidateKeys = [item.key]
+      .concat(item.legacyKey ? [item.legacyKey] : [])
+      .concat(Array.isArray(item.legacyKeys) ? item.legacyKeys : []);
+    for (let index = 0; index < candidateKeys.length; index += 1) {
+      const candidateKey = candidateKeys[index];
+      if (candidateKey && isPlainObject(savedAssets[candidateKey])) {
+        return savedAssets[candidateKey];
+      }
+    }
+
+    return {};
   }
 
   function getInflationAssumptions(record) {
@@ -1266,9 +1318,7 @@
 
     ASSET_TREATMENT_ITEMS.forEach(function (item) {
       const defaults = DEFAULT_ASSET_TREATMENT_ASSUMPTIONS.assets[item.key];
-      const savedAsset = isPlainObject(savedAssets[item.key])
-        ? savedAssets[item.key]
-        : (isPlainObject(savedAssets[item.legacyKey]) ? savedAssets[item.legacyKey] : {});
+      const savedAsset = getSavedAssetTreatmentForItem(savedAssets, item);
       const treatmentPreset = normalizeAssetTreatmentPreset(
         savedAsset.treatmentPreset,
         defaults.treatmentPreset
@@ -1299,7 +1349,11 @@
       };
     });
 
-    const savedCustomAsset = isPlainObject(savedCustomAssets[0]) ? savedCustomAssets[0] : {};
+    const savedLegacyOtherAsset = isPlainObject(savedAssets.otherAssets) ? savedAssets.otherAssets : {};
+    const savedCustomAsset = {
+      ...savedLegacyOtherAsset,
+      ...(isPlainObject(savedCustomAssets[0]) ? savedCustomAssets[0] : {})
+    };
     const customPreset = normalizeAssetTreatmentPreset(
       savedCustomAsset.treatmentPreset,
       DEFAULT_CUSTOM_ASSET_TREATMENT.treatmentPreset

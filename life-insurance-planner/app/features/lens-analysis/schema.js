@@ -169,6 +169,19 @@
         totalExistingCoverage: null
       },
 
+      // Raw asset facts projected from PMI asset source keys. This is not
+      // treatment logic and does not replace the current offsetAssets
+      // compatibility bucket.
+      assetFacts: {
+        assets: [],
+        totalReportedAssetValue: null,
+        metadata: {
+          source: null,
+          taxonomySource: null,
+          omittedNoSourceCategoryKeys: []
+        }
+      },
+
       // Current non-coverage assets that may later be considered as offsets.
       // These are neutral current-resource facts. They do not create needs,
       // subtract from needs, calculate a coverage gap, or produce a

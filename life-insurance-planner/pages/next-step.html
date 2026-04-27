@@ -515,7 +515,7 @@
               <section class="profile-form-section">
                 <div class="profile-form-section-heading">
                   <h2>Assets and Offset Planning</h2>
-                  <p class="helper-text">Asset availability settings are saved for future offset modeling only. No calculations are applied in this form.</p>
+                  <p class="helper-text">Enter current asset values only. Asset treatment and offset assumptions are managed in Analysis Setup.</p>
                 </div>
                 <div class="form-grid">
                   <div class="field-group">
@@ -558,180 +558,6 @@
                     <div class="profile-currency-field">
                       <input id="business-value" name="businessValue" type="number" min="0" step="1000">
                       <span class="profile-currency-suffix">USD</span>
-                    </div>
-                  </div>
-                  <div class="field-group full-width">
-                    <label>Cash / Savings Availability for Survivor Needs</label>
-                    <div class="profile-subgrid">
-                      <div class="field-group">
-                        <label for="cash-savings-include-in-offset">Include in Death Benefit Offset?</label>
-                        <select id="cash-savings-include-in-offset" name="cashSavingsIncludeInOffset">
-                          <option value="">Please select</option>
-                          <option value="Yes">Yes</option>
-                          <option value="No">No</option>
-                        </select>
-                      </div>
-                      <div class="field-group">
-                        <label for="cash-savings-liquidity-type">Liquidity Type</label>
-                        <select id="cash-savings-liquidity-type" name="cashSavingsLiquidityType">
-                          <option value="">Please select</option>
-                          <option value="Fully Liquid">Fully Liquid</option>
-                          <option value="Partially Liquid">Partially Liquid</option>
-                          <option value="Illiquid">Illiquid</option>
-                        </select>
-                      </div>
-                      <div class="field-group">
-                        <label for="cash-savings-percent-available">Percent Available for Survivor Needs</label>
-                        <div class="profile-currency-field">
-                          <input id="cash-savings-percent-available" class="profile-small-number-field" name="cashSavingsPercentAvailable" type="number" min="0" max="100" step="1">
-                          <span class="profile-currency-suffix">%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="field-group full-width">
-                    <label>Emergency Fund Availability for Survivor Needs</label>
-                    <div class="profile-subgrid">
-                      <div class="field-group">
-                        <label for="emergency-fund-include-in-offset">Include in Death Benefit Offset?</label>
-                        <select id="emergency-fund-include-in-offset" name="emergencyFundIncludeInOffset">
-                          <option value="">Please select</option>
-                          <option value="Yes">Yes</option>
-                          <option value="No">No</option>
-                        </select>
-                      </div>
-                      <div class="field-group">
-                        <label for="emergency-fund-liquidity-type">Liquidity Type</label>
-                        <select id="emergency-fund-liquidity-type" name="emergencyFundLiquidityType">
-                          <option value="">Please select</option>
-                          <option value="Fully Liquid">Fully Liquid</option>
-                          <option value="Partially Liquid">Partially Liquid</option>
-                          <option value="Illiquid">Illiquid</option>
-                        </select>
-                      </div>
-                      <div class="field-group">
-                        <label for="emergency-fund-percent-available">Percent Available for Survivor Needs</label>
-                        <div class="profile-currency-field">
-                          <input id="emergency-fund-percent-available" class="profile-small-number-field" name="emergencyFundPercentAvailable" type="number" min="0" max="100" step="1">
-                          <span class="profile-currency-suffix">%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="field-group full-width">
-                    <label>Brokerage Accounts Availability for Survivor Needs</label>
-                    <div class="profile-subgrid">
-                      <div class="field-group">
-                        <label for="brokerage-accounts-include-in-offset">Include in Death Benefit Offset?</label>
-                        <select id="brokerage-accounts-include-in-offset" name="brokerageAccountsIncludeInOffset">
-                          <option value="">Please select</option>
-                          <option value="Yes">Yes</option>
-                          <option value="No">No</option>
-                        </select>
-                      </div>
-                      <div class="field-group">
-                        <label for="brokerage-accounts-liquidity-type">Liquidity Type</label>
-                        <select id="brokerage-accounts-liquidity-type" name="brokerageAccountsLiquidityType">
-                          <option value="">Please select</option>
-                          <option value="Fully Liquid">Fully Liquid</option>
-                          <option value="Partially Liquid">Partially Liquid</option>
-                          <option value="Illiquid">Illiquid</option>
-                        </select>
-                      </div>
-                      <div class="field-group">
-                        <label for="brokerage-accounts-percent-available">Percent Available for Survivor Needs</label>
-                        <div class="profile-currency-field">
-                          <input id="brokerage-accounts-percent-available" class="profile-small-number-field" name="brokerageAccountsPercentAvailable" type="number" min="0" max="100" step="1">
-                          <span class="profile-currency-suffix">%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="field-group full-width">
-                    <label>401(k), IRA Balances Availability for Survivor Needs</label>
-                    <div class="profile-subgrid">
-                      <div class="field-group">
-                        <label for="retirement-assets-include-in-offset">Include in Death Benefit Offset?</label>
-                        <select id="retirement-assets-include-in-offset" name="retirementAssetsIncludeInOffset">
-                          <option value="">Please select</option>
-                          <option value="Yes">Yes</option>
-                          <option value="No">No</option>
-                        </select>
-                      </div>
-                      <div class="field-group">
-                        <label for="retirement-assets-liquidity-type">Liquidity Type</label>
-                        <select id="retirement-assets-liquidity-type" name="retirementAssetsLiquidityType">
-                          <option value="">Please select</option>
-                          <option value="Fully Liquid">Fully Liquid</option>
-                          <option value="Partially Liquid">Partially Liquid</option>
-                          <option value="Illiquid">Illiquid</option>
-                        </select>
-                      </div>
-                      <div class="field-group">
-                        <label for="retirement-assets-percent-available">Percent Available for Survivor Needs</label>
-                        <div class="profile-currency-field">
-                          <input id="retirement-assets-percent-available" class="profile-small-number-field" name="retirementAssetsPercentAvailable" type="number" min="0" max="100" step="1">
-                          <span class="profile-currency-suffix">%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="field-group full-width">
-                    <label>Real Estate Equity Availability for Survivor Needs</label>
-                    <div class="profile-subgrid">
-                      <div class="field-group">
-                        <label for="real-estate-equity-include-in-offset">Include in Death Benefit Offset?</label>
-                        <select id="real-estate-equity-include-in-offset" name="realEstateEquityIncludeInOffset">
-                          <option value="">Please select</option>
-                          <option value="Yes">Yes</option>
-                          <option value="No">No</option>
-                        </select>
-                      </div>
-                      <div class="field-group">
-                        <label for="real-estate-equity-liquidity-type">Liquidity Type</label>
-                        <select id="real-estate-equity-liquidity-type" name="realEstateEquityLiquidityType">
-                          <option value="">Please select</option>
-                          <option value="Fully Liquid">Fully Liquid</option>
-                          <option value="Partially Liquid">Partially Liquid</option>
-                          <option value="Illiquid">Illiquid</option>
-                        </select>
-                      </div>
-                      <div class="field-group">
-                        <label for="real-estate-equity-percent-available">Percent Available for Survivor Needs</label>
-                        <div class="profile-currency-field">
-                          <input id="real-estate-equity-percent-available" class="profile-small-number-field" name="realEstateEquityPercentAvailable" type="number" min="0" max="100" step="1">
-                          <span class="profile-currency-suffix">%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="field-group full-width">
-                    <label>Business Value Availability for Survivor Needs</label>
-                    <div class="profile-subgrid">
-                      <div class="field-group">
-                        <label for="business-value-include-in-offset">Include in Death Benefit Offset?</label>
-                        <select id="business-value-include-in-offset" name="businessValueIncludeInOffset">
-                          <option value="">Please select</option>
-                          <option value="Yes">Yes</option>
-                          <option value="No">No</option>
-                        </select>
-                      </div>
-                      <div class="field-group">
-                        <label for="business-value-liquidity-type">Liquidity Type</label>
-                        <select id="business-value-liquidity-type" name="businessValueLiquidityType">
-                          <option value="">Please select</option>
-                          <option value="Fully Liquid">Fully Liquid</option>
-                          <option value="Partially Liquid">Partially Liquid</option>
-                          <option value="Illiquid">Illiquid</option>
-                        </select>
-                      </div>
-                      <div class="field-group">
-                        <label for="business-value-percent-available">Percent Available for Survivor Needs</label>
-                        <div class="profile-currency-field">
-                          <input id="business-value-percent-available" class="profile-small-number-field" name="businessValuePercentAvailable" type="number" min="0" max="100" step="1">
-                          <span class="profile-currency-suffix">%</span>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -1346,24 +1172,6 @@
         "retirement-assets": "Retirement account balances, which may be discounted in planning.",
         "real-estate-equity": "Home or other property equity available to support the plan.",
         "business-value": "Estimated business value or ownership value.",
-        "cash-savings-include-in-offset": "Whether cash and savings should later reduce the death benefit need.",
-        "cash-savings-liquidity-type": "How quickly cash and savings could realistically be used.",
-        "cash-savings-percent-available": "Percent of cash and savings realistically available for survivor needs.",
-        "emergency-fund-include-in-offset": "Whether the emergency fund should later reduce the death benefit need.",
-        "emergency-fund-liquidity-type": "How quickly emergency funds could realistically be used.",
-        "emergency-fund-percent-available": "Percent of emergency funds realistically available for survivor needs.",
-        "brokerage-accounts-include-in-offset": "Whether brokerage assets should later reduce the death benefit need.",
-        "brokerage-accounts-liquidity-type": "How quickly brokerage assets could realistically be used.",
-        "brokerage-accounts-percent-available": "Percent of brokerage assets realistically available for survivor needs.",
-        "retirement-assets-include-in-offset": "Whether retirement balances should later reduce the death benefit need.",
-        "retirement-assets-liquidity-type": "How quickly retirement balances could realistically be used.",
-        "retirement-assets-percent-available": "Percent of retirement balances realistically available for survivor needs.",
-        "real-estate-equity-include-in-offset": "Whether real estate equity should later reduce the death benefit need.",
-        "real-estate-equity-liquidity-type": "How quickly real estate equity could realistically be converted to cash.",
-        "real-estate-equity-percent-available": "Percent of real estate equity realistically available for survivor needs.",
-        "business-value-include-in-offset": "Whether business value should later reduce the death benefit need.",
-        "business-value-liquidity-type": "How quickly business value could realistically be accessed.",
-        "business-value-percent-available": "Percent of business value realistically available for survivor needs.",
         "individual-policy-type": "Type of existing individual life insurance coverage.",
         "individual-death-benefit": "Total death benefit on existing individual coverage.",
         "individual-years-remaining": "Remaining years on any term policy.",
@@ -2053,6 +1861,41 @@
           sourceData[fieldName] = getLensBlockSourceValueByFieldName(fieldName);
           return sourceData;
         }, {});
+      }
+
+      function getLegacyOffsetAssetTreatmentFieldNames() {
+        const nonTreatmentFieldNames = new Set([
+          "cashSavings",
+          "emergencyFund",
+          "brokerageAccounts",
+          "retirementAssets",
+          "realEstateEquity",
+          "businessValue",
+          "assetsConfidenceLevel"
+        ]);
+
+        return getOffsetAssetsSourceFieldNames().filter((fieldName) => !nonTreatmentFieldNames.has(fieldName));
+      }
+
+      function preserveLegacyOffsetAssetTreatmentValues(draft) {
+        const linkedProtectionModelingData = getLinkedProtectionModelingData();
+        if (!linkedProtectionModelingData || typeof linkedProtectionModelingData !== "object") {
+          return draft;
+        }
+
+        getLegacyOffsetAssetTreatmentFieldNames().forEach((fieldName) => {
+          if (Object.prototype.hasOwnProperty.call(draft, fieldName)) {
+            return;
+          }
+
+          if (!Object.prototype.hasOwnProperty.call(linkedProtectionModelingData, fieldName)) {
+            return;
+          }
+
+          draft[fieldName] = linkedProtectionModelingData[fieldName];
+        });
+
+        return draft;
       }
 
       function syncOffsetAssetsBlockOutput() {
@@ -4513,6 +4356,8 @@
         if (isSurvivorScenarioManualOverride(survivorNetAnnualIncomeField) && String(survivorNetAnnualIncomeField.value || "").trim() !== "") {
           draft.survivorNetAnnualIncomeManualOverride = true;
         }
+
+        preserveLegacyOffsetAssetTreatmentValues(draft);
 
         return draft;
       }
