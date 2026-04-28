@@ -586,10 +586,10 @@
       incomeOffsetYears: null
     }),
     survivorScenario: Object.freeze({
-      survivorContinuesWorking: null,
-      expectedSurvivorWorkReductionPercent: null,
-      survivorIncomeStartDelayMonths: null,
-      survivorEarnedIncomeGrowthRatePercent: null,
+      survivorContinuesWorking: true,
+      expectedSurvivorWorkReductionPercent: 25,
+      survivorIncomeStartDelayMonths: 3,
+      survivorEarnedIncomeGrowthRatePercent: 0,
       survivorRetirementHorizonYears: null
     }),
     supportTreatment: Object.freeze({
@@ -607,11 +607,18 @@
   const SURVIVOR_SUPPORT_PROFILE_DEFAULTS = Object.freeze({
     conservative: Object.freeze({
       survivorIncomeTreatment: Object.freeze({
-        includeSurvivorIncome: true,
+        includeSurvivorIncome: false,
         applyStartDelay: true,
         applyIncomeGrowth: false,
-        maxReliancePercent: 50,
+        maxReliancePercent: 0,
         incomeOffsetYears: null
+      }),
+      survivorScenario: Object.freeze({
+        survivorContinuesWorking: false,
+        expectedSurvivorWorkReductionPercent: 100,
+        survivorIncomeStartDelayMonths: 12,
+        survivorEarnedIncomeGrowthRatePercent: 0,
+        survivorRetirementHorizonYears: null
       }),
       supportTreatment: Object.freeze({
         includeEssentialSupport: true,
@@ -626,11 +633,19 @@
     }),
     balanced: Object.freeze({
       survivorIncomeTreatment: DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorIncomeTreatment,
+      survivorScenario: DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorScenario,
       supportTreatment: DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.supportTreatment,
       riskFlags: DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.riskFlags
     }),
     aggressive: Object.freeze({
       survivorIncomeTreatment: DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorIncomeTreatment,
+      survivorScenario: Object.freeze({
+        survivorContinuesWorking: true,
+        expectedSurvivorWorkReductionPercent: 0,
+        survivorIncomeStartDelayMonths: 0,
+        survivorEarnedIncomeGrowthRatePercent: 0,
+        survivorRetirementHorizonYears: null
+      }),
       supportTreatment: DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.supportTreatment,
       riskFlags: Object.freeze({
         flagHighSurvivorIncomeReliance: true,
@@ -1842,6 +1857,8 @@
       || SURVIVOR_SUPPORT_PROFILE_DEFAULTS[DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.globalTreatmentProfile];
     const defaultSurvivorIncomeTreatment = profileDefaults.survivorIncomeTreatment
       || DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorIncomeTreatment;
+    const defaultProfileSurvivorScenario = profileDefaults.survivorScenario
+      || DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorScenario;
     const defaultSupportTreatment = profileDefaults.supportTreatment
       || DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.supportTreatment;
     const defaultRiskFlags = profileDefaults.riskFlags
@@ -1858,7 +1875,7 @@
     const savedRiskFlags = isPlainObject(saved.riskFlags)
       ? saved.riskFlags
       : {};
-    const defaultSurvivorScenario = getSurvivorSupportDefaultScenario(record);
+    const defaultSurvivorScenario = getSurvivorSupportDefaultScenario(record, defaultProfileSurvivorScenario);
     const nextAssumptions = {
       enabled: typeof saved.enabled === "boolean"
         ? saved.enabled
@@ -2361,14 +2378,6 @@
     return sliders;
   }
 
-  function getCalculationSnapshotFieldMap() {
-    const fields = {};
-    Array.from(document.querySelectorAll("[data-analysis-calculation-snapshot]")).forEach(function (field) {
-      fields[field.getAttribute("data-analysis-calculation-snapshot")] = field;
-    });
-    return fields;
-  }
-
   function getPolicyTypeReturnFieldMap() {
     const fields = {
       enabled: document.querySelector("[data-analysis-policy-return-enabled]"),
@@ -2534,6 +2543,7 @@
     const fields = {
       defaultProfile: DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.globalTreatmentProfile,
       defaultProfileButtons: Array.from(document.querySelectorAll("[data-analysis-survivor-profile]")),
+      resetButton: document.querySelector("[data-analysis-survivor-reset]"),
       values: {},
       preview: {
         netIncome: document.querySelector("[data-analysis-survivor-preview='netIncome']"),
@@ -3686,79 +3696,6 @@
     setPolicyTypeReturnValue(fields, "variableUniversalLife.netReturnPercent", assumptions.variableUniversalLife.netReturnPercent);
   }
 
-  function setCalculationSnapshotText(fields, fieldName, value) {
-    if (fields?.[fieldName]) {
-      fields[fieldName].textContent = value;
-    }
-  }
-
-  function formatCalculationSnapshotYears(field) {
-    const rawValue = String(field?.value || "").trim();
-    const number = Number(rawValue);
-    if (!rawValue) {
-      return "Not set";
-    }
-    if (!Number.isFinite(number)) {
-      return "Review input";
-    }
-
-    return `${formatHaircutInputValue(number)} years`;
-  }
-
-  function formatCalculationSnapshotPercent(fields, fieldName) {
-    const rawValue = String(fields?.[fieldName]?.value || "").trim();
-    const number = Number(rawValue);
-    if (!rawValue) {
-      return "not set";
-    }
-    if (!Number.isFinite(number)) {
-      return "review";
-    }
-
-    return `${formatHaircutInputValue(number)}%`;
-  }
-
-  function syncCalculationSnapshotFields(snapshotFields, inflationFields, methodFields, growthFields) {
-    if (!snapshotFields || !Object.keys(snapshotFields).length) {
-      return;
-    }
-
-    setCalculationSnapshotText(snapshotFields, "dimeIncomeYears", formatCalculationSnapshotYears(methodFields.dimeIncomeYears));
-    setCalculationSnapshotText(snapshotFields, "needsSupportYears", formatCalculationSnapshotYears(methodFields.needsSupportYears));
-    setCalculationSnapshotText(snapshotFields, "hlvProjectionYears", formatCalculationSnapshotYears(methodFields.hlvProjectionYears));
-
-    const inflationStatus = inflationFields.enabled?.checked ? "On" : "Off";
-    setCalculationSnapshotText(snapshotFields, "inflationSummary", [
-      `${inflationStatus}`,
-      `General ${formatCalculationSnapshotPercent(inflationFields, "generalInflationRatePercent")}`,
-      `Household ${formatCalculationSnapshotPercent(inflationFields, "householdExpenseInflationRatePercent")}`,
-      `Education ${formatCalculationSnapshotPercent(inflationFields, "educationInflationRatePercent")}`,
-      `Healthcare ${formatCalculationSnapshotPercent(inflationFields, "healthcareInflationRatePercent")}`,
-      `Final ${formatCalculationSnapshotPercent(inflationFields, "finalExpenseInflationRatePercent")}`
-    ].join(" - "));
-
-    const growthStatus = growthFields.enabled?.checked ? "On" : "Off";
-    const returnBasis = normalizeGrowthReturnBasis(
-      growthFields.returnBasis?.value,
-      DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS.returnBasis
-    );
-    setCalculationSnapshotText(snapshotFields, "growthSummary", [
-      `${growthStatus}`,
-      GROWTH_RETURN_BASIS_LABELS[returnBasis],
-      `Primary ${formatCalculationSnapshotPercent(growthFields, "primaryIncomeGrowthRatePercent")}`,
-      `Survivor ${formatCalculationSnapshotPercent(growthFields, "partnerIncomeGrowthRatePercent")}`,
-      `Taxable ${formatCalculationSnapshotPercent(growthFields, "taxableInvestmentReturnRatePercent")}`,
-      `Retirement ${formatCalculationSnapshotPercent(growthFields, "retirementAssetReturnRatePercent")}`
-    ].join(" - "));
-
-    const selectedOffsetOption = methodFields.assetOffsetSource?.selectedOptions?.[0];
-    setCalculationSnapshotText(
-      snapshotFields,
-      "assetOffsetSource",
-      String(selectedOffsetOption?.textContent || "Not set").trim()
-    );
-  }
-
   function getLinkedProtectionModelingData(record) {
     const currentPayloadData = record?.protectionModeling?.data;
     if (isPlainObject(currentPayloadData)) {
@@ -4038,8 +3975,8 @@
     return parseOptionalNumberValue(getSurvivorSupportSourceRawValue(linkedRecord, sourceField));
   }
 
-  function getSurvivorSupportDefaultScenario(linkedRecord) {
-    const defaults = DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorScenario;
+  function getSurvivorSupportDefaultScenario(linkedRecord, fallbackScenario) {
+    const defaults = fallbackScenario || DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorScenario;
     return {
       survivorContinuesWorking: normalizeSurvivorSupportBoolean(
         getSurvivorSupportSourceRawValue(linkedRecord, "survivorContinuesWorking"),
@@ -4844,6 +4781,10 @@
       button.disabled = Boolean(disabled);
     });
 
+    if (fields.resetButton) {
+      fields.resetButton.disabled = Boolean(disabled);
+    }
+
     Object.keys(fields.values || {}).forEach(function (fieldPath) {
       fields.values[fieldPath].disabled = Boolean(disabled);
     });
@@ -5179,6 +5120,10 @@
       survivorIncomeTreatment: {
         ...current.survivorIncomeTreatment,
         ...profileDefaults.survivorIncomeTreatment
+      },
+      survivorScenario: {
+        ...current.survivorScenario,
+        ...profileDefaults.survivorScenario
       },
       supportTreatment: {
         ...current.supportTreatment,
@@ -7024,7 +6969,6 @@
     const methodFields = getMethodFieldMap();
     const growthFields = getGrowthFieldMap();
     const growthSliders = getGrowthSliderMap();
-    const calculationSnapshotFields = getCalculationSnapshotFieldMap();
     const policyReturnFields = getPolicyTypeReturnFieldMap();
     const assetTreatmentFields = getAssetTreatmentFieldMap();
     const existingCoverageFields = getExistingCoverageFieldMap();
@@ -7065,10 +7009,6 @@
     populateMethodFields(methodFields, getMethodDefaults(linkedRecord));
     populateGrowthFields(growthFields, getGrowthAndReturnAssumptions(linkedRecord), growthSliders);
     populatePolicyTypeReturnFields(policyReturnFields, getPolicyTypeReturnAssumptions(linkedRecord));
-    const syncCalculationSnapshot = function () {
-      syncCalculationSnapshotFields(calculationSnapshotFields, fields, methodFields, growthFields);
-    };
-    syncCalculationSnapshot();
     populateAssetTreatmentFields(assetTreatmentFields, getAssetTreatmentAssumptions(linkedRecord), linkedRecord);
     populateExistingCoverageFields(existingCoverageFields, getExistingCoverageAssumptions(linkedRecord), linkedRecord);
     populateDebtTreatmentFields(debtTreatmentFields, getDebtTreatmentAssumptions(linkedRecord), linkedRecord);
@@ -7143,31 +7083,26 @@
     }
 
     fields.enabled?.addEventListener("change", function () {
-      syncCalculationSnapshot();
       markUnsaved();
     });
     fields.resetButton?.addEventListener("click", function () {
       populateFields(fields, DEFAULT_INFLATION_ASSUMPTIONS, sliders);
-      syncCalculationSnapshot();
       markUnsaved();
     });
 
     RATE_FIELDS.forEach(function (fieldName) {
       fields[fieldName]?.addEventListener("input", function () {
         syncSliderFromNumber(fields, sliders, fieldName, false);
-        syncCalculationSnapshot();
         markUnsaved();
       });
 
       fields[fieldName]?.addEventListener("change", function () {
         syncSliderFromNumber(fields, sliders, fieldName, true);
-        syncCalculationSnapshot();
         markUnsaved();
       });
 
       sliders[fieldName]?.addEventListener("input", function () {
         syncNumberFromSlider(fields, sliders, fieldName);
-        syncCalculationSnapshot();
         markUnsaved();
       });
     });
@@ -7179,7 +7114,6 @@
         if (field && field.value !== sanitizedValue) {
           field.value = sanitizedValue;
         }
-        syncCalculationSnapshot();
         markUnsaved();
       });
 
@@ -7194,52 +7128,43 @@
         if (field && rawValue && Number.isFinite(number) && number >= MIN_METHOD_YEARS && number <= MAX_METHOD_YEARS) {
           field.value = formatHaircutInputValue(number);
         }
-        syncCalculationSnapshot();
         markUnsaved();
       });
     });
 
     methodFields.assetOffsetSource?.addEventListener("change", function () {
-      syncCalculationSnapshot();
       markUnsaved();
     });
 
     methodFields.resetButton?.addEventListener("click", function () {
       populateDefaultMethodFields(methodFields, linkedRecord);
-      syncCalculationSnapshot();
       markUnsaved();
     });
 
     growthFields.enabled?.addEventListener("change", function () {
-      syncCalculationSnapshot();
       markUnsaved();
     });
     growthFields.returnBasis?.addEventListener("change", function () {
-      syncCalculationSnapshot();
       markUnsaved();
     });
     growthFields.resetButton?.addEventListener("click", function () {
       populateGrowthFields(growthFields, DEFAULT_GROWTH_AND_RETURN_ASSUMPTIONS, growthSliders);
-      syncCalculationSnapshot();
       markUnsaved();
     });
 
     GROWTH_RATE_FIELDS.forEach(function (fieldName) {
       growthFields[fieldName]?.addEventListener("input", function () {
         syncGrowthSliderFromNumber(growthFields, growthSliders, fieldName, false);
-        syncCalculationSnapshot();
         markUnsaved();
       });
 
       growthFields[fieldName]?.addEventListener("change", function () {
         syncGrowthSliderFromNumber(growthFields, growthSliders, fieldName, true);
-        syncCalculationSnapshot();
         markUnsaved();
       });
 
       growthSliders[fieldName]?.addEventListener("input", function () {
         syncGrowthNumberFromSlider(growthFields, growthSliders, fieldName);
-        syncCalculationSnapshot();
         markUnsaved();
       });
     });
@@ -7305,6 +7230,15 @@
         applySurvivorSupportProfile(survivorSupportFields, profile, linkedRecord);
         markUnsaved();
       });
+    });
+
+    survivorSupportFields.resetButton?.addEventListener("click", function () {
+      applySurvivorSupportProfile(
+        survivorSupportFields,
+        DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.globalTreatmentProfile,
+        linkedRecord
+      );
+      markUnsaved();
     });
 
     (educationFields.defaultProfileButtons || []).forEach(function (button) {

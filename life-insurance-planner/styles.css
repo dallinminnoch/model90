@@ -6603,6 +6603,11 @@ label:not(.analysis-setup-rate-label) {
   font-weight: 700;
 }
 
+.analysis-setup-survivor-control-row > label {
+  font-size: 0.76rem;
+  font-weight: 400;
+}
+
 input:not(.client-table-search-input):not(.analysis-setup-rate-slider):not([data-analysis-inflation-field]):not([data-analysis-method-field]):not([data-analysis-growth-field]):not([data-analysis-policy-return-enabled]):not([data-analysis-policy-return-field]):not(.analysis-setup-asset-field):not(.analysis-setup-debt-field):not(.analysis-setup-card-input):not([data-analysis-coverage-field]),
 select:not(.analysis-setup-asset-field):not(.analysis-setup-debt-field):not(.analysis-setup-asset-select):not(.analysis-setup-method-select),
 textarea {

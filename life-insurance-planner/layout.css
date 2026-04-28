@@ -1336,32 +1336,37 @@ body.lens-workflow-page {
 }
 
 .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-left-stack {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  align-items: stretch;
+  grid-template-columns:
+    minmax(15rem, 0.82fr)
+    minmax(23rem, 1.45fr)
+    minmax(19rem, 0.95fr);
+  align-items: start;
+  column-gap: clamp(1.1rem, 2.3vw, 2.75rem);
+  row-gap: clamp(0.72rem, 1vw, 1rem);
 }
 
 .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--method-defaults {
   order: 1;
+  grid-column: 1;
+  grid-row: 1 / span 3;
 }
 
 .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--inflation {
   order: 2;
+  grid-column: 2;
+  grid-row: 1;
 }
 
 .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--growth {
   order: 3;
+  grid-column: 2;
+  grid-row: 2;
 }
 
 .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--policy-returns {
   order: 4;
-  grid-column: 4;
-  grid-row: 1 / span 2;
-}
-
-.analysis-setup-control-group--calculation-snapshot {
-  order: 5;
-  grid-column: 1 / 4;
-  grid-row: 2;
+  grid-column: 3;
+  grid-row: 1 / span 3;
 }
 
 body.lens-workflow-page.workspace-side-nav-collapsed .analysis-setup-panel-grid,
@@ -1431,8 +1436,7 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--policy-returns,
-  .analysis-setup-control-group--calculation-snapshot {
+  .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--policy-returns {
     grid-column: 1 / -1;
     grid-row: auto;
   }
@@ -1458,8 +1462,7 @@ body.lens-workflow-page .workspace-side-nav-host.is-collapsed[data-workspace-sid
     grid-template-columns: 1fr;
   }
 
-  .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--policy-returns,
-  .analysis-setup-control-group--calculation-snapshot {
+  .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--policy-returns {
     grid-column: auto;
     grid-row: auto;
   }

@@ -11747,7 +11747,7 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   position: relative;
   z-index: 2;
   padding: clamp(0.7rem, 1vw, 0.92rem);
-  border: 2px solid var(--analysis-setup-view-accent);
+  border: 2px solid rgba(211, 219, 231, 0.92);
   border-radius: 0.5rem;
   background: #ffffff;
   box-shadow: none;
@@ -11811,6 +11811,26 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   padding: 0.72rem 0.74rem 0.68rem;
   border-color: rgba(211, 219, 231, 0.92);
   background: #ffffff;
+}
+
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--method-defaults {
+  padding-left: 0.05rem;
+}
+
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--inflation,
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--growth {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--policy-returns {
+  padding-right: 0.05rem;
 }
 
 .analysis-setup-control-group h3 {
@@ -11933,53 +11953,6 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
 
 .analysis-setup-policy-return-input {
   width: 100%;
-}
-
-.analysis-setup-control-group--calculation-snapshot {
-  gap: 0.62rem;
-  border-color: rgba(211, 219, 231, 0.92);
-  background: #ffffff;
-}
-
-.analysis-setup-control-group--calculation-snapshot .analysis-setup-control-heading p {
-  color: #627086;
-  font-size: 0.71rem;
-  line-height: 1.32;
-}
-
-.analysis-setup-calculation-snapshot-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.46rem;
-  min-width: 0;
-}
-
-.analysis-setup-calculation-snapshot-item {
-  display: grid;
-  gap: 0.2rem;
-  min-width: 0;
-  padding: 0.48rem 0.56rem;
-  border: 1px solid rgba(211, 219, 231, 0.92);
-  border-radius: 0.38rem;
-  background: #f8fafc;
-}
-
-.analysis-setup-calculation-snapshot-item--wide {
-  grid-column: span 2;
-}
-
-.analysis-setup-calculation-snapshot-item span {
-  color: #5e6c81;
-  font-size: 0.66rem;
-  font-weight: 760;
-  line-height: 1.1;
-}
-
-.analysis-setup-calculation-snapshot-item strong {
-  color: #17202c;
-  font-size: 0.76rem;
-  font-weight: 820;
-  line-height: 1.28;
 }
 
 @media (max-width: 1180px) {
@@ -13101,6 +13074,94 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   line-height: 1.12;
 }
 
+.analysis-setup-survivor-card-head {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.analysis-setup-survivor-help {
+  position: relative;
+  z-index: 20;
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+}
+
+.analysis-setup-survivor-help-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+}
+
+.analysis-setup-survivor-help-trigger:focus-visible {
+  border-radius: 999px;
+  outline: 2px solid rgba(74, 98, 189, 0.28);
+  outline-offset: 3px;
+}
+
+.analysis-setup-survivor-help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid rgba(211, 219, 231, 0.95);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #5e6c81;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.analysis-setup-survivor-help-tooltip {
+  position: absolute;
+  top: calc(100% + 0.42rem);
+  right: 0;
+  z-index: 1000;
+  width: min(20rem, calc(100vw - 2rem));
+  padding: 0.58rem 0.68rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.42rem;
+  background: #111827;
+  box-shadow: 0 18px 36px rgba(17, 24, 39, 0.24);
+  color: #ffffff;
+  font-size: 0.68rem;
+  line-height: 1.36;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-0.16rem);
+  transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
+  visibility: hidden;
+}
+
+.analysis-setup-survivor-help-tooltip ul {
+  display: grid;
+  gap: 0.34rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.analysis-setup-survivor-help-tooltip strong {
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.analysis-setup-survivor-help:hover .analysis-setup-survivor-help-tooltip,
+.analysis-setup-survivor-help:focus-within .analysis-setup-survivor-help-tooltip {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  visibility: visible;
+}
+
 .analysis-setup-survivor-toggle {
   min-height: 1.82rem;
   padding: 0.28rem 0.36rem;
@@ -13109,8 +13170,11 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
 }
 
 .analysis-setup-survivor-toggle .settings-toggle-label {
-  font-size: 0.7rem;
-  font-weight: 760;
+  color: #5e6c81;
+  font-family: "Inter", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 400;
+  line-height: 1.2;
 }
 
 .analysis-setup-survivor-toggle .settings-toggle-note {
@@ -13132,10 +13196,11 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
 
 .analysis-setup-survivor-control-row > label {
   min-width: 0;
-  color: #17202c;
-  font-size: 0.7rem;
-  font-weight: 760;
-  line-height: 1.15;
+  color: #5e6c81;
+  font-family: "Inter", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 400;
+  line-height: 1.2;
 }
 
 .analysis-setup-survivor-control-row p {
@@ -13648,6 +13713,12 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   background: #f8fafc;
 }
 
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--method-defaults .analysis-setup-method-row {
+  padding: 0.46rem 0;
+  border-color: transparent;
+  background: transparent;
+}
+
 .analysis-setup-method-row span {
   min-width: 0;
   color: #5e6c81;
@@ -13862,14 +13933,6 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
 }
 
 @media (max-width: 860px) {
-  .analysis-setup-calculation-snapshot-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .analysis-setup-calculation-snapshot-item--wide {
-    grid-column: auto;
-  }
-
   .analysis-setup-rate-control {
     grid-template-columns: minmax(0, 1fr) auto;
     justify-content: stretch;

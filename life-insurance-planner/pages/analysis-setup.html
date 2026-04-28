@@ -229,7 +229,6 @@
                     <div class="analysis-setup-method-header">
                       <div class="analysis-setup-control-heading">
                         <h3 id="analysis-setup-growth-return">Growth &amp; Return Assumptions</h3>
-                        <p>Saved for future projections. These assumptions are not applied to current results yet.</p>
                       </div>
                       <button class="analysis-setup-reset-button" type="button" data-analysis-growth-reset>Reset</button>
                     </div>
@@ -414,38 +413,6 @@
                     </div>
                   </section>
 
-                  <section class="analysis-setup-control-group analysis-setup-control-group--calculation-snapshot" aria-labelledby="analysis-setup-calculation-snapshot">
-                    <div class="analysis-setup-control-heading">
-                      <h3 id="analysis-setup-calculation-snapshot">Calculation Snapshot</h3>
-                      <p>Read-only summary of the active calculation assumptions on this view.</p>
-                    </div>
-                    <div class="analysis-setup-calculation-snapshot-grid" aria-label="Calculation assumption snapshot">
-                      <div class="analysis-setup-calculation-snapshot-item">
-                        <span>DIME income years</span>
-                        <strong data-analysis-calculation-snapshot="dimeIncomeYears">-</strong>
-                      </div>
-                      <div class="analysis-setup-calculation-snapshot-item">
-                        <span>Needs support years</span>
-                        <strong data-analysis-calculation-snapshot="needsSupportYears">-</strong>
-                      </div>
-                      <div class="analysis-setup-calculation-snapshot-item">
-                        <span>HLV projection years</span>
-                        <strong data-analysis-calculation-snapshot="hlvProjectionYears">-</strong>
-                      </div>
-                      <div class="analysis-setup-calculation-snapshot-item analysis-setup-calculation-snapshot-item--wide">
-                        <span>Inflation</span>
-                        <strong data-analysis-calculation-snapshot="inflationSummary">-</strong>
-                      </div>
-                      <div class="analysis-setup-calculation-snapshot-item analysis-setup-calculation-snapshot-item--wide">
-                        <span>Growth &amp; return</span>
-                        <strong data-analysis-calculation-snapshot="growthSummary">-</strong>
-                      </div>
-                      <div class="analysis-setup-calculation-snapshot-item">
-                        <span>Asset offset source</span>
-                        <strong data-analysis-calculation-snapshot="assetOffsetSource">-</strong>
-                      </div>
-                    </div>
-                  </section>
                 </div>
 
                 <section class="analysis-setup-control-group analysis-setup-control-group--wide analysis-setup-control-group--assets" aria-labelledby="analysis-setup-asset-treatment" data-analysis-setup-view-panel="offset" hidden>
@@ -679,7 +646,7 @@
                 <section class="analysis-setup-control-group analysis-setup-control-group--survivor-support" aria-labelledby="analysis-setup-survivor-support-treatment" data-analysis-setup-view-panel="planning" hidden>
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-survivor-support-treatment">Survivor &amp; Support Assumptions</h3>
-                    <p>Control how survivor income and household support needs are treated in Needs where supported. Raw spouse income and expense facts remain in Protection Modeling Inputs.</p>
+                    <p>PMI captures current spouse income facts. These assumptions control how survivor income is treated after death. Balanced assumes the survivor continues working with a temporary 25% reduction and a 3-month income delay.</p>
                   </div>
 
                   <div class="analysis-setup-asset-defaults analysis-setup-survivor-defaults" aria-label="Survivor and support treatment default settings">
@@ -690,16 +657,33 @@
                       <button class="analysis-setup-asset-default-button" type="button" data-analysis-survivor-profile="aggressive" aria-pressed="false">Aggressive</button>
                       <button class="analysis-setup-asset-default-button" type="button" data-analysis-survivor-profile="custom" aria-pressed="false">Custom</button>
                     </div>
+                    <button class="analysis-setup-reset-button" type="button" data-analysis-survivor-reset>Reset to Balanced</button>
                   </div>
 
                   <div class="analysis-setup-survivor-grid" aria-label="Survivor and support treatment controls">
                     <div class="analysis-setup-survivor-card">
-                      <h4>Survivor income treatment</h4>
+                      <div class="analysis-setup-survivor-card-head">
+                        <h4>Survivor income treatment</h4>
+                        <div class="analysis-setup-survivor-help">
+                          <span class="analysis-setup-survivor-help-trigger" tabindex="0" aria-describedby="analysis-setup-survivor-income-treatment-help">
+                            <span class="sr-only">Survivor income treatment field help</span>
+                            <span class="analysis-setup-survivor-help-icon" aria-hidden="true">?</span>
+                          </span>
+                          <div id="analysis-setup-survivor-income-treatment-help" class="analysis-setup-survivor-help-tooltip" role="tooltip">
+                            <ul>
+                              <li><strong>Apply survivor income offset:</strong> lets Needs count survivor income against the support gap.</li>
+                              <li><strong>Apply survivor income start delay:</strong> delays when survivor income begins reducing support need.</li>
+                              <li><strong>Apply survivor income growth:</strong> saves a future-use growth assumption; current Needs does not project it.</li>
+                              <li><strong>Maximum reliance:</strong> caps how much support can rely on survivor income.</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
                       <label class="settings-toggle-row analysis-setup-toggle-control analysis-setup-survivor-toggle">
                         <span class="settings-toggle-copy">
                           <span class="settings-toggle-label">Apply survivor income offset</span>
                         </span>
-                        <span class="settings-switch">
+                        <span class="settings-switch analysis-setup-mini-switch">
                           <input class="analysis-setup-survivor-field" type="checkbox" role="switch" aria-label="Apply survivor income offset" data-analysis-survivor-field="survivorIncomeTreatment.includeSurvivorIncome">
                           <span class="settings-switch-track" aria-hidden="true"></span>
                         </span>
@@ -708,7 +692,7 @@
                         <span class="settings-toggle-copy">
                           <span class="settings-toggle-label">Apply survivor income start delay</span>
                         </span>
-                        <span class="settings-switch">
+                        <span class="settings-switch analysis-setup-mini-switch">
                           <input class="analysis-setup-survivor-field" type="checkbox" role="switch" aria-label="Apply survivor income start delay" data-analysis-survivor-field="survivorIncomeTreatment.applyStartDelay">
                           <span class="settings-switch-track" aria-hidden="true"></span>
                         </span>
@@ -718,7 +702,7 @@
                           <span class="settings-toggle-label">Apply survivor income growth</span>
                           <span class="settings-toggle-note">Saved for future projections; not applied yet.</span>
                         </span>
-                        <span class="settings-switch">
+                        <span class="settings-switch analysis-setup-mini-switch">
                           <input class="analysis-setup-survivor-field" type="checkbox" role="switch" aria-label="Apply survivor income growth" data-analysis-survivor-field="survivorIncomeTreatment.applyIncomeGrowth">
                           <span class="settings-switch-track" aria-hidden="true"></span>
                         </span>
@@ -733,7 +717,24 @@
                     </div>
 
                     <div class="analysis-setup-survivor-card">
-                      <h4>Survivor scenario</h4>
+                      <div class="analysis-setup-survivor-card-head">
+                        <h4>Survivor scenario</h4>
+                        <div class="analysis-setup-survivor-help">
+                          <span class="analysis-setup-survivor-help-trigger" tabindex="0" aria-describedby="analysis-setup-survivor-scenario-help">
+                            <span class="sr-only">Survivor scenario field help</span>
+                            <span class="analysis-setup-survivor-help-icon" aria-hidden="true">?</span>
+                          </span>
+                          <div id="analysis-setup-survivor-scenario-help" class="analysis-setup-survivor-help-tooltip" role="tooltip">
+                            <ul>
+                              <li><strong>Survivor continues working:</strong> sets whether survivor income should be considered after death.</li>
+                              <li><strong>Expected work reduction:</strong> reduces survivor income for caregiving, transition, or schedule changes.</li>
+                              <li><strong>Start delay:</strong> sets how many months pass before survivor income is applied.</li>
+                              <li><strong>Income growth:</strong> saves a future-use survivor income growth rate.</li>
+                              <li><strong>Income horizon:</strong> sets how long survivor income remains available for planning.</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
                       <div class="analysis-setup-survivor-control-row">
                         <label for="analysis-setup-survivor-continues-working">Survivor continues working</label>
                         <select id="analysis-setup-survivor-continues-working" class="analysis-setup-method-select analysis-setup-survivor-field" data-analysis-survivor-field="survivorScenario.survivorContinuesWorking">
@@ -774,12 +775,28 @@
                     </div>
 
                     <div class="analysis-setup-survivor-card">
-                      <h4>Support treatment</h4>
+                      <div class="analysis-setup-survivor-card-head">
+                        <h4>Support treatment</h4>
+                        <div class="analysis-setup-survivor-help">
+                          <span class="analysis-setup-survivor-help-trigger" tabindex="0" aria-describedby="analysis-setup-survivor-support-treatment-help">
+                            <span class="sr-only">Support treatment field help</span>
+                            <span class="analysis-setup-survivor-help-icon" aria-hidden="true">?</span>
+                          </span>
+                          <div id="analysis-setup-survivor-support-treatment-help" class="analysis-setup-survivor-help-tooltip" role="tooltip">
+                            <ul>
+                              <li><strong>Include essential support:</strong> includes core household support in Needs.</li>
+                              <li><strong>Include discretionary support:</strong> includes discretionary lifestyle support when enabled.</li>
+                              <li><strong>Include transition needs:</strong> includes temporary adjustment costs after death.</li>
+                              <li><strong>Support duration override:</strong> replaces the Method Defaults support duration for this plan.</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
                       <label class="settings-toggle-row analysis-setup-toggle-control analysis-setup-survivor-toggle">
                         <span class="settings-toggle-copy">
                           <span class="settings-toggle-label">Include essential support</span>
                         </span>
-                        <span class="settings-switch">
+                        <span class="settings-switch analysis-setup-mini-switch">
                           <input class="analysis-setup-survivor-field" type="checkbox" role="switch" aria-label="Include essential support" data-analysis-survivor-field="supportTreatment.includeEssentialSupport">
                           <span class="settings-switch-track" aria-hidden="true"></span>
                         </span>
@@ -788,7 +805,7 @@
                         <span class="settings-toggle-copy">
                           <span class="settings-toggle-label">Include discretionary support</span>
                         </span>
-                        <span class="settings-switch">
+                        <span class="settings-switch analysis-setup-mini-switch">
                           <input class="analysis-setup-survivor-field" type="checkbox" role="switch" aria-label="Include discretionary support" data-analysis-survivor-field="supportTreatment.includeDiscretionarySupport">
                           <span class="settings-switch-track" aria-hidden="true"></span>
                         </span>
@@ -797,7 +814,7 @@
                         <span class="settings-toggle-copy">
                           <span class="settings-toggle-label">Include transition needs</span>
                         </span>
-                        <span class="settings-switch">
+                        <span class="settings-switch analysis-setup-mini-switch">
                           <input class="analysis-setup-survivor-field" type="checkbox" role="switch" aria-label="Include transition needs" data-analysis-survivor-field="supportTreatment.includeTransitionNeeds">
                           <span class="settings-switch-track" aria-hidden="true"></span>
                         </span>
@@ -818,7 +835,7 @@
                         <span class="settings-toggle-copy">
                           <span class="settings-toggle-label">Flag high survivor income reliance</span>
                         </span>
-                        <span class="settings-switch">
+                        <span class="settings-switch analysis-setup-mini-switch">
                           <input class="analysis-setup-survivor-field" type="checkbox" role="switch" aria-label="Flag high survivor income reliance" data-analysis-survivor-field="riskFlags.flagHighSurvivorIncomeReliance">
                           <span class="settings-switch-track" aria-hidden="true"></span>
                         </span>
