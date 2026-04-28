@@ -1337,18 +1337,19 @@ body.lens-workflow-page {
 
 .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-left-stack {
   grid-template-columns:
-    minmax(15rem, 0.82fr)
-    minmax(23rem, 1.45fr)
+    minmax(19rem, 0.95fr)
+    minmax(22rem, 1.45fr)
     minmax(19rem, 0.95fr);
   align-items: start;
-  column-gap: clamp(1.1rem, 2.3vw, 2.75rem);
+  column-gap: clamp(0.75rem, 1.45vw, 1.75rem);
   row-gap: clamp(0.72rem, 1vw, 1rem);
+  grid-template-rows: repeat(4, auto);
 }
 
 .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--method-defaults {
   order: 1;
   grid-column: 1;
-  grid-row: 1 / span 3;
+  grid-row: 1 / span 4;
 }
 
 .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--inflation {
