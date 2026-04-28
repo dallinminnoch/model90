@@ -679,7 +679,7 @@
                 <section class="analysis-setup-control-group analysis-setup-control-group--survivor-support" aria-labelledby="analysis-setup-survivor-support-treatment" data-analysis-setup-view-panel="planning" hidden>
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-survivor-support-treatment">Survivor &amp; Support Assumptions</h3>
-                    <p>Control how survivor income and household support needs will be treated later in advanced Needs and LENS calculations. Raw survivor income and expense values remain in Protection Modeling Inputs.</p>
+                    <p>Control how survivor income and household support needs are treated in Needs where supported. Raw spouse income and expense facts remain in Protection Modeling Inputs.</p>
                   </div>
 
                   <div class="analysis-setup-asset-defaults analysis-setup-survivor-defaults" aria-label="Survivor and support treatment default settings">
@@ -697,10 +697,10 @@
                       <h4>Survivor income treatment</h4>
                       <label class="settings-toggle-row analysis-setup-toggle-control analysis-setup-survivor-toggle">
                         <span class="settings-toggle-copy">
-                          <span class="settings-toggle-label">Include survivor income in support need</span>
+                          <span class="settings-toggle-label">Apply survivor income offset</span>
                         </span>
                         <span class="settings-switch">
-                          <input class="analysis-setup-survivor-field" type="checkbox" role="switch" aria-label="Include survivor income in support need" data-analysis-survivor-field="survivorIncomeTreatment.includeSurvivorIncome">
+                          <input class="analysis-setup-survivor-field" type="checkbox" role="switch" aria-label="Apply survivor income offset" data-analysis-survivor-field="survivorIncomeTreatment.includeSurvivorIncome">
                           <span class="settings-switch-track" aria-hidden="true"></span>
                         </span>
                       </label>
@@ -728,6 +728,47 @@
                         <span class="analysis-setup-asset-percent">
                           <input id="analysis-setup-survivor-max-reliance" class="analysis-setup-card-input analysis-setup-survivor-field" type="text" inputmode="decimal" data-analysis-survivor-field="survivorIncomeTreatment.maxReliancePercent">
                           <span aria-hidden="true">%</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="analysis-setup-survivor-card">
+                      <h4>Survivor scenario</h4>
+                      <div class="analysis-setup-survivor-control-row">
+                        <label for="analysis-setup-survivor-continues-working">Survivor continues working</label>
+                        <select id="analysis-setup-survivor-continues-working" class="analysis-setup-method-select analysis-setup-survivor-field" data-analysis-survivor-field="survivorScenario.survivorContinuesWorking">
+                          <option value="">Use saved PMI value</option>
+                          <option value="true">Yes</option>
+                          <option value="false">No</option>
+                        </select>
+                      </div>
+                      <div class="analysis-setup-survivor-control-row">
+                        <label for="analysis-setup-survivor-work-reduction">Expected survivor work reduction</label>
+                        <span class="analysis-setup-asset-percent">
+                          <input id="analysis-setup-survivor-work-reduction" class="analysis-setup-card-input analysis-setup-survivor-field" type="text" inputmode="decimal" placeholder="Blank" data-analysis-survivor-field="survivorScenario.expectedSurvivorWorkReductionPercent">
+                          <span aria-hidden="true">%</span>
+                        </span>
+                      </div>
+                      <div class="analysis-setup-survivor-control-row">
+                        <label for="analysis-setup-survivor-start-delay">Survivor income start delay</label>
+                        <span class="analysis-setup-survivor-years">
+                          <input id="analysis-setup-survivor-start-delay" class="analysis-setup-card-input analysis-setup-survivor-field" type="text" inputmode="numeric" placeholder="Blank" data-analysis-survivor-field="survivorScenario.survivorIncomeStartDelayMonths">
+                          <span>months</span>
+                        </span>
+                      </div>
+                      <div class="analysis-setup-survivor-control-row">
+                        <label for="analysis-setup-survivor-income-growth">Survivor income growth</label>
+                        <span class="analysis-setup-asset-percent">
+                          <input id="analysis-setup-survivor-income-growth" class="analysis-setup-card-input analysis-setup-survivor-field" type="text" inputmode="decimal" placeholder="Blank" data-analysis-survivor-field="survivorScenario.survivorEarnedIncomeGrowthRatePercent">
+                          <span aria-hidden="true">%</span>
+                        </span>
+                        <p>Captured for future projections; current Needs does not apply growth.</p>
+                      </div>
+                      <div class="analysis-setup-survivor-control-row">
+                        <label for="analysis-setup-survivor-income-horizon">Survivor income horizon</label>
+                        <span class="analysis-setup-survivor-years">
+                          <input id="analysis-setup-survivor-income-horizon" class="analysis-setup-card-input analysis-setup-survivor-field" type="text" inputmode="numeric" placeholder="Blank" data-analysis-survivor-field="survivorScenario.survivorRetirementHorizonYears">
+                          <span>years</span>
                         </span>
                       </div>
                     </div>
@@ -810,7 +851,7 @@
                       <strong data-analysis-survivor-preview="discretionarySupport">Excluded later</strong>
                     </div>
                   </div>
-                  <p class="analysis-setup-survivor-preview-note">Preview only. Current Needs, DIME, HLV, and recommendation results are unchanged.</p>
+                  <p class="analysis-setup-survivor-preview-note">Needs uses the supported survivor offset settings. Survivor income growth and horizon are saved for future projections.</p>
                 </section>
 
                 <section class="analysis-setup-control-group analysis-setup-control-group--education" aria-labelledby="analysis-setup-education-treatment" data-analysis-setup-view-panel="planning" hidden>

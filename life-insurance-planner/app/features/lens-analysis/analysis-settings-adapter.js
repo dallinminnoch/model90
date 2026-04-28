@@ -136,6 +136,68 @@
     }
   }
 
+  function applySurvivorSupportSettings(settings, analysisSettings, warnings, trace) {
+    const survivorSupport = isPlainObject(analysisSettings.survivorSupportAssumptions)
+      ? analysisSettings.survivorSupportAssumptions
+      : null;
+    if (!survivorSupport) {
+      return;
+    }
+
+    const survivorIncomeTreatment = isPlainObject(survivorSupport.survivorIncomeTreatment)
+      ? survivorSupport.survivorIncomeTreatment
+      : {};
+    const supportTreatment = isPlainObject(survivorSupport.supportTreatment)
+      ? survivorSupport.supportTreatment
+      : {};
+
+    if (typeof survivorIncomeTreatment.includeSurvivorIncome === "boolean") {
+      settings.includeSurvivorIncomeOffset = survivorIncomeTreatment.includeSurvivorIncome;
+      trace.push(createTrace(
+        "includeSurvivorIncomeOffset-survivor-support",
+        "includeSurvivorIncomeOffset came from Analysis Setup Survivor & Support assumptions.",
+        ["analysisSettings.survivorSupportAssumptions.survivorIncomeTreatment.includeSurvivorIncome"]
+      ));
+    }
+
+    if (typeof supportTreatment.includeTransitionNeeds === "boolean") {
+      settings.includeTransitionNeeds = supportTreatment.includeTransitionNeeds;
+      trace.push(createTrace(
+        "includeTransitionNeeds-survivor-support",
+        "includeTransitionNeeds came from Analysis Setup Survivor & Support assumptions.",
+        ["analysisSettings.survivorSupportAssumptions.supportTreatment.includeTransitionNeeds"]
+      ));
+    }
+
+    if (typeof supportTreatment.includeDiscretionarySupport === "boolean") {
+      settings.includeDiscretionarySupport = supportTreatment.includeDiscretionarySupport;
+      trace.push(createTrace(
+        "includeDiscretionarySupport-survivor-support",
+        "includeDiscretionarySupport came from Analysis Setup Survivor & Support assumptions.",
+        ["analysisSettings.survivorSupportAssumptions.supportTreatment.includeDiscretionarySupport"]
+      ));
+    }
+
+    if (hasOwn(supportTreatment, "supportDurationYears") && supportTreatment.supportDurationYears !== null) {
+      const supportDurationYears = toOptionalNumber(supportTreatment.supportDurationYears);
+      if (supportDurationYears != null && supportDurationYears > 0) {
+        settings.needsSupportDurationYears = supportDurationYears;
+        trace.push(createTrace(
+          "needsSupportDurationYears-survivor-support",
+          "needsSupportDurationYears came from Analysis Setup Survivor & Support support duration override.",
+          ["analysisSettings.survivorSupportAssumptions.supportTreatment.supportDurationYears"]
+        ));
+      } else {
+        warnings.push(createWarning(
+          "invalid-survivor-support-duration-years",
+          "Saved Survivor & Support duration override was invalid and was ignored.",
+          "warning",
+          ["analysisSettings.survivorSupportAssumptions.supportTreatment.supportDurationYears"]
+        ));
+      }
+    }
+  }
+
   function addPositiveSetting(options) {
     const settings = options.settings;
     const source = options.source;
@@ -347,6 +409,8 @@
         sourcePath: "analysisSettings.methodDefaults.needsSupportYears"
       });
     }
+
+    applySurvivorSupportSettings(settings, analysisSettings, warnings, trace);
 
     addRoundingIfPresent(settings, analysisSettings, warnings, trace, "methodDefaults");
     addRoundingIfPresent(settings, analysisSettings, warnings, trace, "recommendationGuardrails");

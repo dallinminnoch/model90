@@ -870,79 +870,6 @@
             </div>
           </section>
 
-          <section class="profile-form-section">
-            <div class="profile-form-section-heading">
-              <h2>Survivorship Adjustments</h2>
-            </div>
-            <div class="form-grid">
-              <div class="field-group">
-                <label for="survivor-continues-working">Spouse Continues Working?</label>
-                <select id="survivor-continues-working" name="survivorContinuesWorking">
-                  <option value="">Please select</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </div>
-              <div class="field-group">
-                <label for="survivor-income">Gross Survivor Income</label>
-                <div class="profile-currency-field">
-                  <input id="survivor-income" name="survivorIncome" type="number" min="0" step="1000" disabled>
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="survivor-net-annual-income">Net Annual Income</label>
-                <div class="profile-currency-field">
-                  <input id="survivor-net-annual-income" name="survivorNetAnnualIncome" type="number" min="0" step="1000" disabled>
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="income-replacement-duration">Income Replacement Duration</label>
-                <div class="profile-inline-unit-field">
-                  <input id="income-replacement-duration" class="profile-small-number-field" name="incomeReplacementDuration" type="number" min="0" max="80" step="1" disabled>
-                  <span class="profile-inline-unit">Years</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="expense-reduction-at-death">Expense Reduction at Death</label>
-                <div class="profile-currency-field">
-                  <input id="expense-reduction-at-death" class="profile-small-number-field" name="expenseReductionAtDeath" type="number" min="0" max="100" step="1" disabled>
-                  <span class="profile-currency-suffix">%</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="child-dependency-duration">Child Dependency Duration</label>
-                <input id="child-dependency-duration" class="profile-small-number-field" name="childDependencyDuration" type="number" min="0" max="40" step="1" disabled>
-              </div>
-              <div class="field-group">
-                <label for="spouse-income-growth-rate">Spouse Income Growth Rate</label>
-                <div class="profile-currency-field">
-                  <input id="spouse-income-growth-rate" class="profile-small-number-field" name="spouseIncomeGrowthRate" type="number" min="0" max="25" step="0.1" disabled>
-                  <span class="profile-currency-suffix">%</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="spouse-years-until-retirement">Spouse Years Until Retirement</label>
-                <input id="spouse-years-until-retirement" class="profile-small-number-field" name="spouseYearsUntilRetirement" type="number" min="0" max="80" step="1" disabled>
-              </div>
-              <div class="field-group">
-                <label for="survivor-income-start-delay-months">Survivor Income Start Delay</label>
-                <div class="profile-inline-unit-field">
-                  <input id="survivor-income-start-delay-months" class="profile-small-number-field" name="survivorIncomeStartDelayMonths" type="number" min="0" max="120" step="1" disabled>
-                  <span class="profile-inline-unit">Months</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="spouse-expected-work-reduction-at-death">Spouse Expected Work Reduction at Death</label>
-                <div class="profile-currency-field">
-                  <input id="spouse-expected-work-reduction-at-death" class="profile-small-number-field" name="spouseExpectedWorkReductionAtDeath" type="number" min="0" max="100" step="1" disabled>
-                  <span class="profile-currency-suffix">%</span>
-                </div>
-              </div>
-            </div>
-          </section>
-
           <div class="actions-row">
             <button class="btn btn-secondary pmi-save-exit-button" type="button" data-pmi-save-exit>Save and Continue</button>
           </div>
@@ -1494,7 +1421,6 @@
       const maintenanceRecommendationField = form.elements.namedItem("monthlyMaintenanceRecommendation");
       const maintenanceRecommendationAction = form.querySelector('[data-maintenance-action="primary"]');
       const householdIncomeUseField = form.elements.namedItem("householdIncomeUsePercent");
-      const expenseReductionAtDeathField = form.elements.namedItem("expenseReductionAtDeath");
       const utilitiesCostField = form.elements.namedItem("utilitiesCost");
       const relocationReserveField = form.elements.namedItem("relocationReserve");
       const housingInsuranceCostField = form.elements.namedItem("housingInsuranceCost");
@@ -2783,7 +2709,7 @@
           insuranceCostField,
           transportationCostField
         ].reduce((total, field) => total + (parseCurrencyLikeNumber(field?.value) * 12), 0);
-        const expenseReductionPercent = Math.min(100, Math.max(0, parsePercentLikeNumber(expenseReductionAtDeathField?.value)));
+        const expenseReductionPercent = Math.min(100, Math.max(0, parsePercentLikeNumber(getPreservedManualExpenseReductionAtDeath())));
         const adjustedAnnualHouseholdExpenses = annualHouseholdExpenses * (1 - (expenseReductionPercent / 100));
         const householdNetIncomeBasis = getHouseholdNetIncomeBasis();
 
@@ -3069,41 +2995,6 @@
         }
       }
 
-      function syncSurvivorshipAdjustments() {
-        const survivorWorkingSelect = form.elements.namedItem("survivorContinuesWorking");
-        if (!survivorWorkingSelect || survivorWorkingSelect instanceof RadioNodeList) {
-          return;
-        }
-
-        const shouldEnable = String(survivorWorkingSelect.value || "").trim().toLowerCase() === "yes";
-        const dependentNames = [
-          "survivorIncome",
-          "survivorNetAnnualIncome",
-          "incomeReplacementDuration",
-          "expenseReductionAtDeath",
-          "childDependencyDuration",
-          "spouseIncomeGrowthRate",
-          "spouseYearsUntilRetirement",
-          "survivorIncomeStartDelayMonths",
-          "spouseExpectedWorkReductionAtDeath"
-        ];
-
-        dependentNames.forEach((name) => {
-          const field = form.elements.namedItem(name);
-          if (!field || field instanceof RadioNodeList) {
-            return;
-          }
-
-          const fieldGroup = field.closest?.(".field-group");
-          field.disabled = !shouldEnable;
-
-          if (!shouldEnable) {
-            field.value = "";
-          }
-
-          fieldGroup?.classList.toggle("is-disabled", !shouldEnable);
-        });
-      }
 
       function saveManualAnalysisSession(payload) {
         if (!payload || typeof payload !== "object") {
@@ -3137,6 +3028,26 @@
         } catch (_error) {
           return {};
         }
+      }
+
+      const LEGACY_SURVIVOR_PLANNING_FIELD_NAMES = Object.freeze([
+        "survivorContinuesWorking",
+        "spouseExpectedWorkReductionAtDeath",
+        "survivorIncome",
+        "survivorNetAnnualIncome",
+        "survivorIncomeStartDelayMonths",
+        "spouseIncomeGrowthRate",
+        "spouseYearsUntilRetirement",
+        "incomeReplacementDuration",
+        "expenseReductionAtDeath",
+        "childDependencyDuration",
+        "survivorIncomeManualOverride",
+        "survivorNetAnnualIncomeManualOverride"
+      ]);
+
+      function getPreservedManualExpenseReductionAtDeath() {
+        const restoredManualAnalysisData = readSavedManualAnalysisData();
+        return restoredManualAnalysisData?.expenseReductionAtDeath ?? 0;
       }
 
       function syncDependentsCountField() {
@@ -3318,6 +3229,27 @@
         return draft;
       }
 
+      function preserveLegacySurvivorPlanningValues(draft) {
+        const restoredManualAnalysisData = readSavedManualAnalysisData();
+        if (!restoredManualAnalysisData || typeof restoredManualAnalysisData !== "object") {
+          return draft;
+        }
+
+        LEGACY_SURVIVOR_PLANNING_FIELD_NAMES.forEach((fieldName) => {
+          if (Object.prototype.hasOwnProperty.call(draft, fieldName)) {
+            return;
+          }
+
+          if (!Object.prototype.hasOwnProperty.call(restoredManualAnalysisData, fieldName)) {
+            return;
+          }
+
+          draft[fieldName] = restoredManualAnalysisData[fieldName];
+        });
+
+        return draft;
+      }
+
       function buildManualAnalysisSnapshot() {
         const draft = typeof window.serializeLensFormSnapshot === "function"
           ? window.serializeLensFormSnapshot(form)
@@ -3345,6 +3277,7 @@
 
         preserveLegacyAssetValueAliases(draft);
         preserveLegacyOffsetAssetTreatmentValues(draft);
+        preserveLegacySurvivorPlanningValues(draft);
 
         return draft;
       }
@@ -3502,8 +3435,7 @@
         insuranceCostField,
         transportationCostField,
         travelDiscretionaryCostField,
-        subscriptionsCostField,
-        expenseReductionAtDeathField
+        subscriptionsCostField
       ].forEach((field) => {
         if (!field || field instanceof RadioNodeList) {
           return;
@@ -3511,18 +3443,12 @@
 
         field.addEventListener("input", () => {
           syncEstimatedHouseholdIncomeUse();
-          if (field !== expenseReductionAtDeathField && field !== utilitiesCostField) {
-          }
         });
         field.addEventListener("change", () => {
           syncEstimatedHouseholdIncomeUse();
-          if (field !== expenseReductionAtDeathField && field !== utilitiesCostField) {
-          }
         });
         field.addEventListener("blur", () => {
           syncEstimatedHouseholdIncomeUse();
-          if (field !== expenseReductionAtDeathField && field !== utilitiesCostField) {
-          }
         });
       });
 
@@ -3572,12 +3498,6 @@
           }
         });
       });
-
-      const survivorWorkingSelect = form.elements.namedItem("survivorContinuesWorking");
-      if (survivorWorkingSelect && !(survivorWorkingSelect instanceof RadioNodeList)) {
-        survivorWorkingSelect.addEventListener("change", syncSurvivorshipAdjustments);
-        survivorWorkingSelect.addEventListener("input", syncSurvivorshipAdjustments);
-      }
 
       if (hasDependentsField && !(hasDependentsField instanceof RadioNodeList)) {
         hasDependentsField.addEventListener("change", () => {
@@ -3759,7 +3679,6 @@
       syncMonthlyMortgagePaymentField();
       syncAllTaxDerivedFields();
       syncIncomeCalculationCurrencyFormatting();
-      syncSurvivorshipAdjustments();
       syncEstimatedHouseholdIncomeUse();
     })();
   </script>

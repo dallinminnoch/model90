@@ -585,6 +585,13 @@
       maxReliancePercent: 100,
       incomeOffsetYears: null
     }),
+    survivorScenario: Object.freeze({
+      survivorContinuesWorking: null,
+      expectedSurvivorWorkReductionPercent: null,
+      survivorIncomeStartDelayMonths: null,
+      survivorEarnedIncomeGrowthRatePercent: null,
+      survivorRetirementHorizonYears: null
+    }),
     supportTreatment: Object.freeze({
       includeEssentialSupport: true,
       includeDiscretionarySupport: false,
@@ -1069,6 +1076,21 @@
     );
   }
 
+  function normalizeSurvivorSupportBoolean(value, fallback) {
+    if (typeof value === "boolean") {
+      return value;
+    }
+
+    const normalizedValue = String(value ?? "").trim().toLowerCase();
+    if (normalizedValue === "yes" || normalizedValue === "true" || normalizedValue === "1") {
+      return true;
+    }
+    if (normalizedValue === "no" || normalizedValue === "false" || normalizedValue === "0") {
+      return false;
+    }
+    return fallback == null ? null : Boolean(fallback);
+  }
+
   function normalizeEducationPercent(value, fallback) {
     const number = Number(value);
     if (!Number.isFinite(number)) {
@@ -1161,6 +1183,19 @@
     }
 
     return Math.max(MIN_SURVIVOR_SUPPORT_YEARS, number);
+  }
+
+  function normalizeSurvivorSupportNonNegativeNumber(value, fallback) {
+    if (value === null || value === undefined || String(value).trim() === "") {
+      return fallback == null ? null : fallback;
+    }
+
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return fallback == null ? null : fallback;
+    }
+
+    return Math.max(0, number);
   }
 
   function normalizeEducationYears(value, fallback) {
@@ -1814,12 +1849,16 @@
     const savedSurvivorIncomeTreatment = isPlainObject(saved.survivorIncomeTreatment)
       ? saved.survivorIncomeTreatment
       : {};
+    const savedSurvivorScenario = isPlainObject(saved.survivorScenario)
+      ? saved.survivorScenario
+      : {};
     const savedSupportTreatment = isPlainObject(saved.supportTreatment)
       ? saved.supportTreatment
       : {};
     const savedRiskFlags = isPlainObject(saved.riskFlags)
       ? saved.riskFlags
       : {};
+    const defaultSurvivorScenario = getSurvivorSupportDefaultScenario(record);
     const nextAssumptions = {
       enabled: typeof saved.enabled === "boolean"
         ? saved.enabled
@@ -1842,6 +1881,28 @@
         incomeOffsetYears: normalizeSurvivorSupportYears(
           savedSurvivorIncomeTreatment.incomeOffsetYears,
           defaultSurvivorIncomeTreatment.incomeOffsetYears
+        )
+      },
+      survivorScenario: {
+        survivorContinuesWorking: normalizeSurvivorSupportBoolean(
+          savedSurvivorScenario.survivorContinuesWorking,
+          defaultSurvivorScenario.survivorContinuesWorking
+        ),
+        expectedSurvivorWorkReductionPercent: normalizeSurvivorSupportPercent(
+          savedSurvivorScenario.expectedSurvivorWorkReductionPercent,
+          defaultSurvivorScenario.expectedSurvivorWorkReductionPercent
+        ),
+        survivorIncomeStartDelayMonths: normalizeSurvivorSupportNonNegativeNumber(
+          savedSurvivorScenario.survivorIncomeStartDelayMonths,
+          defaultSurvivorScenario.survivorIncomeStartDelayMonths
+        ),
+        survivorEarnedIncomeGrowthRatePercent: normalizeSurvivorSupportPercent(
+          savedSurvivorScenario.survivorEarnedIncomeGrowthRatePercent,
+          defaultSurvivorScenario.survivorEarnedIncomeGrowthRatePercent
+        ),
+        survivorRetirementHorizonYears: normalizeSurvivorSupportNonNegativeNumber(
+          savedSurvivorScenario.survivorRetirementHorizonYears,
+          defaultSurvivorScenario.survivorRetirementHorizonYears
         )
       },
       supportTreatment: {
@@ -2866,6 +2927,11 @@
       return;
     }
 
+    if (field.tagName === "SELECT") {
+      field.value = value === true ? "true" : value === false ? "false" : "";
+      return;
+    }
+
     field.value = value === null || value === undefined
       ? ""
       : formatHaircutInputValue(value);
@@ -3115,11 +3181,31 @@
     return field ? Boolean(field.checked) : Boolean(fallback);
   }
 
+  function readSurvivorSupportDraftBooleanOrNull(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    return field
+      ? normalizeSurvivorSupportBoolean(field.value, null)
+      : normalizeSurvivorSupportBoolean(fallback, null);
+  }
+
   function readSurvivorSupportDraftPercent(fields, fieldPath, fallback) {
     const field = fields.values?.[fieldPath];
     const rawValue = String(field?.value || "").trim();
     const number = Number(rawValue);
     return rawValue && Number.isFinite(number)
+      ? normalizeSurvivorSupportPercent(number, fallback)
+      : fallback;
+  }
+
+  function readSurvivorSupportDraftOptionalPercent(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return null;
+    }
+
+    const number = Number(rawValue);
+    return Number.isFinite(number)
       ? normalizeSurvivorSupportPercent(number, fallback)
       : fallback;
   }
@@ -3132,10 +3218,20 @@
       : null;
   }
 
+  function readSurvivorSupportDraftNonNegativeNumber(fields, fieldPath, fallback) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    return rawValue
+      ? normalizeSurvivorSupportNonNegativeNumber(rawValue, fallback)
+      : null;
+  }
+
   function getSurvivorSupportDraftAssumptions(fields) {
     const current = getSurvivorSupportCurrentAssumptions(fields);
     const currentSurvivorIncomeTreatment = current.survivorIncomeTreatment
       || DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorIncomeTreatment;
+    const currentSurvivorScenario = current.survivorScenario
+      || DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorScenario;
     const currentSupportTreatment = current.supportTreatment
       || DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.supportTreatment;
     const currentRiskFlags = current.riskFlags
@@ -3168,6 +3264,33 @@
         incomeOffsetYears: normalizeSurvivorSupportYears(
           currentSurvivorIncomeTreatment.incomeOffsetYears,
           DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorIncomeTreatment.incomeOffsetYears
+        )
+      },
+      survivorScenario: {
+        survivorContinuesWorking: readSurvivorSupportDraftBooleanOrNull(
+          fields,
+          "survivorScenario.survivorContinuesWorking",
+          currentSurvivorScenario.survivorContinuesWorking
+        ),
+        expectedSurvivorWorkReductionPercent: readSurvivorSupportDraftOptionalPercent(
+          fields,
+          "survivorScenario.expectedSurvivorWorkReductionPercent",
+          currentSurvivorScenario.expectedSurvivorWorkReductionPercent
+        ),
+        survivorIncomeStartDelayMonths: readSurvivorSupportDraftNonNegativeNumber(
+          fields,
+          "survivorScenario.survivorIncomeStartDelayMonths",
+          currentSurvivorScenario.survivorIncomeStartDelayMonths
+        ),
+        survivorEarnedIncomeGrowthRatePercent: readSurvivorSupportDraftOptionalPercent(
+          fields,
+          "survivorScenario.survivorEarnedIncomeGrowthRatePercent",
+          currentSurvivorScenario.survivorEarnedIncomeGrowthRatePercent
+        ),
+        survivorRetirementHorizonYears: readSurvivorSupportDraftNonNegativeNumber(
+          fields,
+          "survivorScenario.survivorRetirementHorizonYears",
+          currentSurvivorScenario.survivorRetirementHorizonYears
         )
       },
       supportTreatment: {
@@ -3472,6 +3595,7 @@
       }
       if (sliders?.[fieldName]) {
         sliders[fieldName].value = formattedValue;
+        updateRateSliderProgress(sliders[fieldName]);
       }
     });
   }
@@ -3532,6 +3656,7 @@
       }
       if (sliders?.[fieldName]) {
         sliders[fieldName].value = formattedValue;
+        updateRateSliderProgress(sliders[fieldName]);
       }
     });
   }
@@ -3913,6 +4038,32 @@
     return parseOptionalNumberValue(getSurvivorSupportSourceRawValue(linkedRecord, sourceField));
   }
 
+  function getSurvivorSupportDefaultScenario(linkedRecord) {
+    const defaults = DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorScenario;
+    return {
+      survivorContinuesWorking: normalizeSurvivorSupportBoolean(
+        getSurvivorSupportSourceRawValue(linkedRecord, "survivorContinuesWorking"),
+        defaults.survivorContinuesWorking
+      ),
+      expectedSurvivorWorkReductionPercent: normalizeSurvivorSupportPercent(
+        getSurvivorSupportSourceRawValue(linkedRecord, "spouseExpectedWorkReductionAtDeath"),
+        defaults.expectedSurvivorWorkReductionPercent
+      ),
+      survivorIncomeStartDelayMonths: normalizeSurvivorSupportNonNegativeNumber(
+        getSurvivorSupportSourceRawValue(linkedRecord, "survivorIncomeStartDelayMonths"),
+        defaults.survivorIncomeStartDelayMonths
+      ),
+      survivorEarnedIncomeGrowthRatePercent: normalizeSurvivorSupportPercent(
+        getSurvivorSupportSourceRawValue(linkedRecord, "spouseIncomeGrowthRate"),
+        defaults.survivorEarnedIncomeGrowthRatePercent
+      ),
+      survivorRetirementHorizonYears: normalizeSurvivorSupportNonNegativeNumber(
+        getSurvivorSupportSourceRawValue(linkedRecord, "spouseYearsUntilRetirement"),
+        defaults.survivorRetirementHorizonYears
+      )
+    };
+  }
+
   function getEducationSourceRawValue(linkedRecord, sourceField) {
     const sourceData = getLinkedProtectionModelingData(linkedRecord);
     if (sourceField && Object.prototype.hasOwnProperty.call(sourceData, sourceField)) {
@@ -4111,7 +4262,8 @@
     fields.currentAssumptions = assumptions;
 
     const survivorNetIncome = getSurvivorSupportMoneySourceValue(linkedRecord, "survivorNetAnnualIncome");
-    const startDelayMonths = getSurvivorSupportNumberSourceValue(linkedRecord, "survivorIncomeStartDelayMonths");
+    const startDelayMonths = assumptions.survivorScenario?.survivorIncomeStartDelayMonths
+      ?? getSurvivorSupportNumberSourceValue(linkedRecord, "survivorIncomeStartDelayMonths");
     const supportDurationYears = assumptions.supportTreatment?.supportDurationYears;
     const discretionaryIncluded = Boolean(assumptions.supportTreatment?.includeDiscretionarySupport);
 
@@ -4376,6 +4528,31 @@
       fields,
       "survivorIncomeTreatment.maxReliancePercent",
       assumptions.survivorIncomeTreatment.maxReliancePercent
+    );
+    setSurvivorSupportValue(
+      fields,
+      "survivorScenario.survivorContinuesWorking",
+      assumptions.survivorScenario.survivorContinuesWorking
+    );
+    setSurvivorSupportValue(
+      fields,
+      "survivorScenario.expectedSurvivorWorkReductionPercent",
+      assumptions.survivorScenario.expectedSurvivorWorkReductionPercent
+    );
+    setSurvivorSupportValue(
+      fields,
+      "survivorScenario.survivorIncomeStartDelayMonths",
+      assumptions.survivorScenario.survivorIncomeStartDelayMonths
+    );
+    setSurvivorSupportValue(
+      fields,
+      "survivorScenario.survivorEarnedIncomeGrowthRatePercent",
+      assumptions.survivorScenario.survivorEarnedIncomeGrowthRatePercent
+    );
+    setSurvivorSupportValue(
+      fields,
+      "survivorScenario.survivorRetirementHorizonYears",
+      assumptions.survivorScenario.survivorRetirementHorizonYears
     );
     setSurvivorSupportChecked(
       fields,
@@ -4709,6 +4886,7 @@
     const clampedValue = clampRateValue(number);
     const formattedValue = formatRateInputValue(clampedValue);
     slider.value = formattedValue;
+    updateRateSliderProgress(slider);
 
     if (shouldFormat || clampedValue !== number) {
       field.value = formattedValue;
@@ -4731,6 +4909,7 @@
 
     slider.value = formattedValue;
     field.value = formattedValue;
+    updateRateSliderProgress(slider);
   }
 
   function syncGrowthSliderFromNumber(fields, sliders, fieldName, shouldFormat) {
@@ -4750,6 +4929,7 @@
     const clampedValue = clampGrowthRateValue(number);
     const formattedValue = formatRateInputValue(clampedValue);
     slider.value = formattedValue;
+    updateRateSliderProgress(slider);
 
     if (shouldFormat || clampedValue !== number) {
       field.value = formattedValue;
@@ -4772,6 +4952,25 @@
 
     slider.value = formattedValue;
     field.value = formattedValue;
+    updateRateSliderProgress(slider);
+  }
+
+  function updateRateSliderProgress(slider) {
+    if (!slider) {
+      return;
+    }
+
+    const min = Number(slider.min || 0);
+    const max = Number(slider.max || 100);
+    const value = Number(slider.value);
+    if (!Number.isFinite(min) || !Number.isFinite(max) || !Number.isFinite(value) || max <= min) {
+      slider.style.setProperty("--analysis-setup-slider-progress", "0%");
+      return;
+    }
+
+    const clampedValue = Math.min(Math.max(value, min), max);
+    const progressPercent = ((clampedValue - min) / (max - min)) * 100;
+    slider.style.setProperty("--analysis-setup-slider-progress", `${progressPercent}%`);
   }
 
   function applyAssetTreatmentPreset(fields, itemKey, linkedRecord) {
@@ -5796,6 +5995,31 @@
     };
   }
 
+  function readOptionalSurvivorSupportPercent(fields, fieldPath, label) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return { value: null };
+    }
+
+    const number = Number(rawValue);
+    if (!Number.isFinite(number)) {
+      return {
+        error: `${label} must be a numeric percentage.`
+      };
+    }
+
+    if (number < MIN_SURVIVOR_SUPPORT_PERCENT || number > MAX_SURVIVOR_SUPPORT_PERCENT) {
+      return {
+        error: `${label} must be between ${MIN_SURVIVOR_SUPPORT_PERCENT}% and ${MAX_SURVIVOR_SUPPORT_PERCENT}%.`
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
   function readOptionalSurvivorSupportYears(fields, fieldPath, label) {
     const field = fields.values?.[fieldPath];
     const rawValue = String(field?.value || "").trim();
@@ -5821,6 +6045,31 @@
     };
   }
 
+  function readOptionalSurvivorSupportNonNegativeNumber(fields, fieldPath, label) {
+    const field = fields.values?.[fieldPath];
+    const rawValue = String(field?.value || "").trim();
+    if (!rawValue) {
+      return { value: null };
+    }
+
+    const number = Number(rawValue);
+    if (!Number.isFinite(number)) {
+      return {
+        error: `${label} must be a numeric value.`
+      };
+    }
+
+    if (number < 0) {
+      return {
+        error: `${label} must be 0 or greater.`
+      };
+    }
+
+    return {
+      value: Number(number.toFixed(2))
+    };
+  }
+
   function readValidatedSurvivorSupportAssumptions(fields) {
     const defaultProfile = getSurvivorSupportDefaultProfile(fields);
     if (!SURVIVOR_SUPPORT_PROFILE_KEYS.includes(defaultProfile)) {
@@ -5836,6 +6085,42 @@
     );
     if (maxReliance.error) {
       return maxReliance;
+    }
+
+    const workReduction = readOptionalSurvivorSupportPercent(
+      fields,
+      "survivorScenario.expectedSurvivorWorkReductionPercent",
+      "Expected survivor work reduction"
+    );
+    if (workReduction.error) {
+      return workReduction;
+    }
+
+    const startDelay = readOptionalSurvivorSupportNonNegativeNumber(
+      fields,
+      "survivorScenario.survivorIncomeStartDelayMonths",
+      "Survivor income start delay"
+    );
+    if (startDelay.error) {
+      return startDelay;
+    }
+
+    const incomeGrowth = readOptionalSurvivorSupportPercent(
+      fields,
+      "survivorScenario.survivorEarnedIncomeGrowthRatePercent",
+      "Survivor income growth"
+    );
+    if (incomeGrowth.error) {
+      return incomeGrowth;
+    }
+
+    const incomeHorizon = readOptionalSurvivorSupportNonNegativeNumber(
+      fields,
+      "survivorScenario.survivorRetirementHorizonYears",
+      "Survivor income horizon"
+    );
+    if (incomeHorizon.error) {
+      return incomeHorizon;
     }
 
     const supportDuration = readOptionalSurvivorSupportYears(
@@ -5882,6 +6167,17 @@
             current.survivorIncomeTreatment.incomeOffsetYears,
             DEFAULT_SURVIVOR_SUPPORT_ASSUMPTIONS.survivorIncomeTreatment.incomeOffsetYears
           )
+        },
+        survivorScenario: {
+          survivorContinuesWorking: readSurvivorSupportDraftBooleanOrNull(
+            fields,
+            "survivorScenario.survivorContinuesWorking",
+            current.survivorScenario.survivorContinuesWorking
+          ),
+          expectedSurvivorWorkReductionPercent: workReduction.value,
+          survivorIncomeStartDelayMonths: startDelay.value,
+          survivorEarnedIncomeGrowthRatePercent: incomeGrowth.value,
+          survivorRetirementHorizonYears: incomeHorizon.value
         },
         supportTreatment: {
           includeEssentialSupport: readSurvivorSupportDraftBoolean(
@@ -6475,13 +6771,20 @@
     if (shouldSaveSurvivorSupport) {
       [
         "survivorIncomeTreatment.maxReliancePercent",
+        "survivorScenario.expectedSurvivorWorkReductionPercent",
+        "survivorScenario.survivorIncomeStartDelayMonths",
+        "survivorScenario.survivorEarnedIncomeGrowthRatePercent",
+        "survivorScenario.survivorRetirementHorizonYears",
         "supportTreatment.supportDurationYears",
         "riskFlags.highRelianceThresholdPercent"
       ].forEach(function (fieldPath) {
         const field = survivorSupportFields.values[fieldPath];
         const rawValue = String(field?.value || "").trim();
         const number = Number(rawValue);
-        const isPercentField = fieldPath !== "supportTreatment.supportDurationYears";
+        const isPercentField = fieldPath === "survivorIncomeTreatment.maxReliancePercent"
+          || fieldPath === "survivorScenario.expectedSurvivorWorkReductionPercent"
+          || fieldPath === "survivorScenario.survivorEarnedIncomeGrowthRatePercent"
+          || fieldPath === "riskFlags.highRelianceThresholdPercent";
         const isValid = field
           && rawValue
           && Number.isFinite(number)
@@ -7167,7 +7470,11 @@
       };
 
       field.addEventListener("input", function () {
-        if (fieldPath === "supportTreatment.supportDurationYears") {
+        if (
+          fieldPath === "supportTreatment.supportDurationYears"
+          || fieldPath === "survivorScenario.survivorIncomeStartDelayMonths"
+          || fieldPath === "survivorScenario.survivorRetirementHorizonYears"
+        ) {
           const sanitizedValue = sanitizeNumericTextValue(field.value);
           if (field.value !== sanitizedValue) {
             field.value = sanitizedValue;
@@ -7180,11 +7487,16 @@
         const rawValue = String(field.value || "").trim();
         const number = Number(rawValue);
         const isPercentField = fieldPath === "survivorIncomeTreatment.maxReliancePercent"
+          || fieldPath === "survivorScenario.expectedSurvivorWorkReductionPercent"
+          || fieldPath === "survivorScenario.survivorEarnedIncomeGrowthRatePercent"
           || fieldPath === "riskFlags.highRelianceThresholdPercent";
-        const isOptionalYearsField = fieldPath === "supportTreatment.supportDurationYears";
+        const isOptionalYearsField = fieldPath === "supportTreatment.supportDurationYears"
+          || fieldPath === "survivorScenario.survivorIncomeStartDelayMonths"
+          || fieldPath === "survivorScenario.survivorRetirementHorizonYears";
 
         if (
           field.type !== "checkbox"
+          && field.tagName !== "SELECT"
           && rawValue
           && Number.isFinite(number)
           && number >= MIN_SURVIVOR_SUPPORT_YEARS

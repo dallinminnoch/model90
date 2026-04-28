@@ -863,61 +863,6 @@
             </div>
           </section>
 
-          <section class="profile-form-section">
-            <div class="profile-form-section-heading">
-              <h2>Survivorship Adjustments</h2>
-            </div>
-            <div class="form-grid">
-              <div class="field-group">
-                <label for="survivor-continues-working">Survivor Continues / Begins Working?</label>
-                <select id="survivor-continues-working" name="survivorContinuesWorking">
-                  <option value="">Please select</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </div>
-              <div class="field-group">
-                <label for="spouse-expected-work-reduction-at-death">Expected Survivor Work Reduction at Death</label>
-                <div class="profile-currency-field">
-                  <input id="spouse-expected-work-reduction-at-death" class="profile-small-number-field" name="spouseExpectedWorkReductionAtDeath" type="number" min="0" max="100" step="1" disabled>
-                  <span class="profile-currency-suffix">%</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="survivor-income">Estimated Survivor Gross Annual Income</label>
-                <div class="profile-currency-field">
-                  <input id="survivor-income" name="survivorIncome" type="number" min="0" step="1000" disabled>
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="survivor-net-annual-income">Estimated Survivor Net Annual Income</label>
-                <div class="profile-currency-field">
-                  <input id="survivor-net-annual-income" name="survivorNetAnnualIncome" type="number" min="0" step="1000" disabled>
-                  <span class="profile-currency-suffix">USD</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="survivor-income-start-delay-months">Survivor Income Start Delay</label>
-                <div class="profile-inline-unit-field">
-                  <input id="survivor-income-start-delay-months" class="profile-small-number-field" name="survivorIncomeStartDelayMonths" type="number" min="0" max="120" step="1" disabled>
-                  <span class="profile-inline-unit">Months</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="spouse-income-growth-rate">Survivor Income Growth Rate</label>
-                <div class="profile-currency-field">
-                  <input id="spouse-income-growth-rate" class="profile-small-number-field" name="spouseIncomeGrowthRate" type="number" min="0" max="25" step="0.1" disabled>
-                  <span class="profile-currency-suffix">%</span>
-                </div>
-              </div>
-              <div class="field-group">
-                <label for="spouse-years-until-retirement">Survivor Years Until Retirement</label>
-                <input id="spouse-years-until-retirement" class="profile-small-number-field" name="spouseYearsUntilRetirement" type="number" min="0" max="80" step="1" disabled>
-              </div>
-            </div>
-          </section>
-
           <div class="actions-row">
             <button class="btn btn-secondary pmi-save-exit-button" type="button" data-pmi-save-exit>Save and Exit</button>
           </div>
@@ -985,7 +930,6 @@
   <script src="../app/features/lens-analysis/helpers/housing-support-calculations.js"></script>
   <script src="../app/features/lens-analysis/blocks/existing-coverage.js"></script>
   <script src="../app/features/lens-analysis/blocks/offset-assets.js"></script>
-  <script src="../app/features/lens-analysis/blocks/survivor-scenario.js"></script>
   <script src="../app/features/lens-analysis/blocks/tax-context.js"></script>
   <script src="../app/features/lens-analysis/blocks/income-net-income.js"></script>
   <script src="../app/features/lens-analysis/blocks/debt-payoff.js"></script>
@@ -1543,13 +1487,6 @@
       const spousePayrollTaxesField = form.elements.namedItem("spousePayrollTaxes");
       const netAnnualIncomeField = form.elements.namedItem("netAnnualIncome");
       const spouseNetAnnualIncomeField = form.elements.namedItem("spouseNetAnnualIncome");
-      const survivorContinuesWorkingField = form.elements.namedItem("survivorContinuesWorking");
-      const survivorIncomeField = form.elements.namedItem("survivorIncome");
-      const survivorNetAnnualIncomeField = form.elements.namedItem("survivorNetAnnualIncome");
-      const survivorIncomeStartDelayMonthsField = form.elements.namedItem("survivorIncomeStartDelayMonths");
-      const spouseIncomeGrowthRateField = form.elements.namedItem("spouseIncomeGrowthRate");
-      const spouseYearsUntilRetirementField = form.elements.namedItem("spouseYearsUntilRetirement");
-      const spouseExpectedWorkReductionAtDeathField = form.elements.namedItem("spouseExpectedWorkReductionAtDeath");
       const primaryNetIncomeAction = form.querySelector('[data-net-income-action="primary"]');
       const spouseNetIncomeAction = form.querySelector('[data-net-income-action="spouse"]');
       const mortgagePaymentOnlyField = form.elements.namedItem("monthlyMortgagePaymentOnly");
@@ -1746,11 +1683,6 @@
           }
         }
       ];
-      // PMI currently uses Qualifying Surviving Spouse as the default survivor
-      // net-income tax basis for autofill. Future advanced planning may expose
-      // a filing-status override.
-      const survivorNetIncomeDefaultFilingStatus = "Qualifying Surviving Spouse";
-
       if (urlLinkedCaseRef) {
         window.setLensLinkedCaseRef?.(urlLinkedCaseRef);
       }
@@ -1909,6 +1841,17 @@
         realEstateEquity: "primaryResidenceEquity",
         businessValue: "businessPrivateCompanyValue"
       });
+      const LEGACY_SURVIVOR_SCENARIO_FIELD_NAMES = Object.freeze([
+        "survivorContinuesWorking",
+        "spouseExpectedWorkReductionAtDeath",
+        "survivorIncome",
+        "survivorIncomeManualOverride",
+        "survivorNetAnnualIncome",
+        "survivorNetAnnualIncomeManualOverride",
+        "survivorIncomeStartDelayMonths",
+        "spouseIncomeGrowthRate",
+        "spouseYearsUntilRetirement"
+      ]);
 
       function getAssetValueFieldAlias(name) {
         return ASSET_VALUE_FIELD_ALIASES[name] || null;
@@ -2052,6 +1995,27 @@
         }
 
         getLegacyOffsetAssetTreatmentFieldNames().forEach((fieldName) => {
+          if (Object.prototype.hasOwnProperty.call(draft, fieldName)) {
+            return;
+          }
+
+          if (!Object.prototype.hasOwnProperty.call(linkedProtectionModelingData, fieldName)) {
+            return;
+          }
+
+          draft[fieldName] = linkedProtectionModelingData[fieldName];
+        });
+
+        return draft;
+      }
+
+      function preserveLegacySurvivorScenarioValues(draft) {
+        const linkedProtectionModelingData = getLinkedProtectionModelingData();
+        if (!linkedProtectionModelingData || typeof linkedProtectionModelingData !== "object") {
+          return draft;
+        }
+
+        LEGACY_SURVIVOR_SCENARIO_FIELD_NAMES.forEach((fieldName) => {
           if (Object.prototype.hasOwnProperty.call(draft, fieldName)) {
             return;
           }
@@ -2655,22 +2619,6 @@
           profileRecord: createSharedPmiTaxProfileContext(),
           taxConfig: createSharedPmiTaxConfig()
         });
-      }
-
-      function calculateSharedSurvivorNetAnnualIncome(grossIncome) {
-        if (grossIncome == null || typeof sharedIncomeTaxCalculations.calculateSurvivorNetIncome !== "function") {
-          return null;
-        }
-
-        const result = sharedIncomeTaxCalculations.calculateSurvivorNetIncome({
-          sourceData: createSharedPmiTaxSourceData(),
-          profileRecord: createSharedPmiTaxProfileContext(),
-          grossIncome,
-          filingStatus: survivorNetIncomeDefaultFilingStatus,
-          taxConfig: createSharedPmiTaxConfig()
-        });
-
-        return result?.netAnnualIncome ?? null;
       }
 
       function normalizeMaintenanceConfigRow(row) {
@@ -3410,166 +3358,6 @@
         syncNetIncomeBlockOutput(primaryGrossIncome, spouseGrossIncome);
       }
 
-      function clearSurvivorScenarioSuggestionState(field) {
-        if (!field || field instanceof RadioNodeList) {
-          return;
-        }
-
-        delete field.dataset.userEdited;
-        delete field.dataset.suggestedValue;
-        field.closest(".profile-currency-field")?.classList.remove("is-recommended");
-      }
-
-      function markSurvivorScenarioFieldUserEdited(field) {
-        if (!field || field instanceof RadioNodeList) {
-          return;
-        }
-
-        if (String(field.value || "").trim() === "") {
-          clearSurvivorScenarioSuggestionState(field);
-          return;
-        }
-
-        const currentValue = parseOptionalCurrencyLikeNumber(field.value);
-        const existingSuggestedValue = parseOptionalCurrencyLikeNumber(field.dataset.suggestedValue);
-        if (currentValue != null && existingSuggestedValue != null && Math.abs(currentValue - existingSuggestedValue) <= 0.5) {
-          return;
-        }
-
-        field.dataset.userEdited = "true";
-        field.closest(".profile-currency-field")?.classList.remove("is-recommended");
-      }
-
-      function applySurvivorScenarioSuggestion(field, suggestedAmount) {
-        if (!field || field instanceof RadioNodeList) {
-          return;
-        }
-
-        const shell = field.closest(".profile-currency-field");
-        const currentRawValue = String(field.value || "").trim();
-        const currentValue = parseOptionalCurrencyLikeNumber(currentRawValue);
-        const previousSuggestedValue = parseOptionalCurrencyLikeNumber(field.dataset.suggestedValue);
-        const hasCurrentValue = currentRawValue !== "";
-
-        if (!hasCurrentValue) {
-          delete field.dataset.userEdited;
-        }
-
-        if (!Number.isFinite(suggestedAmount) || suggestedAmount < 0) {
-          shell?.classList.remove("is-recommended");
-          if (field.dataset.userEdited !== "true" && previousSuggestedValue != null) {
-            field.value = "";
-          }
-          if (!hasCurrentValue || field.dataset.userEdited !== "true") {
-            delete field.dataset.suggestedValue;
-          }
-          return;
-        }
-
-        const roundedSuggestion = Math.round(suggestedAmount);
-
-        if (field.dataset.userEdited === "true") {
-          shell?.classList.remove("is-recommended");
-          return;
-        }
-
-        if (hasCurrentValue && previousSuggestedValue != null && currentValue != null && Math.abs(currentValue - previousSuggestedValue) > 0.5) {
-          markSurvivorScenarioFieldUserEdited(field);
-          return;
-        }
-
-        if (hasCurrentValue && previousSuggestedValue == null) {
-          if (currentValue != null && Math.abs(currentValue - roundedSuggestion) <= 0.5) {
-            field.dataset.suggestedValue = String(roundedSuggestion);
-            shell?.classList.add("is-recommended");
-            return;
-          }
-          markSurvivorScenarioFieldUserEdited(field);
-          return;
-        }
-
-        field.value = String(roundedSuggestion);
-        field.dataset.suggestedValue = String(roundedSuggestion);
-        shell?.classList.add("is-recommended");
-      }
-
-      function isSurvivorContinuesWorkingYes() {
-        const survivorWorkingSelect = form.elements.namedItem("survivorContinuesWorking");
-        return survivorWorkingSelect
-          && !(survivorWorkingSelect instanceof RadioNodeList)
-          && String(survivorWorkingSelect.value || "").trim().toLowerCase() === "yes";
-      }
-
-      function getSuggestedSurvivorGrossAnnualIncome() {
-        if (!isSurvivorContinuesWorkingYes()) {
-          return null;
-        }
-
-        const spouseGrossIncome = parseOptionalCurrencyLikeNumber(spouseIncomeField?.value);
-        if (spouseGrossIncome == null) {
-          return null;
-        }
-
-        const rawReduction = parseOptionalCurrencyLikeNumber(spouseExpectedWorkReductionAtDeathField?.value);
-        const reductionPercent = Math.min(100, Math.max(0, rawReduction == null ? 0 : rawReduction));
-        return Math.max(0, spouseGrossIncome * (1 - (reductionPercent / 100)));
-      }
-
-      function calculateSurvivorNetAnnualIncome(grossIncome) {
-        return calculateSharedSurvivorNetAnnualIncome(grossIncome);
-      }
-
-      function syncSurvivorIncomeScenarioFields() {
-        if (!isSurvivorContinuesWorkingYes()) {
-          clearSurvivorScenarioSuggestionState(survivorIncomeField);
-          clearSurvivorScenarioSuggestionState(survivorNetAnnualIncomeField);
-          return;
-        }
-
-        applySurvivorScenarioSuggestion(survivorIncomeField, getSuggestedSurvivorGrossAnnualIncome());
-
-        const survivorGrossIncome = parseOptionalCurrencyLikeNumber(survivorIncomeField?.value);
-        applySurvivorScenarioSuggestion(
-          survivorNetAnnualIncomeField,
-          calculateSurvivorNetAnnualIncome(survivorGrossIncome)
-        );
-      }
-
-      function isSurvivorScenarioManualOverride(field) {
-        return Boolean(
-          field
-          && !(field instanceof RadioNodeList)
-          && field.dataset.userEdited === "true"
-        );
-      }
-
-      function syncSurvivorScenarioBlockOutput() {
-        const createSurvivorScenarioBlockOutput = window.LensApp?.lensAnalysis?.createSurvivorScenarioBlockOutput;
-        const upsertRuntimeBlockOutput = window.LensApp?.lensAnalysis?.upsertRuntimeBlockOutput;
-        const refreshLensIncomeDebugPanel = window.LensApp?.lensAnalysisDev?.refreshLensIncomeDebugPanel;
-        if (typeof createSurvivorScenarioBlockOutput !== "function" || typeof upsertRuntimeBlockOutput !== "function") {
-          return;
-        }
-
-        const runtimeNamespace = window.LensApp.lensAnalysisRuntime || (window.LensApp.lensAnalysisRuntime = {});
-        const blockOutput = createSurvivorScenarioBlockOutput({
-          survivorContinuesWorking: getLensBlockSourceFieldValue(survivorContinuesWorkingField),
-          spouseExpectedWorkReductionAtDeath: getLensBlockSourceFieldValue(spouseExpectedWorkReductionAtDeathField),
-          survivorIncome: getLensBlockSourceFieldValue(survivorIncomeField),
-          survivorIncomeManualOverride: isSurvivorScenarioManualOverride(survivorIncomeField),
-          survivorNetAnnualIncome: getLensBlockSourceFieldValue(survivorNetAnnualIncomeField),
-          survivorNetAnnualIncomeManualOverride: isSurvivorScenarioManualOverride(survivorNetAnnualIncomeField),
-          survivorIncomeStartDelayMonths: getLensBlockSourceFieldValue(survivorIncomeStartDelayMonthsField),
-          spouseIncomeGrowthRate: getLensBlockSourceFieldValue(spouseIncomeGrowthRateField),
-          spouseYearsUntilRetirement: getLensBlockSourceFieldValue(spouseYearsUntilRetirementField),
-          survivorNetIncomeTaxBasis: survivorNetIncomeDefaultFilingStatus
-        });
-        upsertRuntimeBlockOutput(runtimeNamespace, blockOutput);
-        if (typeof refreshLensIncomeDebugPanel === "function") {
-          refreshLensIncomeDebugPanel(runtimeNamespace);
-        }
-      }
-
       function syncTaxContextBlockOutput() {
         const createTaxContextBlockOutput = window.LensApp?.lensAnalysis?.createTaxContextBlockOutput;
         const upsertRuntimeBlockOutput = window.LensApp?.lensAnalysis?.upsertRuntimeBlockOutput;
@@ -3594,11 +3382,6 @@
         if (typeof refreshLensIncomeDebugPanel === "function") {
           refreshLensIncomeDebugPanel(runtimeNamespace);
         }
-      }
-
-      function syncSurvivorIncomeScenarioState() {
-        syncSurvivorIncomeScenarioFields();
-        syncSurvivorScenarioBlockOutput();
       }
 
       function syncNetIncomeBlockOutput(primaryGrossIncome, spouseGrossIncome) {
@@ -4224,7 +4007,6 @@
         syncSpouseStateTaxBracketSelection();
         syncPayrollTaxFields();
         syncNetAnnualIncomeFields();
-        syncSurvivorIncomeScenarioState();
         syncTaxContextBlockOutput();
       }
 
@@ -4260,42 +4042,6 @@
         if (String(clampedValue) !== String(costToFundPercentField.value)) {
           costToFundPercentField.value = String(clampedValue);
         }
-      }
-
-      function syncSurvivorshipAdjustments() {
-        const survivorWorkingSelect = form.elements.namedItem("survivorContinuesWorking");
-        if (!survivorWorkingSelect || survivorWorkingSelect instanceof RadioNodeList) {
-          return;
-        }
-
-        const shouldEnable = String(survivorWorkingSelect.value || "").trim().toLowerCase() === "yes";
-        const dependentNames = [
-          "survivorIncome",
-          "survivorNetAnnualIncome",
-          "spouseIncomeGrowthRate",
-          "spouseYearsUntilRetirement",
-          "survivorIncomeStartDelayMonths",
-          "spouseExpectedWorkReductionAtDeath"
-        ];
-
-        dependentNames.forEach((name) => {
-          const field = form.elements.namedItem(name);
-          if (!field || field instanceof RadioNodeList) {
-            return;
-          }
-
-          const fieldGroup = field.closest?.(".field-group");
-          field.disabled = !shouldEnable;
-
-          if (!shouldEnable) {
-            field.value = "";
-            if (field === survivorIncomeField || field === survivorNetAnnualIncomeField) {
-              clearSurvivorScenarioSuggestionState(field);
-            }
-          }
-
-          fieldGroup?.classList.toggle("is-disabled", !shouldEnable);
-        });
       }
 
       function shouldSkipRestoredImmediateLiquidityBufferValue(name, value) {
@@ -4425,22 +4171,6 @@
             }
             setNetIncomeActionLabel(totalDebtPayoffNeedField, totalDebtPayoffNeedAction);
           }
-          if (survivorIncomeField && !(survivorIncomeField instanceof RadioNodeList)) {
-            if (saved.survivorIncomeManualOverride) {
-              survivorIncomeField.dataset.userEdited = "true";
-              survivorIncomeField.closest(".profile-currency-field")?.classList.remove("is-recommended");
-            } else {
-              clearSurvivorScenarioSuggestionState(survivorIncomeField);
-            }
-          }
-          if (survivorNetAnnualIncomeField && !(survivorNetAnnualIncomeField instanceof RadioNodeList)) {
-            if (saved.survivorNetAnnualIncomeManualOverride) {
-              survivorNetAnnualIncomeField.dataset.userEdited = "true";
-              survivorNetAnnualIncomeField.closest(".profile-currency-field")?.classList.remove("is-recommended");
-            } else {
-              clearSurvivorScenarioSuggestionState(survivorNetAnnualIncomeField);
-            }
-          }
           clampCostToFundPercent();
           syncSameEducationFundingToggleFromField();
           syncLinkedMaritalStatus();
@@ -4521,20 +4251,13 @@
           draft.totalDebtPayoffNeedManualOverride = true;
         }
 
-        if (isSurvivorScenarioManualOverride(survivorIncomeField) && String(survivorIncomeField.value || "").trim() !== "") {
-          draft.survivorIncomeManualOverride = true;
-        }
-
-        if (isSurvivorScenarioManualOverride(survivorNetAnnualIncomeField) && String(survivorNetAnnualIncomeField.value || "").trim() !== "") {
-          draft.survivorNetAnnualIncomeManualOverride = true;
-        }
-
         if (pmiAssetRecordsController && typeof pmiAssetRecordsController.serializeAssetRecords === "function") {
           draft.assetRecords = pmiAssetRecordsController.serializeAssetRecords();
         }
 
         preserveLegacyAssetValueAliases(draft);
         preserveLegacyOffsetAssetTreatmentValues(draft);
+        preserveLegacySurvivorScenarioValues(draft);
 
         return draft;
       }
@@ -4827,56 +4550,6 @@
         });
       });
 
-      const survivorWorkingSelect = form.elements.namedItem("survivorContinuesWorking");
-      if (survivorWorkingSelect && !(survivorWorkingSelect instanceof RadioNodeList)) {
-        const syncSurvivorWorkingState = () => {
-          syncSurvivorshipAdjustments();
-          syncSurvivorIncomeScenarioState();
-        };
-        survivorWorkingSelect.addEventListener("change", syncSurvivorWorkingState);
-        survivorWorkingSelect.addEventListener("input", syncSurvivorWorkingState);
-      }
-
-      if (spouseExpectedWorkReductionAtDeathField && !(spouseExpectedWorkReductionAtDeathField instanceof RadioNodeList)) {
-        spouseExpectedWorkReductionAtDeathField.addEventListener("input", syncSurvivorIncomeScenarioState);
-        spouseExpectedWorkReductionAtDeathField.addEventListener("change", syncSurvivorIncomeScenarioState);
-        spouseExpectedWorkReductionAtDeathField.addEventListener("blur", syncSurvivorIncomeScenarioState);
-      }
-
-      if (survivorIncomeField && !(survivorIncomeField instanceof RadioNodeList)) {
-        const syncSurvivorGrossManualState = () => {
-          markSurvivorScenarioFieldUserEdited(survivorIncomeField);
-          syncSurvivorIncomeScenarioState();
-        };
-        survivorIncomeField.addEventListener("input", syncSurvivorGrossManualState);
-        survivorIncomeField.addEventListener("change", syncSurvivorGrossManualState);
-        survivorIncomeField.addEventListener("blur", syncSurvivorGrossManualState);
-      }
-
-      if (survivorNetAnnualIncomeField && !(survivorNetAnnualIncomeField instanceof RadioNodeList)) {
-        const syncSurvivorNetManualState = () => {
-          markSurvivorScenarioFieldUserEdited(survivorNetAnnualIncomeField);
-          syncSurvivorIncomeScenarioState();
-        };
-        survivorNetAnnualIncomeField.addEventListener("input", syncSurvivorNetManualState);
-        survivorNetAnnualIncomeField.addEventListener("change", syncSurvivorNetManualState);
-        survivorNetAnnualIncomeField.addEventListener("blur", syncSurvivorNetManualState);
-      }
-
-      [
-        survivorIncomeStartDelayMonthsField,
-        spouseIncomeGrowthRateField,
-        spouseYearsUntilRetirementField
-      ].forEach((field) => {
-        if (!field || field instanceof RadioNodeList) {
-          return;
-        }
-
-        field.addEventListener("input", syncSurvivorScenarioBlockOutput);
-        field.addEventListener("change", syncSurvivorScenarioBlockOutput);
-        field.addEventListener("blur", syncSurvivorScenarioBlockOutput);
-      });
-
       if (filingStatusField && !(filingStatusField instanceof RadioNodeList)) {
         const syncFederalBracketState = () => {
           syncIncomeCalculationSpouseFields();
@@ -5062,8 +4735,6 @@
       syncFinalExpensesBlockOutput();
       syncAllTaxDerivedFields();
       syncIncomeCalculationCurrencyFormatting();
-      syncSurvivorshipAdjustments();
-      syncSurvivorIncomeScenarioState();
       syncDebtPayoffBlockOutput();
       syncNonHousingOngoingSupportBlockOutput();
       syncTransitionNeedsBlockOutput();
