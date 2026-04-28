@@ -366,6 +366,7 @@
       hasDependentsField,
       dependentsCountField,
       dependentAgesField,
+      dependentDetailsField,
       dependentList,
       addDependentButton,
       projectedDependentsField,
@@ -375,6 +376,7 @@
       acquisitionSourceField,
       acquisitionSourceOtherField
     } = elements || {};
+    let dependentEntryIdSeed = 0;
 
     function syncSpouseAge() {
       if (!spouseAgeField) {
@@ -437,6 +439,7 @@
           hasDependentsField,
           dependentsCountField,
           dependentAgesField,
+          dependentDetailsField,
           projectedDependentsField,
           projectedDependentsCountField
         ].forEach(function (field) {
@@ -474,23 +477,73 @@
       });
     }
 
-    function getDependentAgeValues() {
+    function createDependentEntryId() {
+      dependentEntryIdSeed += 1;
+      return `dep-${Date.now()}-${dependentEntryIdSeed}`;
+    }
+
+    function getDependentEntries() {
       if (!dependentList) {
         return [];
       }
 
-      return Array.from(dependentList.querySelectorAll("[data-dependent-age-input]"))
-        .map(function (input) {
-          return String(input.value || "").trim();
-        });
+      return Array.from(dependentList.querySelectorAll("[data-dependent-entry]"));
+    }
+
+    function syncDependentAgeFromBirthDate(entry) {
+      const birthDateInput = entry?.querySelector("[data-dependent-date-of-birth-input]");
+      const ageField = entry?.querySelector("[data-dependent-age-field]");
+      if (!ageField) {
+        return;
+      }
+
+      const birthDateValue = String(birthDateInput?.value || "").trim();
+      ageField.value = birthDateValue ? String(calculateAgeFromDate(birthDateValue)) : "";
+    }
+
+    function getDependentDetailFromEntry(entry) {
+      const birthDateInput = entry?.querySelector("[data-dependent-date-of-birth-input]");
+      const ageField = entry?.querySelector("[data-dependent-age-field]");
+      const dateOfBirth = String(birthDateInput?.value || "").trim();
+      const ageText = dateOfBirth
+        ? String(calculateAgeFromDate(dateOfBirth))
+        : String(ageField?.value || "").trim();
+
+      if (dateOfBirth && ageField) {
+        ageField.value = ageText;
+      }
+
+      return normalizeDependentDetailInput({
+        id: entry?.dataset.dependentId || "",
+        dateOfBirth,
+        age: ageText
+      });
+    }
+
+    function getDependentDetails() {
+      return getDependentEntries().map(getDependentDetailFromEntry);
+    }
+
+    function getDependentAgeValues() {
+      return getDependentDetails().map(function (detail) {
+        return detail.ageText;
+      });
     }
 
     function syncDependentHiddenFields() {
+      const dependentDetails = getDependentDetails();
       if (dependentsCountField) {
-        dependentsCountField.value = String(getDependentAgeValues().length);
+        dependentsCountField.value = String(dependentDetails.length);
       }
       if (dependentAgesField) {
-        dependentAgesField.value = getDependentAgeValues().join(", ");
+        dependentAgesField.value = dependentDetails.map(function (detail) {
+          return detail.ageText;
+        }).join(", ");
+      }
+      if (dependentDetailsField) {
+        dependentDetailsField.value = dependentDetails.length
+          ? JSON.stringify(dependentDetails.map(toSavedDependentDetail))
+          : "";
       }
     }
 
@@ -520,34 +573,50 @@
       }).observe(dependentFields, { attributes: true, attributeFilter: ["disabled"] });
     }
 
-    function createDependentEntry(ageValue) {
+    function createDependentEntry(dependentValue) {
       if (!dependentList) {
         return;
       }
 
+      const dependentDetail = normalizeDependentDetailInput(dependentValue);
       const entry = document.createElement("div");
       entry.className = "profile-dependent-entry";
       entry.setAttribute("data-dependent-entry", "");
+      entry.dataset.dependentId = dependentDetail.id || createDependentEntryId();
       entry.innerHTML = `
           <div class="profile-dependent-entry-header">
             <span class="profile-dependent-entry-label" data-dependent-entry-label></span>
             <button class="profile-dependent-entry-remove" type="button">Remove</button>
           </div>
           <div class="profile-dependent-entry-body">
+            <label>Date of Birth</label>
+            <input class="profile-yes-no-field" data-dependent-date-of-birth-input type="date" value="">
             <label>Age</label>
             <div class="profile-currency-field">
-              <input class="profile-yes-no-field" data-dependent-age-input type="number" min="0" step="1" value="">
+              <input class="profile-yes-no-field profile-age-field" data-dependent-age-input data-dependent-age-field type="number" min="0" step="1" value="" readonly>
               <span class="profile-currency-suffix">Years</span>
             </div>
           </div>
         `;
 
-      const input = entry.querySelector("[data-dependent-age-input]");
+      const birthDateInput = entry.querySelector("[data-dependent-date-of-birth-input]");
+      const ageInput = entry.querySelector("[data-dependent-age-field]");
       const removeButton = entry.querySelector(".profile-dependent-entry-remove");
-      if (input) {
-        input.value = String(ageValue || "");
-        input.addEventListener("input", syncDependentHiddenFields);
-        input.addEventListener("change", syncDependentHiddenFields);
+      if (birthDateInput) {
+        birthDateInput.value = dependentDetail.dateOfBirth;
+        birthDateInput.addEventListener("input", function () {
+          syncDependentAgeFromBirthDate(entry);
+          syncDependentHiddenFields();
+        });
+        birthDateInput.addEventListener("change", function () {
+          syncDependentAgeFromBirthDate(entry);
+          syncDependentHiddenFields();
+        });
+      }
+      if (ageInput) {
+        ageInput.value = dependentDetail.dateOfBirth
+          ? String(calculateAgeFromDate(dependentDetail.dateOfBirth))
+          : dependentDetail.ageText;
       }
       removeButton?.addEventListener("click", function () {
         removeDependentEntry(entry);
@@ -565,6 +634,12 @@
       }
 
       dependentList.innerHTML = "";
+      const storedDetails = parseDependentDetailsValue(dependentDetailsField?.value || "");
+      if (storedDetails.length) {
+        storedDetails.forEach(createDependentEntry);
+        return;
+      }
+
       const storedAges = String(dependentAgesField?.value || "")
         .split(",")
         .map(function (value) {
@@ -584,12 +659,12 @@
     }
 
     function syncDependentsCountField() {
-      if (!dependentsCountField && !dependentAgesField) {
+      if (!dependentsCountField && !dependentAgesField && !dependentDetailsField) {
         return;
       }
 
       const disableCount = String(hasDependentsField?.value || "No") !== "Yes";
-      [dependentsCountField, dependentAgesField].forEach(function (field) {
+      [dependentsCountField, dependentAgesField, dependentDetailsField].forEach(function (field) {
         if (field) {
           field.disabled = disableCount;
         }
@@ -649,6 +724,7 @@
       syncDependentFieldsetState,
       syncEmploymentDetailFields,
       getDependentAgeValues,
+      getDependentDetails,
       syncDependentHiddenFields,
       syncDependentEntryLabels,
       syncDependentBuilderDisabledState,
@@ -687,6 +763,92 @@
     }
 
     return Math.max(age, 0);
+  }
+
+  function normalizeDependentAgeText(value) {
+    const normalized = String(value ?? "").trim();
+    if (!normalized) {
+      return "";
+    }
+
+    const numericAge = Number(normalized);
+    if (!Number.isFinite(numericAge)) {
+      return "";
+    }
+
+    return String(Math.max(Math.trunc(numericAge), 0));
+  }
+
+  function normalizeDependentDetailInput(value) {
+    if (value && typeof value === "object") {
+      const dateOfBirth = String(value.dateOfBirth || value.birthDate || "").trim();
+      const ageText = dateOfBirth
+        ? String(calculateAgeFromDate(dateOfBirth))
+        : normalizeDependentAgeText(value.age ?? value.calculatedAge ?? value.ageText);
+
+      return {
+        id: String(value.id || "").trim(),
+        dateOfBirth,
+        age: ageText ? Number(ageText) : 0,
+        ageText
+      };
+    }
+
+    const ageText = normalizeDependentAgeText(value);
+    return {
+      id: "",
+      dateOfBirth: "",
+      age: ageText ? Number(ageText) : 0,
+      ageText
+    };
+  }
+
+  function toSavedDependentDetail(detail) {
+    const normalized = normalizeDependentDetailInput(detail);
+    return {
+      id: normalized.id,
+      dateOfBirth: normalized.dateOfBirth,
+      age: normalized.ageText ? normalized.age : null
+    };
+  }
+
+  function parseDependentDetailsValue(value) {
+    const rawValue = String(value || "").trim();
+    if (!rawValue) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(rawValue);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed
+        .map(normalizeDependentDetailInput)
+        .filter(function (detail) {
+          return detail.id || detail.dateOfBirth || detail.ageText;
+        });
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function buildDependentDetailsFromAges(value) {
+    return String(value || "")
+      .split(",")
+      .map(function (ageValue) {
+        return normalizeDependentDetailInput(ageValue);
+      })
+      .filter(function (detail) {
+        return detail.ageText;
+      })
+      .map(function (detail, index) {
+        return {
+          ...detail,
+          id: detail.id || `dep-legacy-${index + 1}`
+        };
+      });
   }
 
   function formatPhoneNumberInput(value) {
@@ -762,6 +924,18 @@
     const createdBy = currentSession?.name || "Advisor";
     const dateProfileCreated = String(formData.get("dateProfileCreated") || today);
     const lastUpdatedDate = String(formData.get("lastUpdatedDate") || today);
+    const hasCurrentDependents = String(formData.get("hasDependents") || "No") === "Yes";
+    const dependentAges = hasCurrentDependents ? String(formData.get("dependentAges") || "").trim() : "";
+    const parsedDependentDetails = hasCurrentDependents
+      ? parseDependentDetailsValue(formData.get("dependentDetails") || "")
+      : [];
+    const dependentDetails = (parsedDependentDetails.length
+      ? parsedDependentDetails
+      : buildDependentDetailsFromAges(dependentAges))
+      .map(toSavedDependentDetail);
+    const dependentsCount = hasCurrentDependents
+      ? (dependentDetails.length || Number(formData.get("dependentsCount") || 0))
+      : 0;
     let householdId = "";
     let householdName = "";
     let profileGroupType = "";
@@ -872,11 +1046,12 @@
       businessPlanningFocus: String(formData.get("businessPlanningFocus") || ""),
       ownershipPercent: Number(formData.get("ownershipPercent") || 0),
       businessCoverageRelevance: String(formData.get("businessCoverageRelevance") || ""),
-      hasDependents: String(formData.get("hasDependents") || "No"),
+      hasDependents: hasCurrentDependents ? "Yes" : "No",
       projectedDependents: String(formData.get("projectedDependents") || "No"),
       projectedDependentsCount: Number(formData.get("projectedDependentsCount") || 0),
-      dependentsCount: Number(formData.get("dependentsCount") || 0),
-      dependentAges: String(formData.get("dependentAges") || "").trim(),
+      dependentsCount,
+      dependentAges,
+      dependentDetails,
       emailAddress: String(formData.get("emailAddress") || "").trim(),
       phoneNumber: String(formData.get("phoneNumber") || "").trim(),
       preferredContactMethod: String(formData.get("preferredContactMethod") || ""),

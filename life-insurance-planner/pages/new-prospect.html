@@ -202,6 +202,7 @@
                       <label>Current Children / Dependents</label>
                       <input id="dependents-count" name="dependentsCount" type="hidden" value="0">
                       <input id="dependent-ages" name="dependentAges" type="hidden" value="">
+                      <input id="dependent-details" name="dependentDetails" type="hidden" value="">
                       <div class="profile-dependent-builder">
                         <div id="dependent-list" class="profile-dependent-list"></div>
                         <button id="add-dependent-button" class="button tertiary-button profile-dependent-add-button" type="button">Add Dependent</button>
@@ -411,6 +412,7 @@
       const hasDependentsField = document.getElementById("has-dependents");
       const dependentsCountField = document.getElementById("dependents-count");
       const dependentAgesField = document.getElementById("dependent-ages");
+      const dependentDetailsField = document.getElementById("dependent-details");
       const dependentList = document.getElementById("dependent-list");
       const addDependentButton = document.getElementById("add-dependent-button");
       const projectedDependentsField = document.getElementById("projected-dependents");
@@ -443,6 +445,7 @@
         hasDependentsField,
         dependentsCountField,
         dependentAgesField,
+        dependentDetailsField,
         dependentList,
         addDependentButton,
         projectedDependentsField,
