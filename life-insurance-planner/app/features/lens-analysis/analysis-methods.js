@@ -894,6 +894,117 @@
     };
   }
 
+  function calculateDiscretionarySupportInflationProjection(amount, durationYears, settings) {
+    const currentDollarTotal = amount * durationYears;
+    const currentDollarAnnualValues = buildCurrentDollarAnnualSupportValues(amount, durationYears);
+    const inflationSettings = resolveEssentialSupportInflationSettings(settings);
+    const calculateInflationProjection = lensAnalysis.calculateInflationProjection;
+    const baseTrace = {
+      component: "discretionary support",
+      included: true,
+      enabled: inflationSettings.enabled,
+      applied: false,
+      baseAnnualAmount: amount,
+      durationYears,
+      ratePercent: inflationSettings.ratePercent,
+      rateSource: inflationSettings.rateSource,
+      currentDollarTotal,
+      projectedTotal: currentDollarTotal,
+      source: inflationSettings.source,
+      sourcePaths: [
+        "ongoingSupport.annualDiscretionaryPersonalSpending",
+        ...inflationSettings.sourcePaths
+      ],
+      helperWarnings: []
+    };
+
+    if (!inflationSettings.hasSettings) {
+      return {
+        projectedTotal: currentDollarTotal,
+        annualValues: currentDollarAnnualValues,
+        applied: false,
+        trace: {
+          ...baseTrace,
+          reason: "missing-inflation-assumptions"
+        }
+      };
+    }
+
+    if (typeof calculateInflationProjection !== "function") {
+      return {
+        projectedTotal: currentDollarTotal,
+        annualValues: currentDollarAnnualValues,
+        applied: false,
+        trace: {
+          ...baseTrace,
+          sourcePaths: ["ongoingSupport.annualDiscretionaryPersonalSpending"],
+          reason: "inflation-helper-unavailable",
+          helperWarnings: [
+            {
+              code: "inflation-helper-unavailable",
+              message: "Inflation projection helper was not loaded; current-dollar discretionary support was used."
+            }
+          ]
+        }
+      };
+    }
+
+    const projection = calculateInflationProjection({
+      amount,
+      durationYears,
+      ratePercent: inflationSettings.ratePercent,
+      enabled: inflationSettings.enabled && inflationSettings.rateSource !== null,
+      timing: "annual",
+      label: "Needs discretionary support",
+      source: inflationSettings.rateSource
+    });
+    const helperWarnings = Array.isArray(projection.warnings) ? projection.warnings : [];
+    const projectedTotal = toOptionalNumber(projection.projectedTotal);
+    const annualValues = Array.isArray(projection.annualValues)
+      ? projection.annualValues
+      : currentDollarAnnualValues;
+
+    return {
+      projectedTotal: projectedTotal == null ? currentDollarTotal : projectedTotal,
+      annualValues,
+      applied: projection.applied === true,
+      trace: {
+        ...baseTrace,
+        enabled: inflationSettings.enabled,
+        applied: projection.applied === true,
+        projectedTotal: projectedTotal == null ? currentDollarTotal : projectedTotal,
+        helperWarnings,
+        helperTrace: projection.trace || null,
+        reason: projection.applied === true ? "inflation-applied" : "inflation-disabled-or-zero-rate"
+      }
+    };
+  }
+
+  function createExcludedDiscretionarySupportInflationTrace(settings, durationYears) {
+    const inflationSettings = resolveEssentialSupportInflationSettings(settings);
+
+    return {
+      component: "discretionary support",
+      included: false,
+      enabled: inflationSettings.enabled,
+      applied: false,
+      baseAnnualAmount: null,
+      durationYears,
+      ratePercent: inflationSettings.ratePercent,
+      rateSource: inflationSettings.rateSource,
+      currentDollarTotal: 0,
+      projectedTotal: 0,
+      source: inflationSettings.source,
+      sourcePaths: [
+        "settings.includeDiscretionarySupport",
+        "ongoingSupport.annualDiscretionaryPersonalSpending",
+        ...inflationSettings.sourcePaths
+      ],
+      helperWarnings: [],
+      reason: "discretionary-support-excluded"
+    };
+  }
+
   function createEssentialSupportComponent(model, settings, needsSupportDurationYears, includeSurvivorIncomeOffset, warnings) {
     const annualSupport = normalizeNonNegativeNumber(
       getPath(model, "ongoingSupport.annualTotalEssentialSupportCost"),
@@ -1146,6 +1257,62 @@
         needsSupportDurationYears
       },
       sourcePaths: ["ongoingSupport.annualTotalEssentialSupportCost"]
+    };
+  }
+
+  function createDiscretionarySupportComponent(model, settings, needsSupportDurationYears, warnings) {
+    const annualDiscretionarySupport = normalizeComponentNumber({
+      value: getPath(model, "ongoingSupport.annualDiscretionaryPersonalSpending"),
+      sourcePath: "ongoingSupport.annualDiscretionaryPersonalSpending",
+      warnings,
+      warnWhenMissing: true,
+      missingCode: "missing-discretionary-support-cost",
+      missingMessage: "annualDiscretionaryPersonalSpending was missing; discretionary support component defaulted to 0.",
+      negativeCode: "negative-value-treated-as-zero",
+      negativeMessage: "annualDiscretionaryPersonalSpending was negative and was treated as 0 for Needs Analysis."
+    });
+    const supportProjection = calculateDiscretionarySupportInflationProjection(
+      annualDiscretionarySupport,
+      needsSupportDurationYears,
+      settings
+    );
+
+    return {
+      value: supportProjection.projectedTotal,
+      formula: supportProjection.applied
+        ? "inflation-adjusted annualDiscretionaryPersonalSpending over needsSupportDurationYears"
+        : "annualDiscretionaryPersonalSpending x needsSupportDurationYears",
+      inputs: {
+        annualDiscretionaryPersonalSpending: annualDiscretionarySupport,
+        needsSupportDurationYears,
+        includeDiscretionarySupport: true,
+        inflation: supportProjection.trace
+      },
+      sourcePaths: supportProjection.trace.sourcePaths,
+      inflation: supportProjection.trace
+    };
+  }
+
+  function createExcludedDiscretionarySupportComponent(settings, needsSupportDurationYears) {
+    const inflation = createExcludedDiscretionarySupportInflationTrace(
+      settings,
+      needsSupportDurationYears
+    );
+
+    return {
+      value: 0,
+      formula: "disabled by settings",
+      inputs: {
+        annualDiscretionaryPersonalSpending: null,
+        needsSupportDurationYears,
+        includeDiscretionarySupport: false,
+        inflation
+      },
+      sourcePaths: [
+        "ongoingSupport.annualDiscretionaryPersonalSpending",
+        "settings.includeDiscretionarySupport"
+      ],
+      inflation
     };
   }
 
@@ -1449,18 +1616,18 @@
           negativeMessage: "totalTransitionNeed was negative and was treated as 0 for Needs Analysis."
         })
       : 0;
-    const discretionarySupport = includeDiscretionarySupport
-      ? createAnnualDurationComponent({
-          value: getPath(model, "ongoingSupport.annualDiscretionaryPersonalSpending"),
-          sourcePath: "ongoingSupport.annualDiscretionaryPersonalSpending",
-          warnings,
-          warnWhenMissing: true,
-          missingCode: "missing-discretionary-support-cost",
-          missingMessage: "annualDiscretionaryPersonalSpending was missing; discretionary support component defaulted to 0.",
-          negativeMessage: "annualDiscretionaryPersonalSpending was negative and was treated as 0 for Needs Analysis.",
-          durationYears: needsSupportDurationYears
-        })
-      : 0;
+    const discretionarySupportComponent = includeDiscretionarySupport
+      ? createDiscretionarySupportComponent(
+          model,
+          normalizedSettings,
+          needsSupportDurationYears,
+          warnings
+        )
+      : createExcludedDiscretionarySupportComponent(
+          normalizedSettings,
+          needsSupportDurationYears
+        );
+    const discretionarySupport = discretionarySupportComponent.value;
 
     const existingCoverageOffset = includeExistingCoverageOffset
       ? normalizeComponentNumber({
@@ -1660,18 +1827,35 @@
     trace.push(createTraceRow({
       key: "discretionarySupport",
       label: "Discretionary Support",
-      formula: includeDiscretionarySupport
-        ? "annualDiscretionaryPersonalSpending x needsSupportDurationYears"
+      formula: discretionarySupportComponent.formula,
+      inputs: discretionarySupportComponent.inputs,
+      value: discretionarySupport,
+      sourcePaths: discretionarySupportComponent.sourcePaths
+    }));
+    trace.push(createTraceRow({
+      key: "discretionarySupportInflation",
+      label: "Discretionary Support Inflation",
+      formula: discretionarySupportComponent.inflation.included
+        ? (discretionarySupportComponent.inflation.applied
+            ? "project annualDiscretionaryPersonalSpending by household expense inflation over needsSupportDurationYears"
+            : "current-dollar discretionary support total used")
         : "disabled by settings",
       inputs: {
-        annualDiscretionaryPersonalSpending: includeDiscretionarySupport
-          ? toOptionalNumber(getPath(model, "ongoingSupport.annualDiscretionaryPersonalSpending"))
-          : null,
-        needsSupportDurationYears,
-        includeDiscretionarySupport
+        component: "discretionary support",
+        included: discretionarySupportComponent.inflation.included,
+        inflationEnabled: discretionarySupportComponent.inflation.enabled,
+        inflationApplied: discretionarySupportComponent.inflation.applied,
+        baseAnnualAmount: discretionarySupportComponent.inflation.baseAnnualAmount,
+        durationYears: discretionarySupportComponent.inflation.durationYears,
+        ratePercent: discretionarySupportComponent.inflation.ratePercent,
+        rateSource: discretionarySupportComponent.inflation.rateSource,
+        currentDollarTotal: discretionarySupportComponent.inflation.currentDollarTotal,
+        projectedTotal: discretionarySupportComponent.inflation.projectedTotal,
+        reason: discretionarySupportComponent.inflation.reason,
+        helperWarnings: discretionarySupportComponent.inflation.helperWarnings
       },
-      value: discretionarySupport,
-      sourcePaths: ["ongoingSupport.annualDiscretionaryPersonalSpending", "settings.includeDiscretionarySupport"]
+      value: discretionarySupportComponent.inflation.projectedTotal,
+      sourcePaths: discretionarySupportComponent.inflation.sourcePaths
     }));
     trace.push(createTraceRow({
       key: "existingCoverageOffset",
