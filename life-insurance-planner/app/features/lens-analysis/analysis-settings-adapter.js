@@ -3,6 +3,23 @@
   const lensAnalysis = LensApp.lensAnalysis || (LensApp.lensAnalysis = {});
   const ASSET_OFFSET_SOURCE_LEGACY = "legacy";
   const ASSET_OFFSET_SOURCE_TREATED = "treated";
+  const DEFAULT_INFLATION_ASSUMPTIONS = Object.freeze({
+    enabled: true,
+    generalInflationRatePercent: 3,
+    householdExpenseInflationRatePercent: 3,
+    educationInflationRatePercent: 5,
+    healthcareInflationRatePercent: 5,
+    finalExpenseInflationRatePercent: 3,
+    source: "analysis-setup"
+  });
+  const INFLATION_RATE_FIELDS = Object.freeze([
+    "generalInflationRatePercent",
+    "householdExpenseInflationRatePercent",
+    "educationInflationRatePercent",
+    "healthcareInflationRatePercent",
+    "finalExpenseInflationRatePercent"
+  ]);
+  const MAX_INFLATION_RATE_PERCENT = 100;
 
   // Owner: lens-analysis settings adapter.
   // Purpose: map saved Analysis Setup settings into the flat settings objects
@@ -136,6 +153,47 @@
     }
   }
 
+  function applyExistingCoverageSettings(settings, analysisSettings, trace) {
+    const existingCoverage = isPlainObject(analysisSettings.existingCoverageAssumptions)
+      ? analysisSettings.existingCoverageAssumptions
+      : null;
+    if (!existingCoverage || typeof existingCoverage.includeExistingCoverage !== "boolean") {
+      return;
+    }
+
+    settings.includeExistingCoverageOffset = existingCoverage.includeExistingCoverage;
+    trace.push(createTrace(
+      "includeExistingCoverageOffset-existing-coverage",
+      "includeExistingCoverageOffset came from Analysis Setup Existing Coverage assumptions.",
+      ["analysisSettings.existingCoverageAssumptions.includeExistingCoverage"]
+    ));
+  }
+
+  function applyNeedsAssetOffsetInclusionSettings(settings, methodDefaults, warnings, trace) {
+    if (!hasOwn(methodDefaults, "needsIncludeOffsetAssets")) {
+      settings.includeOffsetAssets = true;
+      return;
+    }
+
+    if (typeof methodDefaults.needsIncludeOffsetAssets === "boolean") {
+      settings.includeOffsetAssets = methodDefaults.needsIncludeOffsetAssets;
+      trace.push(createTrace(
+        "needs-include-offset-assets-saved",
+        "includeOffsetAssets for Needs came from saved Analysis Setup method defaults.",
+        ["analysisSettings.methodDefaults.needsIncludeOffsetAssets"]
+      ));
+      return;
+    }
+
+    settings.includeOffsetAssets = true;
+    warnings.push(createWarning(
+      "invalid-needs-include-offset-assets",
+      "Saved Needs asset-offset inclusion was invalid and defaulted to true.",
+      "warning",
+      ["analysisSettings.methodDefaults.needsIncludeOffsetAssets"]
+    ));
+  }
+
   function applySurvivorSupportSettings(settings, analysisSettings, warnings, trace) {
     const survivorSupport = isPlainObject(analysisSettings.survivorSupportAssumptions)
       ? analysisSettings.survivorSupportAssumptions
@@ -196,6 +254,94 @@
         ));
       }
     }
+  }
+
+  function normalizeInflationRate(value, fallback, key, warnings) {
+    const sourcePath = `analysisSettings.inflationAssumptions.${key}`;
+    const parsed = toOptionalNumber(value);
+
+    if (parsed == null) {
+      warnings.push(createWarning(
+        `invalid-${key}`,
+        `${key} was invalid and defaulted to ${fallback}.`,
+        "warning",
+        [sourcePath]
+      ));
+      return fallback;
+    }
+
+    if (parsed < 0) {
+      warnings.push(createWarning(
+        `negative-${key}`,
+        `${key} was negative and defaulted to ${fallback}.`,
+        "warning",
+        [sourcePath]
+      ));
+      return fallback;
+    }
+
+    if (parsed > MAX_INFLATION_RATE_PERCENT) {
+      warnings.push(createWarning(
+        `clamped-${key}`,
+        `${key} was above 100 and was clamped to 100.`,
+        "warning",
+        [sourcePath]
+      ));
+      return MAX_INFLATION_RATE_PERCENT;
+    }
+
+    return parsed;
+  }
+
+  function createNeedsInflationAssumptions(analysisSettings, warnings) {
+    const saved = isPlainObject(analysisSettings.inflationAssumptions)
+      ? analysisSettings.inflationAssumptions
+      : {};
+    const normalized = { ...DEFAULT_INFLATION_ASSUMPTIONS };
+
+    if (
+      hasOwn(analysisSettings, "inflationAssumptions")
+      && !isPlainObject(analysisSettings.inflationAssumptions)
+    ) {
+      warnings.push(createWarning(
+        "invalid-inflation-assumptions",
+        "Saved inflation assumptions were invalid and default assumptions were used.",
+        "warning",
+        ["analysisSettings.inflationAssumptions"]
+      ));
+    }
+
+    if (hasOwn(saved, "enabled")) {
+      if (typeof saved.enabled === "boolean") {
+        normalized.enabled = saved.enabled;
+      } else {
+        warnings.push(createWarning(
+          "invalid-inflation-enabled",
+          "Saved inflation enabled flag was invalid and defaulted to true.",
+          "warning",
+          ["analysisSettings.inflationAssumptions.enabled"]
+        ));
+      }
+    }
+
+    INFLATION_RATE_FIELDS.forEach(function (key) {
+      if (!hasOwn(saved, key)) {
+        return;
+      }
+
+      normalized[key] = normalizeInflationRate(
+        saved[key],
+        DEFAULT_INFLATION_ASSUMPTIONS[key],
+        key,
+        warnings
+      );
+    });
+
+    if (typeof saved.source === "string" && saved.source.trim()) {
+      normalized.source = saved.source.trim();
+    }
+
+    return normalized;
   }
 
   function addPositiveSetting(options) {
@@ -320,7 +466,7 @@
 
   function addFutureSettingsTrace(analysisSettings, trace) {
     [
-      ["inflationAssumptions", "Saved inflation assumptions are present but are not applied to current method results."],
+      ["inflationAssumptions", "Saved inflation assumptions are mapped into Needs settings but are not applied to current method results."],
       ["growthAndReturnAssumptions", "Saved growth and return assumptions are present but are not applied to current method results."],
       ["assetTreatmentAssumptions", "Saved asset treatment assumptions apply through treated asset offsets; legacy offsetAssets remains a compatibility path."]
     ].forEach(function (entry) {
@@ -345,6 +491,7 @@
     const settings = { ...defaults.dime };
 
     applyAssetOffsetSourceSettings(settings, methodDefaults, defaults.dime, warnings, trace);
+    applyExistingCoverageSettings(settings, analysisSettings, trace);
 
     addPositiveSetting({
       settings,
@@ -375,6 +522,12 @@
     const settings = { ...defaults.needsAnalysis };
 
     applyAssetOffsetSourceSettings(settings, methodDefaults, defaults.needsAnalysis, warnings, trace);
+    applyExistingCoverageSettings(settings, analysisSettings, trace);
+    applyNeedsAssetOffsetInclusionSettings(settings, methodDefaults, warnings, trace);
+    settings.inflationAssumptions = createNeedsInflationAssumptions(
+      analysisSettings,
+      warnings
+    );
 
     if (hasOwn(methodDefaults, "needsSupportDurationYears")) {
       addPositiveSetting({
@@ -428,6 +581,7 @@
     const settings = { ...defaults.humanLifeValue };
 
     applyAssetOffsetSourceSettings(settings, methodDefaults, defaults.humanLifeValue, warnings, trace);
+    applyExistingCoverageSettings(settings, analysisSettings, trace);
 
     addNonNegativeSetting({
       settings,

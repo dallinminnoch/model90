@@ -718,6 +718,182 @@
     };
   }
 
+  function buildCurrentDollarAnnualSupportValues(amount, durationYears) {
+    const fullYears = Math.floor(durationYears);
+    const partialYear = durationYears - fullYears;
+    const values = [];
+
+    for (let year = 1; year <= fullYears; year += 1) {
+      values.push({
+        year,
+        yearFraction: 1,
+        inflationFactor: 1,
+        annualizedAmount: amount,
+        amount
+      });
+    }
+
+    if (partialYear > 0) {
+      values.push({
+        year: fullYears + 1,
+        yearFraction: partialYear,
+        inflationFactor: 1,
+        annualizedAmount: amount,
+        amount: amount * partialYear
+      });
+    }
+
+    return values;
+  }
+
+  function resolveEssentialSupportInflationSettings(settings) {
+    const inflationAssumptions = isPlainObject(settings.inflationAssumptions)
+      ? settings.inflationAssumptions
+      : null;
+
+    if (!inflationAssumptions) {
+      return {
+        hasSettings: false,
+        enabled: false,
+        ratePercent: 0,
+        rateSource: null,
+        sourcePaths: ["settings.inflationAssumptions"]
+      };
+    }
+
+    const householdExpenseRate = toOptionalNumber(
+      inflationAssumptions.householdExpenseInflationRatePercent
+    );
+    const generalRate = toOptionalNumber(inflationAssumptions.generalInflationRatePercent);
+    const hasHouseholdRate = householdExpenseRate != null && householdExpenseRate >= 0;
+    const hasGeneralRate = generalRate != null && generalRate >= 0;
+    const ratePercent = hasHouseholdRate
+      ? householdExpenseRate
+      : (hasGeneralRate ? generalRate : 0);
+    const rateSource = hasHouseholdRate
+      ? "settings.inflationAssumptions.householdExpenseInflationRatePercent"
+      : (hasGeneralRate ? "settings.inflationAssumptions.generalInflationRatePercent" : null);
+
+    return {
+      hasSettings: true,
+      enabled: inflationAssumptions.enabled === true,
+      ratePercent,
+      rateSource,
+      source: inflationAssumptions.source || null,
+      sourcePaths: [
+        "settings.inflationAssumptions.enabled",
+        rateSource || "settings.inflationAssumptions"
+      ]
+    };
+  }
+
+  function sumProjectedSupportForMonths(annualValues, monthCount) {
+    const values = Array.isArray(annualValues) ? annualValues : [];
+    let remainingMonths = Math.max(0, toOptionalNumber(monthCount) || 0);
+    let total = 0;
+
+    values.forEach(function (annualValue) {
+      if (remainingMonths <= 0 || !isPlainObject(annualValue)) {
+        return;
+      }
+
+      const yearFraction = toOptionalNumber(annualValue.yearFraction);
+      const availableMonths = (yearFraction == null ? 1 : yearFraction) * 12;
+      const usedMonths = Math.min(remainingMonths, availableMonths);
+      const annualizedAmount = toOptionalNumber(annualValue.annualizedAmount);
+      const monthlyAmount = annualizedAmount == null ? 0 : annualizedAmount / 12;
+      total += monthlyAmount * usedMonths;
+      remainingMonths -= usedMonths;
+    });
+
+    return total;
+  }
+
+  function calculateEssentialSupportInflationProjection(amount, durationYears, settings) {
+    const currentDollarTotal = amount * durationYears;
+    const currentDollarAnnualValues = buildCurrentDollarAnnualSupportValues(amount, durationYears);
+    const inflationSettings = resolveEssentialSupportInflationSettings(settings);
+    const calculateInflationProjection = lensAnalysis.calculateInflationProjection;
+    const baseTrace = {
+      component: "essential support",
+      enabled: inflationSettings.enabled,
+      applied: false,
+      baseAnnualAmount: amount,
+      durationYears,
+      ratePercent: inflationSettings.ratePercent,
+      rateSource: inflationSettings.rateSource,
+      currentDollarTotal,
+      projectedTotal: currentDollarTotal,
+      source: inflationSettings.source,
+      sourcePaths: [
+        "ongoingSupport.annualTotalEssentialSupportCost",
+        ...inflationSettings.sourcePaths
+      ],
+      helperWarnings: []
+    };
+
+    if (!inflationSettings.hasSettings) {
+      return {
+        projectedTotal: currentDollarTotal,
+        annualValues: currentDollarAnnualValues,
+        applied: false,
+        trace: {
+          ...baseTrace,
+          reason: "missing-inflation-assumptions"
+        }
+      };
+    }
+
+    if (typeof calculateInflationProjection !== "function") {
+      return {
+        projectedTotal: currentDollarTotal,
+        annualValues: currentDollarAnnualValues,
+        applied: false,
+        trace: {
+          ...baseTrace,
+          sourcePaths: ["ongoingSupport.annualTotalEssentialSupportCost"],
+          reason: "inflation-helper-unavailable",
+          helperWarnings: [
+            {
+              code: "inflation-helper-unavailable",
+              message: "Inflation projection helper was not loaded; current-dollar essential support was used."
+            }
+          ]
+        }
+      };
+    }
+
+    const projection = calculateInflationProjection({
+      amount,
+      durationYears,
+      ratePercent: inflationSettings.ratePercent,
+      enabled: inflationSettings.enabled && inflationSettings.rateSource !== null,
+      timing: "annual",
+      label: "Needs essential support",
+      source: inflationSettings.rateSource
+    });
+    const helperWarnings = Array.isArray(projection.warnings) ? projection.warnings : [];
+    const projectedTotal = toOptionalNumber(projection.projectedTotal);
+    const annualValues = Array.isArray(projection.annualValues)
+      ? projection.annualValues
+      : currentDollarAnnualValues;
+
+    return {
+      projectedTotal: projectedTotal == null ? currentDollarTotal : projectedTotal,
+      annualValues,
+      applied: projection.applied === true,
+      trace: {
+        ...baseTrace,
+        enabled: inflationSettings.enabled,
+        applied: projection.applied === true,
+        projectedTotal: projectedTotal == null ? currentDollarTotal : projectedTotal,
+        helperWarnings,
+        helperTrace: projection.trace || null,
+        reason: projection.applied === true ? "inflation-applied" : "inflation-disabled-or-zero-rate"
+      }
+    };
+  }
+
   function createEssentialSupportComponent(model, settings, needsSupportDurationYears, includeSurvivorIncomeOffset, warnings) {
     const annualSupport = normalizeNonNegativeNumber(
       getPath(model, "ongoingSupport.annualTotalEssentialSupportCost"),
@@ -732,23 +908,34 @@
     if (annualSupport.hasValue) {
       const totalSupportMonths = needsSupportDurationYears * 12;
       const monthlySupportNeed = annualSupport.value / 12;
-      const grossSupportNeed = annualSupport.value * needsSupportDurationYears;
+      const supportProjection = calculateEssentialSupportInflationProjection(
+        annualSupport.value,
+        needsSupportDurationYears,
+        settings
+      );
+      const grossSupportNeed = supportProjection.projectedTotal;
+      const currentDollarGrossSupportNeed = supportProjection.trace.currentDollarTotal;
+      const essentialSupportFormula = supportProjection.applied
+        ? "inflation-adjusted annualTotalEssentialSupportCost over needsSupportDurationYears"
+        : "annualTotalEssentialSupportCost x needsSupportDurationYears";
 
       if (!includeSurvivorIncomeOffset) {
         return {
           value: grossSupportNeed,
           source: "ongoingSupport.annualTotalEssentialSupportCost",
-          formula: "annualTotalEssentialSupportCost x needsSupportDurationYears",
+          formula: essentialSupportFormula,
           inputs: {
             annualTotalEssentialSupportCost: annualSupport.value,
             needsSupportDurationYears,
-            includeSurvivorIncomeOffset
+            includeSurvivorIncomeOffset,
+            inflation: supportProjection.trace
           },
-          sourcePaths: ["ongoingSupport.annualTotalEssentialSupportCost"],
+          sourcePaths: supportProjection.trace.sourcePaths,
           survivorIncomeOffset: 0,
           supportDetails: {
             monthlySupportNeed,
             totalSupportMonths,
+            annualTotalEssentialSupportCost: annualSupport.value,
             survivorNetAnnualIncome: null,
             monthlySurvivorIncome: 0,
             survivorIncomeStartDelayMonths: 0,
@@ -756,7 +943,9 @@
             supportNeedDuringDelay: grossSupportNeed,
             monthlySupportGapAfterIncomeStarts: monthlySupportNeed,
             supportNeedAfterIncomeStarts: 0,
-            grossSupportNeed
+            grossSupportNeed,
+            currentDollarGrossSupportNeed,
+            inflation: supportProjection.trace
           }
         };
       }
@@ -826,9 +1015,19 @@
 
       const incomeOffsetMonths = totalSupportMonths - delayMonths;
       const monthlySurvivorIncome = survivorNetAnnualIncome / 12;
-      const supportNeedDuringDelay = monthlySupportNeed * delayMonths;
-      const monthlySupportGapAfterIncomeStarts = Math.max(monthlySupportNeed - monthlySurvivorIncome, 0);
-      const supportNeedAfterIncomeStarts = monthlySupportGapAfterIncomeStarts * incomeOffsetMonths;
+      const supportNeedDuringDelay = sumProjectedSupportForMonths(
+        supportProjection.annualValues,
+        delayMonths
+      );
+      const projectedSupportAfterIncomeStarts = Math.max(grossSupportNeed - supportNeedDuringDelay, 0);
+      const survivorIncomeDuringIncomeMonths = monthlySurvivorIncome * incomeOffsetMonths;
+      const supportNeedAfterIncomeStarts = Math.max(
+        projectedSupportAfterIncomeStarts - survivorIncomeDuringIncomeMonths,
+        0
+      );
+      const monthlySupportGapAfterIncomeStarts = incomeOffsetMonths > 0
+        ? supportNeedAfterIncomeStarts / incomeOffsetMonths
+        : 0;
       const calculatedEssentialSupport = supportNeedDuringDelay + supportNeedAfterIncomeStarts;
       const hasPositiveSurvivorIncome = survivorNetAnnualIncome > 0;
       const essentialSupport = hasPositiveSurvivorIncome ? calculatedEssentialSupport : grossSupportNeed;
@@ -850,7 +1049,9 @@
       return {
         value: essentialSupport,
         source: "ongoingSupport.annualTotalEssentialSupportCost",
-        formula: "support during survivor-income delay + post-delay monthly support gap",
+        formula: supportProjection.applied
+          ? "projected support during survivor-income delay + projected post-delay support gap"
+          : "support during survivor-income delay + post-delay monthly support gap",
         inputs: {
           annualTotalEssentialSupportCost: annualSupport.value,
           needsSupportDurationYears,
@@ -860,26 +1061,37 @@
           monthlySupportNeed,
           monthlySurvivorIncome,
           supportNeedDuringDelay,
+          projectedSupportAfterIncomeStarts,
+          survivorIncomeDuringIncomeMonths,
           monthlySupportGapAfterIncomeStarts,
-          supportNeedAfterIncomeStarts
+          supportNeedAfterIncomeStarts,
+          inflation: supportProjection.trace
         },
         sourcePaths: [
           "ongoingSupport.annualTotalEssentialSupportCost",
           "survivorScenario.survivorNetAnnualIncome",
-          "survivorScenario.survivorIncomeStartDelayMonths"
+          "survivorScenario.survivorIncomeStartDelayMonths",
+          ...supportProjection.trace.sourcePaths.filter(function (sourcePath) {
+            return sourcePath !== "ongoingSupport.annualTotalEssentialSupportCost";
+          })
         ],
         survivorIncomeOffset,
         supportDetails: {
           monthlySupportNeed,
           totalSupportMonths,
+          annualTotalEssentialSupportCost: annualSupport.value,
           survivorNetAnnualIncome: survivorIncome.hasValue ? survivorNetAnnualIncome : null,
           monthlySurvivorIncome,
           survivorIncomeStartDelayMonths: delayMonths,
           incomeOffsetMonths,
           supportNeedDuringDelay,
+          projectedSupportAfterIncomeStarts,
+          survivorIncomeDuringIncomeMonths,
           monthlySupportGapAfterIncomeStarts,
           supportNeedAfterIncomeStarts,
-          grossSupportNeed
+          grossSupportNeed,
+          currentDollarGrossSupportNeed,
+          inflation: supportProjection.trace
         }
       };
     }
@@ -1306,18 +1518,42 @@
       value: essentialSupportComponent.value,
       sourcePaths: essentialSupportComponent.sourcePaths
     }));
+    if (supportDetails.inflation) {
+      trace.push(createTraceRow({
+        key: "essentialSupportInflation",
+        label: "Essential Support Inflation",
+        formula: supportDetails.inflation.applied
+          ? "project annualTotalEssentialSupportCost by household expense inflation over needsSupportDurationYears"
+          : "current-dollar essential support total used",
+        inputs: {
+          component: "essential support",
+          inflationEnabled: supportDetails.inflation.enabled,
+          inflationApplied: supportDetails.inflation.applied,
+          baseAnnualAmount: supportDetails.inflation.baseAnnualAmount,
+          durationYears: supportDetails.inflation.durationYears,
+          ratePercent: supportDetails.inflation.ratePercent,
+          rateSource: supportDetails.inflation.rateSource,
+          currentDollarTotal: supportDetails.inflation.currentDollarTotal,
+          projectedTotal: supportDetails.inflation.projectedTotal,
+          reason: supportDetails.inflation.reason,
+          helperWarnings: supportDetails.inflation.helperWarnings
+        },
+        value: supportDetails.inflation.projectedTotal,
+        sourcePaths: supportDetails.inflation.sourcePaths
+      }));
+    }
     trace.push(createTraceRow({
       key: "grossAnnualHouseholdSupportNeed",
       label: "Gross Annual Household Support Need",
       formula: "ongoingSupport.annualTotalEssentialSupportCost",
       inputs: {
-        annualTotalEssentialSupportCost: supportDetails.grossSupportNeed == null
+        annualTotalEssentialSupportCost: supportDetails.annualTotalEssentialSupportCost == null
           ? null
-          : supportDetails.grossSupportNeed / needsSupportDurationYears
+          : supportDetails.annualTotalEssentialSupportCost
       },
-      value: supportDetails.grossSupportNeed == null
+      value: supportDetails.annualTotalEssentialSupportCost == null
         ? null
-        : supportDetails.grossSupportNeed / needsSupportDurationYears,
+        : supportDetails.annualTotalEssentialSupportCost,
       sourcePaths: ["ongoingSupport.annualTotalEssentialSupportCost"]
     }));
     trace.push(createTraceRow({

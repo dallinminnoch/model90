@@ -122,7 +122,7 @@
               </div>
 
               <div class="analysis-setup-panel-body">
-                <div class="analysis-setup-panel-grid" data-analysis-setup-view-grid data-analysis-setup-current-view="calculation">
+                <div class="analysis-setup-panel-grid" data-analysis-setup-view-grid data-analysis-setup-scroll-mode="true" data-analysis-setup-current-view="calculation">
                 <div class="analysis-setup-left-stack" data-analysis-setup-view-panel="calculation" data-active="true">
                   <section class="analysis-setup-control-group analysis-setup-control-group--inflation" aria-labelledby="analysis-setup-inflation">
                   <div class="analysis-setup-method-header">
@@ -196,12 +196,70 @@
                   </div>
                   </section>
 
+                  <section class="analysis-setup-control-group analysis-setup-control-group--calculation-inclusion" aria-labelledby="analysis-setup-calculation-inclusion">
+                    <div class="analysis-setup-method-header">
+                      <div class="analysis-setup-control-heading">
+                        <h3 id="analysis-setup-calculation-inclusion">Calculation Inclusion Controls</h3>
+                        <p>Use these switches to include or exclude supported planning components without changing the underlying assumptions.</p>
+                      </div>
+                    </div>
+                    <div class="analysis-setup-calculation-inclusion-list" aria-label="Supported calculation inclusion controls">
+                      <label class="settings-toggle-row analysis-setup-toggle-control analysis-setup-calculation-inclusion-toggle">
+                        <span class="settings-toggle-copy">
+                          <span class="settings-toggle-label">Include Existing Coverage Offset</span>
+                        </span>
+                        <span class="settings-switch analysis-setup-mini-switch">
+                          <input type="checkbox" role="switch" aria-label="Include Existing Coverage Offset" data-analysis-coverage-field="includeExistingCoverage" data-analysis-calculation-inclusion-control>
+                          <span class="settings-switch-track" aria-hidden="true"></span>
+                        </span>
+                      </label>
+                      <label class="settings-toggle-row analysis-setup-toggle-control analysis-setup-calculation-inclusion-toggle">
+                        <span class="settings-toggle-copy">
+                          <span class="settings-toggle-label">Include Asset Offsets in Needs</span>
+                          <span class="settings-toggle-note">Turns asset offsets on or off for the Needs method only. DIME and HLV keep their method defaults.</span>
+                        </span>
+                        <span class="settings-switch analysis-setup-mini-switch">
+                          <input type="checkbox" role="switch" aria-label="Include Asset Offsets in Needs" data-analysis-method-field="needsIncludeOffsetAssets" data-analysis-calculation-inclusion-control>
+                          <span class="settings-switch-track" aria-hidden="true"></span>
+                        </span>
+                      </label>
+                      <label class="settings-toggle-row analysis-setup-toggle-control analysis-setup-calculation-inclusion-toggle">
+                        <span class="settings-toggle-copy">
+                          <span class="settings-toggle-label">Include Survivor Income Offset</span>
+                        </span>
+                        <span class="settings-switch analysis-setup-mini-switch">
+                          <input class="analysis-setup-survivor-field" type="checkbox" role="switch" aria-label="Include Survivor Income Offset" data-analysis-survivor-field="survivorIncomeTreatment.includeSurvivorIncome" data-analysis-calculation-inclusion-control>
+                          <span class="settings-switch-track" aria-hidden="true"></span>
+                        </span>
+                      </label>
+                      <label class="settings-toggle-row analysis-setup-toggle-control analysis-setup-calculation-inclusion-toggle">
+                        <span class="settings-toggle-copy">
+                          <span class="settings-toggle-label">Include Transition Needs</span>
+                        </span>
+                        <span class="settings-switch analysis-setup-mini-switch">
+                          <input class="analysis-setup-survivor-field" type="checkbox" role="switch" aria-label="Include Transition Needs" data-analysis-survivor-field="supportTreatment.includeTransitionNeeds" data-analysis-calculation-inclusion-control>
+                          <span class="settings-switch-track" aria-hidden="true"></span>
+                        </span>
+                      </label>
+                      <label class="settings-toggle-row analysis-setup-toggle-control analysis-setup-calculation-inclusion-toggle">
+                        <span class="settings-toggle-copy">
+                          <span class="settings-toggle-label">Include Discretionary Support</span>
+                        </span>
+                        <span class="settings-switch analysis-setup-mini-switch">
+                          <input class="analysis-setup-survivor-field" type="checkbox" role="switch" aria-label="Include Discretionary Support" data-analysis-survivor-field="supportTreatment.includeDiscretionarySupport" data-analysis-calculation-inclusion-control>
+                          <span class="settings-switch-track" aria-hidden="true"></span>
+                        </span>
+                      </label>
+                    </div>
+                    <p class="analysis-setup-calculation-inclusion-note">Additional inclusion switches will appear here as their calculation hooks are added.</p>
+                  </section>
+
                   <section class="analysis-setup-control-group analysis-setup-control-group--method-defaults" aria-labelledby="analysis-setup-method-defaults">
                     <div class="analysis-setup-method-header">
                       <h3 id="analysis-setup-method-defaults">Method Defaults</h3>
                       <button class="analysis-setup-reset-button" type="button" data-analysis-method-reset>Reset to Default</button>
                     </div>
-                    <p class="analysis-setup-method-copy">Choose method-level defaults and source behavior. Treated asset offsets use Asset Treatment assumptions and added asset records; legacy offset assets preserve the prior compatibility path.</p>
+                    <p class="analysis-setup-method-copy">Income replacement planning in the U.S. often centers on roughly 10 to 12 years of support. Use these defaults to set the baseline planning horizon for each method.</p>
                     <div class="analysis-setup-method-list">
                       <label class="analysis-setup-method-row" for="analysis-setup-dime-income-years">
                         <span>DIME Income Years</span>
@@ -415,7 +473,7 @@
 
                 </div>
 
-                <section class="analysis-setup-control-group analysis-setup-control-group--wide analysis-setup-control-group--assets" aria-labelledby="analysis-setup-asset-treatment" data-analysis-setup-view-panel="offset" hidden>
+                <section class="analysis-setup-control-group analysis-setup-control-group--wide analysis-setup-control-group--assets" aria-labelledby="analysis-setup-asset-treatment" data-analysis-setup-view-panel="offset">
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-asset-treatment">Asset Treatment</h3>
                     <p>Set how each asset should be counted later in advanced offset modeling. Asset values are still collected in Protection Modeling Inputs.</p>
@@ -463,11 +521,11 @@
                   </div>
                 </section>
 
-                <div class="analysis-setup-treatment-row" data-analysis-setup-view-panel="offset" hidden>
+                <div class="analysis-setup-treatment-row" data-analysis-setup-view-panel="offset">
                   <section class="analysis-setup-control-group analysis-setup-control-group--coverage" aria-labelledby="analysis-setup-coverage-treatment">
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-coverage-treatment">Existing Coverage Treatment</h3>
-                    <p>Control how current policies will be counted later as coverage offsets. Raw policy details remain stored on the client profile.</p>
+                    <p>Control how current policies are counted as coverage offsets. Raw policy details remain stored on the client profile.</p>
                   </div>
 
                   <div class="analysis-setup-asset-defaults analysis-setup-coverage-defaults" aria-label="Existing coverage treatment default settings">
@@ -484,7 +542,7 @@
                     <label class="settings-toggle-row analysis-setup-toggle-control analysis-setup-coverage-toggle">
                       <span class="settings-toggle-copy">
                         <span class="settings-toggle-label">Include existing coverage</span>
-                        <span class="settings-toggle-note">Saved for future offset modeling; not applied to current results.</span>
+                        <span class="settings-toggle-note">Controls whether existing coverage is counted as a coverage offset. Detailed treatment settings remain available for future coverage modeling.</span>
                       </span>
                       <span class="settings-switch">
                         <input type="checkbox" role="switch" aria-label="Include existing coverage" data-analysis-coverage-field="includeExistingCoverage">
@@ -643,7 +701,7 @@
                   </section>
                 </div>
 
-                <section class="analysis-setup-control-group analysis-setup-control-group--survivor-support" aria-labelledby="analysis-setup-survivor-support-treatment" data-analysis-setup-view-panel="planning" hidden>
+                <section class="analysis-setup-control-group analysis-setup-control-group--survivor-support" aria-labelledby="analysis-setup-survivor-support-treatment" data-analysis-setup-view-panel="planning">
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-survivor-support-treatment">Survivor &amp; Support Assumptions</h3>
                     <p>PMI captures current spouse income facts. These assumptions control how survivor income is treated after death. Balanced assumes the survivor continues working with a temporary 25% reduction and a 3-month income delay.</p>
@@ -871,7 +929,7 @@
                   <p class="analysis-setup-survivor-preview-note">Needs uses the supported survivor offset settings. Survivor income growth and horizon are saved for future projections.</p>
                 </section>
 
-                <section class="analysis-setup-control-group analysis-setup-control-group--education" aria-labelledby="analysis-setup-education-treatment" data-analysis-setup-view-panel="planning" hidden>
+                <section class="analysis-setup-control-group analysis-setup-control-group--education" aria-labelledby="analysis-setup-education-treatment" data-analysis-setup-view-panel="planning">
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-education-treatment">Education Assumptions</h3>
                     <p>Control how education funding will be treated later in advanced Needs and LENS calculations. Raw education inputs remain in Protection Modeling Inputs.</p>
@@ -995,7 +1053,7 @@
                   <p class="analysis-setup-education-preview-note">Preview only. Current Needs, DIME, HLV, and recommendation results are unchanged.</p>
                 </section>
 
-                <section class="analysis-setup-control-group analysis-setup-control-group--recommendation" aria-labelledby="analysis-setup-recommendation-guardrails" data-analysis-setup-view-panel="planning" hidden>
+                <section class="analysis-setup-control-group analysis-setup-control-group--recommendation" aria-labelledby="analysis-setup-recommendation-guardrails" data-analysis-setup-view-panel="planning">
                   <div class="analysis-setup-control-heading">
                     <h3 id="analysis-setup-recommendation-guardrails">Recommendation Guardrails</h3>
                     <p>Set how future LENS recommendations should be shaped and risk-flagged. These settings are saved for future recommendation logic and are not applied to current DIME, Needs, or HLV results yet.</p>

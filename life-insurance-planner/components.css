@@ -11813,23 +11813,56 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   background: #ffffff;
 }
 
-.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group {
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-left-stack .analysis-setup-control-group,
+.analysis-setup-panel-grid[data-analysis-setup-scroll-mode="true"] .analysis-setup-left-stack .analysis-setup-control-group {
   border-color: transparent;
   background: transparent;
   box-shadow: none;
 }
 
-.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--method-defaults {
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--method-defaults,
+.analysis-setup-panel-grid[data-analysis-setup-scroll-mode="true"] .analysis-setup-control-group--method-defaults {
   padding-left: 1rem;
+  align-content: stretch;
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--calculation-inclusion,
+.analysis-setup-panel-grid[data-analysis-setup-scroll-mode="true"] .analysis-setup-control-group--calculation-inclusion {
+  order: 1;
+  grid-column: 1;
+  grid-row: 1;
+  gap: 0.48rem;
+  padding: 0.72rem 0.74rem 0.76rem;
+  border-color: rgba(211, 219, 231, 0.92);
+  background: #ffffff;
+  box-shadow: 0 10px 22px rgba(23, 32, 44, 0.04);
+}
+
+.analysis-setup-calculation-inclusion-list {
+  display: grid;
+  gap: 0.32rem;
+  min-width: 0;
+}
+
+.analysis-setup-calculation-inclusion-note {
+  margin: 0.1rem 0 0;
+  color: #6a7586;
+  font-size: 0.7rem;
+  font-weight: 650;
+  line-height: 1.32;
 }
 
 .analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--inflation,
-.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--growth {
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--growth,
+.analysis-setup-panel-grid[data-analysis-setup-scroll-mode="true"] .analysis-setup-control-group--inflation,
+.analysis-setup-panel-grid[data-analysis-setup-scroll-mode="true"] .analysis-setup-control-group--growth {
   padding-right: 0;
   padding-left: 0;
 }
 
-.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--policy-returns {
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--policy-returns,
+.analysis-setup-panel-grid[data-analysis-setup-scroll-mode="true"] .analysis-setup-control-group--policy-returns {
   padding-right: 0.05rem;
 }
 
@@ -12256,8 +12289,13 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   grid-column: 1;
   grid-row: 1;
   align-self: center;
-  font-size: 0.7rem;
-  font-weight: 620;
+  color: #4a62bd;
+  font-family: "Inter", sans-serif;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  line-height: 1.1;
+  text-transform: uppercase;
   white-space: normal;
 }
 
@@ -13715,7 +13753,7 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
 }
 
 .analysis-setup-method-copy {
-  margin: 0;
+  margin: 0.75rem 0;
   color: #627086;
   font-size: 0.68rem;
   font-weight: 620;
@@ -13763,10 +13801,19 @@ body.clients-page[data-local-client-directory="true"] .client-directory-toolbar-
   background: #f8fafc;
 }
 
-.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--method-defaults .analysis-setup-method-row {
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--method-defaults .analysis-setup-method-row,
+.analysis-setup-panel-grid[data-analysis-setup-scroll-mode="true"] .analysis-setup-control-group--method-defaults .analysis-setup-method-row {
   padding: 0.46rem 0;
   border-color: transparent;
   background: transparent;
+}
+
+.analysis-setup-panel-grid[data-analysis-setup-current-view="calculation"] .analysis-setup-control-group--method-defaults .analysis-setup-method-list,
+.analysis-setup-panel-grid[data-analysis-setup-scroll-mode="true"] .analysis-setup-control-group--method-defaults .analysis-setup-method-list {
+  align-self: stretch;
+  align-content: start;
+  gap: 0;
+  min-height: 0;
 }
 
 .analysis-setup-method-row span {

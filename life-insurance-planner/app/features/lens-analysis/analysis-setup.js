@@ -66,6 +66,7 @@
     dimeIncomeYears: 10,
     needsSupportYears: 10,
     hlvProjectionYears: 10,
+    needsIncludeOffsetAssets: true,
     assetOffsetSource: ASSET_OFFSET_SOURCE_LEGACY,
     fallbackToLegacyOffsetAssets: true,
     source: "analysis-setup"
@@ -1463,6 +1464,9 @@
       saved.hlvProjectionYears,
       defaults.hlvProjectionYears
     );
+    nextDefaults.needsIncludeOffsetAssets = typeof saved.needsIncludeOffsetAssets === "boolean"
+      ? saved.needsIncludeOffsetAssets
+      : defaults.needsIncludeOffsetAssets;
     nextDefaults.assetOffsetSource = normalizeAssetOffsetSource(
       saved.assetOffsetSource,
       defaults.assetOffsetSource
@@ -2489,13 +2493,24 @@
       defaultProfile: DEFAULT_EXISTING_COVERAGE_ASSUMPTIONS.globalTreatmentProfile,
       defaultProfileButtons: Array.from(document.querySelectorAll("[data-analysis-coverage-profile]")),
       values: {},
+      fieldGroups: {},
       rawPreview: document.querySelector("[data-analysis-coverage-raw-preview]"),
       adjustedPreview: document.querySelector("[data-analysis-coverage-adjusted-preview]"),
       currentAssumptions: null
     };
 
     Array.from(document.querySelectorAll("[data-analysis-coverage-field]")).forEach(function (field) {
-      fields.values[field.getAttribute("data-analysis-coverage-field")] = field;
+      const fieldPath = field.getAttribute("data-analysis-coverage-field");
+      if (!fieldPath) {
+        return;
+      }
+      if (!fields.values[fieldPath]) {
+        fields.values[fieldPath] = field;
+      }
+      if (!Array.isArray(fields.fieldGroups[fieldPath])) {
+        fields.fieldGroups[fieldPath] = [];
+      }
+      fields.fieldGroups[fieldPath].push(field);
     });
 
     return fields;
@@ -2545,6 +2560,7 @@
       defaultProfileButtons: Array.from(document.querySelectorAll("[data-analysis-survivor-profile]")),
       resetButton: document.querySelector("[data-analysis-survivor-reset]"),
       values: {},
+      fieldGroups: {},
       preview: {
         netIncome: document.querySelector("[data-analysis-survivor-preview='netIncome']"),
         startDelay: document.querySelector("[data-analysis-survivor-preview='startDelay']"),
@@ -2555,7 +2571,17 @@
     };
 
     Array.from(document.querySelectorAll("[data-analysis-survivor-field]")).forEach(function (field) {
-      fields.values[field.getAttribute("data-analysis-survivor-field")] = field;
+      const fieldPath = field.getAttribute("data-analysis-survivor-field");
+      if (!fieldPath) {
+        return;
+      }
+      if (!fields.values[fieldPath]) {
+        fields.values[fieldPath] = field;
+      }
+      if (!Array.isArray(fields.fieldGroups[fieldPath])) {
+        fields.fieldGroups[fieldPath] = [];
+      }
+      fields.fieldGroups[fieldPath].push(field);
     });
 
     return fields;
@@ -2721,6 +2747,64 @@
     );
   }
 
+  function getAnalysisSetupScrollContainer(viewGrid) {
+    return viewGrid?.closest
+      ? viewGrid.closest(".analysis-setup-panel-body")
+      : null;
+  }
+
+  function getAnalysisSetupViewTarget(viewName, viewPanels) {
+    const selectedView = normalizeAnalysisSetupView(viewName);
+    return (viewPanels || []).find(function (panel) {
+      return normalizeAnalysisSetupView(panel.getAttribute("data-analysis-setup-view-panel")) === selectedView;
+    }) || null;
+  }
+
+  function scrollAnalysisSetupViewIntoPlace(viewName, viewPanels, viewGrid, options) {
+    const scrollContainer = getAnalysisSetupScrollContainer(viewGrid);
+    const targetPanel = getAnalysisSetupViewTarget(viewName, viewPanels);
+    if (!scrollContainer || !targetPanel) {
+      return;
+    }
+
+    const containerRect = scrollContainer.getBoundingClientRect();
+    const targetRect = targetPanel.getBoundingClientRect();
+    const nextTop = Math.max(0, scrollContainer.scrollTop + targetRect.top - containerRect.top);
+    if (typeof scrollContainer.scrollTo === "function") {
+      scrollContainer.scrollTo({
+        top: nextTop,
+        behavior: options?.instantScroll ? "auto" : "smooth"
+      });
+      return;
+    }
+
+    scrollContainer.scrollTop = nextTop;
+  }
+
+  function getAnalysisSetupViewFromScroll(viewPanels, viewGrid) {
+    const scrollContainer = getAnalysisSetupScrollContainer(viewGrid);
+    if (!scrollContainer) {
+      return ANALYSIS_SETUP_DEFAULT_VIEW;
+    }
+
+    const containerRect = scrollContainer.getBoundingClientRect();
+    const activationLine = containerRect.top + Math.min(160, containerRect.height * 0.34);
+    let activeView = ANALYSIS_SETUP_DEFAULT_VIEW;
+
+    ANALYSIS_SETUP_VIEW_KEYS.forEach(function (viewName) {
+      const targetPanel = getAnalysisSetupViewTarget(viewName, viewPanels);
+      if (!targetPanel) {
+        return;
+      }
+
+      if (targetPanel.getBoundingClientRect().top <= activationLine) {
+        activeView = viewName;
+      }
+    });
+
+    return activeView;
+  }
+
   function setAnalysisSetupView(viewName, viewTabs, viewPanels, viewGrid, options) {
     const selectedView = normalizeAnalysisSetupView(viewName);
 
@@ -2738,13 +2822,49 @@
     (viewPanels || []).forEach(function (panel) {
       const panelView = normalizeAnalysisSetupView(panel.getAttribute("data-analysis-setup-view-panel"));
       const isSelected = panelView === selectedView;
-      panel.hidden = !isSelected;
+      panel.hidden = false;
       panel.dataset.active = isSelected ? "true" : "false";
     });
 
     if (options?.updateHash) {
       updateAnalysisSetupViewHash(selectedView);
     }
+
+    if (options?.scrollToView) {
+      scrollAnalysisSetupViewIntoPlace(selectedView, viewPanels, viewGrid, options);
+    }
+  }
+
+  function bindAnalysisSetupViewScrollSync(viewTabs, viewPanels, viewGrid) {
+    const scrollContainer = getAnalysisSetupScrollContainer(viewGrid);
+    if (!scrollContainer || !viewPanels?.length) {
+      return;
+    }
+
+    let syncQueued = false;
+    const requestFrame = window.requestAnimationFrame || function (callback) {
+      return window.setTimeout(callback, 16);
+    };
+    const syncFromScroll = function () {
+      syncQueued = false;
+      setAnalysisSetupView(
+        getAnalysisSetupViewFromScroll(viewPanels, viewGrid),
+        viewTabs,
+        viewPanels,
+        viewGrid,
+        { updateHash: true }
+      );
+    };
+    const requestSync = function () {
+      if (syncQueued) {
+        return;
+      }
+      syncQueued = true;
+      requestFrame(syncFromScroll);
+    };
+
+    scrollContainer.addEventListener("scroll", requestSync, { passive: true });
+    window.addEventListener("resize", requestSync);
   }
 
   function setAssetDefaultProfile(fields, profile) {
@@ -2873,22 +2993,47 @@
     );
   }
 
-  function setExistingCoverageChecked(fields, fieldPath, value) {
-    const field = fields.values?.[fieldPath];
-    if (field) {
-      field.checked = Boolean(value);
+  function getExistingCoverageFieldControls(fields, fieldPath) {
+    const fieldGroup = fields.fieldGroups?.[fieldPath];
+    if (Array.isArray(fieldGroup) && fieldGroup.length) {
+      return fieldGroup;
     }
+
+    const field = fields.values?.[fieldPath];
+    return field ? [field] : [];
   }
 
-  function setExistingCoverageValue(fields, fieldPath, value) {
-    const field = fields.values?.[fieldPath];
-    if (!field) {
+  function syncExistingCoverageFieldControls(fields, fieldPath, sourceField) {
+    if (!sourceField) {
       return;
     }
 
-    field.value = value === null || value === undefined
-      ? ""
-      : formatHaircutInputValue(value);
+    getExistingCoverageFieldControls(fields, fieldPath).forEach(function (field) {
+      if (!field || field === sourceField) {
+        return;
+      }
+
+      if (field.type === "checkbox") {
+        field.checked = Boolean(sourceField.checked);
+        return;
+      }
+
+      field.value = sourceField.value;
+    });
+  }
+
+  function setExistingCoverageChecked(fields, fieldPath, value) {
+    getExistingCoverageFieldControls(fields, fieldPath).forEach(function (field) {
+      field.checked = Boolean(value);
+    });
+  }
+
+  function setExistingCoverageValue(fields, fieldPath, value) {
+    getExistingCoverageFieldControls(fields, fieldPath).forEach(function (field) {
+      field.value = value === null || value === undefined
+        ? ""
+        : formatHaircutInputValue(value);
+    });
   }
 
   function setDebtMortgageValue(fields, fieldName, value) {
@@ -2924,27 +3069,52 @@
       : formatHaircutInputValue(value);
   }
 
-  function setSurvivorSupportChecked(fields, fieldPath, value) {
-    const field = fields.values?.[fieldPath];
-    if (field) {
-      field.checked = Boolean(value);
+  function getSurvivorSupportFieldControls(fields, fieldPath) {
+    const fieldGroup = fields.fieldGroups?.[fieldPath];
+    if (Array.isArray(fieldGroup) && fieldGroup.length) {
+      return fieldGroup;
     }
+
+    const field = fields.values?.[fieldPath];
+    return field ? [field] : [];
+  }
+
+  function syncSurvivorSupportFieldControls(fields, fieldPath, sourceField) {
+    if (!sourceField) {
+      return;
+    }
+
+    getSurvivorSupportFieldControls(fields, fieldPath).forEach(function (field) {
+      if (!field || field === sourceField) {
+        return;
+      }
+
+      if (field.type === "checkbox") {
+        field.checked = Boolean(sourceField.checked);
+        return;
+      }
+
+      field.value = sourceField.value;
+    });
+  }
+
+  function setSurvivorSupportChecked(fields, fieldPath, value) {
+    getSurvivorSupportFieldControls(fields, fieldPath).forEach(function (field) {
+      field.checked = Boolean(value);
+    });
   }
 
   function setSurvivorSupportValue(fields, fieldPath, value) {
-    const field = fields.values?.[fieldPath];
-    if (!field) {
-      return;
-    }
+    getSurvivorSupportFieldControls(fields, fieldPath).forEach(function (field) {
+      if (field.tagName === "SELECT") {
+        field.value = value === true ? "true" : value === false ? "false" : "";
+        return;
+      }
 
-    if (field.tagName === "SELECT") {
-      field.value = value === true ? "true" : value === false ? "false" : "";
-      return;
-    }
-
-    field.value = value === null || value === undefined
-      ? ""
-      : formatHaircutInputValue(value);
+      field.value = value === null || value === undefined
+        ? ""
+        : formatHaircutInputValue(value);
+    });
   }
 
   function setEducationChecked(fields, fieldPath, value) {
@@ -3006,12 +3176,12 @@
   }
 
   function readExistingCoverageDraftBoolean(fields, fieldPath, fallback) {
-    const field = fields.values?.[fieldPath];
+    const field = getExistingCoverageFieldControls(fields, fieldPath)[0];
     return field ? Boolean(field.checked) : Boolean(fallback);
   }
 
   function readExistingCoverageDraftPercent(fields, fieldPath, fallback) {
-    const field = fields.values?.[fieldPath];
+    const field = getExistingCoverageFieldControls(fields, fieldPath)[0];
     const rawValue = String(field?.value || "").trim();
     const number = Number(rawValue);
     return rawValue && Number.isFinite(number)
@@ -3020,7 +3190,7 @@
   }
 
   function readExistingCoverageDraftTermGuardrail(fields, fieldPath, fallback) {
-    const field = fields.values?.[fieldPath];
+    const field = getExistingCoverageFieldControls(fields, fieldPath)[0];
     const rawValue = String(field?.value || "").trim();
     return rawValue
       ? normalizeCoverageTermGuardrailYears(rawValue, fallback)
@@ -3187,19 +3357,19 @@
   }
 
   function readSurvivorSupportDraftBoolean(fields, fieldPath, fallback) {
-    const field = fields.values?.[fieldPath];
+    const field = getSurvivorSupportFieldControls(fields, fieldPath)[0];
     return field ? Boolean(field.checked) : Boolean(fallback);
   }
 
   function readSurvivorSupportDraftBooleanOrNull(fields, fieldPath, fallback) {
-    const field = fields.values?.[fieldPath];
+    const field = getSurvivorSupportFieldControls(fields, fieldPath)[0];
     return field
       ? normalizeSurvivorSupportBoolean(field.value, null)
       : normalizeSurvivorSupportBoolean(fallback, null);
   }
 
   function readSurvivorSupportDraftPercent(fields, fieldPath, fallback) {
-    const field = fields.values?.[fieldPath];
+    const field = getSurvivorSupportFieldControls(fields, fieldPath)[0];
     const rawValue = String(field?.value || "").trim();
     const number = Number(rawValue);
     return rawValue && Number.isFinite(number)
@@ -3208,7 +3378,7 @@
   }
 
   function readSurvivorSupportDraftOptionalPercent(fields, fieldPath, fallback) {
-    const field = fields.values?.[fieldPath];
+    const field = getSurvivorSupportFieldControls(fields, fieldPath)[0];
     const rawValue = String(field?.value || "").trim();
     if (!rawValue) {
       return null;
@@ -3221,7 +3391,7 @@
   }
 
   function readSurvivorSupportDraftYears(fields, fieldPath, fallback) {
-    const field = fields.values?.[fieldPath];
+    const field = getSurvivorSupportFieldControls(fields, fieldPath)[0];
     const rawValue = String(field?.value || "").trim();
     return rawValue
       ? normalizeSurvivorSupportYears(rawValue, fallback)
@@ -3627,6 +3797,9 @@
         defaults.assetOffsetSource,
         DEFAULT_METHOD_DEFAULTS.assetOffsetSource
       );
+    }
+    if (fields.needsIncludeOffsetAssets) {
+      fields.needsIncludeOffsetAssets.checked = defaults.needsIncludeOffsetAssets !== false;
     }
   }
 
@@ -4722,7 +4895,9 @@
       fields.resetButton.disabled = Boolean(disabled);
     }
     Object.keys(fields.values || {}).forEach(function (fieldPath) {
-      fields.values[fieldPath].disabled = Boolean(disabled);
+      getSurvivorSupportFieldControls(fields, fieldPath).forEach(function (field) {
+        field.disabled = Boolean(disabled);
+      });
     });
   }
 
@@ -4756,7 +4931,9 @@
     });
 
     Object.keys(fields.values || {}).forEach(function (fieldPath) {
-      fields.values[fieldPath].disabled = Boolean(disabled);
+      getExistingCoverageFieldControls(fields, fieldPath).forEach(function (field) {
+        field.disabled = Boolean(disabled);
+      });
     });
   }
 
@@ -5295,6 +5472,9 @@
       fields.assetOffsetSource?.value,
       DEFAULT_METHOD_DEFAULTS.assetOffsetSource
     );
+    nextDefaults.needsIncludeOffsetAssets = fields.needsIncludeOffsetAssets
+      ? Boolean(fields.needsIncludeOffsetAssets.checked)
+      : DEFAULT_METHOD_DEFAULTS.needsIncludeOffsetAssets;
     nextDefaults.fallbackToLegacyOffsetAssets = true;
 
     return {
@@ -5302,6 +5482,7 @@
         dimeIncomeYears: nextDefaults.dimeIncomeYears,
         needsSupportYears: nextDefaults.needsSupportYears,
         hlvProjectionYears: nextDefaults.hlvProjectionYears,
+        needsIncludeOffsetAssets: nextDefaults.needsIncludeOffsetAssets,
         assetOffsetSource: nextDefaults.assetOffsetSource,
         fallbackToLegacyOffsetAssets: nextDefaults.fallbackToLegacyOffsetAssets,
         lastUpdatedAt: new Date().toISOString(),
@@ -6987,11 +7168,24 @@
     const viewTabs = Array.from(document.querySelectorAll("[data-analysis-setup-view-tab]"));
     const viewPanels = Array.from(document.querySelectorAll("[data-analysis-setup-view-panel]"));
     const viewGrid = document.querySelector("[data-analysis-setup-view-grid]");
-    const syncAnalysisSetupViewFromHash = function () {
-      setAnalysisSetupView(getAnalysisSetupViewFromHash(), viewTabs, viewPanels, viewGrid);
+    const syncAnalysisSetupViewFromHash = function (options) {
+      setAnalysisSetupView(
+        getAnalysisSetupViewFromHash(),
+        viewTabs,
+        viewPanels,
+        viewGrid,
+        {
+          scrollToView: Boolean(options?.scrollToView),
+          instantScroll: Boolean(options?.instantScroll)
+        }
+      );
     };
 
-    syncAnalysisSetupViewFromHash();
+    syncAnalysisSetupViewFromHash({
+      scrollToView: Boolean(window.location.hash),
+      instantScroll: true
+    });
+    bindAnalysisSetupViewScrollSync(viewTabs, viewPanels, viewGrid);
     viewTabs.forEach(function (tab) {
       tab.addEventListener("click", function () {
         setAnalysisSetupView(
@@ -6999,11 +7193,13 @@
           viewTabs,
           viewPanels,
           viewGrid,
-          { updateHash: true }
+          { updateHash: true, scrollToView: true }
         );
       });
     });
-    window.addEventListener("hashchange", syncAnalysisSetupViewFromHash);
+    window.addEventListener("hashchange", function () {
+      syncAnalysisSetupViewFromHash({ scrollToView: true });
+    });
 
     populateFields(fields, getInflationAssumptions(linkedRecord), sliders);
     populateMethodFields(methodFields, getMethodDefaults(linkedRecord));
@@ -7133,6 +7329,10 @@
     });
 
     methodFields.assetOffsetSource?.addEventListener("change", function () {
+      markUnsaved();
+    });
+
+    methodFields.needsIncludeOffsetAssets?.addEventListener("change", function () {
       markUnsaved();
     });
 
@@ -7266,8 +7466,8 @@
     });
 
     Object.keys(existingCoverageFields.values || {}).forEach(function (fieldPath) {
-      const field = existingCoverageFields.values[fieldPath];
-      if (!field) {
+      const fieldsForPath = getExistingCoverageFieldControls(existingCoverageFields, fieldPath);
+      if (!fieldsForPath.length) {
         return;
       }
 
@@ -7277,27 +7477,31 @@
         markUnsaved();
       };
 
-      field.addEventListener("input", function () {
-        if (fieldPath === "individualTermTreatment.excludeIfExpiresWithinYears") {
-          const sanitizedValue = sanitizeNumericTextValue(field.value);
-          if (field.value !== sanitizedValue) {
-            field.value = sanitizedValue;
+      fieldsForPath.forEach(function (field) {
+        field.addEventListener("input", function () {
+          if (fieldPath === "individualTermTreatment.excludeIfExpiresWithinYears") {
+            const sanitizedValue = sanitizeNumericTextValue(field.value);
+            if (field.value !== sanitizedValue) {
+              field.value = sanitizedValue;
+            }
           }
-        }
-        syncCoverageChange();
-      });
+          syncExistingCoverageFieldControls(existingCoverageFields, fieldPath, field);
+          syncCoverageChange();
+        });
 
-      field.addEventListener("change", function () {
-        const rawValue = String(field.value || "").trim();
-        const number = Number(rawValue);
-        const isTermGuardrail = fieldPath === "individualTermTreatment.excludeIfExpiresWithinYears";
-        const maxValue = isTermGuardrail
-          ? MAX_COVERAGE_TERM_GUARDRAIL_YEARS
-          : MAX_COVERAGE_TREATMENT_PERCENT;
-        if (field.type !== "checkbox" && rawValue && Number.isFinite(number) && number >= 0 && number <= maxValue) {
-          field.value = formatHaircutInputValue(number);
-        }
-        syncCoverageChange();
+        field.addEventListener("change", function () {
+          const rawValue = String(field.value || "").trim();
+          const number = Number(rawValue);
+          const isTermGuardrail = fieldPath === "individualTermTreatment.excludeIfExpiresWithinYears";
+          const maxValue = isTermGuardrail
+            ? MAX_COVERAGE_TERM_GUARDRAIL_YEARS
+            : MAX_COVERAGE_TREATMENT_PERCENT;
+          if (field.type !== "checkbox" && rawValue && Number.isFinite(number) && number >= 0 && number <= maxValue) {
+            field.value = formatHaircutInputValue(number);
+          }
+          syncExistingCoverageFieldControls(existingCoverageFields, fieldPath, field);
+          syncCoverageChange();
+        });
       });
     });
 
@@ -7392,8 +7596,8 @@
     });
 
     Object.keys(survivorSupportFields.values || {}).forEach(function (fieldPath) {
-      const field = survivorSupportFields.values[fieldPath];
-      if (!field) {
+      const fieldsForPath = getSurvivorSupportFieldControls(survivorSupportFields, fieldPath);
+      if (!fieldsForPath.length) {
         return;
       }
 
@@ -7403,43 +7607,47 @@
         markUnsaved();
       };
 
-      field.addEventListener("input", function () {
-        if (
-          fieldPath === "supportTreatment.supportDurationYears"
-          || fieldPath === "survivorScenario.survivorIncomeStartDelayMonths"
-          || fieldPath === "survivorScenario.survivorRetirementHorizonYears"
-        ) {
-          const sanitizedValue = sanitizeNumericTextValue(field.value);
-          if (field.value !== sanitizedValue) {
-            field.value = sanitizedValue;
+      fieldsForPath.forEach(function (field) {
+        field.addEventListener("input", function () {
+          if (
+            fieldPath === "supportTreatment.supportDurationYears"
+            || fieldPath === "survivorScenario.survivorIncomeStartDelayMonths"
+            || fieldPath === "survivorScenario.survivorRetirementHorizonYears"
+          ) {
+            const sanitizedValue = sanitizeNumericTextValue(field.value);
+            if (field.value !== sanitizedValue) {
+              field.value = sanitizedValue;
+            }
           }
-        }
-        syncSurvivorSupportChange();
-      });
+          syncSurvivorSupportFieldControls(survivorSupportFields, fieldPath, field);
+          syncSurvivorSupportChange();
+        });
 
-      field.addEventListener("change", function () {
-        const rawValue = String(field.value || "").trim();
-        const number = Number(rawValue);
-        const isPercentField = fieldPath === "survivorIncomeTreatment.maxReliancePercent"
-          || fieldPath === "survivorScenario.expectedSurvivorWorkReductionPercent"
-          || fieldPath === "survivorScenario.survivorEarnedIncomeGrowthRatePercent"
-          || fieldPath === "riskFlags.highRelianceThresholdPercent";
-        const isOptionalYearsField = fieldPath === "supportTreatment.supportDurationYears"
-          || fieldPath === "survivorScenario.survivorIncomeStartDelayMonths"
-          || fieldPath === "survivorScenario.survivorRetirementHorizonYears";
+        field.addEventListener("change", function () {
+          const rawValue = String(field.value || "").trim();
+          const number = Number(rawValue);
+          const isPercentField = fieldPath === "survivorIncomeTreatment.maxReliancePercent"
+            || fieldPath === "survivorScenario.expectedSurvivorWorkReductionPercent"
+            || fieldPath === "survivorScenario.survivorEarnedIncomeGrowthRatePercent"
+            || fieldPath === "riskFlags.highRelianceThresholdPercent";
+          const isOptionalYearsField = fieldPath === "supportTreatment.supportDurationYears"
+            || fieldPath === "survivorScenario.survivorIncomeStartDelayMonths"
+            || fieldPath === "survivorScenario.survivorRetirementHorizonYears";
 
-        if (
-          field.type !== "checkbox"
-          && field.tagName !== "SELECT"
-          && rawValue
-          && Number.isFinite(number)
-          && number >= MIN_SURVIVOR_SUPPORT_YEARS
-          && (!isPercentField || number <= MAX_SURVIVOR_SUPPORT_PERCENT)
-          && (isPercentField || isOptionalYearsField)
-        ) {
-          field.value = formatHaircutInputValue(number);
-        }
-        syncSurvivorSupportChange();
+          if (
+            field.type !== "checkbox"
+            && field.tagName !== "SELECT"
+            && rawValue
+            && Number.isFinite(number)
+            && number >= MIN_SURVIVOR_SUPPORT_YEARS
+            && (!isPercentField || number <= MAX_SURVIVOR_SUPPORT_PERCENT)
+            && (isPercentField || isOptionalYearsField)
+          ) {
+            field.value = formatHaircutInputValue(number);
+          }
+          syncSurvivorSupportFieldControls(survivorSupportFields, fieldPath, field);
+          syncSurvivorSupportChange();
+        });
       });
     });
 

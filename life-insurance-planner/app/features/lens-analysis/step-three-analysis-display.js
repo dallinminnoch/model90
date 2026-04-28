@@ -47,6 +47,24 @@
     }).format(number);
   }
 
+  function formatPercent(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return "Not set";
+    }
+
+    return `${number.toFixed(2)}%`;
+  }
+
+  function formatYears(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return "Not set";
+    }
+
+    return number === 1 ? "1 year" : `${number} years`;
+  }
+
   function formatDisplayValue(value) {
     if (typeof value === "boolean") {
       return value ? "Included" : "Excluded";
@@ -57,6 +75,17 @@
     }
 
     return String(value);
+  }
+
+  function findTrace(result, key) {
+    const trace = Array.isArray(result?.trace) ? result.trace : [];
+    return trace.find(function (entry) {
+      return entry && entry.key === key;
+    }) || null;
+  }
+
+  function getTraceInput(trace, inputKey) {
+    return isPlainObject(trace?.inputs) ? trace.inputs[inputKey] : undefined;
   }
 
   function normalizeWarningMessage(warning) {
@@ -164,6 +193,51 @@
           return `<li><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(formatDisplayValue(item.value))}</strong></li>`;
         }).join("")}
       </ul>
+    `;
+  }
+
+  function formatInflationRateLabel(ratePercent, rateSource) {
+    const sourceLabel = String(rateSource || "").includes("householdExpenseInflationRatePercent")
+      ? "household expense inflation"
+      : "general inflation";
+
+    return `${formatPercent(ratePercent)} ${sourceLabel}`;
+  }
+
+  function renderNeedsInflationDetail(needsResult) {
+    const inflationTrace = findTrace(needsResult, "essentialSupportInflation");
+    if (!inflationTrace) {
+      return "";
+    }
+
+    const inflationApplied = getTraceInput(inflationTrace, "inflationApplied") === true;
+    const currentDollarTotal = getTraceInput(inflationTrace, "currentDollarTotal");
+    const projectedTotal = getTraceInput(inflationTrace, "projectedTotal");
+    const durationYears = getTraceInput(inflationTrace, "durationYears");
+
+    const rows = inflationApplied
+      ? [
+          { label: "Inflation status", value: "Applied" },
+          { label: "Current-dollar support", value: formatCurrency(currentDollarTotal) },
+          { label: "Projected support", value: formatCurrency(projectedTotal) },
+          {
+            label: "Inflation rate",
+            value: formatInflationRateLabel(
+              getTraceInput(inflationTrace, "ratePercent"),
+              getTraceInput(inflationTrace, "rateSource")
+            )
+          },
+          { label: "Projection duration", value: formatYears(durationYears) }
+        ]
+      : [
+          { label: "Inflation status", value: "Disabled" },
+          { label: "Current-dollar support used", value: formatCurrency(currentDollarTotal) },
+          { label: "Projection duration", value: formatYears(durationYears) }
+        ];
+
+    return `
+      <div class="analysis-result-eyebrow">Essential Support Projection</div>
+      ${renderAssumptionList(rows)}
     `;
   }
 
@@ -280,6 +354,7 @@
         { label: "Transition Needs", value: components.transitionNeeds },
         { label: "Discretionary Support", value: components.discretionarySupport }
       ])}
+      ${renderNeedsInflationDetail(needsResult)}
       <div class="analysis-result-eyebrow">Assumptions</div>
       ${renderAssumptionList([
         { label: "Support duration years", value: assumptions.needsSupportDurationYears },
